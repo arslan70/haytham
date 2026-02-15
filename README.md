@@ -7,7 +7,7 @@
 
 Going from "I have a startup idea" to "I have a plan worth building" traditionally requires weeks of planning, domain expertise, and significant capital — with a high risk of building the wrong thing.
 
-Haytham compresses this into an evidence-based process. Twenty-one specialist agents handle the research, analysis, scoring, and generation — some working individually, others coordinating in multi-agent swarms. Humans make the decisions at every phase boundary. The output is a complete specification that any developer or coding agent can execute.
+Haytham compresses this into an evidence-based process. Specialist agents handle the research, analysis, scoring, and generation — some working individually, others coordinating in multi-agent swarms. Humans make the decisions at every phase boundary. The output is a complete specification that any developer or coding agent can execute.
 
 If the idea doesn't hold up, the system says NO-GO and tells you why. Only validated ideas proceed to specification.
 
@@ -22,16 +22,16 @@ flowchart TD
     idea --> P1
 
     subgraph genesis["Genesis — What's built today"]
-        P1["Should this be built?"] --> G1{{"👤 Founder Review"}}
+        P1["Should this be built?"] -->|Validation Report| G1{{"👤 Founder Review"}}
         G1 -->|GO| P2["What exactly?"]
-        P2 --> G2{{"👤 Product Owner"}}
-        G2 --> P3["How to build it?"]
-        P3 --> G3{{"👤 Architect Review"}}
-        G3 --> P4["What are the tasks?"]
+        P2 -->|MVP Spec| G2{{"👤 Product Owner"}}
+        G2 -->|APPROVED| P3["How to build it?"]
+        P3 -->|Architecture| G3{{"👤 Architect Review"}}
+        G3 -->|APPROVED| P4["What are the tasks?"]
     end
 
     G1 -.->|NO-GO| stop(("✋ Stop"))
-    P4 --> backlog["📋 Implementation-Ready Backlog"]
+    P4 -->|Stories| backlog["📋 Implementation-Ready Backlog"]
 
     backlog -.-> evolution["🔮 Evolution · Change Request → Updated System"]
     evolution -.-> sentience["🔮 Sentience · Telemetry → Self-Improvement"]
@@ -40,7 +40,7 @@ flowchart TD
     style sentience fill:#f5f5f5,stroke:#ccc,color:#999
 ```
 
-Twenty-one specialist agents run the analysis across four phases. A human approval gate separates each phase — the system can say NO-GO at the first gate if the idea doesn't hold up. The aim is a single control plane for the full software lifecycle. See [VISION.md](VISION.md).
+Specialist agents run the analysis across four phases. A human approval gate separates each phase — the system can say NO-GO at the first gate if the idea doesn't hold up. The aim is a single control plane for the full software lifecycle. See [VISION.md](VISION.md).
 
 ## Quick Start
 
@@ -49,10 +49,10 @@ You need Python 3.11+ and [uv](https://docs.astral.sh/uv/getting-started/install
 ```bash
 git clone https://github.com/arslan70/haytham.git
 cd haytham
-uv sync --extra anthropic
+uv sync --extra bedrock
 
 cp .env.example .env
-# Edit .env → set LLM_PROVIDER=anthropic and ANTHROPIC_API_KEY
+# Edit .env → set LLM_PROVIDER=bedrock and configure AWS credentials
 
 make run
 # Open http://localhost:8501
@@ -74,9 +74,7 @@ Feed Haytham a startup idea. What comes out:
 
 ## How It Works
 
-Four phases, each answering one question: *Should this be built? What exactly? How? What are the tasks?* A human approval gate separates each phase — nothing proceeds without your sign-off. Twenty-one specialist agents handle the analysis, research, scoring, and generation across these phases. A concept anchor preserves the original idea's identity through the entire pipeline, preventing the "telephone problem" where multi-agent handoffs silently genericize distinctive features.
-
-See [How It Works](docs/how-it-works.md) for the full walkthrough.
+Four phases, each answering one question: *Should this be built? What exactly? How? What are the tasks?* A human approval gate separates each phase — nothing proceeds without your sign-off. See [How It Works](docs/how-it-works.md) for the full walkthrough.
 
 ## Example
 
@@ -92,11 +90,7 @@ Validated end-to-end with a real startup idea:
 
 ## Technology
 
-- **Workflow Engine**: [Burr](https://github.com/dagworks-inc/burr) — A full pipeline takes 21 agents across four phases. If it fails at stage 12, one-shot systems lose everything. Burr checkpoints after every stage, so you resume where you left off. It also enables the human approval gates — pause the pipeline, review, approve or reject, then continue.
-- **Agent Framework**: [Strands Agents SDK](https://github.com/strands-agents/sdk-python) — Agents need structured output, tool use, and the ability to swap LLM providers without rewriting agent code. Strands provides a single agent interface across all providers.
-- **LLM Providers**: Anthropic, AWS Bedrock, OpenAI, Ollama — no vendor lock-in. Use a commercial API or run locally for free with Ollama.
-- **UI**: [Streamlit](https://streamlit.io/) — each phase output is a conversation. Streamlit renders the structured outputs and provides the approval gates where humans make decisions.
-- **Package Manager**: [uv](https://docs.astral.sh/uv/) — fast Python dependency management and virtual environments.
+[Burr](https://github.com/dagworks-inc/burr) (workflow engine), [Strands Agents SDK](https://github.com/strands-agents/sdk-python) (agent framework), [Streamlit](https://streamlit.io/) (UI), [uv](https://docs.astral.sh/uv/) (package manager). Supports Anthropic, AWS Bedrock, OpenAI, and Ollama — no vendor lock-in. See [Technology](docs/technology.md) for the full rationale.
 
 ## Development
 

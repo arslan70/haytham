@@ -141,7 +141,7 @@ Every story links to the capability it implements (`implements:CAP-F-001`), the 
 
 ## Agents at a Glance
 
-Twenty-one specialist agents, some working individually and others coordinating in multi-agent swarms. Swarm sub-agents are indented below their parent.
+Specialist agents, some working individually and others coordinating in multi-agent swarms. Swarm sub-agents are indented below their parent.
 
 | # | Agent | Phase | Responsibility | Frameworks |
 |---|-------|-------|----------------|------------|
@@ -188,20 +188,8 @@ Each stage output is a conversation. You can discuss the output with the system,
 
 ### Cost-Aware Design
 
-Running 21 agents with web search on a commercial API has real cost. Three mechanisms keep it manageable:
-
-**Three model tiers.** Not every agent needs the most capable model. Agents doing complex cross-referencing — validation scoring, risk assessment — use a reasoning-tier model. Agents doing substantial generation — market analysis, story writing — use a heavy-tier model. Simple classification and formatting tasks — anchor extraction, idea gatekeeper — use a lightweight model. Each tier maps to a configurable model ID, so you control the cost/quality trade-off per deployment.
-
-**Structured output.** Fifty-three Pydantic models constrain LLM responses to required fields — no wasted tokens on prose the system doesn't need. The agent returns a typed JSON object, not a free-form essay that then needs parsing. The trade-off: structured output works well for clean data structures, but for complex multi-step processes like validation scoring (which builds a scorecard incrementally through tool calls), rigid schemas are too constraining. The scorer uses tool functions instead, with each tool enforcing evidence quality as it records results.
-
-**Web search fallback chain.** Agents that need real-time data (market intelligence, competitor analysis) search the web through a provider chain: DuckDuckGo (free, no API key) is tried first, falling back to Brave Search or Tavily if it fails. A hard session-wide limit (default: 20 searches across the entire pipeline) prevents runaway loops, and agents are told in their prompts that searches are limited so they plan queries carefully. See [ADR-014](adr/ADR-014-web-search-fallback-chain.md).
+Running many agents with web search on a commercial API has real cost. Three mechanisms keep it manageable: **three model tiers** (REASONING / HEAVY / LIGHT — see [Architecture Overview](architecture/overview.md#model-tiers)), **structured output** (Pydantic models constrain LLM responses to required fields), and a **web search fallback chain** (DuckDuckGo → Brave → Tavily with session-wide limits — see [Technology](technology.md#web-search) and [ADR-014](adr/ADR-014-web-search-fallback-chain.md)).
 
 ### A Control Plane for Execution Agents
 
-Haytham's value extends beyond its own internal agents. The specification it produces — traced capabilities, architecture decisions, ordered stories — is a universal execution contract. Any agent that accepts structured work items can execute against it.
-
-**Planned:** The [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../docs/adr/ADR-021-design-ux-workflow-stage.md)) will demonstrate this. A `ux_designer` agent will connect to Stitch's MCP endpoint to generate UI screens, participating in the same workflow engine, approval gates, and traceability chains as every internal agent.
-
-**The broader pattern:** Hosted coding agents (Devin, Amazon Q Developer Agent, Google Jules, Claude Code) can receive traced stories with full specification context. Cloud-native service agents (AWS Bedrock Agents, Google Vertex AI Agents) can receive infrastructure requirements derived from architecture decisions. As more providers expose agent interfaces, the same integration path applies — without architectural changes. What varies is the executor; what stays constant is the specification-driven context and traceability.
-
-See the [Vision](../VISION.md#the-control-plane-orchestrating-execution-agents) for how this shapes each milestone.
+The specification Haytham produces — traced capabilities, architecture decisions, ordered stories — is a universal execution contract. Any agent that accepts structured work items can execute against it: coding agents, design services, cloud service agents, or human developers. See the [Vision](../VISION.md#the-control-plane-orchestrating-execution-agents) for how this shapes each milestone and the [Roadmap](roadmap.md) for planned integrations.
