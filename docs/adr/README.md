@@ -35,7 +35,7 @@ This directory contains Architecture Decision Records (ADRs) for Haytham. Each A
 | [ADR-010](ADR-010-stories-export.md) | Stories Export | Accepted |
 | [ADR-011](ADR-011-story-effort-estimation.md) | Story Effort Estimation | Accepted |
 | [ADR-012](ADR-012-visual-roadmap.md) | Visual Roadmap | Accepted |
-| [ADR-015](ADR-015-google-stitch-mcp-integration.md) | Google Stitch MCP Integration | Deferred |
+| [ADR-015](ADR-015-google-stitch-mcp-integration.md) | Google Stitch MCP Integration | Deferred (approach refined in ADR-021) |
 
 ### UX
 

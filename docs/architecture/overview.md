@@ -189,6 +189,8 @@ For full details, see [Scoring Pipeline](scoring-pipeline.md).
 
 ## Project Structure
 
+Simplified view — showing key components. The full package includes additional modules for context management, exporters, feedback, and more.
+
 ```
 haytham/
 ├── agents/                  # AI agents

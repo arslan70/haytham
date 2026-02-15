@@ -149,16 +149,15 @@ Twenty-one specialist agents, some working individually and others coordinating 
 | 10 | Validation Narrator | Phase 1 | Generate prose report from scorer results | — |
 | 11 | Validation Summary | Phase 1 | Merge scorer + narrator into final verdict | Deterministic merge with verdict fix |
 | 12 | MVP Scope (swarm) | Phase 2 | Define focused first version | Shape Up (appetite-based scoping) |
-| | ↳ Scope Boundaries | Phase 2 | Define in/out-of-scope boundaries | — |
-| | ↳ Scope Core | Phase 2 | Identify core value proposition and user segment | — |
-| | ↳ Scope Flows | Phase 2 | Define primary user flows | — |
-| 15 | MVP Specification | Phase 2 | Assemble final MVP spec from swarm outputs | — |
-| 16 | Capability Model | Phase 2 | Map functional and non-functional requirements | Capability mapping, traceability matrix |
-| 17 | System Traits | Phase 2 | Classify system type for downstream decisions | 8-trait system classification |
-| 18 | Build/Buy Analyzer | Phase 3 | Decide build vs buy per capability | 6-dimension weighted scoring |
-| 19 | Architecture Decisions | Phase 3 | Make key technical decisions | — |
-| 20 | Story Generation | Phase 4 | Create user stories per capability | Agile user stories, Gherkin/BDD, ER modeling |
-| 21 | Story Validation + Dependency Ordering | Phase 4 | Verify coverage, resolve dependencies | INVEST criteria, DAG ordering, 6-layer architecture |
+| 13 | ↳ Scope Boundaries | Phase 2 | Define in/out-of-scope boundaries | — |
+| 14 | ↳ Scope Core | Phase 2 | Identify core value proposition and user segment | — |
+| 15 | ↳ Scope Flows | Phase 2 | Define primary user flows | — |
+| 16 | MVP Specification | Phase 2 | Assemble final MVP spec from swarm outputs | — |
+| 17 | Capability Model | Phase 2 | Map functional and non-functional requirements | Capability mapping, traceability matrix |
+| 18 | System Traits | Phase 2 | Classify system type for downstream decisions | 8-trait system classification |
+| 19 | Build/Buy Analyzer | Phase 3 | Decide build vs buy per capability | 6-dimension weighted scoring |
+| 20 | Architecture Decisions | Phase 3 | Make key technical decisions | — |
+| 21 | Story Generation | Phase 4 | Create user stories with validation and dependency ordering | Agile user stories, Gherkin/BDD, INVEST, DAG ordering |
 
 ---
 

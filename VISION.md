@@ -10,7 +10,7 @@ The journey has three milestones:
 
 | Milestone | Name | Input | Output | Status |
 |-----------|------|-------|--------|--------|
-| M1 | **Genesis** | A startup idea | A validated, implementation-ready specification | IN PROGRESS |
+| M1 | **Genesis** | A startup idea | A validated, implementation-ready specification | Phases 1–4 complete |
 | M2 | **Evolution** | System + change request | Updated system with full traceability | PLANNED |
 | M3 | **Sentience** | Running system + telemetry | Continuous autonomous improvement | VISION |
 
@@ -125,9 +125,9 @@ That is Haytham's role. Not a generic agent router, but a **specification-driven
 
 ### The Pattern in Practice
 
-Haytham already has a concrete example. [Google Stitch](https://stitch.withgoogle.com/) exposes UI generation capabilities through an official MCP endpoint (`stitch.googleapis.com/mcp`). Rather than generating code that calls a design API, Haytham's `ux_designer` agent connects to Stitch via the Strands `mcp_client` tool, discovers its available operations, generates UI screens for each capability, and extracts code in the architecture's chosen framework — all within a single agent turn.
+A planned example illustrates this. [Google Stitch](https://stitch.withgoogle.com/) exposes UI generation capabilities through an official MCP endpoint (`stitch.googleapis.com/mcp`). The planned `ux_designer` agent (see [ADR-021](docs/adr/ADR-021-design-ux-workflow-stage.md)) will connect to Stitch via the Strands `mcp_client` tool, discover its available operations, generate UI screens for each capability, and extract code in the architecture's chosen framework — all within a single agent turn.
 
-The agent doesn't call a fixed API. It connects to a service that exposes tools, reasons about which tools to call and in what order, and adapts its approach based on the results. This is what "service as agent" looks like in practice: not a chatbot wrapper around an API, but an MCP-native service whose capabilities are discoverable and composable by any agent that speaks the protocol.
+The agent won't call a fixed API. It will connect to a service that exposes tools, reason about which tools to call and in what order, and adapt its approach based on the results. This is what "service as agent" looks like in practice: not a chatbot wrapper around an API, but an MCP-native service whose capabilities are discoverable and composable by any agent that speaks the protocol.
 
 The same pattern extends to every execution boundary. The specification is the common interface — whether the executor is an agent or a human, they receive the same traced context:
 

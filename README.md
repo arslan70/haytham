@@ -92,7 +92,7 @@ Validated end-to-end with a real startup idea:
 
 ## Technology
 
-- **Workflow Engine**: [Burr](https://github.com/dagworks-inc/burr) — A full pipeline takes 16 agents across four phases. If it fails at stage 12, one-shot systems lose everything. Burr checkpoints after every stage, so you resume where you left off. It also enables the human approval gates — pause the pipeline, review, approve or reject, then continue.
+- **Workflow Engine**: [Burr](https://github.com/dagworks-inc/burr) — A full pipeline takes 21 agents across four phases. If it fails at stage 12, one-shot systems lose everything. Burr checkpoints after every stage, so you resume where you left off. It also enables the human approval gates — pause the pipeline, review, approve or reject, then continue.
 - **Agent Framework**: [Strands Agents SDK](https://github.com/strands-agents/sdk-python) — Agents need structured output, tool use, and the ability to swap LLM providers without rewriting agent code. Strands provides a single agent interface across all providers.
 - **LLM Providers**: Anthropic, AWS Bedrock, OpenAI, Ollama — no vendor lock-in. Use a commercial API or run locally for free with Ollama.
 - **UI**: [Streamlit](https://streamlit.io/) — each phase output is a conversation. Streamlit renders the structured outputs and provides the approval gates where humans make decisions.

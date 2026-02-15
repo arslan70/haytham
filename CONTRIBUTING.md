@@ -187,7 +187,7 @@ make run
 The codebase should be lint-clean. If you see issues, run the full fix and format cycle:
 
 ```bash
-uv run ruff check . --fix && uv run ruff format .
+uv run ruff check haytham/ --fix && uv run ruff format haytham/
 ```
 
 ---
