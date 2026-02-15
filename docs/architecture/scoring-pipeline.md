@@ -9,9 +9,9 @@ The validation scoring pipeline is how Haytham decides whether a startup idea is
 ```mermaid
 flowchart TD
     idea["Your startup idea"]
-    anchor["Lock in the core concept\n(so it doesn't drift later)"]
+    anchor["Lock in the core concept"]
     expand["Expand into a structured description"]
-    research["Research market and competitors\n(in parallel)"]
+    research["Research market and competitors"]
     risk["Assess the risks"]
     pivot["Generate pivot alternatives"]
 
@@ -21,13 +21,13 @@ flowchart TD
 
     subgraph scoring ["Scoring: where the verdict happens"]
         direction TB
-        score["Score the idea on six dimensions\nand check for deal-breakers"]
-        report["Write a human-readable report\n(summary, findings, next steps)"]
-        merge["Combine scores + report\ninto the final output"]
+        score["Score the idea on six dimensions and check for deal-breakers"]
+        report["Write a human-readable report"]
+        merge["Combine scores and report into the final output"]
         score --> report --> merge
     end
 
-    scoring --> checks["Run six sanity checks\nto catch inconsistencies"]
+    scoring --> checks["Run six sanity checks"]
 ```
 
 ## Scorer Agent
