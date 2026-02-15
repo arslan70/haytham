@@ -1,140 +1,134 @@
 # Scoring & Validation Pipeline
 
-> **Contributor reference.** This document describes the internals of the validation scoring pipeline. For a higher-level overview, see [How It Works — Phase 1](../how-it-works.md#phase-1-should-this-be-built).
+The validation scoring pipeline is how Haytham decides whether a startup idea is worth building. After researching the market, competitors, and risks, this pipeline weighs all the evidence and produces a GO / NO-GO / PIVOT verdict. It runs in three steps: a **scorer** grades the idea on multiple dimensions, a **narrator** writes a human-readable report from those grades, and a **merge** step combines them into the final output.
 
-Reference documentation for the validation-summary stage: scorer → narrator → merge.
+> For a higher-level overview, see [How It Works: Phase 1](../how-it-works.md#phase-1-should-this-be-built).
 
-## Data Flow
+## How the pieces fit together
 
-```
-User Input
-  ↓
-Concept Anchor (anchor_extractor)
-  ↓
-Idea Analysis (concept_expansion)
-  ↓
-Market Context (market_intelligence → competitor_analysis)
-  ↓
-Risk Assessment (startup_validator)
-  ↓  [optional]
-Pivot Strategy (pivot_strategy)
-  ↓
-┌─────────────────────────────────────┐
-│ Validation Summary (sequential)     │
-│                                     │
-│  1. Scorer (REASONING tier)         │
-│     → knockouts, dim scores,        │
-│       counter-signals, verdict      │
-│                                     │
-│  2. Narrator (HEAVY tier)           │
-│     → exec summary, lean canvas,    │
-│       findings, next steps          │
-│                                     │
-│  3. Merge (deterministic)           │
-│     → ValidationSummaryOutput JSON  │
-└─────────────────────────────────────┘
-  ↓
-Post-Validators (6 cross-checks)
+```mermaid
+flowchart TD
+    idea["Your startup idea"]
+    anchor["Lock in the core concept\n(so it doesn't drift later)"]
+    expand["Expand into a structured description"]
+    research["Research market and competitors\n(in parallel)"]
+    risk["Assess the risks"]
+    pivot["Generate pivot alternatives"]
+
+    idea --> anchor --> expand --> research --> risk
+    risk -->|"Risk is HIGH"| pivot --> scoring
+    risk -->|"Risk is MEDIUM or LOW"| scoring
+
+    subgraph scoring ["Scoring: where the verdict happens"]
+        direction TB
+        score["Score the idea on six dimensions\nand check for deal-breakers"]
+        report["Write a human-readable report\n(summary, findings, next steps)"]
+        merge["Combine scores + report\ninto the final output"]
+        score --> report --> merge
+    end
+
+    scoring --> checks["Run six sanity checks\nto catch inconsistencies"]
 ```
 
 ## Scorer Agent
 
-**Model tier**: REASONING (strongest model for cross-referencing and conditional logic)
+The scorer reads the full output from every step shown in the flowchart above (the concept description, market research, competitor analysis, risk assessment, and pivot strategy if one was generated). It builds a scorecard one step at a time. It works through five steps in order, each recording a piece of the final assessment.
 
-The scorer receives full untruncated upstream context inline in its query (not via the generic `_build_context_summary()` which truncates). It records assessments step-by-step using 5 tool functions.
+### How the scorer works, step by step
 
-### Scorer Tool Functions
+| Step | What happens |
+|------|-------------|
+| Check deal-breakers | Is the problem real? Can you reach customers? Any legal or ethical blockers? If any one fails, the idea is rejected immediately. |
+| Capture red flags | Record any evidence that argues against the idea. For each piece of bad news, note which scores it threatens and explain why those scores should (or shouldn't) change. |
+| Score six dimensions | Rate the idea on six dimensions (listed below). Each score must be backed by specific evidence from an earlier stage, and the same evidence can't be reused for multiple scores. |
+| Summarize risk | Record the overall risk level and how well the claims held up: how many were backed by outside sources, and whether any critical assumptions were contradicted. |
+| Compute verdict | Add it all up. Apply penalties for unaddressed red flags, cap scores when risk is high, and produce the final GO / NO-GO / PIVOT recommendation with an overall score. |
 
-All tools operate on a module-level `_scorecard` accumulator. Lifecycle is managed by `clear_scorecard()` / `get_scorecard()` in the stage executor.
+### The six scored dimensions
 
-| # | Tool | Signature | Behavior |
-|---|------|-----------|----------|
-| 1 | `record_knockout` | `(criterion, result, evidence)` | Appends to `_scorecard["knockouts"]`. Call 3× (Problem Reality, Channel Access, Regulatory/Ethical). |
-| 2 | `record_counter_signal` | `(signal, source, affected_dimensions, evidence_cited, why_score_holds, what_would_change_score)` | Validates `source` against `_VALID_SOURCES`. Appends to `_scorecard["counter_signals"]`. |
-| 3 | `record_dimension_score` | `(dimension, score, evidence)` | Validates evidence quality (rubric phrase rejection, source tag for score ≥ 4, evidence dedup). Appends to `_scorecard["dimensions"]`. |
-| 4 | `set_risk_and_evidence` | `(risk_level, external_supported, external_total, contradicted_critical)` | Sets `_scorecard["risk_level"]` and `_scorecard["evidence_quality"]`. Call once. |
-| 5 | `compute_verdict` | `()` | Reads accumulated scorecard, delegates to `evaluate_recommendation()`. Returns JSON with verdict, composite, warnings, flags. |
+- **Problem Severity** - How painful is the problem?
+- **Market Opportunity** - How big is the market?
+- **Competitive Differentiation** - What sets this apart?
+- **Execution Feasibility** - Can this actually be built?
+- **Revenue Viability** - Will people pay?
+- **Adoption & Engagement Risk** - Will people switch to this?
 
-### Evidence Validation Gates
+### How evidence quality is checked
 
-Applied inside `record_dimension_score()` before appending:
+Before a dimension score is accepted, three checks run:
 
-1. **Rubric phrase rejection** (all scores): Evidence containing verbatim rubric text (e.g., "users pay for workarounds today", "strong domain knowledge") is REJECTED. List in `_RUBRIC_PHRASES`.
+1. **No copy-pasting the rubric.** If the evidence just repeats the scoring criteria word-for-word (e.g., "users pay for workarounds today"), it's rejected. The scorer must cite actual findings, not parrot the grading scale.
 
-2. **Source tag validation** (score ≥ 4): Evidence must contain `(source: stage_name)` with a valid stage from `_VALID_SOURCES`: `idea_analysis`, `market_context`, `risk_assessment`, `concept_anchor`, `pivot_strategy`, `founder_context`.
+2. **High scores need a source.** Any score of 4 or above must point to a specific earlier stage (market research, competitor analysis, risk assessment, etc.) that produced the evidence. You can't give a high score without saying where the proof came from.
 
-3. **Evidence dedup** (all scores): Evidence with >70% word overlap against an already-recorded dimension's evidence is REJECTED. Forces distinct evidence per dimension.
+3. **No double-dipping.** The same piece of evidence can't justify scores on two different dimensions. If two dimensions share more than 70% of the same wording, the second one is rejected. Each score needs its own distinct backing.
 
-### Verdict Computation Layers
+### How the verdict is computed
 
-Applied inside `evaluate_recommendation()` in this order:
+The scorer applies these rules in order to arrive at the final recommendation:
 
-1. **Knockout check**: Any knockout FAIL → immediate NO-GO (composite = 0.0).
-2. **Composite average**: `sum(scores) / len(scores)`.
-3. **Floor rule**: If any dimension scores ≤ 2 AND composite > 3.0, cap composite at 3.0.
-4. **Counter-signal consistency**: Check for unreconciled signals on high-scored (≥ 4) dimensions. Reconciliation requires: (a) all 3 structured fields populated + evidence ≥ 30 chars + no circular phrases, OR (b) legacy `reconciliation` text ≥ 20 chars.
-5. **Counter-signal penalty**: If ≥ 2 warnings (inconsistencies + low-signal-count), apply −0.5 to composite.
-6. **Threshold mapping**: NO-GO ≤ 2.0 / PIVOT 2.1–3.5 / GO > 3.5.
-7. **Risk veto**: HIGH risk caps GO → PIVOT unless ≥ 2 counter-signals are well-reconciled (stricter bar: structured evidence ≥ 30 chars or legacy ≥ 50 chars).
-8. **Confidence hint**: Computed from evidence quality metrics (external_supported/total, contradicted_critical, risk_level).
+1. **Deal-breaker check.** If any of the three deal-breakers failed, the verdict is NO-GO immediately.
+2. **Average the scores.** Add up all six dimension scores and divide by six.
+3. **Weak-spot cap.** If any single dimension scored 2 or below, the average is capped at 3.0 no matter how high the others are. One serious weakness drags down the whole assessment.
+4. **Red flag check.** If red flags were recorded against high-scoring dimensions, those red flags must be properly addressed with real evidence. Unaddressed red flags generate warnings.
+5. **Red flag penalty.** Two or more warnings subtract 0.5 from the overall score.
+6. **Map score to verdict.** 2.0 or below = NO-GO. Between 2.1 and 3.5 = PIVOT. Above 3.5 = GO.
+7. **High-risk override.** If overall risk is HIGH, a GO verdict is downgraded to PIVOT unless at least two red flags were convincingly addressed.
+8. **Confidence level.** Based on how much of the evidence was backed by outside sources and whether any critical assumptions were contradicted (see below).
 
-### Confidence Hint Rubric
+### How confidence is determined
 
-| Priority | Condition | Result |
-|----------|-----------|--------|
-| 1 | Any contradicted critical claim | LOW |
-| 2 | HIGH risk + < 50% external supported | LOW |
-| 2 | HIGH risk + ≥ 50% external supported | MEDIUM |
-| 3 | < 40% external supported | LOW |
-| 4 | 40–69% external supported | MEDIUM |
-| 5 | ≥ 70% external supported + risk ≠ HIGH | HIGH |
+The system assigns a confidence level (HIGH, MEDIUM, or LOW) to the verdict based on evidence quality. Checked in this order, first match wins:
+
+| Condition | Confidence |
+|-----------|------------|
+| Any critical assumption was contradicted by evidence | LOW |
+| Risk is HIGH and less than half the claims have outside backing | LOW |
+| Risk is HIGH but at least half the claims have outside backing | MEDIUM |
+| Less than 40% of claims have outside backing | LOW |
+| 40-69% of claims have outside backing | MEDIUM |
+| 70%+ of claims have outside backing and risk is not HIGH | HIGH |
 
 ## Narrator Agent
 
-**Model tier**: HEAVY
+After the scorer finishes grading, the narrator takes those scores and the original research, and writes the report a human will actually read: an executive summary, a Lean Canvas, key findings, and recommended next steps.
 
-Receives scorer JSON output + full upstream context. Generates prose fields: executive summary, lean canvas, validation findings, and next steps. Outputs `NarrativeFields` structured JSON.
+## Merge Step
 
-## Merge Function
+The merge step combines the scorer's numbers (scores, deal-breaker results, red flags, verdict) with the narrator's written report into a single output. If the narrator accidentally states a different verdict than what the scorer computed, the merge step corrects the text to match the scorer's verdict. The scorer's numbers always win.
 
-`merge_scorer_narrator(scorer_data, narrator_data)` in `validation_summary_models.py`:
+## Sanity Checks
 
-- Combines scorer analytical fields (knockouts, scorecard, counter-signals, verdict, composite) with narrator prose fields (executive summary, lean canvas, findings, next steps).
-- **Verdict fix**: If narrator's executive summary contains a verdict that contradicts scorer's recommendation, patches the text deterministically via `_fix_exec_summary_verdict()`.
-- Output validates as `ValidationSummaryOutput` Pydantic model.
+After the verdict is produced, six automated checks look for internal inconsistencies:
 
-## Post-Validators
+| Check | What it catches |
+|-------|----------------|
+| Revenue evidence | Does the Revenue Viability score match the actual revenue evidence found? |
+| Claim origins | Are the scores consistent with how many claims had outside backing? |
+| Job-to-be-done match | Do the market research and competitor analysis agree on the core customer job? |
+| Concept health | Are dimension scores properly capped when the concept health signals are weak? |
+| Adoption inputs | Are the Adoption & Engagement Risk inputs (trigger confidence, switching cost) consistent with the score? |
+| Market size sanity | Is the serviceable market estimate plausible relative to the total and addressable market sizes? |
 
-Six cross-check validators run after the validation-summary stage:
+## Where each dimension gets its evidence
 
-| Validator | File | What it checks |
-|-----------|------|----------------|
-| `validate_revenue_evidence` | `validators/revenue_evidence.py` | Revenue Viability score consistency with Revenue Evidence Tag and WTP signals |
-| `validate_claim_origin` | `validators/claim_origin.py` | Score consistency with external claim support ratio |
-| `validate_jtbd_match` | `validators/jtbd_match.py` | JTBD match alignment between MI and CA outputs |
-| `validate_concept_health_bindings` | `validators/concept_health.py` | Dimension score caps when concept health signals are weak |
-| `validate_dim8_inputs` | `validators/dim8_inputs.py` | Adoption & Engagement Risk inputs (trigger confidence, switching cost) |
-| `validate_som_sanity` | `validators/som_sanity.py` | SOM plausibility relative to TAM/SAM |
+| Dimension | Where the evidence comes from |
+|-----------|-------------------------------|
+| Problem Severity | Signs of pain from users, concept health signals, complaints in forums |
+| Market Opportunity | Total/addressable/serviceable market sizes, industry reports, growth trends |
+| Competitive Differentiation | Gaps in competitor offerings, how hard it is for users to switch, review site data |
+| Execution Feasibility | Whether the technical and operational claims hold up |
+| Revenue Viability | Evidence of existing revenue in the space, willingness to pay, pricing benchmarks |
+| Adoption & Engagement Risk | How confident the trigger moment is, how hard current workarounds are, switching costs |
 
-## Evidence-to-Dimension Mapping
+## Key files
 
-| Dimension | Primary Upstream Evidence |
-|-----------|-------------------------|
-| Problem Severity | Pain signals, concept health, forum complaints |
-| Market Opportunity | TAM/SAM/SOM, industry reports, growth trends |
-| Competitive Differentiation | Gaps, switching costs, review site data |
-| Execution Feasibility | Technical + operational claims (merged) |
-| Revenue Viability | Revenue Evidence Tag, WTP, pricing benchmarks |
-| Adoption & Engagement Risk | Trigger confidence, workaround effort, switching cost |
-
-## Key Files Index
-
-| File | Role |
-|------|------|
-| `haytham/agents/tools/recommendation.py` | Scorer tools, evidence validation, verdict computation |
-| `haytham/agents/worker_validation_scorer/worker_validation_scorer_prompt.txt` | Scorer agent prompt |
-| `haytham/agents/worker_validation_narrator/` | Narrator agent prompt + models |
-| `haytham/agents/worker_validation_summary/validation_summary_models.py` | Pydantic models, merge function, markdown rendering |
-| `haytham/workflow/stages/idea_validation.py` | Orchestration: `run_validation_summary_sequential()` |
-| `haytham/workflow/validators/` | Post-validator implementations |
-| `haytham/workflow/anchor_schema.py` | ConceptAnchor, ConceptHealth, FounderPersona |
+| File | What it contains |
+|------|-----------------|
+| `haytham/agents/tools/recommendation.py` | Scoring tools, evidence checks, and verdict computation |
+| `haytham/agents/worker_validation_scorer/worker_validation_scorer_prompt.txt` | The scorer agent's prompt |
+| `haytham/agents/worker_validation_narrator/` | The narrator agent's prompt and output models |
+| `haytham/agents/worker_validation_summary/validation_summary_models.py` | Data models, merge logic, and markdown rendering |
+| `haytham/workflow/stages/idea_validation.py` | Orchestrates the scorer, narrator, and merge steps |
+| `haytham/workflow/validators/` | The six sanity check implementations |
+| `haytham/workflow/anchor_schema.py` | Data models for the concept anchor and founder context |
