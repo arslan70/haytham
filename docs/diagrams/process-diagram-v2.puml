@@ -11,11 +11,11 @@ skinparam noteBackgroundColor #FFF9C4
 skinparam padding 8
 skinparam defaultFontSize 11
 
-title **Helix: Idea → Implementation-Ready Backlog (v2 — with Process Fixes)**
+title **Helix: Idea → Implementation-Ready Backlog (v2 - with Process Fixes)**
 
 start
 
-partition #FCE4EC "**PHASE 0: DISCOVERY** — Idea Refinement" {
+partition #FCE4EC "**PHASE 0: DISCOVERY** - Idea Refinement" {
   :Raw Startup Idea;
 
   :<<Agent>> **Idea Gatekeeper**
@@ -51,7 +51,7 @@ partition #FCE4EC "**PHASE 0: DISCOVERY** — Idea Refinement" {
   :Refined Idea Statement;
 }
 
-partition #E3F2FD "**PHASE 1: WHY** — Idea Validation" {
+partition #E3F2FD "**PHASE 1: WHY** - Idea Validation" {
   :<<Agent>> **Concept Expansion**
   ----
   **Frameworks:** Lean Canvas, Trigger-Based Problems, Pain Intensity
@@ -133,7 +133,7 @@ case (REVISE)
 case (GO)
 endswitch
 
-partition #E8F5E9 "**PHASE 2: WHAT** — MVP Specification" {
+partition #E8F5E9 "**PHASE 2: WHAT** - MVP Specification" {
   :<<Agent>> **MVP Scope**
   ----
   **Frameworks:** Shape Up, "The One Thing", Dependency Awareness
@@ -202,7 +202,7 @@ case (REJECT)
 case (APPROVE)
 endswitch
 
-partition #FBE9E7 "**PHASE 3: HOW** — Technical Design" {
+partition #FBE9E7 "**PHASE 3: HOW** - Technical Design" {
   :<<Agent>> **Build vs Buy Analyzer**
   ----
   **Framework:** Technology Stack Segmentation
@@ -272,7 +272,7 @@ case (REJECT-TECH)
 case (APPROVE)
 endswitch
 
-partition #F3E5F5 "**PHASE 4: STORIES** — Implementation Planning" {
+partition #F3E5F5 "**PHASE 4: STORIES** - Implementation Planning" {
   :<<Agent>> **Story Generation**
   ----
   **Frameworks:** Dependency-Layered Planning, Appetite-Bound

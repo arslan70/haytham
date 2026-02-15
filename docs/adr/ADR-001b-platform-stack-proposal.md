@@ -36,10 +36,10 @@ The MVP Specification describes *what* the system should do, but not *how* it sh
 - A combination of the above
 
 This decision:
-1. **Affects all downstream chunks** — Entity schemas, capabilities, task generation all depend on platform
-2. **Cannot be automatically determined** — Multiple valid approaches exist for most requirements
-3. **Has significant implications** — Wrong choice creates friction; right choice enables velocity
-4. **Requires user input** — The user (product authority) must decide
+1. **Affects all downstream chunks.** Entity schemas, capabilities, task generation all depend on platform
+2. **Cannot be automatically determined.** Multiple valid approaches exist for most requirements
+3. **Has significant implications.** Wrong choice creates friction; right choice enables velocity
+4. **Requires user input.** The user (product authority) must decide
 
 ### Constraints
 
@@ -233,7 +233,7 @@ Based on your MVP specification, I've analyzed which type of application best fi
 **What this means for you:**
 - Users access your product through a web browser (Chrome, Firefox, Safari, etc.)
 - Works on any device with a browser (computers, tablets, phones)
-- No app store approval needed — deploy updates instantly
+- No app store approval needed; deploy updates instantly
 - Users don't need to install anything
 
 **Why this fits your requirements:**
@@ -295,10 +295,10 @@ I recommend **Web Application** with high confidence based on your requirements.
 ## Technology Stack Selection
 
 Once platform is chosen, propose a technology stack optimized for:
-1. **Local development ease** — Minimal setup, good debugging
-2. **MVP velocity** — Fast iteration, not enterprise scale
-3. **Single developer friendly** — Works without DevOps expertise
-4. **Well-documented** — User can find help easily
+1. **Local development ease.** Minimal setup, good debugging
+2. **MVP velocity.** Fast iteration, not enterprise scale
+3. **Single developer friendly.** Works without DevOps expertise
+4. **Well-documented.** User can find help easily
 
 ### Stack Options by Platform
 
@@ -468,8 +468,8 @@ You've chosen **Web Application**. Now let's pick the technologies to build it w
 ### Recommended: Python + React
 
 **What this means for you:**
-- Backend (server logic) written in Python — readable, well-documented
-- Frontend (what users see) written in React — the most popular UI framework
+- Backend (server logic) written in Python, readable and well-documented
+- Frontend (what users see) written in React, the most popular UI framework
 - Works on your computer without any cloud services
 
 **Setup time:** ~10 minutes
@@ -480,7 +480,7 @@ You've chosen **Web Application**. Now let's pick the technologies to build it w
 ### Alternative: Python Full-Stack (Simpler)
 
 **What this means for you:**
-- Everything in Python — one language to learn
+- Everything in Python, one language to learn
 - Simpler architecture, but less interactive UI
 - Good for: content-heavy sites, simpler interactions
 
@@ -495,7 +495,7 @@ You've chosen **Web Application**. Now let's pick the technologies to build it w
 - Modern framework with lots of built-in features
 - Good for: Complex interactive UIs, real-time features
 
-**Choose this if:** You're comfortable with JavaScript and want cutting-edge tooling
+**Choose this if:** You're comfortable with JavaScript and want modern tooling
 
 ---
 

@@ -1,7 +1,7 @@
-# ADR-003: System State Evolution — From Document to Queryable Model
+# ADR-003: System State Evolution - From Document to Queryable Model
 
 ## Status
-**Accepted** — 2026-01-09 (Implemented 2026-01-11)
+**Accepted.** 2026-01-09 (Implemented 2026-01-11)
 
 ## Context
 
@@ -9,10 +9,10 @@ The current approach (ADR-001a) produces an MVP specification as a **Markdown do
 
 ### The Problem
 
-1. **No queryable state** — Agents cannot ask "what capabilities exist?" or "what constraints apply here?"
-2. **No incremental evolution** — Adding features means editing a document, not extending a model
-3. **No traceability** — Cannot see the history of why the system looks the way it does
-4. **Document drift** — Human-readable narrative diverges from structured reality
+1. **No queryable state.** Agents cannot ask "what capabilities exist?" or "what constraints apply here?"
+2. **No incremental evolution.** Adding features means editing a document, not extending a model
+3. **No traceability.** Cannot see the history of why the system looks the way it does
+4. **Document drift.** Human-readable narrative diverges from structured reality
 
 This breaks Haytham's core promise: *"Decisions are explicit, recorded, and revisitable."*
 
@@ -35,11 +35,11 @@ This problem is well-studied in software engineering:
 | Theory | Key Insight |
 |--------|-------------|
 | **Parnas (1972)** | A module should encapsulate one design decision that might change |
-| **Perry & Wolf (1992)** | Architecture = {Elements, Form, Rationale} — rationale decays fastest |
-| **ADRs (Nygard, 2011)** | Decisions have lifecycles: Proposed → Accepted → Deprecated → Superseded |
+| **Perry & Wolf (1992)** | Architecture = {Elements, Form, Rationale}; rationale decays fastest |
+| **ADRs (Nygard, 2011)** | Decisions have lifecycles: Proposed, Accepted, Deprecated, Superseded |
 | **IEEE 42010** | Views are renderings of an underlying architecture description |
 | **Event Sourcing (DDD)** | State is derived from a log of events, not stored directly |
-| **Twin Peaks** | Requirements and architecture co-evolve — they're not sequential |
+| **Twin Peaks** | Requirements and architecture co-evolve; they're not sequential |
 
 ---
 
@@ -53,7 +53,7 @@ Any solution must satisfy:
 | 2 | **Impact analysis + traceability** | Given a proposed change, retrieve related entities and their history. Timestamps enable point-in-time queries without explicit event sourcing |
 | 3 | **Scalable for large systems** | Single JSON file won't scale to enterprise systems |
 | 4 | **Use proven patterns** | Prefer established software engineering patterns over novel invention |
-| 5 | **Leverage existing libraries/services** | Abstract complexity; don't reinvent infrastructure |
+| 5 | **Use existing libraries/services** | Abstract complexity; don't reinvent infrastructure |
 
 ---
 
@@ -72,7 +72,7 @@ Keep human-readable documents but generate/maintain a shadow structured index.
 **Rejected**: Risk of drift between document and index, two sources of truth.
 
 ### Option C: Event-Sourced Decision Log
-The specification isn't a document — it's a log of decisions. Current state is derived by replaying the log.
+The specification isn't a document. It's a log of decisions. Current state is derived by replaying the log.
 
 **Matches requirements**: 1, 2, 3, 4
 **Rejected**: Current state requires aggregation, more complex to implement.
@@ -108,7 +108,7 @@ Combine structured graph for relationships with vector embeddings for semantic s
 
 We implement **Option F: Vector Database** using LanceDB with temporal metadata for traceability.
 
-**Key Insight**: Vector DBs excel at the *discovery* problem — "what's related to X?" With temporal metadata, they also handle *traceability* — "when did this change and why?"
+**Key Insight**: Vector DBs excel at the *discovery* problem, "what's related to X?" With temporal metadata, they also handle *traceability*, "when did this change and why?"
 
 | Requirement | How Vector DB Satisfies It |
 |-------------|---------------------------|
@@ -142,7 +142,7 @@ We implement **Option F: Vector Database** using LanceDB with temporal metadata 
 1. **File-based persistence** aligns with current session directory pattern
 2. **SQL-like filtering** makes temporal queries natural
 3. **Columnar format** provides efficient storage and fast scans
-4. **No external server** — embedded in Python process
+4. **No external server.** Embedded in Python process
 5. **Better suited for append-heavy workloads** (our temporal pattern)
 
 ```python
@@ -333,8 +333,8 @@ User stories are NOT stored in the vector DB. They are generated on-demand and s
 
 ## Related Documents
 
-- [ADR-001c: System State Model](./ADR-001c-system-state-model.md) — Original POC approach (superseded)
-- [ADR-001a: MVP Spec Enhancement](./ADR-001a-mvp-spec-enhancement.md) — Document-based specification (superseded)
-- [ADR-002: Backlog.md Integration](./ADR-002-backlog-md-integration.md) — Task management
-- [ADR-004: Multi-Phase Workflow Architecture](./ADR-004-multi-phase-workflow-architecture.md) — Workflow boundaries
-- [Project Haytham Concept Paper](../concept-paper.md) — Core vision and principles
+- [ADR-001c: System State Model](./ADR-001c-system-state-model.md). Original POC approach (superseded)
+- [ADR-001a: MVP Spec Enhancement](./ADR-001a-mvp-spec-enhancement.md). Document-based specification (superseded)
+- [ADR-002: Backlog.md Integration](./ADR-002-backlog-md-integration.md). Task management
+- [ADR-004: Multi-Phase Workflow Architecture](./ADR-004-multi-phase-workflow-architecture.md). Workflow boundaries
+- [Project Haytham Concept Paper](../concept-paper.md). Core vision and principles

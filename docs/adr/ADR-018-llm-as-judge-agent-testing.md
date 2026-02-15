@@ -1,7 +1,7 @@
 # ADR-018: LLM-as-Judge Agent Testing
 
 ## Status
-**Proposed** — 2026-01-28
+**Proposed**, 2026-01-28
 
 **Milestone**: Consolidation (Pre-Evolution)
 
@@ -12,11 +12,11 @@
 Agent prompts are the **biggest factor of regression** in Haytham. When prompts change:
 1. Output quality may degrade in subtle ways
 2. Output structure may break downstream stages
-3. The effect is non-deterministic — same input produces different outputs
+3. The effect is non-deterministic; same input produces different outputs
 
 Current testing infrastructure has gaps:
-- `tests/test_stage_config.py` — Tests stage metadata (23 tests passing)
-- `tests/test_session_manager.py` — Tests session persistence
+- `tests/test_stage_config.py`: Tests stage metadata (23 tests passing)
+- `tests/test_session_manager.py`: Tests session persistence
 - **No tests for agent output quality**
 
 ### Why Traditional Testing Fails
@@ -27,7 +27,7 @@ Current testing infrastructure has gaps:
 - Snapshot comparisons produce false negatives constantly
 
 **Unit tests with mocked LLMs** don't work because:
-- Mocked responses are static — they don't exercise the prompt
+- Mocked responses are static and don't exercise the prompt
 - Real regressions happen when prompts interact poorly with real LLMs
 - Mock-based tests give false confidence
 
@@ -78,7 +78,7 @@ Create a `make test-agents` command that:
 **1. Separate from CI**
 - This is a **developer tool**, not a CI gate
 - Run manually before releases or after prompt changes
-- LLM calls are expensive and slow — not suitable for every commit
+- LLM calls are expensive and slow, not suitable for every commit
 
 **2. Test ALL agents (13 total)**
 
@@ -185,7 +185,7 @@ AGENT_CRITERIA = {
             "No duplicate capabilities with different IDs",
             "Capabilities are atomic (not composite)",
         ],
-        "fail_threshold": 1,  # Stricter — structure must be correct
+        "fail_threshold": 1,  # Stricter: structure must be correct
     },
 
     "story_generator": {
@@ -277,7 +277,7 @@ The prototype is successful if:
 | `haytham/testing/judge.py` | LLM judge wrapper using Strands |
 | `haytham/testing/criteria.py` | Per-agent evaluation criteria |
 | `haytham/testing/runner.py` | Test orchestration CLI |
-| `tests/fixtures/test_ideas.json` | Already exists — verify contents |
+| `tests/fixtures/test_ideas.json` | Already exists, verify contents |
 | `Makefile` | Add `test-agents` target |
 
 ---
@@ -287,17 +287,17 @@ The prototype is successful if:
 ### Positive
 
 1. **Catches prompt regressions** before they reach users
-2. **Speeds up development** — confidence to iterate on prompts
+2. **Speeds up development.** Confidence to iterate on prompts
 3. **Documents expected behavior** via explicit criteria
-4. **Leverages Strands** — uses existing LLM infrastructure
-5. **Binary verdict** — clear pass/fail, no ambiguous scores
+4. **Uses Strands.** Uses existing LLM infrastructure
+5. **Binary verdict.** Clear pass/fail, no ambiguous scores
 
 ### Negative
 
-1. **Cost per run** — $5-10 not trivial for frequent testing
-2. **Time per run** — 30-45 minutes too slow for TDD
-3. **Judge quality** — LLM judge may have blind spots
-4. **Maintenance burden** — criteria must evolve with prompts
+1. **Cost per run.** $5-10 not trivial for frequent testing
+2. **Time per run.** 30-45 minutes too slow for TDD
+3. **Judge quality.** LLM judge may have blind spots
+4. **Maintenance burden.** Criteria must evolve with prompts
 
 ### Risks
 
@@ -314,10 +314,10 @@ The prototype is successful if:
 
 ## Next Steps
 
-1. **Approve this ADR** — Confirm prototype scope
-2. **Implement prototype** — 3 agents, 2 test ideas
-3. **Evaluate results** — Does it catch real issues?
-4. **Decide on full rollout** — If prototype succeeds
+1. **Approve this ADR.** Confirm prototype scope
+2. **Implement prototype.** 3 agents, 2 test ideas
+3. **Evaluate results.** Does it catch real issues?
+4. **Decide on full rollout.** If prototype succeeds
 
 ---
 
@@ -326,4 +326,4 @@ The prototype is successful if:
 - [ADR-005: Quality Evaluation Pattern](./ADR-005-quality-evaluation-pattern.md)
 - [ADR-006: Story Generation Quality Evaluation](./ADR-006-story-generation-quality-evaluation.md)
 - [Strands Evaluate Documentation](https://strandsai.github.io/sdk-python/user-guide/evaluation/)
-- [CONSOLIDATION_PLAN.md](../CONSOLIDATION_PLAN.md) — Phase 4.2: Stage-Level Tests
+- [CONSOLIDATION_PLAN.md](../CONSOLIDATION_PLAN.md): Phase 4.2: Stage-Level Tests
