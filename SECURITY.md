@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in Haytham, please report it responsibly.
 
-**Email**: [security@haytham.dev](mailto:security@haytham.dev)
+**GitHub**: Use [GitHub's private vulnerability reporting](https://github.com/arslan70/haytham/security/advisories/new) to submit a report.
 
 Please include:
 
