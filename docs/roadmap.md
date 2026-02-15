@@ -2,7 +2,7 @@
 
 This document tracks the concrete work items that follow from Haytham's positioning as a specification-driven control plane for software systems. See [VISION.md](../VISION.md) for the full narrative.
 
-All items below advance **Milestone 1: Genesis** unless noted otherwise. Genesis is complete when: idea in, working validated MVP out.
+**Genesis** (idea to validated specification) is complete. The items below advance **Milestone 2: Evolution** — extending the system from specification into execution, so the loop closes end-to-end: idea in, working validated MVP out.
 
 ---
 
@@ -155,110 +155,6 @@ This item exists to prevent scope creep. Revisit after Items 2 and 4 are complet
 
 ---
 
-## 7. Go-To-Market Strategy
-
-**Priority:** High — begins in parallel with technical milestones
-**Depends on:** Items 1-3 (GTM launch requires the closed Genesis loop)
-
-Haytham's strongest positioning is not "another AI validation tool" — it is the **specification layer for the AI coding agent ecosystem**. The $22B+ funded coding agent market (Devin, Cursor, Replit) has a garbage-in-garbage-out problem: they build whatever you tell them, validated or not. Haytham is the quality gate.
-
-**Positioning statement:** *"Haytham turns startup ideas into validated, traceable specifications that any coding agent can execute — so you build the right thing, not just the fast thing."*
-
-### Market context
-
-- 50 million new startups launched annually; 42% fail because they built something nobody wanted
-- Every direct competitor (ValidatorAI, DimeADozen, IdeaProof, Aicofounder, FounderPal, RebeccAI, siift) is bootstrapped — no VC-backed player exists
-- Coding agents (Devin $10.2B, Cursor $9.9B, Replit $1.16B) all operate downstream — none validate whether the thing should be built
-- No existing tool bridges the validate-to-specify gap with capability traceability
-
-### Phase 0: Foundation (Now – Month 3)
-
-**Goal:** Close the Genesis loop, get the product to a demoable state.
-
-| Action | Why | Timeline |
-|--------|-----|----------|
-| Complete Items 1-3 (execution contract → agent dispatch → validation) | Cannot sell "idea to MVP" without the MVP part | Month 1-3 |
-| Record 3 diverse end-to-end demos (web app, CLI, marketplace) | Prove genericity across product types | Month 2-3 |
-| Deploy hosted single-tenant instance | Nobody will `git clone` and configure AWS Bedrock credentials | Month 2 |
-| Basic auth + session isolation | Minimum for letting anyone try it | Month 2 |
-
-Free credibility plays:
-
-- **"42% post"**: Deep analysis of why 42% of startups fail from no market need, with live demo of Haytham catching a bad idea. Target Hacker News, r/startups, IndieHackers
-- **Open-source the scoring methodology**: Publish Stage-Gate + evidence validation as a standalone framework
-- **"Haytham vs. ChatGPT" comparison**: Same idea, single-prompt validation vs. 21-agent evidence-gated pipeline
-
-### Phase 1: Developer-led growth (Month 3–9)
-
-**Goal:** 100 active users, 10 paying customers, validated willingness-to-pay.
-
-**Target segment:** Technical founders who already use AI coding agents. They pay for Devin ($500/mo) or Cursor ($20/mo), they understand the value of specifications, and they have seen agents build the wrong thing.
-
-**Where they are:** Hacker News, r/SideProject, r/startups, IndieHackers, AI coding agent Discord servers, Twitter/X AI builder community, ProductHunt.
-
-#### Pricing
-
-Do not compete with $5–29/mo validation tools. They sell reports. Haytham sells a specification pipeline.
-
-| Tier | Price | Includes | Target |
-|------|-------|---------|--------|
-| **Open Source** | Free | Self-hosted, BYO API keys, community support | Developers, contributors |
-| **Starter** | $79/mo | 3 ideas/month, hosted, all 4 phases, PDF export | Solo founders |
-| **Pro** | $199/mo | Unlimited ideas, Phase 5 agent dispatch, priority support | Serious founders |
-| **Team** | $499/mo | 5 seats, shared sessions, accelerator dashboard | Accelerators, studios |
-
-#### Launch sequence
-
-- **Month 3:** ProductHunt launch + Show HN. Lead with full idea-to-stories demo. 50 free Pro trials for early adopters
-- **Month 4–6:** Content-led growth. Weekly posts: "We ran [famous failed startup] through Haytham." Autopsy series analyzing real failures through the Stage-Gate lens
-- **Month 6–9:** Integration partnerships — Claude Code, Replit, Amazon Q Developer. Haytham outputs as native input to coding agent sessions
-
-### Phase 2: Accelerator channel (Month 6–15)
-
-**Goal:** 5 accelerator partnerships, $50K+ MRR.
-
-Accelerators are the highest-leverage channel: top 50 accelerators evaluate 500–5,000 ideas each per year. Screening is manual and inconsistent. Every accepted startup becomes a Haytham user.
-
-**Value proposition to accelerators:** *"Your partners manually evaluate 2,000 applications per cohort. Haytham runs every idea through a Stage-Gate framework with evidence-based scoring in minutes, not days."*
-
-| Package | Price | Includes |
-|---------|-------|---------|
-| **Screening** | $2,000/cohort | Batch validation of up to 500 ideas, ranked by composite score |
-| **Full Pipeline** | $5,000/cohort | Screening + full 4-phase spec for top 20 accepted startups |
-| **Enterprise** | $10,000/cohort | Full pipeline + custom scoring dimensions + API access |
-
-**Targets (prioritized):** Y Combinator, Techstars, 500 Global (dream); Antler, Entrepreneur First, Founders Factory (mid-tier); vertical accelerators (climate, health, fintech); university programs (Stanford StartX, MIT delta v).
-
-### Phase 3: Platform play (Month 12–24)
-
-**Goal:** Become the specification standard that coding agents consume.
-
-- **Export to open specification formats** (OpenSpec, Spec Kit) — Item 5 delivers this earlier, Phase 3 extends with ecosystem adoption
-- **Build integrations** so Claude Code, Devin, Amazon Q, and Cursor consume the format natively
-- **API-first** — let other tools generate compatible output (network effects)
-- **Marketplace** — third-party agents that extend the pipeline (industry validators, compliance checkers)
-
-### Key metrics
-
-| Metric | Month 3 | Month 9 | Month 18 |
-|--------|---------|---------|----------|
-| GitHub stars | 500 | 2,000 | 5,000 |
-| Active users (monthly) | 50 | 500 | 2,000 |
-| Paying customers | 0 | 10 | 100 |
-| MRR | $0 | $5K | $50K |
-| Ideas validated (total) | 200 | 5,000 | 50,000 |
-| Accelerator partners | 0 | 2 | 10 |
-| Coding agent integrations | 0 | 1 | 3 |
-
-### What this does NOT mean
-
-- Building a sales team before PMF — content + community + accelerator partnerships get to $50K MRR
-- Chasing enterprise before the product is ready — ship to founders first
-- Trying to be an AI coding agent — be the brain that feeds Devin, not a competitor to Devin
-- Launching on ProductHunt without Phase 5 — "we generate specifications" is lukewarm; "idea in, working app out" is a headline
-
----
-
 ## Sequencing
 
 ```
@@ -268,12 +164,6 @@ Item 1 (Execution Contract)
   └── Item 5 (Spec-Driven Export)
 
 Item 6: Deferred until Items 2 + 4 are complete
-
-Item 7 (GTM):
-  Phase 0 runs in parallel with Items 1-3
-  Phase 1 launches when Items 1-3 are complete (Genesis closed)
-  Phase 2 launches at Month 6
-  Phase 3 launches at Month 12 (Item 5 accelerates this)
 ```
 
-Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Item 5 strengthens the GTM Phase 1 launch ("export to Claude Code/Cursor via OpenSpec") and delivers the Phase 3 "open specification format" goal early. Item 6 is deliberately deferred. GTM Phase 0 (foundation) runs alongside technical work; Phase 1 launch is gated on a closed Genesis loop.
+Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Item 6 is deliberately deferred — build two concrete integrations first, then extract the abstraction from real code.

@@ -169,9 +169,9 @@ This separation is what makes Haytham a control plane rather than a monolithic s
 
 The `AGENT_FACTORIES` registry, `StageExecutionConfig` pattern, and Burr's state machine all treat agents as interchangeable units of work. The workflow engine doesn't distinguish between an agent that reasons locally and one that delegates to an external service — they participate in the same state machine, traceability chains, and approval gates.
 
-### Concrete Example: Google Stitch
+### Planned Example: Google Stitch
 
-This pattern isn't hypothetical. The planned [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)) demonstrates it end-to-end: the `ux_designer` agent uses the Strands `mcp_client` tool to connect to Stitch's official MCP endpoint, discover its tools, and orchestrate UI generation — all within the same Burr state machine, `StageExecutionConfig`, and approval gates used by every other agent.
+The planned [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)) will demonstrate this pattern end-to-end: a `ux_designer` agent will use the Strands `mcp_client` tool to connect to Stitch's official MCP endpoint, discover its tools, and orchestrate UI generation — all within the same Burr state machine, `StageExecutionConfig`, and approval gates used by every other agent.
 
 As more providers expose agent interfaces — whether through MCP, native SDKs, or other protocols — the same integration path applies. What varies is the executor; the specification-driven context, traceability, and governance remain constant.
 
@@ -192,7 +192,7 @@ For full details, see [Scoring Pipeline](scoring-pipeline.md).
 ```
 haytham/
 ├── agents/                  # AI agents
-│   ├── ceo/                 # Agent factory and orchestration
+│   ├── factory/              # Agent factory and orchestration
 │   ├── output_utils.py      # Shared output extraction
 │   └── worker_*/            # Specialist agents (prompt + config each)
 ├── workflow/                # Burr workflow engine
@@ -209,7 +209,9 @@ haytham/
 frontend_streamlit/          # Streamlit UI
 ├── Haytham.py               # Main dashboard
 ├── lib/                     # Workflow runner and utilities
-└── pages/                   # UI pages
+├── views/                   # UI views (execution, feedback, gates)
+├── components/              # Reusable UI components
+└── assets/                  # Static assets
 
 tests/                       # Test suite
 ```

@@ -7,7 +7,7 @@
 
 Going from "I have a startup idea" to "I have a plan worth building" traditionally requires weeks of planning, domain expertise, and significant capital — with a high risk of building the wrong thing.
 
-Haytham compresses this into an evidence-based process. Sixteen specialist agents handle the research, analysis, scoring, and generation. Humans make the decisions at every phase boundary. The output is a complete specification that any developer or coding agent can execute.
+Haytham compresses this into an evidence-based process. Twenty-one specialist agents handle the research, analysis, scoring, and generation — some working individually, others coordinating in multi-agent swarms. Humans make the decisions at every phase boundary. The output is a complete specification that any developer or coding agent can execute.
 
 If the idea doesn't hold up, the system says NO-GO and tells you why. Only validated ideas proceed to specification.
 
@@ -40,7 +40,7 @@ flowchart TD
     style sentience fill:#f5f5f5,stroke:#ccc,color:#999
 ```
 
-Sixteen specialist agents run the analysis across four phases. A human approval gate separates each phase — the system can say NO-GO at the first gate if the idea doesn't hold up. The aim is a single control plane for the full software lifecycle. See [VISION.md](VISION.md).
+Twenty-one specialist agents run the analysis across four phases. A human approval gate separates each phase — the system can say NO-GO at the first gate if the idea doesn't hold up. The aim is a single control plane for the full software lifecycle. See [VISION.md](VISION.md).
 
 ## Quick Start
 
@@ -72,7 +72,7 @@ Feed Haytham a startup idea. What comes out:
 
 ## How It Works
 
-Four phases, each answering one question: *Should this be built? What exactly? How? What are the tasks?* A human approval gate separates each phase — nothing proceeds without your sign-off. Sixteen specialist agents handle the analysis, research, scoring, and generation across these phases.
+Four phases, each answering one question: *Should this be built? What exactly? How? What are the tasks?* A human approval gate separates each phase — nothing proceeds without your sign-off. Twenty-one specialist agents handle the analysis, research, scoring, and generation across these phases.
 
 See [How It Works](docs/how-it-works.md) for the full walkthrough.
 
@@ -112,6 +112,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide.
 - [Architecture](docs/architecture/overview.md) — system design and components
 - [Technology](docs/technology.md) — stack choices and rationale
 - [ADR Index](docs/adr/README.md) — architecture decision records
+- [Roadmap](docs/roadmap.md) — what's next
+- [Troubleshooting](docs/troubleshooting.md) — common issues and debugging
 
 ## License
 

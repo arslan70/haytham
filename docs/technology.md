@@ -109,7 +109,7 @@ Cross-cutting:
 - **Custom components** — Reusable UI blocks for feedback chat, decision gates, progress bars, and locked-workflow modals.
 - **Workflow bridge** — `WorkflowRunner` wraps the async Burr engine for synchronous Streamlit execution with progress callbacks.
 
-**Key files:** `streamlit_prototype/Haytham.py`, `streamlit_prototype/lib/session_utils.py`, `streamlit_prototype/lib/workflow_runner.py`
+**Key files:** `frontend_streamlit/Haytham.py`, `frontend_streamlit/lib/session_utils.py`, `frontend_streamlit/lib/workflow_runner.py`
 
 ---
 

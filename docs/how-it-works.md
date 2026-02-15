@@ -20,8 +20,9 @@ flowchart TD
     discovery --> concept[Concept Expansion]
 
     subgraph phase1["Phase 1 — Should this be built?"]
-        concept --> market[Market Intelligence]
-        concept --> competitor[Competitor Analysis]
+        concept --> anchor[Anchor Extractor]
+        anchor --> market[Market Intelligence]
+        anchor --> competitor[Competitor Analysis]
         market --> risk[Risk Assessment]
         competitor --> risk
         risk -->|HIGH risk| pivot[Pivot Strategy]
@@ -132,24 +133,32 @@ Every story links to the capability it implements (`implements:CAP-F-001`), the 
 
 ## Agents at a Glance
 
+Twenty-one specialist agents, some working individually and others coordinating in multi-agent swarms. Swarm sub-agents are indented below their parent.
+
 | # | Agent | Phase | Responsibility | Frameworks |
 |---|-------|-------|----------------|------------|
 | 1 | Idea Gatekeeper | Discovery | Classify input quality | — |
 | 2 | Idea Discovery | Discovery | Assess coverage gaps, generate targeted questions | Lean Canvas, The Mom Test, JTBD |
-| 3 | Concept Expansion | Phase 1 | Structure raw idea into validated concept | Lean Canvas |
-| 4 | Market Intelligence | Phase 1 | Research market size, trends, core jobs | JTBD (functional/emotional/social), TAM/SAM/SOM |
-| 5 | Competitor Analysis | Phase 1 | Find and analyze real competitors | JTBD-anchored search, switching cost analysis |
-| 6 | Startup Validator | Phase 1 | Validate claims, classify risk | Claims-based validation, archetype calibration |
-| 7 | Pivot Strategy | Phase 1 | Propose alternatives when risk is high | — |
-| 8 | Validation Summary | Phase 1 | Synthesize GO/NO-GO/PIVOT verdict | Stage-Gate scorecard (Robert Cooper) |
-| 9 | MVP Scope | Phase 2 | Define focused first version | Shape Up (appetite-based scoping) |
-| 10 | Capability Model | Phase 2 | Map functional and non-functional requirements | Capability mapping, traceability matrix |
-| 11 | System Traits | Phase 2 | Classify system type for downstream decisions | 8-trait system classification |
-| 12 | Build/Buy Analyzer | Phase 3 | Decide build vs buy per capability | 6-dimension weighted scoring |
-| 13 | Architecture Decisions | Phase 3 | Make key technical decisions | — |
-| 14 | Story Generation | Phase 4 | Create user stories per capability | Agile user stories, Gherkin/BDD, ER modeling |
-| 15 | Story Validation | Phase 4 | Verify coverage and quality | INVEST criteria |
-| 16 | Dependency Ordering | Phase 4 | Order stories for implementation | DAG ordering, 6-layer architecture |
+| 3 | Anchor Extractor | Phase 1 | Extract core concept anchor before expansion | — |
+| 4 | Concept Expansion | Phase 1 | Structure raw idea into validated concept | Lean Canvas |
+| 5 | Market Intelligence | Phase 1 | Research market size, trends, core jobs | JTBD (functional/emotional/social), TAM/SAM/SOM |
+| 6 | Competitor Analysis | Phase 1 | Find and analyze real competitors | JTBD-anchored search, switching cost analysis |
+| 7 | Startup Validator | Phase 1 | Validate claims, classify risk | Claims-based validation, archetype calibration |
+| 8 | Pivot Strategy | Phase 1 | Propose alternatives when risk is high | — |
+| 9 | Validation Scorer | Phase 1 | Score dimensions, detect knockouts, compute verdict | Stage-Gate scorecard (Robert Cooper) |
+| 10 | Validation Narrator | Phase 1 | Generate prose report from scorer results | — |
+| 11 | Validation Summary | Phase 1 | Merge scorer + narrator into final verdict | Deterministic merge with verdict fix |
+| 12 | MVP Scope (swarm) | Phase 2 | Define focused first version | Shape Up (appetite-based scoping) |
+| | ↳ Scope Boundaries | Phase 2 | Define in/out-of-scope boundaries | — |
+| | ↳ Scope Core | Phase 2 | Identify core value proposition and user segment | — |
+| | ↳ Scope Flows | Phase 2 | Define primary user flows | — |
+| 15 | MVP Specification | Phase 2 | Assemble final MVP spec from swarm outputs | — |
+| 16 | Capability Model | Phase 2 | Map functional and non-functional requirements | Capability mapping, traceability matrix |
+| 17 | System Traits | Phase 2 | Classify system type for downstream decisions | 8-trait system classification |
+| 18 | Build/Buy Analyzer | Phase 3 | Decide build vs buy per capability | 6-dimension weighted scoring |
+| 19 | Architecture Decisions | Phase 3 | Make key technical decisions | — |
+| 20 | Story Generation | Phase 4 | Create user stories per capability | Agile user stories, Gherkin/BDD, ER modeling |
+| 21 | Story Validation + Dependency Ordering | Phase 4 | Verify coverage, resolve dependencies | INVEST criteria, DAG ordering, 6-layer architecture |
 
 ---
 
@@ -167,8 +176,8 @@ Each stage output is a conversation. You can discuss the output with the system,
 
 Haytham's value extends beyond its own internal agents. The specification it produces — traced capabilities, architecture decisions, ordered stories — is a universal execution contract. Any agent that accepts structured work items can execute against it.
 
-**Today:** The planned [Google Stitch](https://stitch.withgoogle.com/) integration demonstrates this. A `ux_designer` agent connects to Stitch's MCP endpoint to generate UI screens, participating in the same workflow engine, approval gates, and traceability chains as every internal agent.
+**Planned:** The [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../docs/adr/ADR-021-design-ux-workflow-stage.md)) will demonstrate this. A `ux_designer` agent will connect to Stitch's MCP endpoint to generate UI screens, participating in the same workflow engine, approval gates, and traceability chains as every internal agent.
 
-**The broader pattern:** Hosted coding agents (Devin, Amazon Q Developer Agent, Google Jules, Claude Code) can receive traced stories with full specification context. Cloud-native service agents (AWS Bedrock Agents, Google Vertex AI Agents) can receive infrastructure requirements derived from architecture decisions. As more providers expose agent interfaces, the same pattern applies — without architectural changes. What varies is the executor; what stays constant is the specification-driven context and traceability.
+**The broader pattern:** Hosted coding agents (Devin, Amazon Q Developer Agent, Google Jules, Claude Code) can receive traced stories with full specification context. Cloud-native service agents (AWS Bedrock Agents, Google Vertex AI Agents) can receive infrastructure requirements derived from architecture decisions. As more providers expose agent interfaces, the same integration path applies — without architectural changes. What varies is the executor; what stays constant is the specification-driven context and traceability.
 
 See the [Vision](../VISION.md#the-control-plane-orchestrating-execution-agents) for how this shapes each milestone.

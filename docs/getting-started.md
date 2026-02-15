@@ -72,7 +72,7 @@ OLLAMA_HEAVY_MODEL_ID=llama3.1:70b
 OLLAMA_LIGHT_MODEL_ID=llama3.1:8b
 ```
 
-Note: Quality depends heavily on model size. The 70b parameter model is recommended for meaningful results. Smaller models may produce incomplete or inconsistent outputs.
+Note: Quality depends heavily on model size. The 70b parameter model is recommended for meaningful results but requires significant hardware (40+ GB GPU memory). If you don't have a high-end GPU, try the `8b` model — results will be less consistent, but it runs on most machines. Smaller models may produce incomplete or inconsistent outputs.
 
 ### OpenAI
 
@@ -136,6 +136,8 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 6. **Phase 4: What are the tasks?** — Ordered user stories with acceptance criteria and full traceability. These are ready to hand to a developer or coding agent.
 
 Each phase takes a few minutes. The full pipeline completes in approximately 20 minutes.
+
+**Cost note:** A full 4-phase run sends requests to 21 agents with web search. With commercial API providers (Anthropic, OpenAI), expect roughly $5–$20 in API credits per run depending on model choices and idea complexity. Use Ollama for free local inference, or assign cheaper models to the LIGHT tier to reduce costs.
 
 ## Optional: Observability
 

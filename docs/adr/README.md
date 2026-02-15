@@ -22,6 +22,7 @@ This directory contains Architecture Decision Records (ADRs) for Haytham. Each A
 | [ADR-023](ADR-023-scorer-dimension-reduction.md) | Scorer Dimension Reduction | Accepted |
 | [ADR-005](ADR-005-quality-evaluation-pattern.md) | Quality Evaluation Pattern | Accepted |
 | [ADR-006](ADR-006-story-generation-quality-evaluation.md) | Story Generation Quality Evaluation | Accepted |
+| ADR-007 | *(number reserved — not used)* | — |
 | [ADR-019](ADR-019-system-trait-detection.md) | System Trait Detection | Accepted |
 
 ### Features

@@ -1,5 +1,7 @@
 # Scoring & Validation Pipeline
 
+> **Contributor reference.** This document describes the internals of the validation scoring pipeline. For a higher-level overview, see [How It Works — Phase 1](../how-it-works.md#phase-1-should-this-be-built).
+
 Reference documentation for the validation-summary stage: scorer → narrator → merge.
 
 ## Data Flow
