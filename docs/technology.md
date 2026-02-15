@@ -1,32 +1,20 @@
 # Technology Stack
 
-Haytham is built on emerging open-source technologies chosen for their fit with multi-agent workflow orchestration. This page explains what each technology does, why it was chosen, and where to find its documentation.
+This page explains what each technology does, why it was chosen, and where to find its documentation.
 
 ## Stack at a Glance
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                  Streamlit (UI)                          │
-└──────────────────────────┬──────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│               Burr (Workflow Engine)                     │
-│         State machine · Branching · Checkpoints         │
-└──────────────────────────┬──────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│            Strands Agents SDK (Agent Runtime)            │
-│     Agents · Tools · Hooks · Swarms · Structured Output │
-└──────────────────────────┬──────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│              LLM Providers (Model Layer)                 │
-│   AWS Bedrock · Anthropic · OpenAI · Ollama (local)     │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    ui["Web UI (Streamlit)"]
+    engine["Workflow Engine (Burr)"]
+    agents["Agent Runtime (Strands Agents SDK)"]
+    llm["LLM Providers: AWS Bedrock, Anthropic, OpenAI, Ollama"]
 
-Cross-cutting:
-  Pydantic (data models) · OpenTelemetry (tracing) · Langfuse (LLM analytics)
+    ui --> engine --> agents --> llm
 ```
+
+**Also used across the system:** Pydantic (data validation), OpenTelemetry (tracing), Langfuse (LLM cost tracking).
 
 ---
 
@@ -34,99 +22,56 @@ Cross-cutting:
 
 ### Strands Agents SDK
 
-| | |
-|---|---|
-| **What** | Python framework for building AI agents with tools, structured output, and observability |
-| **Docs** | [github.com/strands-agents/sdk-python](https://github.com/strands-agents/sdk-python) |
-| **Version** | `>=1.25.0` (with `[otel]` extra for tracing) |
+[github.com/strands-agents/sdk-python](https://github.com/strands-agents/sdk-python) | `>=1.25.0`
 
-**Why Strands?** Strands provides a minimal, composable agent abstraction that stays out of the way. Unlike heavier frameworks, it doesn't impose opinionated chains or retrieval patterns. Agents are just prompt + tools + model, with first-class support for structured output via Pydantic models and built-in OpenTelemetry instrumentation.
+The framework all 21 agents are built with. Strands is lightweight: an agent is just a prompt, a set of tools, and a model. It doesn't impose heavy abstractions. Haytham chose it because it supports structured output (agents return typed data, not free-form text), tool use (web search, scoring, PDF generation), multi-agent swarms (several agents collaborating on one task), and built-in tracing.
 
 **How Haytham uses it:**
 
-- **Agent creation** — All agents are created through a centralized factory (`haytham/agents/factory/agent_factory.py`). Each agent is configured with a prompt file, model tier, tool profile, and optional structured output model.
-- **Structured output** — Agents that need typed responses (validation scores, competitor analysis, story skeletons) declare a Pydantic model. Results are accessed via `result.structured_output` — **not** `result.output`.
-- **Tools** — Custom tools decorated with `@tool` provide web search, recommendation scoring, build/buy evaluation, PDF generation, and more. Tool sets are grouped into profiles (e.g., `WEB_RESEARCH`, `RECOMMENDATION`).
-- **Hooks** — `HaythamAgentHooks` intercepts agent lifecycle events (before/after invocation, tool calls) to record timing, cache metrics, and OpenTelemetry attributes.
-- **Swarms** — Multi-agent handoff orchestration for MVP scope (3-agent swarm) and story generation. Agents pass context through shared working memory.
-- **Trace attributes** — Every agent is created with `trace_attributes` (agent name, session ID, stage slug) that propagate to all child spans.
-
-**Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/hooks.py`, `haytham/config.py`
+- **Agent creation.** A centralized factory creates agents by name. Each agent has a prompt file, a model tier, and optionally a schema for structured output.
+- **Structured output.** Agents that need to return data (scores, competitor lists, story skeletons) declare what shape the response must take. The LLM is constrained to that shape.
+- **Tools.** Agents can call tools for web search, scoring, build/buy evaluation, PDF generation, and more.
+- **Swarms.** Some tasks (like MVP scoping) use multiple agents that hand off context to each other.
+- **Tracing.** Every agent call is automatically instrumented for debugging.
 
 ### Burr
 
-| | |
-|---|---|
-| **What** | Lightweight state machine framework for building applications as a series of actions with explicit state |
-| **Docs** | [github.com/dagworks-inc/burr](https://github.com/dagworks-inc/burr) |
-| **Version** | `>=0.40.2` (with `[start]` extra for tracking UI) |
+[github.com/dagworks-inc/burr](https://github.com/dagworks-inc/burr) | `>=0.40.2`
 
-**Why Burr?** Haytham needs conditional branching (e.g., pivot strategy only runs when risk is HIGH), checkpoint persistence (resume from any stage), and a tracking UI for debugging. Burr provides all three with minimal boilerplate. Unlike Airflow or Dagster, it's designed for application-level state machines rather than data pipeline DAGs.
+The workflow engine that runs the four phases. Haytham needs three things from a workflow engine: conditional branching (the pivot strategy only runs when risk is HIGH), checkpoint persistence (if the process is interrupted, it resumes where it left off), and a tracking UI for debugging. Burr provides all three. Unlike Airflow or Dagster, it's designed for application-level workflows rather than data pipelines.
 
 **How Haytham uses it:**
 
-- **Workflow definition** — The four-phase pipeline is defined as Burr actions with explicit transitions. Each stage reads from and writes to shared state.
-- **Conditional branching** — `when(risk_level="HIGH")` routes to the pivot strategy stage. `default` transitions handle the normal path.
-- **Lifecycle hooks** — `StageProgressHook` implements `PreRunStepHook` and `PostRunStepHook` to report stage progress to the Streamlit UI.
-- **Tracking UI** — `LocalTrackingClient` records every state transition. Run `burr` to visualize at `http://localhost:7241`.
-- **Checkpoint persistence** — State is saved after each action, enabling resume from any point.
-
-**Key files:** `haytham/workflow/burr_workflow.py`, `haytham/workflow/burr_actions.py`
+- **Workflow definition.** The four-phase pipeline is defined as a series of stages with transitions between them.
+- **Conditional branching.** Some stages only run under certain conditions (e.g., pivot strategy when risk is HIGH).
+- **Progress reporting.** Hooks report each stage's progress to the web UI.
+- **Tracking UI.** An optional dashboard at `http://localhost:7241` shows every state transition.
+- **Checkpoint persistence.** Progress is saved after every stage so the process can resume from any point.
 
 ### Pydantic
 
-| | |
-|---|---|
-| **What** | Data validation and serialization library using Python type annotations |
-| **Docs** | [docs.pydantic.dev](https://docs.pydantic.dev/) |
-| **Version** | `>=2.0.0` |
+[docs.pydantic.dev](https://docs.pydantic.dev/) | `>=2.0.0`
 
-**Why Pydantic?** Structured output from LLMs needs validation — the model might return malformed JSON, missing fields, or wrong types. Pydantic models define the expected schema, validate it at parse time, and provide serialization to JSON and markdown. Strands SDK has native Pydantic integration for structured output.
-
-**How Haytham uses it:**
-
-- **Structured output models** — 53+ Pydantic models define agent output schemas. Examples: `ValidationOutput`, `CompetitorAnalysis`, `StorySkeletonOutput`, `BuildBuyDecision`, `SystemTraitsOutput`.
-- **Field documentation** — Every field uses `Field(description="...")` which serves as both validation metadata and self-documentation.
-- **Serialization** — Models implement `to_markdown()` for human-readable output and `model_dump_json()` for state persistence.
-- **Agent factory wiring** — Models are declared in `AGENT_CONFIGS` as `structured_output_model` or `structured_output_model_path` (lazy import to avoid circular dependencies).
-
-**Key files:** Model definitions in `haytham/agents/worker_*/` directories, extraction logic in `haytham/agents/output_utils.py`
+Defines and validates the structure of agent outputs. LLMs can return malformed data: missing fields, wrong types, invalid JSON. Pydantic schemas catch these problems immediately. Haytham has 53+ schemas covering everything from validation scores to competitor analyses to story skeletons. Each schema also handles conversion to JSON (for saving) and markdown (for human review).
 
 ### Streamlit
 
-| | |
-|---|---|
-| **What** | Python framework for building interactive web applications |
-| **Docs** | [docs.streamlit.io](https://docs.streamlit.io/) |
-| **Version** | `>=1.52.2` |
+[docs.streamlit.io](https://docs.streamlit.io/) | `>=1.52.2`
 
-**Why Streamlit?** Haytham's UI needs are interactive but not complex — forms for idea input, progress indicators for stages, expandable sections for outputs, and approval gates between phases. Streamlit provides all of this with pure Python, no frontend build step required.
-
-**How Haytham uses it:**
-
-- **Multi-page app** — Main dashboard (`Haytham.py`) with separate pages for each workflow phase.
-- **Session state** — `st.session_state` tracks workflow progress, user approvals, and feedback across reruns.
-- **Custom components** — Reusable UI blocks for feedback chat, decision gates, progress bars, and locked-workflow modals.
-- **Workflow bridge** — `WorkflowRunner` wraps the async Burr engine for synchronous Streamlit execution with progress callbacks.
-
-**Key files:** `frontend_streamlit/Haytham.py`, `frontend_streamlit/lib/session_utils.py`, `frontend_streamlit/lib/workflow_runner.py`
+The web UI. Haytham's interface needs are straightforward: forms for entering ideas, progress indicators for stages, expandable sections for reviewing outputs, and approval gates between phases. Streamlit handles all of this with pure Python and no frontend build step. The main dashboard shows the overall workflow, with separate pages for each phase.
 
 ---
 
 ## LLM Providers
 
-Haytham uses a provider abstraction with three model tiers (REASONING, HEAVY, LIGHT). Any provider can be used — switch by setting `LLM_PROVIDER` in `.env`.
+Haytham supports four LLM providers. Switch between them by setting `LLM_PROVIDER` in `.env`. Each provider maps to three model tiers (REASONING, HEAVY, LIGHT) so you can assign different models to different kinds of work.
 
-| Provider | Package | How Models Are Created |
+| Provider | Status | Notes |
 |---|---|---|
-| **AWS Bedrock** | `boto3` + `strands.models.bedrock` | `BedrockModel` with custom timeout config (300s read, 60s connect) |
-| **Anthropic** | `anthropic` (optional extra) | Direct API via Strands Anthropic model adapter |
-| **OpenAI** | `openai` (optional extra) | Direct API via Strands OpenAI model adapter |
-| **Ollama** | `ollama` (optional extra) | Local inference via Strands Ollama model adapter |
-
-The provider factory lives in `haytham/agents/utils/model_provider.py`. It resolves the active provider and maps each tier to a model ID from environment variables or sensible defaults.
-
-**Bedrock AgentCore** (`bedrock-agentcore>=1.0.0`) provides the runtime integration layer for AWS Bedrock agent features.
+| **AWS Bedrock** | Tested | The only fully tested provider. Uses Anthropic Claude models via AWS. |
+| **Anthropic** | Supported | Direct API access. Easiest to set up (just an API key). |
+| **OpenAI** | Supported | Direct API access. |
+| **Ollama** | Supported | Free, local inference. No API key needed. Quality depends on model size. |
 
 See [Getting Started](getting-started.md#provider-setup) for configuration.
 
@@ -134,90 +79,57 @@ See [Getting Started](getting-started.md#provider-setup) for configuration.
 
 ## Observability
 
+All observability is optional and disabled by default. No data is collected unless you opt in.
+
 ### OpenTelemetry
 
-| | |
-|---|---|
-| **What** | Vendor-neutral standard for distributed tracing, metrics, and logs |
-| **Docs** | [opentelemetry.io](https://opentelemetry.io/) |
-| **Version** | Bundled via `strands-agents[otel]` |
+[opentelemetry.io](https://opentelemetry.io/)
 
-**Why OpenTelemetry?** It's the industry standard for observability. Strands SDK auto-instruments agent/LLM/tool spans. Haytham adds workflow and stage spans on top, giving a complete picture from UI click to LLM response.
-
-**How Haytham uses it:**
-
-- **Manual instrumentation** — `workflow_span()` and `stage_span()` context managers create parent spans. Agent-level spans are auto-created by Strands.
-- **Agent hooks** — Annotate spans with timing, stop reason, and Bedrock cache metrics.
-- **Exporters** — OTLP (Jaeger), console, or none. Disabled by default (`OTEL_SDK_DISABLED=true`).
-- **Graceful degradation** — If OTel is unavailable, a `_NoOpTracer` ensures no errors.
-
-**Key files:** `haytham/telemetry/config.py`, `haytham/telemetry/spans.py`
+The industry standard for tracing. When enabled, Haytham records the full execution path: which stages ran, which agents were called, how long each LLM call took, and where errors occurred. Strands automatically instruments agent and LLM calls; Haytham adds workflow-level and stage-level tracing on top. Traces can be sent to Jaeger, printed to the console, or disabled entirely.
 
 ### Langfuse
 
-| | |
-|---|---|
-| **What** | LLM observability platform — token usage, cost tracking, user feedback |
-| **Docs** | [langfuse.com/docs](https://langfuse.com/docs) |
-| **Version** | `>=2.0.0` (optional extra) |
+[langfuse.com/docs](https://langfuse.com/docs)
 
-Langfuse is complementary to OpenTelemetry. While Jaeger shows infrastructure timing, Langfuse focuses on LLM-specific analytics: which models cost the most, how many tokens each agent consumes, and how users rate the outputs.
-
-**Key file:** `haytham/agents/utils/langfuse_tracer.py`
+LLM-specific analytics: which models cost the most, how many tokens each agent uses, and how users rate the outputs. Complementary to OpenTelemetry. Jaeger shows timing and errors; Langfuse shows cost and quality.
 
 ### Jaeger
 
-| | |
-|---|---|
-| **What** | Open-source distributed tracing backend with a web UI for trace visualization |
-| **Docs** | [jaegertracing.io](https://www.jaegertracing.io/) |
-| **Version** | Docker image `jaegertracing/all-in-one:1.54` |
+[jaegertracing.io](https://www.jaegertracing.io/)
 
-Haytham ships a `docker-compose.yml` with a pre-configured Jaeger instance. See [Troubleshooting — Tracing with Jaeger](troubleshooting.md#tracing-with-jaeger) for setup.
+A tracing UI for visualizing the full execution pipeline. Haytham ships a pre-configured Docker setup. See [Troubleshooting: Tracing with Jaeger](troubleshooting.md#tracing-with-jaeger) for setup.
 
 ---
 
 ## Supporting Technologies
 
-### Web Search Providers
+### Web Search
 
-Agents that need real-time information (market intelligence, competitor analysis) use a multi-provider fallback chain:
+Agents that need real-time information (market research, competitor analysis) search the web. Three providers are supported in a fallback chain: if one fails or is rate-limited, the next is tried automatically.
 
-1. **DuckDuckGo** (`ddgs>=6.1.0`) — Free, no API key, used by default
-2. **Brave Search** — Requires `BRAVE_API_KEY`, higher quality results
-3. **Tavily** — Requires `TAVILY_API_KEY`, alternative provider
+1. **DuckDuckGo.** Free, no API key, used by default.
+2. **Brave Search.** Requires an API key, higher quality results.
+3. **Tavily.** Requires an API key, alternative provider.
 
-If one provider fails or is rate-limited, the next is tried automatically. A session-wide rate limit (`WEB_SEARCH_SESSION_LIMIT`, default 20) prevents runaway costs.
-
-**Key file:** `haytham/agents/utils/web_search.py`
+A session-wide limit (default: 20 searches across the entire pipeline) prevents runaway costs.
 
 ### ReportLab (PDF Generation)
 
-| | |
-|---|---|
-| **What** | Python library for generating PDF documents |
-| **Docs** | [docs.reportlab.com](https://docs.reportlab.com/) |
-| **Version** | `>=4.0.0` (optional extra) |
+[docs.reportlab.com](https://docs.reportlab.com/)
 
-Used for generating styled PDF reports from workflow outputs. Reports are configured via a data-driven `ReportConfig` with typed section definitions (markdown, tables, scorecards, metrics).
-
-**Key file:** `haytham/agents/tools/pdf_report.py`
+Generates styled PDF reports from workflow outputs. Optional.
 
 ### LanceDB (Vector Storage)
 
-| | |
-|---|---|
-| **What** | Embedded vector database for semantic search |
-| **Docs** | [lancedb.github.io/lancedb](https://lancedb.github.io/lancedb/) |
-| **Version** | `>=0.26.1` (optional extra) |
+[lancedb.github.io/lancedb](https://lancedb.github.io/lancedb/)
 
-Stores capabilities (CAP-\*), decisions (DEC-\*), and entities (ENT-\*) with vector embeddings for semantic retrieval. Agents query LanceDB to find relevant context from earlier stages.
+An embedded vector database that runs locally with no server. Stores capabilities, architecture decisions, and domain entities so agents can search for relevant context from earlier stages.
 
 ---
 
 ## Version Pinning
 
-Several of these technologies are rapidly evolving. The `pyproject.toml` pins minimum versions that are tested:
+Several of these technologies are rapidly evolving. The `pyproject.toml` pins minimum tested versions:
 
 | Package | Minimum | Notes |
 |---|---|---|
@@ -227,4 +139,4 @@ Several of these technologies are rapidly evolving. The `pyproject.toml` pins mi
 | `pydantic` | `2.0.0` | Stable; v2 required (not v1) |
 | `streamlit` | `1.52.2` | Stable |
 
-When upgrading, test with `pytest tests/ -v -m "not integration"` before committing.
+When upgrading, run `pytest tests/ -v -m "not integration"` before committing.
