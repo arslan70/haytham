@@ -60,6 +60,8 @@ make run
 
 Haytham also supports **AWS Bedrock**, **OpenAI**, and **Ollama** (free, local). See [Getting Started](docs/getting-started.md) for all provider options.
 
+> **Note:** Haytham has been primarily tested with **AWS Bedrock**. Other providers should work but may have rough edges. Please [open an issue](https://github.com/arslan70/haytham/issues) if you hit problems with a specific provider.
+
 ## What You Get
 
 Feed Haytham a startup idea. What comes out:

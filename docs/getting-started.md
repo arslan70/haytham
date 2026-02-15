@@ -34,15 +34,17 @@ uv sync --extra providers
 
 ## Provider Setup
 
+> **Note:** Haytham has been primarily tested with **AWS Bedrock**. Other providers (Anthropic, OpenAI, Ollama) should work but may have rough edges. If you encounter provider-specific issues, please [open an issue](https://github.com/arslan70/haytham/issues).
+
 Copy the environment template and configure your provider:
 
 ```bash
 cp .env.example .env
 ```
 
-### Anthropic (Recommended)
+### Anthropic
 
-Best balance of quality and ease of setup.
+Easiest to set up — just an API key.
 
 ```bash
 LLM_PROVIDER=anthropic
