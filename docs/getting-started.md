@@ -3,8 +3,8 @@
 ## Prerequisites
 
 - **Python 3.11+**
-- **[uv](https://docs.astral.sh/uv/getting-started/installation/)** — Python package manager
-- **An LLM provider** — Anthropic API key, AWS credentials, OpenAI API key, or Ollama installed locally
+- **[uv](https://docs.astral.sh/uv/getting-started/installation/).** Python package manager.
+- **An LLM provider.** Anthropic API key, AWS credentials, OpenAI API key, or Ollama installed locally.
 
 ## Installation
 
@@ -16,7 +16,10 @@ cd haytham
 Install dependencies for your chosen provider:
 
 ```bash
-# Anthropic (recommended)
+# AWS Bedrock (tested)
+uv sync
+
+# Anthropic
 uv sync --extra anthropic
 
 # OpenAI
@@ -25,16 +28,11 @@ uv sync --extra openai
 # Ollama (free, local)
 uv sync --extra ollama
 
-# AWS Bedrock
-uv sync
-
 # All providers
 uv sync --extra providers
 ```
 
 ## Provider Setup
-
-> **Note:** Haytham has been primarily tested with **AWS Bedrock**. Other providers (Anthropic, OpenAI, Ollama) should work but may have rough edges. If you encounter provider-specific issues, please [open an issue](https://github.com/arslan70/haytham/issues).
 
 Copy the environment template and configure your provider:
 
@@ -42,9 +40,27 @@ Copy the environment template and configure your provider:
 cp .env.example .env
 ```
 
+### AWS Bedrock (Tested)
+
+This is the only provider that has been fully tested. Requires AWS credentials configured via environment variables or AWS CLI profile.
+
+```bash
+LLM_PROVIDER=bedrock
+AWS_REGION=us-east-1
+
+# Model configuration (defaults shown):
+BEDROCK_REASONING_MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
+BEDROCK_HEAVY_MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
+BEDROCK_LIGHT_MODEL_ID=us.anthropic.claude-3-5-haiku-20241022-v1:0
+```
+
+---
+
+The providers below are supported but have not been fully tested. They should work, but you may hit rough edges. If you encounter provider-specific issues, please [open an issue](https://github.com/arslan70/haytham/issues).
+
 ### Anthropic
 
-Easiest to set up — just an API key.
+Easiest to set up: just an API key.
 
 ```bash
 LLM_PROVIDER=anthropic
@@ -54,6 +70,18 @@ ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_REASONING_MODEL_ID=claude-sonnet-4-20250514
 ANTHROPIC_HEAVY_MODEL_ID=claude-sonnet-4-20250514
 ANTHROPIC_LIGHT_MODEL_ID=claude-3-5-haiku-20241022
+```
+
+### OpenAI
+
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+
+# Model configuration (defaults shown):
+OPENAI_REASONING_MODEL_ID=gpt-4o
+OPENAI_HEAVY_MODEL_ID=gpt-4o
+OPENAI_LIGHT_MODEL_ID=gpt-4o-mini
 ```
 
 ### Ollama (Free, Local)
@@ -74,33 +102,7 @@ OLLAMA_HEAVY_MODEL_ID=llama3.1:70b
 OLLAMA_LIGHT_MODEL_ID=llama3.1:8b
 ```
 
-Note: Quality depends heavily on model size. The 70b parameter model is recommended for meaningful results but requires significant hardware (40+ GB GPU memory). If you don't have a high-end GPU, try the `8b` model — results will be less consistent, but it runs on most machines. Smaller models may produce incomplete or inconsistent outputs.
-
-### OpenAI
-
-```bash
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-...
-
-# Model configuration (defaults shown):
-OPENAI_REASONING_MODEL_ID=gpt-4o
-OPENAI_HEAVY_MODEL_ID=gpt-4o
-OPENAI_LIGHT_MODEL_ID=gpt-4o-mini
-```
-
-### AWS Bedrock
-
-Requires AWS credentials configured via environment variables or AWS CLI profile.
-
-```bash
-LLM_PROVIDER=bedrock
-AWS_REGION=us-east-1
-
-# Model configuration (defaults shown):
-BEDROCK_REASONING_MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
-BEDROCK_HEAVY_MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
-BEDROCK_LIGHT_MODEL_ID=us.anthropic.claude-3-5-haiku-20241022-v1:0
-```
+Note: Quality depends heavily on model size. The 70b parameter model is recommended for meaningful results but requires significant hardware (40+ GB GPU memory). If you don't have a high-end GPU, try the `8b` model. Results will be less consistent, but it runs on most machines. Smaller models may produce incomplete or inconsistent outputs.
 
 ## Three-Tier Model Configuration
 
@@ -125,17 +127,17 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ## Your First Run
 
-1. **Enter an idea** — describe a startup idea in plain language. Be specific about the problem, target users, and what makes it different. The more detail you provide, the better the analysis.
+1. **Enter an idea.** Describe a startup idea in plain language. Be specific about the problem, target users, and what makes it different. The more detail you provide, the better the analysis.
 
-2. **Discovery** — Haytham checks whether your idea is clear enough to analyze. If gaps exist (missing problem statement, unclear target user, vague value proposition), it asks targeted questions. If the idea is clear, this step is automatic.
+2. **Discovery.** Haytham checks whether your idea is clear enough to analyze. If gaps exist (missing problem statement, unclear target user, vague value proposition), it asks targeted questions. If the idea is clear, this step is automatic.
 
-3. **Phase 1: Should this be built?** — Specialist agents analyze the market, competitors, and risks. You receive a GO / NO-GO / PIVOT verdict with evidence. Review the findings and approve to proceed.
+3. **Phase 1: Should this be built?** Specialist agents analyze the market, competitors, and risks. You receive a GO / NO-GO / PIVOT verdict with evidence. Review the findings and approve to proceed.
 
-4. **Phase 2: What exactly should we build?** — Agents define MVP scope and extract capabilities. Review the scope boundaries and capability model, then approve.
+4. **Phase 2: What exactly should we build?** Agents define MVP scope and extract capabilities. Review the scope boundaries and capability model, then approve.
 
-5. **Phase 3: How should we build it?** — Build-vs-buy analysis per capability and architecture decisions. Review the technical choices and approve.
+5. **Phase 3: How should we build it?** Build-vs-buy analysis per capability and architecture decisions. Review the technical choices and approve.
 
-6. **Phase 4: What are the tasks?** — Ordered user stories with acceptance criteria and full traceability. These are ready to hand to a developer or coding agent.
+6. **Phase 4: What are the tasks?** Ordered user stories with acceptance criteria and full traceability. These are ready to hand to a developer or coding agent.
 
 Each phase takes a few minutes. The full pipeline completes in approximately 20 minutes.
 
@@ -143,7 +145,7 @@ Each phase takes a few minutes. The full pipeline completes in approximately 20 
 
 ## Optional: Observability
 
-Haytham includes [OpenTelemetry](https://opentelemetry.io/) tracing for debugging. **Disabled by default** — no data is collected unless you opt in.
+Haytham includes [OpenTelemetry](https://opentelemetry.io/) tracing for debugging. **Disabled by default.** No data is collected unless you opt in.
 
 ```bash
 # Start Jaeger (requires Docker)
@@ -174,12 +176,12 @@ burr
 
 ## Troubleshooting
 
-**"Module not found" errors** — Make sure you ran `uv sync` with the correct `--extra` flag for your provider.
+**"Module not found" errors.** Make sure you ran `uv sync` with the correct `--extra` flag for your provider.
 
-**Ollama connection refused** — Ensure Ollama is running (`ollama serve`) and the model is pulled (`ollama list`).
+**Ollama connection refused.** Ensure Ollama is running (`ollama serve`) and the model is pulled (`ollama list`).
 
-**AWS credential errors** — Verify your AWS credentials are configured (`aws sts get-caller-identity`). Check that your IAM role has Bedrock model access in the configured region.
+**AWS credential errors.** Verify your AWS credentials are configured (`aws sts get-caller-identity`). Check that your IAM role has Bedrock model access in the configured region.
 
-**Incomplete or low-quality outputs** — Try a more capable model. The REASONING tier has the most impact on output quality.
+**Incomplete or low-quality outputs.** Try a more capable model. The REASONING tier has the most impact on output quality.
 
 For logs, tracing, and more debugging tools, see the full **[Troubleshooting Guide](troubleshooting.md)**.
