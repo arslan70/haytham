@@ -176,12 +176,4 @@ burr
 
 ## Troubleshooting
 
-**"Module not found" errors.** Make sure you ran `uv sync` with the correct `--extra` flag for your provider.
-
-**Ollama connection refused.** Ensure Ollama is running (`ollama serve`) and the model is pulled (`ollama list`).
-
-**AWS credential errors.** Verify your AWS credentials are configured (`aws sts get-caller-identity`). Check that your IAM role has Bedrock model access in the configured region.
-
-**Incomplete or low-quality outputs.** Try a more capable model. The REASONING tier has the most impact on output quality.
-
-For logs, tracing, and more debugging tools, see the full **[Troubleshooting Guide](troubleshooting.md)**.
+Having issues? See the **[Troubleshooting Guide](troubleshooting.md)** for common errors, debugging tools, and tracing setup.

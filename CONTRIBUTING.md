@@ -30,77 +30,28 @@ cp .env.example .env
 
 ## Running Without AWS Credentials
 
-You don't need an AWS account to develop on Haytham. Pick one of these options:
-
-### Anthropic API
-
-```bash
-# In .env:
-LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### Ollama (Free, Local)
-
-```bash
-# Install Ollama: https://ollama.com/download
-ollama pull llama3.1:70b
-
-# In .env:
-LLM_PROVIDER=ollama
-```
-
-See [`.env.example`](.env.example) for all provider options.
+You don't need an AWS account to develop on Haytham. See [Getting Started](docs/getting-started.md#provider-setup) for Anthropic, OpenAI, and Ollama setup instructions.
 
 ## Running the App
 
 ```bash
 make run
-# Or: streamlit run frontend_streamlit/Haytham.py
-
 # Open http://localhost:8501
-```
-
-## Running Tests
-
-```bash
-# Unit tests (recommended during development)
-uv run pytest tests/ -v -m "not integration"
-
-# All tests
-uv run pytest tests/ -v
-
-# Run a specific test
-uv run pytest tests/ -k "test_stage_registry" -v
 ```
 
 ## Code Quality
 
-We use [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
-
-```bash
-# Check for lint issues
-uv run ruff check haytham/
-
-# Auto-fix lint issues
-uv run ruff check haytham/ --fix
-
-# Format code
-uv run ruff format haytham/
-```
-
-Pre-commit hooks are available to run these checks automatically:
+We use [Ruff](https://docs.astral.sh/ruff/) for linting and formatting. Pre-commit hooks are available:
 
 ```bash
 uv run pre-commit install
 ```
 
+See [CLAUDE.md](CLAUDE.md#before-every-commit-required) for the full lint/test/format workflow required before every commit.
+
 ## Code Conventions
 
-- See [CLAUDE.md](CLAUDE.md) for detailed architecture patterns and code hygiene rules.
-- Use the Strands SDK for agent creation. Access structured output via `result.structured_output`, not `result.output`.
-- New agents: add prompt file + config entry + factory function (see "Adding a New Agent" in CLAUDE.md).
-- New stages: add metadata + execution config + Burr action + entry validator + UI entry (see "Adding a New Stage" in CLAUDE.md).
+See [CLAUDE.md](CLAUDE.md) for architecture patterns, code hygiene rules, and checklists for adding agents/stages.
 
 ## Submitting Changes
 
@@ -147,48 +98,7 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md) — do not open a p
 
 ## Troubleshooting
 
-### `uv sync` fails with resolver errors
-
-```bash
-# Clear the cache and retry
-uv cache clean && uv sync
-```
-
-### `ModuleNotFoundError: No module named 'haytham'`
-
-Streamlit views must call `setup_paths()` before importing `haytham.*` modules:
-
-```python
-from lib.session_utils import setup_paths
-setup_paths()  # Must be first — adds project root to sys.path
-
-from haytham.workflow import ...  # Now safe
-```
-
-### Tests pass locally but fail in CI
-
-Ensure you're skipping integration tests (they require live LLM credentials):
-
-```bash
-uv run pytest tests/ -v -m "not integration"
-```
-
-### `StreamlitAPIException` or session state errors
-
-Clear the session and restart:
-
-```bash
-make reset
-make run
-```
-
-### Ruff reports lint issues
-
-The codebase should be lint-clean. If you see issues, run the full fix and format cycle:
-
-```bash
-uv run ruff check haytham/ --fix && uv run ruff format haytham/
-```
+See the [Troubleshooting Guide](docs/troubleshooting.md) for common issues and debugging tools.
 
 ---
 

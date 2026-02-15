@@ -124,32 +124,13 @@ Most agents return structured data (scores, competitor lists, story skeletons) r
 
 ### The Control Plane Pattern
 
-Haytham separates two concerns: **deciding what to build** (Phases 1-4) and **executing the build** (Phase 5+). The specification phases are Haytham's core. Execution is delegated to whatever agent or person is best suited.
+Haytham separates two concerns: **deciding what to build** (Phases 1-4) and **executing the build** (Phase 5+). The specification phases are Haytham's core. Execution is delegated to whatever agent or person is best suited — coding agents, design services, cloud service agents, or human developers. The workflow engine treats all of these the same way: same specification context, same approval gates, same traceability.
 
-The executor can be:
-
-- **A coding agent** (Devin, Amazon Q Developer Agent, Google Jules, Claude Code) receiving a story with acceptance criteria and architecture constraints
-- **A design service** (Google Stitch) receiving capability specs and generating UI code
-- **A cloud service agent** (AWS Bedrock Agents, Google Vertex AI Agents) receiving infrastructure requirements
-- **A human developer** receiving the same traced specification
-
-The workflow engine treats all of these the same way. Whether the work is done by an AI agent or a person, they receive the same specification context, participate in the same approval gates, and their output is traced back to the same capability model.
-
-### Planned: Google Stitch Integration
-
-The planned [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)) will be the first demonstration of this pattern. A UX designer agent will connect to Stitch's MCP endpoint to generate UI screens, participating in the same workflow, approval gates, and traceability as every other agent.
-
-See [VISION.md](../../VISION.md#the-control-plane-orchestrating-execution-agents) for the full rationale.
+See [VISION.md](../../VISION.md#the-control-plane-orchestrating-execution-agents) for the full rationale and [Roadmap](../roadmap.md) for planned integrations (including [Google Stitch](https://stitch.withgoogle.com/) via [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)).
 
 ## Validation Pipeline
 
-At the end of Phase 1, a three-step pipeline decides whether the idea is worth building:
-
-1. **Scorer.** Checks deal-breakers, scores the idea on six dimensions, and computes a GO / NO-GO / PIVOT verdict.
-2. **Narrator.** Takes the scores and writes the report a human will read: executive summary, Lean Canvas, findings, and next steps.
-3. **Merge.** Combines the scores and the report. If the narrator accidentally states a different verdict than the scorer computed, the merge corrects it. The scorer's numbers always win.
-
-For full details, see [Scoring Pipeline](scoring-pipeline.md).
+At the end of Phase 1, a three-step pipeline (scorer → narrator → merge) decides whether the idea is worth building, producing a GO / NO-GO / PIVOT verdict. See [Scoring Pipeline](scoring-pipeline.md) for full details.
 
 ## Project Structure
 
@@ -157,7 +138,7 @@ Simplified view of the codebase. The full package includes additional modules fo
 
 ```
 haytham/
-├── agents/                  # The 21 specialist AI agents
+├── agents/                  # Specialist AI agents
 │   ├── factory/             # Creates agents on demand
 │   └── worker_*/            # One folder per agent (prompt + config)
 ├── workflow/                # Workflow engine and stage definitions
