@@ -12,7 +12,7 @@ Haytham compresses this into an evidence-based process. Twenty-one specialist ag
 If the idea doesn't hold up, the system says NO-GO and tells you why. Only validated ideas proceed to specification.
 
 <p align="center">
-  <img src="docs/images/yes-machine-problem.png" alt="The Yes-Machine Problem — an xkcd-style comic about AI that builds without validating" width="500"/>
+  <img src="docs/images/yes-machine-problem.png" alt="The Yes-Machine Problem — AI that builds without validating" width="500"/>
 </p>
 
 ```mermaid
