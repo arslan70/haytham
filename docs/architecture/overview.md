@@ -46,7 +46,6 @@ flowchart TD
 [Burr](https://github.com/dagworks-inc/burr) orchestrates the four phases as a state machine. Each stage runs in order, with conditional branches where needed (e.g., the pivot strategy stage only runs when risk is HIGH).
 
 Key behaviors:
-- **Conditional branching.** Some stages only run under certain conditions.
 - **Checkpoint persistence.** Progress is saved after every stage. If the process is interrupted, it resumes where it left off.
 - **Tracking UI.** An optional dashboard at `localhost:7241` shows which stages ran and what state was passed between them.
 
