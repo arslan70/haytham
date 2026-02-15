@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This document describes the system architecture of Haytham. For the user-facing process walkthrough, see [How It Works](../how-it-works.md). For details on each technology and why it was chosen, see [Technology Stack](../technology.md).
+This document describes how Haytham is built. For the user-facing process walkthrough, see [How It Works](../how-it-works.md). For details on each technology and why it was chosen, see [Technology Stack](../technology.md).
 
 ---
 
@@ -12,106 +12,86 @@ Haytham is a multi-phase workflow system where:
 - **Humans approve** at phase boundaries (gates)
 - **Shared state** provides continuity across the entire lifecycle
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                       Streamlit UI                            │
-└──────────────────────────┬───────────────────────────────────┘
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│                   Burr Workflow Engine                        │
-│       State machine · Conditional branching · Checkpoints    │
-└──────────────────────────┬───────────────────────────────────┘
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Phase 1   idea_analysis → market_context → risk_assessment  │
-│            → [pivot_strategy] → validation_summary → GATE    │
-│  Phase 2   mvp_scope → capability_model → system_traits      │
-│            → GATE                                            │
-│  Phase 3   build_buy_analysis → architecture_decisions       │
-│            → GATE                                            │
-│  Phase 4   story_generation → story_validation →             │
-│            dependency_ordering                               │
-└──────────────────────────┬───────────────────────────────────┘
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│                    Shared State Layer                         │
-│                                                              │
-│   VectorDB (LanceDB)              Backlog.md (MCP)           │
-│   • Capabilities (CAP-*)          • Stories                  │
-│   • Decisions (DEC-*)    linked   • Dependencies             │
-│   • Entities (ENT-*)    via tags  • Status                   │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    ui["Web UI (Streamlit)"]
+    engine["Workflow Engine (Burr)"]
+
+    ui --> engine
+
+    subgraph phases ["Four Phases"]
+        direction TB
+        p1["Phase 1: Should this be built?"]
+        p2["Phase 2: What exactly?"]
+        p3["Phase 3: How to build it?"]
+        p4["Phase 4: What are the tasks?"]
+        p1 -->|"Human approval"| p2 -->|"Human approval"| p3 -->|"Human approval"| p4
+    end
+
+    engine --> phases
+
+    subgraph state ["Shared State"]
+        direction LR
+        vector["Capabilities, Decisions, Entities"]
+        backlog["Stories, Dependencies, Status"]
+    end
+
+    phases --> state
 ```
 
 ## Core Components
 
-### Burr Workflow Engine
+### Workflow Engine
 
-[Burr](https://github.com/dagworks-inc/burr) ([docs](https://burr.dagworks.io/)) provides the state machine that orchestrates the four phases. Each stage is a Burr action with defined inputs and outputs.
+[Burr](https://github.com/dagworks-inc/burr) orchestrates the four phases as a state machine. Each stage runs in order, with conditional branches where needed (e.g., the pivot strategy stage only runs when risk is HIGH).
 
 Key behaviors:
-- **Conditional branching** — `when(risk_level="HIGH")` triggers the pivot strategy stage
-- **Checkpoint persistence** — state saved after each action, resume from any point
-- **Tracking UI** — optional visualization of workflow state at `localhost:7241`
-
-**Key file:** `haytham/workflow/burr_workflow.py`
+- **Conditional branching.** Some stages only run under certain conditions.
+- **Checkpoint persistence.** Progress is saved after every stage. If the process is interrupted, it resumes where it left off.
+- **Tracking UI.** An optional dashboard at `localhost:7241` shows which stages ran and what state was passed between them.
 
 ### Stage Registry
 
-Single source of truth for stage metadata. Every stage is registered with its slug, display name, phase, and ordering. O(1) lookups by slug or action name.
-
-**Key file:** `haytham/workflow/stage_registry.py`
+A central list of all stages: their names, which phase they belong to, and what order they run in. Adding a new stage means adding it here.
 
 ### Stage Executor
 
-Template Method pattern for stage execution. Each stage is configured via a `StageExecutionConfig` entry in the `STAGE_CONFIGS` dict — no per-stage subclasses needed.
-
-**Key file:** `haytham/workflow/stage_executor.py`
+Runs a single stage. Every stage follows the same pattern: receive input from earlier stages, call an agent, save the output. The stages differ only in their configuration, not their execution logic.
 
 ### Agent Factory
 
-Creates agents using the [Strands Agents SDK](https://github.com/strands-agents/sdk-python) ([docs](https://strandsagents.com/)). Each agent is registered in the `AGENT_FACTORIES` dict with its configuration (prompt file, model tier, structured output model if needed).
-
-Agents are created dynamically by name — adding a new agent means adding an entry to the config dict and a factory function.
-
-**Key file:** `haytham/agents/factory/agent_factory.py`
+Creates agents on demand using the [Strands Agents SDK](https://github.com/strands-agents/sdk-python). Each agent has a prompt file, a model tier, and optionally a schema for structured output. Adding a new agent means adding a config entry and a factory function.
 
 ### Session Manager
 
-Manages session state, checkpoints, and stage outputs. Each stage writes its output to `session/{stage-slug}/`. Phase completion is tracked via lock files (e.g., `.idea-validation.locked`).
-
-**Key file:** `haytham/session/session_manager.py`
+Saves everything to disk. Each stage writes its output to a folder under `session/`. When a full phase completes, it's locked so it won't accidentally re-run.
 
 ### Workflow Runner
 
-Synchronous wrapper that bridges the Burr async workflow with the Streamlit UI. New workflow types are configured via a `WorkflowConfig` dataclass.
+Connects the workflow engine to the web UI. The engine runs asynchronously; the runner wraps it so Streamlit can display progress and collect approvals.
 
-**Key file:** `frontend_streamlit/lib/workflow_runner.py`
+## Shared State
 
-## Shared State Layer
+Two stores keep information flowing between phases:
 
-Two complementary stores provide continuity across phases:
+| Store | What it holds | How it works |
+|-------|---------------|-------------|
+| **Vector database ([LanceDB](https://lancedb.github.io/lancedb/))** | Capabilities, architecture decisions, domain entities | Agents search it to find relevant context from earlier phases. Runs locally, no server needed. |
+| **[Backlog.md](https://backlog.md/) (MCP)** | Stories, tasks, status | Where the generated stories live. Coding agents can read and update stories during implementation via [MCP](https://modelcontextprotocol.io/). |
 
-| Store | Contains | Lifecycle | Purpose |
-|-------|----------|-----------|---------|
-| **VectorDB ([LanceDB](https://lancedb.github.io/lancedb/))** | Capabilities (CAP-\*), Decisions (DEC-\*), Entities (ENT-\*) | Immutable definitions; new versions supersede old | Semantic queries; agent input |
-| **[Backlog.md](https://backlog.md/) (MCP)** | Stories, tasks, status | Mutable work items | Implementation handoff; status tracking |
+### Nothing is overwritten
 
-LanceDB is an embedded vector database — no server required. It stores capabilities, decisions, and entities with vector embeddings so agents can retrieve semantically relevant context from earlier stages. Backlog.md provides task management for the generated application via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), enabling coding agents to read and update stories during implementation.
+Capabilities and decisions are never modified. When requirements change, a new version is created that points back to the old one. This keeps a clear audit trail of what changed and why.
 
-### Immutability and Superseding
+### Everything is linked
 
-Capabilities and decisions are never modified. When requirements change, new versions are created with `supersedes:` links. This preserves the audit trail and makes changes explicit.
+Every story links back to the rest of the system:
 
-### Traceability Tags
+- `implements:CAP-F-001` - which capability this story delivers
+- `uses:DEC-001` - which architecture decision it depends on
+- `touches:ENT-001` - which domain entity it affects
 
-Stories in Backlog.md link to the shared state via tags:
-
-- `implements:CAP-F-001` — which capability this story delivers
-- `uses:DEC-001` — which architecture decision it depends on
-- `touches:ENT-001` — which domain entity it affects
-
-This traceability is what enables the Evolution milestone — the system can understand what exists and generate targeted changes.
+This traceability is what makes the [Evolution milestone](../../VISION.md#milestone-2-evolution) possible. The system can understand what already exists and generate targeted changes instead of starting over.
 
 ## Why Separate Phases?
 
@@ -121,99 +101,79 @@ This traceability is what enables the Evolution milestone — the system can und
 | **Focused state** | Each phase manages only the state it needs |
 | **Failure isolation** | Problems are contained to one phase |
 | **Independent evolution** | Improve one phase without affecting others |
-| **Natural pacing** | Days between phases is normal — no pressure to run end-to-end in one session |
+| **Natural pacing** | Days between phases is normal. No pressure to run end-to-end in one session |
 
 ## Agent Architecture
 
-Each agent follows a consistent pattern:
-
-1. **Prompt file** — `haytham/agents/worker_{name}/worker_{name}_prompt.txt`
-2. **Config entry** — registered in `AGENT_CONFIGS` with model tier and optional structured output model
-3. **Factory function** — registered in `AGENT_FACTORIES` for dynamic creation
-
-Agents use the Strands SDK. Structured output is accessed via `result.structured_output` (not `result.output`).
+Each agent has three parts: a **prompt** (what it's told to do), a **model tier** (how capable the LLM needs to be), and optionally a **structured output schema** (what shape the response must take).
 
 ### Model Tiers
 
-Agents are assigned to one of three model tiers:
+Not every agent needs the most powerful model. Agents are assigned to one of three tiers:
 
-| Tier | Purpose | Examples |
-|------|---------|---------|
-| **REASONING** | Deep analysis requiring chain-of-thought | Validation scoring, risk assessment |
-| **HEAVY** | Substantial generation | Market analysis, architecture decisions, story generation |
-| **LIGHT** | Fast classification and formatting | Idea polishing, input validation |
+| Tier | When it's used | Examples |
+|------|---------------|---------|
+| **REASONING** | Complex analysis that requires weighing evidence | Validation scoring, risk assessment |
+| **HEAVY** | Substantial writing or generation | Market analysis, architecture decisions, story generation |
+| **LIGHT** | Quick classification or formatting | Idea polishing, input validation |
 
-Each tier maps to a configurable model ID per provider, allowing cost/quality trade-offs.
+Each tier maps to a configurable model per provider, so you control the cost/quality trade-off.
 
-### Structured Output Pipeline
+### Structured Output
 
-Agents that need typed responses use [Pydantic](https://docs.pydantic.dev/) models for structured output. The pipeline:
-
-1. **Define** a Pydantic model in the agent's directory (e.g., `validation_models.py`)
-2. **Register** it in `AGENT_CONFIGS` as `structured_output_model` or `structured_output_model_path` (lazy import)
-3. **Create** the agent via the factory — Strands passes the model to the LLM as a response schema
-4. **Extract** the result via `result.structured_output` (canonical extraction in `haytham/agents/output_utils.py`)
-
-The structured output is then serialized — `model_dump_json()` for Burr state persistence, `to_markdown()` for human-readable session output.
+Most agents return structured data (scores, competitor lists, story skeletons) rather than free-form text. A schema defines exactly what fields the agent must return. The LLM is constrained to that schema, so the output is always valid and parseable. This structured data is saved as JSON for the workflow engine and converted to markdown for human review.
 
 ### The Control Plane Pattern
 
-Haytham's architecture separates two concerns that are often conflated: **deciding what to build** (specification) and **executing the build** (implementation). The specification phases (1–4) are Haytham's core. The execution phase (5) dispatches traced work items to whatever agent is best suited to perform them.
+Haytham separates two concerns: **deciding what to build** (Phases 1-4) and **executing the build** (Phase 5+). The specification phases are Haytham's core. Execution is delegated to whatever agent or person is best suited.
 
-This separation is what makes Haytham a control plane rather than a monolithic system. The executor can be:
+The executor can be:
 
-- **A hosted coding agent** (Devin, Amazon Q Developer Agent, Google Jules, Claude Code) receiving a story with acceptance criteria, architecture constraints, and capability context
-- **An MCP-native service** (Google Stitch) receiving capability specs and generating UI code
-- **A cloud provider agent** (AWS Bedrock Agents, Google Vertex AI Agents) receiving infrastructure requirements
+- **A coding agent** (Devin, Amazon Q Developer Agent, Google Jules, Claude Code) receiving a story with acceptance criteria and architecture constraints
+- **A design service** (Google Stitch) receiving capability specs and generating UI code
+- **A cloud service agent** (AWS Bedrock Agents, Google Vertex AI Agents) receiving infrastructure requirements
 - **A human developer** receiving the same traced specification
 
-The `AGENT_FACTORIES` registry, `StageExecutionConfig` pattern, and Burr's state machine all treat agents as interchangeable units of work. The workflow engine doesn't distinguish between an agent that reasons locally and one that delegates to an external service — they participate in the same state machine, traceability chains, and approval gates.
+The workflow engine treats all of these the same way. Whether the work is done by an AI agent or a person, they receive the same specification context, participate in the same approval gates, and their output is traced back to the same capability model.
 
-### Planned Example: Google Stitch
+### Planned: Google Stitch Integration
 
-The planned [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)) will demonstrate this pattern end-to-end: a `ux_designer` agent will use the Strands `mcp_client` tool to connect to Stitch's official MCP endpoint, discover its tools, and orchestrate UI generation — all within the same Burr state machine, `StageExecutionConfig`, and approval gates used by every other agent.
+The planned [Google Stitch](https://stitch.withgoogle.com/) integration (see [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)) will be the first demonstration of this pattern. A UX designer agent will connect to Stitch's MCP endpoint to generate UI screens, participating in the same workflow, approval gates, and traceability as every other agent.
 
-As more providers expose agent interfaces — whether through MCP, native SDKs, or other protocols — the same integration path applies. What varies is the executor; the specification-driven context, traceability, and governance remain constant.
-
-See [Vision and Roadmap](../../VISION.md#the-control-plane-orchestrating-execution-agents) for the full rationale.
+See [VISION.md](../../VISION.md#the-control-plane-orchestrating-execution-agents) for the full rationale.
 
 ## Validation Pipeline
 
-The validation summary stage (Phase 1 terminator) runs a three-step pipeline:
+At the end of Phase 1, a three-step pipeline decides whether the idea is worth building:
 
-1. **Scorer** (REASONING tier) — Records knockouts, counter-signals, dimension scores, and computes a verdict. Evidence is validated through rubric phrase rejection, source tag validation, and dedup checks.
-2. **Narrator** (HEAVY tier) — Receives scorer JSON and upstream context, generates prose sections (executive summary, Lean Canvas, findings, next steps).
-3. **Merge** — Deterministic combination of scorer and narrator outputs. Fixes verdict if narrator hallucinated a different verdict than the scorer computed.
+1. **Scorer.** Checks deal-breakers, scores the idea on six dimensions, and computes a GO / NO-GO / PIVOT verdict.
+2. **Narrator.** Takes the scores and writes the report a human will read: executive summary, Lean Canvas, findings, and next steps.
+3. **Merge.** Combines the scores and the report. If the narrator accidentally states a different verdict than the scorer computed, the merge corrects it. The scorer's numbers always win.
 
 For full details, see [Scoring Pipeline](scoring-pipeline.md).
 
 ## Project Structure
 
-Simplified view — showing key components. The full package includes additional modules for context management, exporters, feedback, and more.
+Simplified view of the codebase. The full package includes additional modules for context management, exporters, feedback, and more.
 
 ```
 haytham/
-├── agents/                  # AI agents
-│   ├── factory/              # Agent factory and orchestration
-│   ├── output_utils.py      # Shared output extraction
-│   └── worker_*/            # Specialist agents (prompt + config each)
-├── workflow/                # Burr workflow engine
-│   ├── burr_workflow.py     # Workflow definition and transitions
-│   ├── stage_registry.py    # Centralized stage metadata
-│   ├── stage_executor.py    # Generic stage execution (Template Method)
-│   └── workflow_factories.py # Workflow creation helpers
-├── session/                 # Session management and persistence
-├── state/                   # State schema and coverage tracking
-├── formatters/              # Output formatting
-├── phases/                  # Stage configuration
-└── telemetry/               # Optional OpenTelemetry integration
+├── agents/                  # The 21 specialist AI agents
+│   ├── factory/             # Creates agents on demand
+│   └── worker_*/            # One folder per agent (prompt + config)
+├── workflow/                # Workflow engine and stage definitions
+├── session/                 # Saves progress and stage outputs to disk
+├── state/                   # Tracks what's been produced and what's covered
+├── formatters/              # Converts structured data to readable output
+├── phases/                  # Configuration for each phase
+└── telemetry/               # Optional tracing (OpenTelemetry)
 
-frontend_streamlit/          # Streamlit UI
+frontend_streamlit/          # Web UI
 ├── Haytham.py               # Main dashboard
-├── lib/                     # Workflow runner and utilities
-├── views/                   # UI views (execution, feedback, gates)
-├── components/              # Reusable UI components
-└── assets/                  # Static assets
+├── lib/                     # Workflow runner and helpers
+├── views/                   # One view per workflow phase
+├── components/              # Reusable UI pieces
+└── assets/                  # Images and static files
 
 tests/                       # Test suite
 ```
