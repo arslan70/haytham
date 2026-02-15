@@ -83,9 +83,17 @@ Determine if the idea is viable before investing in specification.
 
 **Concept Expansion** transforms the raw idea into a structured startup concept with problems, trigger moments, target segments, and an initial [Lean Canvas](https://leanstack.com/lean-canvas).
 
+#### Solving the telephone problem
+
+In a multi-agent pipeline, each agent subtly shifts meaning toward the generic case. After several hops, the output can describe a fundamentally different product — a real-world test showed a psychologist's closed-community wish-exchange app becoming a generic open-registration encouragement board by the time stories were generated.
+
+The **Anchor Extractor** prevents this. Before any analysis begins, it captures a small, immutable artifact from the original input: the user's core intent, a set of invariants (properties that must remain true in every downstream output), and identity markers (what makes this idea distinctive rather than generic). This anchor bypasses the agent chain entirely — every downstream agent receives it unchanged as a constraint, not as context that can be reinterpreted.
+
+Independent phase-boundary verifiers then check each phase's output against the anchor at decision gates. If an invariant is violated — say, MVP Scope quietly drops the closed-community requirement — the verifier surfaces it for review before the next phase runs. This is external verification, not self-checking: a separate agent with a narrow mandate reviews the producing agent's work. See [ADR-022](adr/ADR-022-concept-fidelity-pipeline-integrity.md) for the full design.
+
 **Market Intelligence** and **Competitor Analysis** run in parallel. Market Intelligence uses the [Jobs-to-be-Done](https://jtbd.info/) framework to identify core functional, emotional, and social jobs, then sizes the opportunity using [TAM/SAM/SOM](https://en.wikipedia.org/wiki/Total_addressable_market) analysis. Competitor Analysis anchors searches around the customer job rather than the product category — finding competitors across markets that solve the same job — and evaluates switching costs, lock-in factors, and market structure. Both agents include explicit confirmation bias checks to ensure findings aren't shaped to fit a predetermined conclusion.
 
-The **Startup Validator** extracts 10–15 key claims and validates each against evidence, classifying risk as HIGH / MEDIUM / LOW. The **Validation Summary** then applies a [Stage-Gate](https://en.wikipedia.org/wiki/Stage-gate_model) scorecard (Robert Cooper) with three knockout criteria and six scored dimensions to produce a GO / NO-GO / PIVOT verdict. If risk is HIGH, a **Pivot Strategy** agent proposes alternatives before the verdict is finalized.
+The **Startup Validator** extracts 10–15 key claims and validates each against evidence, classifying risk as HIGH / MEDIUM / LOW. The **Validation Summary** then applies a [Stage-Gate](https://en.wikipedia.org/wiki/Stage-gate_model) scorecard (Robert Cooper) with three knockout criteria and six scored dimensions to produce a GO / NO-GO / PIVOT verdict. The scorer uses tool calls to build a scorecard incrementally — each tool validates evidence quality, rejects rubric phrases, and prevents the same evidence from being cited for multiple dimensions. If risk is HIGH, a **Pivot Strategy** agent proposes alternatives before the verdict is finalized.
 
 ### Gate 1: Founder Review
 
@@ -99,7 +107,7 @@ The **Startup Validator** extracts 10–15 key claims and validates each against
 
 Define a focused, achievable first version. **MVP Scope** uses [Shape Up](https://basecamp.com/shapeup) appetite-based scoping (Small / Medium / Large time constraints) to right-size the first version. It identifies the core value proposition, defines a single primary user segment, in/out-of-scope boundaries, success criteria, and 2–3 core user flows.
 
-**Capability Model** decomposes the scope into 3–5 functional and 2–4 non-functional capabilities using standard [capability mapping](https://en.wikipedia.org/wiki/Business_capability_model), each traced to the user flows that justify it. **System Traits** classifies the system type — interface, auth model, deployment targets, data layer — to inform downstream architecture.
+**Capability Model** decomposes the scope into 3–5 functional and 2–4 non-functional capabilities using standard [capability mapping](https://en.wikipedia.org/wiki/Business_capability_model), each traced to the user flows that justify it. **System Traits** classifies the system type — interface, auth model, deployment targets, data layer — to inform downstream architecture. Without this classification, story generation defaults to web-app patterns (dashboard pages, browser navigation) regardless of whether the product is a CLI tool, an API service, or a mobile app. Traits detection ensures downstream agents generate stories appropriate to the actual system type. See [ADR-019](adr/ADR-019-system-trait-detection.md).
 
 ### Gate 2: Product Owner Review
 
@@ -163,13 +171,30 @@ Twenty-one specialist agents, some working individually and others coordinating 
 
 ## Key Behaviors
 
-### Checkpoint Persistence
+### Stage-Level Iteration
 
-Every stage saves its output. If the process is interrupted, it resumes from the last completed stage without re-running earlier work.
+Each stage persists its output independently. This means:
+
+- **Resume from any point.** If the process is interrupted, it picks up from the last completed stage without re-running earlier work.
+- **Re-run selectively.** Revising MVP scope (Phase 2) doesn't re-run the web-search-heavy market analysis (Phase 1). Only the changed phase and its downstream dependencies re-execute.
+- **Tweak one agent at a time.** Each agent has a single focused job with its own prompt file, model tier, and output schema. Improving one agent's prompt doesn't require touching anything else.
+- **Test independently.** Each agent can be tested in isolation with fixed inputs and an LLM judge that evaluates output quality against criteria — catching prompt regressions before they reach users. See [ADR-018](adr/ADR-018-llm-as-judge-agent-testing.md).
+
+This decomposition is a deliberate trade-off: more stages means more inter-stage handoffs to manage, but each stage is small enough to debug, iterate on, and improve quickly and cheaply.
 
 ### Refinement at Every Stage
 
 Each stage output is a conversation. You can discuss the output with the system, ask for explanations, request changes, and re-run with different guidance before approving.
+
+### Cost-Aware Design
+
+Running 21 agents with web search on a commercial API has real cost. Three mechanisms keep it manageable:
+
+**Three model tiers.** Not every agent needs the most capable model. Agents doing complex cross-referencing — validation scoring, risk assessment — use a reasoning-tier model. Agents doing substantial generation — market analysis, story writing — use a heavy-tier model. Simple classification and formatting tasks — anchor extraction, idea gatekeeper — use a lightweight model. Each tier maps to a configurable model ID, so you control the cost/quality trade-off per deployment.
+
+**Structured output.** Fifty-three Pydantic models constrain LLM responses to required fields — no wasted tokens on prose the system doesn't need. The agent returns a typed JSON object, not a free-form essay that then needs parsing. The trade-off: structured output works well for clean data structures, but for complex multi-step processes like validation scoring (which builds a scorecard incrementally through tool calls), rigid schemas are too constraining. The scorer uses tool functions instead, with each tool enforcing evidence quality as it records results.
+
+**Web search fallback chain.** Agents that need real-time data (market intelligence, competitor analysis) search the web through a provider chain: DuckDuckGo (free, no API key) is tried first, falling back to Brave Search or Tavily if it fails. A hard session-wide limit (default: 20 searches across the entire pipeline) prevents runaway loops, and agents are told in their prompts that searches are limited so they plan queries carefully. See [ADR-014](adr/ADR-014-web-search-fallback-chain.md).
 
 ### A Control Plane for Execution Agents
 

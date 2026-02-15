@@ -74,7 +74,7 @@ Feed Haytham a startup idea. What comes out:
 
 ## How It Works
 
-Four phases, each answering one question: *Should this be built? What exactly? How? What are the tasks?* A human approval gate separates each phase — nothing proceeds without your sign-off. Twenty-one specialist agents handle the analysis, research, scoring, and generation across these phases.
+Four phases, each answering one question: *Should this be built? What exactly? How? What are the tasks?* A human approval gate separates each phase — nothing proceeds without your sign-off. Twenty-one specialist agents handle the analysis, research, scoring, and generation across these phases. A concept anchor preserves the original idea's identity through the entire pipeline, preventing the "telephone problem" where multi-agent handoffs silently genericize distinctive features.
 
 See [How It Works](docs/how-it-works.md) for the full walkthrough.
 
