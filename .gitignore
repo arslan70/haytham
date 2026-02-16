@@ -1,0 +1,138 @@
+# Logs
+haytham/logs**
+# Reports
+*.pdf
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Ruff
+.ruff_cache/
+
+# Environment variables
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# AWS
+.aws/
+
+# Legacy UI artifacts
+.files/
+
+# Generated reports (keep directory structure, ignore generated files)
+haytham/reports/*.md
+!haytham/reports/README.md
+
+# Session directory (single active session - keep structure, ignore content)
+session/*
+!session/.gitkeep
+
+# Archive directory (completed sessions - keep structure, ignore content)
+archive/*
+!archive/.gitkeep
+
+# Outputs directory (final requirements documents - keep structure, ignore content)
+outputs/*
+!outputs/.gitkeep
+
+# Temporary test and development files (not in tests/ directory)
+/test_*.py
+!/tests/test_*.py
+IMPLEMENTATION_SUMMARY_*.md
+*_GUIDE.md
+*_FIX.md
+*_ANALYSIS.md
+*_UPDATES.md
+TASK_*.md
+END_TO_END_*.md
+verify_*.py
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Kiro hackathon artifacts (historical, not tracked)
+.kiro/
+
+# Internal planning docs (prevent re-creation)
+BLOG_IDEAS.md
+QA_TASKS.md
+TODO.md
+
+# Backlog.md directory (task management - keep structure, ignore generated tasks)
+backlog/tasks/*
+!backlog/tasks/.gitkeep
+backlog/drafts/*
+!backlog/drafts/.gitkeep
+backlog/completed/*
+!backlog/completed/.gitkeep
+backlog/archive/*
+!backlog/archive/.gitkeep
+backlog/config.yml
+
+# MVP
+mvp/*
+!mvp/.gitkeep
+
+

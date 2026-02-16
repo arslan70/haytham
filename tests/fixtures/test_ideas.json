@@ -1,0 +1,130 @@
+{
+  "description": "Test fixture ideas for validating Haytham across diverse startup categories",
+  "ideas": [
+    {
+      "id": "T1",
+      "category": "Web App",
+      "idea": "A gym community leaderboard with anonymous handles where members can track and compare their workout progress, see rankings by exercise type, and earn achievement badges without revealing their identity.",
+      "expected_characteristics": {
+        "has_authentication": true,
+        "has_database": true,
+        "has_realtime": true,
+        "primary_stack": "web",
+        "complexity": "medium"
+      }
+    },
+    {
+      "id": "T2",
+      "category": "CLI Tool",
+      "idea": "A command-line tool that converts markdown files to beautifully styled PDFs with custom themes, supporting syntax highlighting for code blocks, table of contents generation, and batch processing of multiple files.",
+      "expected_characteristics": {
+        "has_authentication": false,
+        "has_database": false,
+        "has_realtime": false,
+        "primary_stack": "cli",
+        "complexity": "low"
+      }
+    },
+    {
+      "id": "T3",
+      "category": "API Service",
+      "idea": "A weather API that aggregates data from multiple weather providers (OpenWeatherMap, WeatherAPI, etc.), normalizes the responses, and provides a unified endpoint with automatic failover and caching for reliability.",
+      "expected_characteristics": {
+        "has_authentication": true,
+        "has_database": true,
+        "has_realtime": false,
+        "primary_stack": "api",
+        "complexity": "medium"
+      }
+    },
+    {
+      "id": "T4",
+      "category": "Marketplace",
+      "idea": "A tutoring marketplace connecting students with teachers where students can search for tutors by subject and availability, book sessions, pay through the platform, and leave reviews after sessions.",
+      "expected_characteristics": {
+        "has_authentication": true,
+        "has_database": true,
+        "has_realtime": true,
+        "primary_stack": "web",
+        "complexity": "high"
+      }
+    },
+    {
+      "id": "T5",
+      "category": "Mobile App",
+      "idea": "A habit tracking app with social accountability where users can create habits, track daily completion, join accountability groups with friends, and see each other's streaks and progress.",
+      "expected_characteristics": {
+        "has_authentication": true,
+        "has_database": true,
+        "has_realtime": true,
+        "primary_stack": "mobile",
+        "complexity": "medium"
+      }
+    },
+    {
+      "id": "T6",
+      "category": "Wellness App",
+      "idea": "I'm a psychologist and I want to develop an app for my existing patients where eight people gather in online sessions — one receiver with a specific need (health, finance, happiness) and seven givers who send good wishes. Based on 'The Power of 8' book methodology. The psychologist (me) creates and manages these wish-exchange sessions for my closed patient community.",
+      "expected_characteristics": {
+        "has_authentication": true,
+        "has_database": true,
+        "has_realtime": true,
+        "primary_stack": "web",
+        "complexity": "medium"
+      },
+      "concept_fidelity_anchors": {
+        "invariants": [
+          {"property": "group_structure", "value": "1 receiver + 7 givers per session"},
+          {"property": "community_model", "value": "closed, invite-only for existing patients"},
+          {"property": "orchestrator_role", "value": "psychologist creates and manages sessions"}
+        ],
+        "identity_features": [
+          "Wish-exchange is a spiritual/psychological practice, not messaging",
+          "Synchronous group gathering, not async post-and-reply"
+        ],
+        "non_goals": [
+          "Open platform for general public",
+          "B2B SaaS for multiple therapists",
+          "Async message board"
+        ],
+        "genericization_risks": [
+          "LLMs default to async CRUD patterns",
+          "LLMs expand closed communities to open registration",
+          "LLMs replace spiritual practices with generic messaging"
+        ]
+      }
+    }
+  ],
+  "validation_criteria": {
+    "T1": {
+      "required_capabilities": ["user_management", "data_storage", "leaderboard_display"],
+      "should_recommend": ["Supabase", "Next.js"]
+    },
+    "T2": {
+      "required_capabilities": ["file_processing", "template_rendering"],
+      "should_recommend": ["Python", "Pandoc or similar"]
+    },
+    "T3": {
+      "required_capabilities": ["api_aggregation", "caching", "rate_limiting"],
+      "should_recommend": ["FastAPI or similar", "Redis"]
+    },
+    "T4": {
+      "required_capabilities": ["user_management", "booking_system", "payment_processing", "reviews"],
+      "should_recommend": ["payment_integration", "scheduling"]
+    },
+    "T5": {
+      "required_capabilities": ["user_management", "habit_tracking", "social_features", "notifications"],
+      "should_recommend": ["React Native or Flutter", "push_notifications"]
+    },
+    "T6": {
+      "required_capabilities": ["session_management", "group_structure_1_7", "invite_system", "realtime_sessions"],
+      "should_recommend": ["WebRTC or similar for live sessions", "closed authentication"],
+      "concept_fidelity_checks": [
+        "Must preserve 1:7 receiver/giver structure",
+        "Must NOT open to general public",
+        "Must support synchronous sessions, not async",
+        "Psychologist must have admin/orchestrator role"
+      ]
+    }
+  }
+}

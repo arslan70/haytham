@@ -51,7 +51,7 @@ Haytham is a stage-based multi-agent system that validates startup ideas and gen
 
 ```bash
 # Run
-streamlit run frontend_streamlit/Haytham.py    # or: make run
+make run                                      # Streamlit UI
 burr                                          # Burr tracking UI (optional)
 make jaeger-up                                # Jaeger traces at localhost:16686
 
@@ -74,8 +74,7 @@ make test-agents-quick                        # Smoke test
 make test-agents-verbose                      # With judge reasoning
 make record-fixtures IDEA_ID=T1               # Record upstream fixtures
 
-# Setup
-cp .env.example .env                          # Then configure AWS creds + model IDs
+# Setup — configure .env with AWS creds + model IDs
 ```
 
 ## Before Every Commit (REQUIRED)
@@ -120,20 +119,19 @@ validation_complete(NO-GO) + gate_approved → END
 
 - **Burr Workflow** (`haytham/workflow/burr_workflow.py`): State machine with conditional branching. `when(risk_level="HIGH")` for pivot strategy.
 - **StageRegistry** (`haytham/workflow/stage_registry.py`): Single source of truth for stage metadata. O(1) lookups by slug or action name.
-- **StageExecutor** (`haytham/workflow/stage_executor.py`): Template Method Pattern. Configure via `STAGE_CONFIGS` dict.
+- **StageExecutor** (`haytham/workflow/stage_executor.py`): Template Method Pattern. Stage configs in `haytham/workflow/stages/configs.py`.
 - **Agent Factory** (`haytham/agents/factory/agent_factory.py`): Creates agents with Strands SDK. `AGENT_FACTORIES` dict for dynamic creation.
 - **SessionManager** (`haytham/session/session_manager.py`): State, checkpoints, stage outputs. Saves to `session/{stage-slug}/`.
-- **Workflow Runner** (`frontend_streamlit/lib/workflow_runner.py`): Sync wrapper for Streamlit UI execution.
 
 **Key files:**
 - `haytham/workflow/burr_workflow.py` — Workflow definition, transitions, conditional branching
 - `haytham/workflow/burr_actions.py` — Burr action wrappers that call the stage executor
-- `haytham/workflow/stage_registry.py` — Stage metadata (slugs, phases, ordering)
-- `haytham/workflow/stage_executor.py` — `StageExecutor` class, `STAGE_CONFIGS` dict
+- `haytham/workflow/stage_registry.py` — Stage metadata (slugs, phases, ordering), `WorkflowType` enum
+- `haytham/workflow/stage_executor.py` — `StageExecutor` class
+- `haytham/workflow/stages/configs.py` — `STAGE_CONFIGS` dict (assembled from domain modules)
 - `haytham/workflow/entry_conditions.py` — Entry validators, `_VALIDATORS` dict
 - `haytham/agents/factory/agent_factory.py` — Agent creation, `AGENT_FACTORIES` dict
 - `haytham/session/session_manager.py` — Session state, checkpoints, stage outputs
-- `frontend_streamlit/lib/workflow_runner.py` — `WorkflowConfig` dataclass, sync wrappers
 
 ### Adding a New Agent
 
@@ -146,28 +144,27 @@ validation_complete(NO-GO) + gate_approved → END
 ### Adding a New Stage
 
 1. `StageMetadata` in `stage_registry.py`
-2. `StageExecutionConfig` in `stage_executor.py`
+2. `StageExecutionConfig` in `haytham/workflow/stages/configs.py`
 3. Burr action in `burr_actions.py` + transition in `burr_workflow.py`
 4. Entry validator in `entry_conditions.py` — register in `_VALIDATORS` dict and update `get_next_available_workflow()` order
-5. UI stage list in `frontend_streamlit/views/execution.py` — use `StageRegistry` for metadata, don't hardcode
 
-**Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/stage_executor.py`, `haytham/workflow/burr_actions.py`, `haytham/workflow/burr_workflow.py`, `haytham/workflow/entry_conditions.py`, `frontend_streamlit/views/execution.py`
+**Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/stages/configs.py`, `haytham/workflow/burr_actions.py`, `haytham/workflow/burr_workflow.py`, `haytham/workflow/entry_conditions.py`
 
 ### Adding a New Workflow Type
 
-1. Configure workflow via `WorkflowConfig` dataclass in `workflow_runner.py` — do NOT copy-paste an existing `run_*()` function
+1. Add `WorkflowType` enum value in `stage_registry.py`
 2. Add entry validator and register in `_VALIDATORS`
 3. Add stages following the "Adding a New Stage" checklist above
 4. Update `SessionManager` workflow aliases in ONE place (extract to constant if not yet done)
 
-**Key files:** `frontend_streamlit/lib/workflow_runner.py`, `haytham/workflow/entry_conditions.py`, `haytham/session/session_manager.py`
+**Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/entry_conditions.py`, `haytham/session/session_manager.py`
 
 ### Package Boundaries
 
 - `haytham/workflow/` imports from `haytham/agents/` — not the reverse
 - `haytham/session/` is imported by both `workflow/` and `agents/` — keep it dependency-free
-- `frontend_streamlit/lib/` wraps `haytham/` for Streamlit — never import from `frontend_streamlit/` in `haytham/`
 - `haytham/agents/output_utils.py` is the shared extraction layer — individual `worker_*/` modules import from here, not from each other
+- `haytham/phases/` is **deprecated** — it re-exports from `haytham/workflow/stage_registry`. Import from `workflow/` directly
 
 ## Code Hygiene Rules
 
@@ -175,7 +172,7 @@ validation_complete(NO-GO) + gate_approved → END
 
 Before defining a constant, helper, or pattern in a new file, **search the codebase** for existing definitions. Duplicate definitions rot fast.
 
-- **Shared constants**: Define once, import everywhere. Never recompute paths like `SESSION_DIR` per-file. Use `frontend_streamlit/lib/session_utils.py:get_session_dir()` for session paths.
+- **Shared constants**: Define once, import everywhere. Never recompute paths like `SESSION_DIR` per-file. Use `SessionManager` for session paths.
 - **Shared initialization**: `sys.path.insert()` and `load_dotenv()` should each live in ONE init module, not be copy-pasted into every view.
 - **Shared data structures**: If a dict (like workflow aliases) or list (like stage ordering) appears in more than one place, extract it to a single source of truth — typically the relevant registry or config module.
 - **Shared formatting**: If two search providers, validators, or formatters have near-identical code, extract the common logic into a shared function/protocol.
@@ -214,15 +211,6 @@ When adding a new workflow, agent, stage, or search provider:
 - **Compile regex patterns at module level** if they're used in functions that may be called repeatedly.
 - **Lazy imports for optional dependencies** (telemetry, tracing) should use a module-level pattern with `TYPE_CHECKING`, not re-import on every function call.
 
-### Streamlit Frontend Conventions
-
-- **Session paths**: Use `from lib.session_utils import get_session_dir` — never compute `Path(__file__).parent...` manually.
-- **Workflow execution**: Workflow runner functions should follow a single generic pattern. When adding a new workflow type, configure it via a `WorkflowConfig` dataclass — don't copy-paste an existing `run_*()` function.
-- **Agent interaction**: Keep agent creation (factory) separate from Streamlit session state management. Factories should return agents, not mutate `st.session_state`.
-- **State queries**: Use `SessionManager` methods to check workflow state (locked, complete, etc.) — don't read lock files or stage directories directly in views.
-
-**Key files:** `frontend_streamlit/lib/session_utils.py`, `frontend_streamlit/lib/workflow_runner.py`, `frontend_streamlit/views/execution.py`
-
 ### Interface Consistency
 
 - Functions/methods that serve the same role (e.g., `validate()` on entry validators) must have **identical signatures**. Never use runtime introspection (`__code__.co_varnames`) to determine how to call a method — that signals a broken interface.
@@ -254,20 +242,6 @@ if hasattr(result, "output"):  # DON'T DO THIS
 ```
 
 Reference implementation: `haytham/workflow/burr_actions.py:_extract_agent_output()`
-
-### PITFALL: Session Path Construction
-
-```python
-# WRONG — breaks across environments, duplicates logic
-session_dir = Path(__file__).parent / "../../session"
-session_dir = Path.cwd() / "session"
-
-# CORRECT — use the canonical helper
-from lib.session_utils import get_session_dir
-session_dir = get_session_dir()
-```
-
-**Key file:** `frontend_streamlit/lib/session_utils.py`
 
 ### PITFALL: Agent Registration
 
