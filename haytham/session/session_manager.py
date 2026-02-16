@@ -8,20 +8,26 @@ The system goal is stored in project.yaml as the single source of truth.
 
 import json
 import logging
-import re
 import shutil
-from datetime import datetime
+import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, ClassVar
 
+from haytham.agents.output_utils import extract_output_content
 from haytham.config import (
     DEFAULT_WORKFLOW_PHASE,
     METADATA_FILES,
     StageStatus,
     WorkflowPhase,
 )
-from haytham.phases.stage_config import STAGES, get_stage_by_slug
 from haytham.project.project_state import ProjectStateManager
+from haytham.workflow.stage_registry import (
+    STAGES,
+    WorkflowType,
+    get_stage_by_slug,
+    get_stage_registry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +174,7 @@ class SessionManager:
         system_goal = self.project_state.get_system_goal()
 
         # Create session manifest
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         self._create_manifest(now, system_goal)
 
         # Create empty preferences file
@@ -206,30 +212,12 @@ class SessionManager:
         Args:
             workflow_type: Type of workflow to clear (e.g., "idea-validation")
         """
-        workflow_stages = {
-            "idea-validation": [
-                "idea-analysis",
-                "market-context",
-                "risk-assessment",
-                "pivot-strategy",
-                "validation-summary",
-            ],
-            "mvp-specification": [
-                "mvp-scope",
-                "capability-model",
-            ],
-            "technical-design": [
-                "build-buy-analysis",
-                "architecture-decisions",
-            ],
-            "story-generation": [
-                "story-generation",
-                "story-validation",
-                "dependency-ordering",
-            ],
-        }
-
-        stages = workflow_stages.get(workflow_type, [])
+        try:
+            wf_type = WorkflowType(workflow_type)
+            stages = get_stage_registry().get_workflow_stage_slugs(wf_type)
+        except ValueError:
+            logger.warning("Unknown workflow type for clearing: %s", workflow_type)
+            stages = []
         for stage_slug in stages:
             stage_dir = self.session_dir / stage_slug
             if stage_dir.exists():
@@ -377,7 +365,7 @@ class SessionManager:
             raise FileNotFoundError(f"Stage directory not found: {stage_dir}")
 
         # Create agent output content
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         agent_output = self._format_agent_output(
             agent_name=agent_name,
             stage_slug=stage_slug,
@@ -440,7 +428,7 @@ class SessionManager:
         retry_count = feedback.get("retry_count", 0)
 
         # Create user feedback content
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         feedback_content = self._format_user_feedback(
             stage_name=stage.display_name,
             reviewed=reviewed,
@@ -501,7 +489,7 @@ class SessionManager:
                 content = output_file.read_text()
 
                 # Extract just the output content (skip metadata)
-                output_content = self._extract_output_content(content)
+                output_content = extract_output_content(content)
                 stage_outputs[agent_name] = output_content
 
             if stage_outputs:
@@ -613,7 +601,7 @@ class SessionManager:
                 logger.warning("Failed to load preferences, starting fresh: %s", e)
 
         existing.update(preferences)
-        existing["updated_at"] = datetime.utcnow().isoformat() + "Z"
+        existing["updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
         preferences_path.write_text(json.dumps(existing, indent=2))
 
@@ -680,7 +668,7 @@ class SessionManager:
         mvp_spec_dir = self.session_dir / "mvp-specification"
         mvp_spec_dir.mkdir(parents=True, exist_ok=True)
         accepted_marker = mvp_spec_dir / ".accepted"
-        accepted_marker.write_text(datetime.utcnow().isoformat() + "Z")
+        accepted_marker.write_text(datetime.now(UTC).isoformat().replace("+00:00", "Z"))
 
     def is_mvp_spec_accepted(self) -> bool:
         """Check if the MVP specification has been accepted.
@@ -720,11 +708,9 @@ class SessionManager:
         """
         backlog_marker = self.session_dir / ".backlog_generated"
         marker_data = {
-            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "generated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "task_count": task_count,
         }
-        import json
-
         backlog_marker.write_text(json.dumps(marker_data, indent=2))
 
     # =========================================================================
@@ -749,7 +735,7 @@ class SessionManager:
         # Create lock file with timestamp
         lock_file = self.session_dir / f".{workflow_type}.locked"
         lock_data = {
-            "locked_at": datetime.utcnow().isoformat() + "Z",
+            "locked_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "workflow_type": workflow_type,
         }
         lock_file.write_text(json.dumps(lock_data, indent=2))
@@ -843,7 +829,7 @@ class SessionManager:
             for run in reversed(runs):
                 if run.get("workflow_type") == workflow_type:
                     run["status"] = new_status
-                    run["status_updated_at"] = datetime.utcnow().isoformat() + "Z"
+                    run["status_updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     workflow_runs_file.write_text(json.dumps(runs, indent=2))
                     return
 
@@ -888,7 +874,7 @@ class SessionManager:
         phase_file = self.session_dir / ".workflow_phase"
         data = {
             "phase": phase,
-            "updated_at": datetime.utcnow().isoformat() + "Z",
+            "updated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         }
         phase_file.write_text(json.dumps(data, indent=2))
 
@@ -940,7 +926,7 @@ class SessionManager:
             try:
                 content = agent_file.read_text()
                 # Extract just the output content (skip metadata headers)
-                output_content = self._extract_output_content(content)
+                output_content = extract_output_content(content)
                 if output_content.strip():
                     outputs.append(output_content)
             except (OSError, ValueError) as e:
@@ -979,13 +965,11 @@ class SessionManager:
             runs = []
 
         # Create new run record
-        import uuid
-
         run_record = {
             "run_id": str(uuid.uuid4()),
             "workflow_type": workflow_type,
             "status": "completed",
-            "completed_at": datetime.utcnow().isoformat() + "Z",
+            "completed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "summary": summary or {},
         }
 
@@ -1096,13 +1080,11 @@ class SessionManager:
             runs = []
 
         # Create new run record
-        import uuid
-
         run_record = {
             "run_id": str(uuid.uuid4()),
             "workflow_type": workflow_type,
             "status": "running",
-            "started_at": datetime.utcnow().isoformat() + "Z",
+            "started_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "trigger": {
                 "type": trigger_type,
             },
@@ -1138,7 +1120,7 @@ class SessionManager:
             for run in reversed(runs):
                 if run.get("workflow_type") == workflow_type and run.get("status") == "running":
                     run["status"] = "completed"
-                    run["completed_at"] = datetime.utcnow().isoformat() + "Z"
+                    run["completed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     if summary:
                         run["summary"] = summary
 
@@ -1174,7 +1156,7 @@ class SessionManager:
             for run in reversed(runs):
                 if run.get("workflow_type") == workflow_type and run.get("status") == "running":
                     run["status"] = "failed"
-                    run["failed_at"] = datetime.utcnow().isoformat() + "Z"
+                    run["failed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     run["error"] = error_message
 
                     workflow_runs_file.write_text(json.dumps(runs, indent=2))
@@ -1193,39 +1175,13 @@ class SessionManager:
             created: ISO 8601 timestamp
             system_goal: The system goal string (may be None if not set yet)
         """
-        system_goal_display = system_goal if system_goal else "(awaiting user input)"
+        from haytham.session.formatting import create_manifest
 
-        # Build stage status table
-        stage_rows = []
-        for stage in STAGES:
-            stage_rows.append(f"| {stage.slug} | {stage.display_name} | pending | - | - | - |")
-        stage_table = "\n".join(stage_rows)
-
-        content = f"""# Session Manifest
-
-## Metadata
-- Created: {created}
-- Last Updated: {created}
-- Status: in_progress
-- System Goal: {system_goal_display}
-
-## Stage Status
-
-| Stage | Name | Status | Started | Completed | Duration |
-|-------|------|--------|---------|-----------|----------|
-{stage_table}
-
-## Current Stage
-- Stage: (none)
-- Name: Not Started
-- Status: pending
-- Progress: 0 of {len(STAGES)}
-
-## Metrics
-- Total Duration: 0s
-- Total Tokens: 0
-- Total Cost: $0.00
-"""
+        content = create_manifest(
+            stages=[(s.slug, s.display_name) for s in STAGES],
+            created=created,
+            system_goal=system_goal,
+        )
 
         manifest_path = self.session_dir / "session_manifest.md"
         manifest_path.write_text(content)
@@ -1239,6 +1195,8 @@ class SessionManager:
         duration: float | None,
     ) -> None:
         """Update session_manifest.md with stage status."""
+        from haytham.session.formatting import update_manifest
+
         manifest_path = self.session_dir / "session_manifest.md"
 
         if not manifest_path.exists():
@@ -1246,145 +1204,29 @@ class SessionManager:
 
         stage = get_stage_by_slug(stage_slug)
         content = manifest_path.read_text()
-        lines = content.split("\n")
 
-        # Update stage status table
-        started_str = started if started else "-"
-        completed_str = completed if completed else "-"
-        duration_str = f"{int(duration)}s" if duration else "-"
-
-        # Find and update the stage row, or add it if not found
-        new_row = (
-            f"| {stage_slug} | {stage.display_name} | {status} | "
-            f"{started_str} | {completed_str} | {duration_str} |"
+        updated = update_manifest(
+            manifest_content=content,
+            stage_slug=stage_slug,
+            stage_display_name=stage.display_name,
+            status=status,
+            started=started,
+            completed=completed,
+            duration=duration,
+            total_stages=len(STAGES),
+            stages_list=[(s.slug, s.display_name) for s in STAGES],
         )
-        row_found = False
-        for i, line in enumerate(lines):
-            if line.startswith(f"| {stage_slug} |"):
-                lines[i] = new_row
-                row_found = True
-                break
 
-        # If stage row not found, insert it before the empty line after the table
-        if not row_found:
-            for i, line in enumerate(lines):
-                # Find the end of the stage status table (empty line or next section)
-                if line.startswith("| ") and "|" in line[2:]:
-                    continue
-                elif i > 0 and lines[i - 1].startswith("| "):
-                    # Insert new row here (after last table row)
-                    lines.insert(i, new_row)
-                    break
-
-        # Calculate progress (number of completed stages)
-        completed_count = 0
-        for stage_config in STAGES:
-            for line in lines:
-                if line.startswith(f"| {stage_config.slug} |") and "| completed |" in line:
-                    completed_count += 1
-                    break
-
-        # Update current stage section
-        for i, line in enumerate(lines):
-            if line.startswith("- Stage:") and i > 0:
-                # Check if this is in the Current Stage section
-                if any("Current Stage" in lines[j] for j in range(max(0, i - 5), i)):
-                    lines[i] = f"- Stage: {stage_slug}"
-            elif line.startswith("- Name:") and i > 0:
-                if any("Current Stage" in lines[j] for j in range(max(0, i - 5), i)):
-                    lines[i] = f"- Name: {stage.display_name}"
-            elif line.startswith("- Status:") and i > 0:
-                if any("Current Stage" in lines[j] for j in range(max(0, i - 5), i)):
-                    lines[i] = f"- Status: {status}"
-            elif line.startswith("- Progress:"):
-                lines[i] = f"- Progress: {completed_count} of {len(STAGES)}"
-
-        # Update last updated timestamp
-        now = datetime.utcnow().isoformat() + "Z"
-        for i, line in enumerate(lines):
-            if line.startswith("- Last Updated:"):
-                lines[i] = f"- Last Updated: {now}"
-                break
-
-        # Write updated content
-        manifest_path.write_text("\n".join(lines))
+        manifest_path.write_text(updated)
 
     def _parse_manifest(self, content: str) -> dict[str, Any]:
         """Parse session_manifest.md content."""
-        lines = content.split("\n")
-        session_state = {
-            "created": None,
-            "last_updated": None,
-            "status": None,
-            "system_goal": None,
-            "current_stage": None,
-            "completed_stages": [],
-            "stage_statuses": {},
-        }
+        from haytham.session.formatting import parse_manifest
 
-        # Parse metadata section
-        in_metadata = False
-        for line in lines:
-            if line.strip() == "## Metadata":
-                in_metadata = True
-                continue
-            elif line.startswith("## ") and in_metadata:
-                in_metadata = False
-
-            if in_metadata:
-                if line.startswith("- Created:"):
-                    session_state["created"] = line.split(":", 1)[1].strip()
-                elif line.startswith("- Last Updated:"):
-                    session_state["last_updated"] = line.split(":", 1)[1].strip()
-                elif line.startswith("- Status:"):
-                    session_state["status"] = line.split(":", 1)[1].strip()
-                elif line.startswith("- System Goal:"):
-                    goal = line.split(":", 1)[1].strip()
-                    # Handle "(awaiting user input)" as None
-                    if goal != "(awaiting user input)":
-                        session_state["system_goal"] = goal
-
-        # Parse stage status table
-        in_table = False
-        for line in lines:
-            if line.startswith("| Stage | Name |"):
-                in_table = True
-                continue
-            if in_table and line.startswith("|"):
-                parts = [p.strip() for p in line.split("|")]
-                if len(parts) >= 4 and parts[1]:
-                    stage_slug = parts[1]
-                    stage_status = parts[3]
-
-                    # Validate it's a real stage slug
-                    try:
-                        get_stage_by_slug(stage_slug)
-                        session_state["stage_statuses"][stage_slug] = stage_status
-
-                        if stage_status == "completed":
-                            session_state["completed_stages"].append(stage_slug)
-                    except ValueError:
-                        # Not a valid stage slug, skip
-                        pass
-            elif in_table and not line.startswith("|"):
-                break
-
-        # Parse current stage
-        in_current_stage = False
-        for line in lines:
-            if line.strip() == "## Current Stage":
-                in_current_stage = True
-                continue
-            elif line.startswith("## ") and in_current_stage:
-                in_current_stage = False
-
-            if in_current_stage:
-                if line.startswith("- Stage:"):
-                    stage_value = line.split(":", 1)[1].strip()
-                    if stage_value and stage_value != "(none)":
-                        session_state["current_stage"] = stage_value
-
-        return session_state
+        return parse_manifest(
+            content,
+            valid_stage_slugs={s.slug for s in STAGES},
+        )
 
     def _format_checkpoint(
         self,
@@ -1400,31 +1242,9 @@ class SessionManager:
         errors: list[str],
     ) -> str:
         """Format checkpoint.md content."""
-        started_str = started if started else "-"
-        completed_str = completed if completed else "-"
-        duration_str = f"{duration:.1f}s" if duration else "-"
+        from haytham.session.formatting import format_checkpoint
 
-        content = f"""# Stage Checkpoint: {stage_name}
-
-## Metadata
-- Stage: {stage_slug}
-- Stage Name: {stage_name}
-- Status: {status}
-- Started: {started_str}
-- Completed: {completed_str}
-- Duration: {duration_str}
-- Retry Count: {retry_count}
-- Execution Mode: {execution_mode}
-
-## Agents in Stage
-"""
-
-        for agent in agents:
-            agent_name = agent.get("agent_name", "unknown")
-            agent_status = agent.get("status", "unknown")
-            content += f"- {agent_name}: {agent_status}\n"
-
-        # Get previous stage name
+        # Compute prev/next stage info from STAGES
         stage_index = None
         for i, stage in enumerate(STAGES):
             if stage.slug == stage_slug:
@@ -1435,55 +1255,27 @@ class SessionManager:
             STAGES[stage_index - 1].display_name if stage_index and stage_index > 0 else "None"
         )
 
-        outputs = ", ".join([a.get("output_file", "") for a in agents])
-        total_tokens = sum(a.get("tokens") or 0 for a in agents)
-        input_tokens = sum(a.get("input_tokens") or 0 for a in agents)
-        output_tokens = sum(a.get("output_tokens") or 0 for a in agents)
-        cost = sum(a.get("cost") or 0.0 for a in agents)
-        execution_times = ", ".join(
-            [f"{a.get('agent_name', 'unknown')}: {a.get('duration') or 0:.1f}s" for a in agents]
-        )
-
-        # Get next stage
         next_stage_slug = "-"
         next_stage_name = "None"
         if stage_index is not None and stage_index < len(STAGES) - 1:
             next_stage_slug = STAGES[stage_index + 1].slug
             next_stage_name = STAGES[stage_index + 1].display_name
 
-        ready = "true" if status == "completed" else "false"
-        blocking = "none" if not errors else ", ".join(errors)
-
-        content += f"""
-## Inputs
-- Previous Stage: {prev_stage_name}
-- Required Context: []
-- User Parameters: {{}}
-
-## Outputs
-- Agent Outputs: [{outputs}]
-- User Feedback: user_feedback.md
-
-## Metrics
-- Total Tokens: {total_tokens}
-- Input Tokens: {input_tokens}
-- Output Tokens: {output_tokens}
-- Cost: ${cost:.4f}
-- Agent Execution Times: {execution_times}
-
-## Next Stage
-- Stage: {next_stage_slug}
-- Stage Name: {next_stage_name}
-- Ready to Execute: {ready}
-- Blocking Issues: {blocking}
-"""
-
-        if errors:
-            content += "\n## Errors\n"
-            for error in errors:
-                content += f"- {error}\n"
-
-        return content
+        return format_checkpoint(
+            stage_slug=stage_slug,
+            stage_name=stage_name,
+            status=status,
+            started=started,
+            completed=completed,
+            duration=duration,
+            retry_count=retry_count,
+            execution_mode=execution_mode,
+            agents=agents,
+            errors=errors,
+            prev_stage_name=prev_stage_name,
+            next_stage_slug=next_stage_slug,
+            next_stage_name=next_stage_name,
+        )
 
     def _format_agent_output(
         self,
@@ -1503,42 +1295,23 @@ class SessionManager:
         stack_trace: str | None,
     ) -> str:
         """Format agent output markdown content."""
-        duration_str = f"{duration:.1f}s" if duration else "-"
-        model_str = model if model else "-"
-        input_tokens_str = str(input_tokens) if input_tokens else "-"
-        output_tokens_str = str(output_tokens) if output_tokens else "-"
-        tools_str = ", ".join(tools_used) if tools_used else "none"
+        from haytham.session.formatting import format_agent_output
 
-        content = f"""# Agent Output: {agent_name}
-
-## Metadata
-- Agent: {agent_name}
-- Stage: {stage_slug} - {stage_name}
-- Executed: {executed}
-- Duration: {duration_str}
-- Status: {status}
-
-## Execution Details
-- Model: {model_str}
-- Input Tokens: {input_tokens_str}
-- Output Tokens: {output_tokens_str}
-- Tools Used: [{tools_str}]
-
-## Output
-
-{output_content}
-"""
-
-        if status == "failed" and (error_type or error_message):
-            content += f"""
-## Error Details
-- Error Type: {error_type if error_type else "Unknown"}
-- Error Message: {error_message if error_message else "No message"}
-"""
-            if stack_trace:
-                content += f"- Stack Trace:\n```\n{stack_trace}\n```\n"
-
-        return content
+        return format_agent_output(
+            agent_name=agent_name,
+            context_label=f"{stage_slug} - {stage_name}",
+            executed=executed,
+            duration=duration,
+            status=status,
+            model=model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            tools_used=tools_used,
+            output_content=output_content,
+            error_type=error_type,
+            error_message=error_message,
+            stack_trace=stack_trace,
+        )
 
     def _format_user_feedback(
         self,
@@ -1552,72 +1325,15 @@ class SessionManager:
         retry_count: int,
     ) -> str:
         """Format user_feedback.md content."""
-        content = f"""# User Feedback: {stage_name}
+        from haytham.session.formatting import format_user_feedback
 
-## Review Status
-- Reviewed: {str(reviewed).lower()}
-- Approved: {str(approved).lower()}
-- Timestamp: {timestamp}
-
-## User Comments
-{comments if comments else "No comments provided"}
-
-## Requested Changes
-"""
-
-        if requested_changes:
-            for i, change in enumerate(requested_changes, 1):
-                content += f"- Change {i}: {change}\n"
-        else:
-            content += "- No changes requested\n"
-
-        content += f"""
-## Action Taken
-- Action: {action}
-- Retry Count: {retry_count}
-"""
-
-        return content
-
-    def _extract_output_content(self, full_content: str) -> str:
-        """Extract just the output content from agent output file."""
-        # Find the "## Output" section
-        if "## Output" not in full_content:
-            return full_content
-
-        # Extract content after "## Output"
-        parts = full_content.split("## Output", 1)
-        if len(parts) < 2:
-            return full_content
-
-        output_section = parts[1]
-
-        # Check if output contains a raw SwarmResult string (from old buggy saves)
-        if "SwarmResult(" in output_section and "'text':" in output_section:
-            # Extract text content from the SwarmResult string representation
-            text_matches = re.findall(r"'text':\s*'([^']*(?:''[^']*)*)'", output_section)
-            if text_matches:
-                # Join all text blocks and unescape
-                extracted_text = "\n\n".join(text_matches)
-                extracted_text = extracted_text.replace("\\n", "\n")
-                extracted_text = extracted_text.replace("\\t", "\t")
-                extracted_text = extracted_text.replace("\\'", "'")
-                return extracted_text.strip()
-
-        # Remove any subsequent metadata sections
-        known_metadata_sections = [
-            "## Error Details",
-            "## Metadata",
-            "## Execution Details",
-            "## Debug Info",
-            "## Stack Trace",
-        ]
-
-        result_lines = []
-        for line in output_section.split("\n"):
-            line_stripped = line.strip()
-            if any(line_stripped.startswith(section) for section in known_metadata_sections):
-                break
-            result_lines.append(line)
-
-        return "\n".join(result_lines).strip()
+        return format_user_feedback(
+            context_name=stage_name,
+            reviewed=reviewed,
+            approved=approved,
+            timestamp=timestamp,
+            comments=comments,
+            requested_changes=requested_changes,
+            action=action,
+            retry_count=retry_count,
+        )
