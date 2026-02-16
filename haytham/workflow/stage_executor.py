@@ -20,6 +20,12 @@ from typing import Any
 
 from burr.core import State
 
+from .agent_runner import (
+    _extract_agent_output,
+    run_agent,
+    run_parallel_agents,
+    save_stage_output,
+)
 from .stage_registry import get_stage_registry
 
 logger = logging.getLogger(__name__)
@@ -302,8 +308,6 @@ class StageExecutor:
         system_goal: str,
     ) -> tuple[str, str]:
         """Execute a single agent."""
-        from .burr_actions import run_agent
-
         query = self.config.query_template.format(system_goal=system_goal)
         agent_name = self.stage.agent_names[0] if self.stage.agent_names else "unknown"
 
@@ -325,8 +329,6 @@ class StageExecutor:
         session_manager: Any,
     ) -> tuple[str, str]:
         """Execute multiple agents in parallel."""
-        from .burr_actions import run_parallel_agents, save_stage_output
-
         # ADR-022: Pass use_context_tools to enable selective context retrieval
         results = run_parallel_agents(
             self.config.parallel_agents,
@@ -370,8 +372,6 @@ class StageExecutor:
         - ``_error``: If present, short-circuits with a failure message.
         - ``_context_str``: The fully-formatted prompt string for the agent.
         """
-        from .burr_actions import _extract_agent_output
-
         # Short-circuit if the context builder flagged an error
         error = context.get("_error")
         if error:
@@ -393,8 +393,6 @@ class StageExecutor:
 
     def _save_output(self, session_manager: Any, output: str) -> None:
         """Save stage output."""
-        from .burr_actions import save_stage_output
-
         agent_name = self.stage.agent_names[0] if self.stage.agent_names else "output"
 
         # For parallel stages, individual outputs are saved in _execute_parallel

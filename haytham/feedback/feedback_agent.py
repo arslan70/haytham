@@ -7,7 +7,9 @@ This agent can:
 4. Execute approved changes by invoking revision workflows
 """
 
+import json
 import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -47,15 +49,13 @@ class FeedbackAgentContext:
                             cleaned = self._strip_output_header(raw_content)
                             if cleaned:  # Only include if there's actual content
                                 content_parts.append(raw_content)
-                        except Exception:
+                        except (OSError, UnicodeDecodeError):
                             continue
                 if content_parts:
                     self.stage_outputs[stage_slug] = "\n\n---\n\n".join(content_parts)
 
     def _strip_output_header(self, content: str) -> str:
         """Strip output headers and check for real content."""
-        import re
-
         # Remove "## Output" or "# Output" header
         content = re.sub(r"^#+ Output\s*\n*", "", content, flags=re.MULTILINE)
         # Remove metadata sections
@@ -323,7 +323,7 @@ Generate comprehensive, well-structured output for this stage following your sta
             result = agent(prompt)
 
             # Extract and format output using the same logic as the workflow
-            from haytham.workflow.burr_actions import _extract_agent_output
+            from haytham.workflow.agent_runner import _extract_agent_output
 
             output = _extract_agent_output(result)
             outputs.append(output)
@@ -424,8 +424,6 @@ def _format_structured_output(data, agent_name: str) -> str:
         data = data.model_dump()
 
     if isinstance(data, dict):
-        import json
-
         return f"```json\n{json.dumps(data, indent=2)}\n```"
 
     return str(data)

@@ -7,7 +7,7 @@ stage configs.
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from burr.core import State
@@ -282,7 +282,7 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
     Returns:
         Tuple of (combined_output, status) for stage_executor compatibility.
     """
-    from haytham.workflow.burr_actions import run_agent, save_stage_output
+    from haytham.workflow.agent_runner import run_agent, save_stage_output
     from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 
     system_goal = state.get("system_goal", "")
@@ -393,7 +393,7 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
                         "output_length": len(ca_output),
                     },
                 ],
-                completed=datetime.utcnow().isoformat() + "Z",
+                completed=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                 execution_mode="sequential",
             )
         except Exception as e:
@@ -426,7 +426,7 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
         ValidationSummaryOutput,
         merge_scorer_narrator,
     )
-    from haytham.workflow.burr_actions import run_agent, save_stage_output
+    from haytham.workflow.agent_runner import run_agent, save_stage_output
     from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 
     system_goal = state.get("system_goal", "")

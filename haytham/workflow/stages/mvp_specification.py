@@ -33,10 +33,8 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
         Tuple of (combined_output, status) where status is "completed" or "failed".
     """
     from haytham.agents.factory.agent_factory import create_agent_by_name
-    from haytham.workflow.burr_actions import (
-        _extract_agent_output,
-        render_validation_summary_from_json,
-    )
+    from haytham.workflow.agent_runner import _extract_agent_output
+    from haytham.workflow.burr_actions import render_validation_summary_from_json
     from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 
     system_goal = state.get("system_goal", "")
@@ -139,23 +137,23 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
 
 def create_mvp_scope_agent():
     """Factory for MVP scope agent."""
-    from haytham.agents.factory.agent_factory import create_mvp_scope_agent
+    from haytham.agents.factory.agent_factory import create_agent_by_name
 
-    return create_mvp_scope_agent()
+    return create_agent_by_name("mvp_scope")
 
 
 def create_capability_model_agent():
     """Factory for capability model agent."""
-    from haytham.agents.factory.agent_factory import create_capability_model_agent
+    from haytham.agents.factory.agent_factory import create_agent_by_name
 
-    return create_capability_model_agent()
+    return create_agent_by_name("capability_model")
 
 
 def create_system_traits_agent():
     """Factory for system traits agent."""
-    from haytham.agents.factory.agent_factory import create_system_traits_agent
+    from haytham.agents.factory.agent_factory import create_agent_by_name
 
-    return create_system_traits_agent()
+    return create_agent_by_name("system_traits")
 
 
 # ---------------------------------------------------------------------------
