@@ -16,7 +16,7 @@ from burr.core import ApplicationBuilder
 from burr.lifecycle import PostRunStepHook, PreRunStepHook
 from burr.tracking import LocalTrackingClient
 
-from haytham.workflow.entry_conditions import validate_workflow_entry
+from haytham.workflow.entry_validators import validate_workflow_entry
 from haytham.workflow.workflow_specs import WorkflowSpec
 
 if TYPE_CHECKING:
