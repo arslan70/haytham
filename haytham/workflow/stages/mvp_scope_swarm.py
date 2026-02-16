@@ -36,7 +36,7 @@ def run_mvp_scope_swarm(state: State) -> tuple[str, str]:
     from haytham.agents.output_utils import extract_text_from_result
     from haytham.agents.utils.model_provider import create_model
     from haytham.agents.utils.prompt_loader import load_agent_prompt
-    from haytham.workflow.burr_actions import render_validation_summary_from_json
+    from haytham.workflow.context_builder import render_validation_summary_from_json
     from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 
     system_goal = state.get("system_goal", "")

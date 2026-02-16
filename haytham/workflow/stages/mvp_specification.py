@@ -34,7 +34,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
     """
     from haytham.agents.factory.agent_factory import create_agent_by_name
     from haytham.workflow.agent_runner import _extract_agent_output
-    from haytham.workflow.burr_actions import render_validation_summary_from_json
+    from haytham.workflow.context_builder import render_validation_summary_from_json
     from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 
     system_goal = state.get("system_goal", "")
@@ -175,7 +175,7 @@ def build_mvp_scope_context(state: State) -> dict[str, Any]:
     context_str += f"## Concept Analysis\n{idea_analysis[:2000]}\n\n"
 
     # Parse validation_summary — may be JSON (from output_model) or markdown (legacy)
-    from haytham.workflow.burr_actions import render_validation_summary_from_json
+    from haytham.workflow.context_builder import render_validation_summary_from_json
 
     try:
         context_str += (

@@ -111,8 +111,7 @@ def run_agent(
     Returns:
         Dict with agent output and metadata
     """
-    # Import context builder from burr_actions (stays there, moves in Task 3)
-    from .burr_actions import _build_context_summary
+    from .context_builder import _build_context_summary
 
     start_time = time.time()
 
