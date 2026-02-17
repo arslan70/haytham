@@ -51,7 +51,7 @@ Haytham is a stage-based multi-agent system that validates startup ideas and gen
 
 ```bash
 # Run
-streamlit run frontend_streamlit/Haytham.py    # or: make run
+make run                                      # Streamlit UI
 burr                                          # Burr tracking UI (optional)
 make jaeger-up                                # Jaeger traces at localhost:16686
 
@@ -74,8 +74,7 @@ make test-agents-quick                        # Smoke test
 make test-agents-verbose                      # With judge reasoning
 make record-fixtures IDEA_ID=T1               # Record upstream fixtures
 
-# Setup
-cp .env.example .env                          # Then configure AWS creds + model IDs
+# Setup — configure .env with AWS creds + model IDs
 ```
 
 ## Before Every Commit (REQUIRED)
@@ -94,6 +93,10 @@ Or combined: `uv run ruff check haytham/ --fix && uv run ruff format haytham/ &&
 - Ruff formatting differences → run `uv run ruff format haytham/`
 - Unused imports or variables → run `uv run ruff check haytham/ --fix`
 - Test regressions → run `uv run pytest tests/ -v -m "not integration"` and fix
+
+## Before Every PR (REQUIRED)
+
+Always run the `/audit` skill before creating a pull request. Do not proceed with PR creation until the audit passes.
 
 ---
 
@@ -120,54 +123,59 @@ validation_complete(NO-GO) + gate_approved → END
 
 - **Burr Workflow** (`haytham/workflow/burr_workflow.py`): State machine with conditional branching. `when(risk_level="HIGH")` for pivot strategy.
 - **StageRegistry** (`haytham/workflow/stage_registry.py`): Single source of truth for stage metadata. O(1) lookups by slug or action name.
-- **StageExecutor** (`haytham/workflow/stage_executor.py`): Template Method Pattern. Configure via `STAGE_CONFIGS` dict.
-- **Agent Factory** (`haytham/agents/factory/agent_factory.py`): Creates agents with Strands SDK. `AGENT_FACTORIES` dict for dynamic creation.
+- **StageExecutor** (`haytham/workflow/stage_executor.py`): Template Method Pattern. Stage configs in `haytham/workflow/stages/configs.py`.
+- **Agent Factory** (`haytham/agents/factory/agent_factory.py`): Creates agents with Strands SDK. Config-driven via `AGENT_CONFIGS` in `config.py`.
 - **SessionManager** (`haytham/session/session_manager.py`): State, checkpoints, stage outputs. Saves to `session/{stage-slug}/`.
-- **Workflow Runner** (`frontend_streamlit/lib/workflow_runner.py`): Sync wrapper for Streamlit UI execution.
 
 **Key files:**
 - `haytham/workflow/burr_workflow.py` — Workflow definition, transitions, conditional branching
 - `haytham/workflow/burr_actions.py` — Burr action wrappers that call the stage executor
-- `haytham/workflow/stage_registry.py` — Stage metadata (slugs, phases, ordering)
-- `haytham/workflow/stage_executor.py` — `StageExecutor` class, `STAGE_CONFIGS` dict
+- `haytham/workflow/stage_registry.py` — Stage metadata (slugs, phases, ordering), `WorkflowType` enum
+- `haytham/workflow/stage_executor.py` — `StageExecutor` class
+- `haytham/workflow/stages/configs.py` — `STAGE_CONFIGS` dict (assembled from domain modules)
 - `haytham/workflow/entry_conditions.py` — Entry validators, `_VALIDATORS` dict
-- `haytham/agents/factory/agent_factory.py` — Agent creation, `AGENT_FACTORIES` dict
+- `haytham/agents/factory/agent_factory.py` — Agent creation via `create_agent_by_name()`
 - `haytham/session/session_manager.py` — Session state, checkpoints, stage outputs
-- `frontend_streamlit/lib/workflow_runner.py` — `WorkflowConfig` dataclass, sync wrappers
 
 ### Adding a New Agent
 
 1. Create `haytham/agents/worker_{name}/worker_{name}_prompt.txt`
-2. Add config entry in `AGENT_CONFIGS` (including structured output model if needed — don't add conditional blocks in `create_agent_by_name()`)
-3. Add factory function in `agent_factory.py` and register in `AGENT_FACTORIES`
+2. Add config entry in `AGENT_CONFIGS` in `config.py` (including `structured_output_model_path` if needed)
+3. The generic `create_agent_by_name()` handles creation automatically from the config
 
 **Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/hooks.py`, `haytham/config.py`
 
 ### Adding a New Stage
 
 1. `StageMetadata` in `stage_registry.py`
-2. `StageExecutionConfig` in `stage_executor.py`
+2. `StageExecutionConfig` in `haytham/workflow/stages/configs.py`
 3. Burr action in `burr_actions.py` + transition in `burr_workflow.py`
 4. Entry validator in `entry_conditions.py` — register in `_VALIDATORS` dict and update `get_next_available_workflow()` order
-5. UI stage list in `frontend_streamlit/views/execution.py` — use `StageRegistry` for metadata, don't hardcode
 
-**Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/stage_executor.py`, `haytham/workflow/burr_actions.py`, `haytham/workflow/burr_workflow.py`, `haytham/workflow/entry_conditions.py`, `frontend_streamlit/views/execution.py`
+**Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/stages/configs.py`, `haytham/workflow/burr_actions.py`, `haytham/workflow/burr_workflow.py`, `haytham/workflow/entry_conditions.py`
 
 ### Adding a New Workflow Type
 
-1. Configure workflow via `WorkflowConfig` dataclass in `workflow_runner.py` — do NOT copy-paste an existing `run_*()` function
+1. Add `WorkflowType` enum value in `stage_registry.py`
 2. Add entry validator and register in `_VALIDATORS`
 3. Add stages following the "Adding a New Stage" checklist above
 4. Update `SessionManager` workflow aliases in ONE place (extract to constant if not yet done)
 
-**Key files:** `frontend_streamlit/lib/workflow_runner.py`, `haytham/workflow/entry_conditions.py`, `haytham/session/session_manager.py`
+**Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/entry_conditions.py`, `haytham/session/session_manager.py`
 
 ### Package Boundaries
 
 - `haytham/workflow/` imports from `haytham/agents/` — not the reverse
 - `haytham/session/` is imported by both `workflow/` and `agents/` — keep it dependency-free
-- `frontend_streamlit/lib/` wraps `haytham/` for Streamlit — never import from `frontend_streamlit/` in `haytham/`
 - `haytham/agents/output_utils.py` is the shared extraction layer — individual `worker_*/` modules import from here, not from each other
+- `haytham/phases/` is **deprecated** — it re-exports from `haytham/workflow/stage_registry`. Import from `workflow/` directly
+
+
+## Documentation Editing Standards
+- Write in plain, human-friendly language. Avoid jargon and verbose AI-sounding prose.
+- Never use em dashes (—). Use commas, periods, or parentheses instead.
+- Prefer diagrams (mermaid) over long explanatory paragraphs when showing architecture or flows.
+- When editing docs, keep it concise. If the user asks for simplification, go further than you think necessary.
 
 ## Code Hygiene Rules
 
@@ -175,18 +183,32 @@ validation_complete(NO-GO) + gate_approved → END
 
 Before defining a constant, helper, or pattern in a new file, **search the codebase** for existing definitions. Duplicate definitions rot fast.
 
-- **Shared constants**: Define once, import everywhere. Never recompute paths like `SESSION_DIR` per-file. Use `frontend_streamlit/lib/session_utils.py:get_session_dir()` for session paths.
+- **Shared constants**: Define once, import everywhere. Never recompute paths like `SESSION_DIR` per-file. Use `SessionManager` for session paths.
 - **Shared initialization**: `sys.path.insert()` and `load_dotenv()` should each live in ONE init module, not be copy-pasted into every view.
 - **Shared data structures**: If a dict (like workflow aliases) or list (like stage ordering) appears in more than one place, extract it to a single source of truth — typically the relevant registry or config module.
 - **Shared formatting**: If two search providers, validators, or formatters have near-identical code, extract the common logic into a shared function/protocol.
 
 **Check**: Before adding code, grep for similar patterns. If it exists elsewhere, import it.
 
-### Single Responsibility: Keep Files and Classes Focused
+### Single Responsibility: Split by Responsibility, Not by Size
 
-- **File limit**: If a file exceeds ~500 lines, it likely has multiple responsibilities. Split it.
-- **Class limit**: If a class has more than ~15 public methods, it's doing too much. Decompose into focused collaborators.
-- **Function limit**: If a function exceeds ~50 lines or handles multiple execution paths (if/elif chains for different "modes"), extract each mode into its own function or use a strategy pattern.
+Line counts and method counts are symptoms, not diagnoses. A 800-line file with one cohesive responsibility is healthier than five 160-line files with tangled dependencies. Before splitting, apply four tests:
+
+1. **Debuggability**: When this breaks, does the module name in the traceback tell you what went wrong? If "session_manager.py" could mean 5 different things, split. If it clearly means "session state," it's fine.
+2. **Reusability**: Can the extracted piece be used independently by other modules? If the extraction only makes sense in the context of the parent class (e.g., methods that all operate on `self.session_dir`), don't split.
+3. **Responsibility boundaries**: Does the class/file mix genuinely different concerns (e.g., HTTP handling + business logic + formatting)? Split at the seam. But "reads files" and "writes files" in the same domain are not different responsibilities.
+4. **Testability**: Can you test this piece in isolation without mocking half the system? If pure logic is trapped inside a class that requires infrastructure setup, extract it into standalone functions. (Example: `formatting.py` was extracted from `SessionManager` because formatting logic is pure and testable without a session directory.)
+
+**When to split:**
+- A class delegates to an internal collaborator via 5+ pure-forwarding wrappers (expose the collaborator instead).
+- Private methods with zero callers (dead code, just delete).
+- A function handles multiple execution paths via if/elif chains for different "modes" (extract each mode or use a strategy pattern).
+- Two genuinely independent concerns share a file only because they were written at the same time.
+
+**When NOT to split:**
+- Methods all operate on the same state (`self.session_dir`, `self.config`) and serve the same domain.
+- The extracted module would have zero reuse outside its parent.
+- The split creates more import wiring than it removes complexity.
 
 ### Open/Closed: Extend via Configuration, Not Modification
 
@@ -213,15 +235,6 @@ When adding a new workflow, agent, stage, or search provider:
 - **Module-level imports only**. No `import json` or `import re` inside function bodies unless avoiding a genuine circular dependency (document the reason in a comment).
 - **Compile regex patterns at module level** if they're used in functions that may be called repeatedly.
 - **Lazy imports for optional dependencies** (telemetry, tracing) should use a module-level pattern with `TYPE_CHECKING`, not re-import on every function call.
-
-### Streamlit Frontend Conventions
-
-- **Session paths**: Use `from lib.session_utils import get_session_dir` — never compute `Path(__file__).parent...` manually.
-- **Workflow execution**: Workflow runner functions should follow a single generic pattern. When adding a new workflow type, configure it via a `WorkflowConfig` dataclass — don't copy-paste an existing `run_*()` function.
-- **Agent interaction**: Keep agent creation (factory) separate from Streamlit session state management. Factories should return agents, not mutate `st.session_state`.
-- **State queries**: Use `SessionManager` methods to check workflow state (locked, complete, etc.) — don't read lock files or stage directories directly in views.
-
-**Key files:** `frontend_streamlit/lib/session_utils.py`, `frontend_streamlit/lib/workflow_runner.py`, `frontend_streamlit/views/execution.py`
 
 ### Interface Consistency
 
@@ -253,21 +266,7 @@ if hasattr(result, "output"):  # DON'T DO THIS
     ...
 ```
 
-Reference implementation: `haytham/workflow/burr_actions.py:_extract_agent_output()`
-
-### PITFALL: Session Path Construction
-
-```python
-# WRONG — breaks across environments, duplicates logic
-session_dir = Path(__file__).parent / "../../session"
-session_dir = Path.cwd() / "session"
-
-# CORRECT — use the canonical helper
-from lib.session_utils import get_session_dir
-session_dir = get_session_dir()
-```
-
-**Key file:** `frontend_streamlit/lib/session_utils.py`
+Reference implementation: `haytham/agents/output_utils.py:extract_text_from_result()`
 
 ### PITFALL: Agent Registration
 
@@ -277,12 +276,11 @@ def create_agent_by_name(name):
     if name == "new_agent":
         return Agent(structured_output=MyModel)  # DON'T ADD HERE
 
-# CORRECT — declare in AGENT_CONFIGS, register factory in AGENT_FACTORIES
+# CORRECT — declare in AGENT_CONFIGS, create_agent_by_name() handles the rest
 AGENT_CONFIGS["new_agent"] = AgentConfig(
-    structured_output_model=MyModel,
+    structured_output_model_path="haytham.models:MyModel",
     ...
 )
-AGENT_FACTORIES["new_agent"] = create_new_agent
 ```
 
 **Key file:** `haytham/agents/factory/agent_factory.py`
@@ -299,6 +297,29 @@ _VALIDATORS["new_type"] = validate_new_type
 ```
 
 **Key file:** `haytham/workflow/entry_conditions.py`
+
+### PITFALL: Agents Re-deriving Known Values
+
+If the system has already extracted a value (e.g., `risk_level` from the Burr state), pass it explicitly to downstream agents as a structured input. Never embed it in prose and hope the agent extracts it correctly. Agents should receive facts, not re-derive them.
+
+```python
+# WRONG — burying a known value in prose for the LLM to re-extract
+scorer_query = f"...Risk Assessment output:\n{risk_assessment_text}..."
+# Agent must grep for "Overall Risk Level: HIGH" in thousands of chars
+# and pass it to set_risk_and_evidence(risk_level="HIGH", ...)
+# If the LLM extracts "MEDIUM" instead, the verdict is silently wrong.
+
+# CORRECT — pass known values explicitly, fail if missing
+risk_level = state.get("risk_level")
+if not risk_level:
+    raise ValueError("risk_level is required")
+init_scorecard(risk_level=risk_level)  # pre-set before agent runs
+# Agent tools read the pre-set value; agent cannot override it
+```
+
+**The principle**: Treat agent inputs like function arguments. If a value is already in the system state, it flows as typed data, not prose. If a required value is missing, fail loudly instead of letting the agent invent it. Structured output defines the output contract; apply the same discipline to inputs.
+
+**Key file:** `haytham/agents/tools/recommendation.py` (`init_scorecard`), `haytham/workflow/stages/idea_validation.py`
 
 ### PITFALL: Imports Inside Function Bodies
 

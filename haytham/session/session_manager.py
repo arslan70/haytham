@@ -1,0 +1,839 @@
+"""Session management for single-project, meta-recursive Haytham.
+
+This module provides session management for the simplified single-session architecture.
+It replaces both ProjectManager and CheckpointManager with a unified, simpler API.
+
+The system goal is stored in project.yaml as the single source of truth.
+"""
+
+import json
+import logging
+import shutil
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+from haytham.agents.output_utils import extract_output_content
+from haytham.config import (
+    DEFAULT_WORKFLOW_PHASE,
+    METADATA_FILES,
+    StageStatus,
+    WorkflowPhase,
+)
+from haytham.project.project_state import ProjectStateManager
+from haytham.session.formatting import (
+    create_manifest,
+    format_agent_output,
+    format_checkpoint,
+    format_user_feedback,
+    parse_manifest,
+    update_manifest,
+)
+from haytham.session.workflow_runs import WorkflowRunTracker
+from haytham.workflow.stage_registry import (
+    STAGES,
+    WorkflowType,
+    get_stage_by_slug,
+    get_stage_registry,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class SessionManager:
+    """Manages the single active session for the meta-recursive system.
+
+    The SessionManager handles:
+    - Single session creation and management (no project_id or session_id)
+    - Stage checkpoint saving and loading (using stage slugs)
+    - Agent output persistence
+    - Session resume and recovery
+    - Session archival
+
+    Directory Structure:
+        session/                          # Singular - ONE persistent project
+        ├── project.yaml                  # System goal and project state
+        ├── session_manifest.md
+        ├── preferences.json
+        ├── idea-refinement/
+        │   ├── checkpoint.md
+        │   ├── concept_expansion.md
+        │   └── user_feedback.md
+        ├── market-analysis/
+        │   ├── checkpoint.md
+        │   ├── market_intelligence.md
+        │   ├── competitor_analysis.md
+        │   └── user_feedback.md
+        ├── mvp-specification/            # MVP spec (after workflow completes)
+        │   └── mvp_spec.md
+        └── ...
+        outputs/                          # Final requirements documents
+        └── requirements_{timestamp}.md
+
+    Note: Archive functionality has been removed. The system operates with a
+    single persistent project that remains active for MVP specification.
+    """
+
+    def __init__(self, base_dir: str = "."):
+        """Initialize the SessionManager.
+
+        Args:
+            base_dir: Base directory for session and outputs (default: ".")
+        """
+        self.base_dir = Path(base_dir)
+        self.session_dir = self.base_dir / "session"
+        self.archive_dir = self.base_dir / "archive"  # Kept for backwards compat
+        self.outputs_dir = self.base_dir / "outputs"
+
+        # Ensure directories exist
+        self.session_dir.mkdir(parents=True, exist_ok=True)
+        # Note: archive_dir creation removed - no longer archiving sessions
+        self.outputs_dir.mkdir(parents=True, exist_ok=True)
+
+        # Initialize ProjectStateManager for system goal management
+        self.project_state = ProjectStateManager(self.session_dir)
+
+        # Initialize WorkflowRunTracker for workflow state machine
+        self.run_tracker = WorkflowRunTracker(self.session_dir)
+
+    def has_system_goal(self) -> bool:
+        """Check if a system goal has been set.
+
+        Returns:
+            True if a system goal exists in project.yaml, False otherwise
+        """
+        return self.project_state.has_system_goal()
+
+    def get_system_goal(self) -> str | None:
+        """Get the system goal from project state.
+
+        Returns:
+            The system goal string, or None if not set
+        """
+        return self.project_state.get_system_goal()
+
+    def set_system_goal(self, goal: str) -> None:
+        """Set the system goal in project state.
+
+        Args:
+            goal: The system goal string provided by the user
+        """
+        self.project_state.set_system_goal(goal)
+
+    def has_active_session(self) -> bool:
+        """Check if an incomplete session exists.
+
+        Returns:
+            True if an incomplete session exists, False otherwise
+        """
+        manifest_path = self.session_dir / "session_manifest.md"
+        if not manifest_path.exists():
+            return False
+
+        try:
+            session = parse_manifest(
+                manifest_path.read_text(), valid_stage_slugs={s.slug for s in STAGES}
+            )
+            return session.get("status") == "in_progress"
+        except (OSError, ValueError, KeyError) as e:
+            logger.warning("Failed to read session manifest: %s", e)
+            return False
+
+    def create_session(self) -> dict[str, Any]:
+        """Create a new session (clears any existing session directory).
+
+        Preserves project.yaml which contains the system goal.
+        Creates stage directories using slugs (idea-refinement/, market-analysis/, etc.)
+
+        Returns:
+            Dict containing session metadata
+        """
+        # Preserve project.yaml before clearing session directory
+        project_yaml_path = self.session_dir / "project.yaml"
+        project_yaml_content = None
+        if project_yaml_path.exists():
+            project_yaml_content = project_yaml_path.read_text()
+
+        # Clear existing session directory
+        if self.session_dir.exists():
+            shutil.rmtree(self.session_dir)
+        self.session_dir.mkdir(parents=True, exist_ok=True)
+
+        # Restore project.yaml if it existed
+        if project_yaml_content is not None:
+            project_yaml_path.write_text(project_yaml_content)
+
+        # Re-initialize ProjectStateManager after directory recreation
+        self.project_state = ProjectStateManager(self.session_dir)
+
+        # Create stage directories using slugs
+        for stage in STAGES:
+            stage_dir = self.session_dir / stage.slug
+            stage_dir.mkdir(exist_ok=True)
+
+        # Get system goal from project state (may be None if not set yet)
+        system_goal = self.project_state.get_system_goal()
+
+        # Create session manifest
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        manifest_content = create_manifest(
+            stages=[(s.slug, s.display_name) for s in STAGES],
+            created=now,
+            system_goal=system_goal,
+        )
+        (self.session_dir / "session_manifest.md").write_text(manifest_content)
+
+        # Create empty preferences file
+        preferences_path = self.session_dir / "preferences.json"
+        preferences_path.write_text(json.dumps({}, indent=2))
+
+        return {
+            "status": "in_progress",
+            "created": now,
+            "system_goal": system_goal,  # May be None if not set yet
+        }
+
+    def load_session(self) -> dict[str, Any] | None:
+        """Load current session state from manifest.
+
+        Returns:
+            Dict containing session state, or None if no session exists
+        """
+        manifest_path = self.session_dir / "session_manifest.md"
+        if not manifest_path.exists():
+            return None
+
+        try:
+            return parse_manifest(
+                manifest_path.read_text(), valid_stage_slugs={s.slug for s in STAGES}
+            )
+        except (OSError, ValueError, KeyError) as e:
+            logger.warning("Failed to parse session manifest: %s", e)
+            return None
+
+    def clear_workflow_stages(self, workflow_type: str) -> None:
+        """Clear all stage directories for a specific workflow.
+
+        Preserves project.yaml but clears stage outputs for re-running.
+        Used when a user wants to refine their idea and re-run validation.
+
+        Args:
+            workflow_type: Type of workflow to clear (e.g., "idea-validation")
+        """
+        try:
+            wf_type = WorkflowType(workflow_type)
+            stages = get_stage_registry().get_workflow_stage_slugs(wf_type)
+        except ValueError:
+            logger.warning("Unknown workflow type for clearing: %s", workflow_type)
+            stages = []
+        for stage_slug in stages:
+            stage_dir = self.session_dir / stage_slug
+            if stage_dir.exists():
+                shutil.rmtree(stage_dir)
+
+        # Clear workflow lock
+        lock_file = self.session_dir / f".{workflow_type}.locked"
+        if lock_file.exists():
+            lock_file.unlink()
+
+        # Remove workflow run records for this workflow type
+        self._clear_workflow_runs(workflow_type)
+
+        logger.info(f"Cleared stages for workflow '{workflow_type}'")
+
+    def _clear_workflow_runs(self, workflow_type: str) -> None:
+        """Clear workflow run records for a specific workflow type.
+
+        Delegates to WorkflowRunTracker.clear_runs() which holds the
+        file lock and respects workflow alias mapping.
+
+        Args:
+            workflow_type: Type of workflow to clear runs for
+        """
+        self.run_tracker.clear_runs(workflow_type)
+
+    def save_checkpoint(
+        self,
+        stage_slug: str,
+        status: str,
+        agents: list[dict[str, Any]],
+        started: str | None = None,
+        completed: str | None = None,
+        duration: float | None = None,
+        retry_count: int = 0,
+        execution_mode: str = "single",
+        errors: list[str] | None = None,
+    ) -> None:
+        """Save a stage checkpoint.
+
+        Args:
+            stage_slug: Stage slug (e.g., "idea-refinement")
+            status: Stage status (pending, in_progress, completed, failed, skipped)
+            agents: List of agent execution details
+            started: ISO 8601 timestamp when stage started
+            completed: ISO 8601 timestamp when stage completed
+            duration: Stage duration in seconds
+            retry_count: Number of retry attempts
+            execution_mode: Execution mode (single, parallel, sequential_interactive)
+            errors: List of error messages (if any)
+
+        Raises:
+            ValueError: If stage_slug is invalid or status is invalid
+            FileNotFoundError: If session directory does not exist
+        """
+        # Validate stage slug
+        try:
+            stage = get_stage_by_slug(stage_slug)
+        except ValueError as e:
+            raise ValueError(f"Invalid stage_slug: {stage_slug}") from e
+
+        # Validate status using enum
+        valid_statuses = StageStatus.values()
+        if status not in valid_statuses:
+            raise ValueError(f"status must be one of {valid_statuses}, got: {status}")
+
+        if not self.session_dir.exists():
+            raise FileNotFoundError(f"Session directory not found: {self.session_dir}")
+
+        stage_dir = self.session_dir / stage_slug
+        stage_dir.mkdir(exist_ok=True)
+
+        # Compute prev/next stage info scoped to the same workflow phase.
+        # Using the flat STAGES list would cross workflow boundaries (e.g.,
+        # validation-summary → mvp-scope), which is wrong because gates
+        # separate workflow phases.
+        registry = get_stage_registry()
+        workflow_stages = registry.get_stages_for_workflow(stage.workflow_type)
+        ws_index = next((i for i, s in enumerate(workflow_stages) if s.slug == stage_slug), None)
+        prev_stage_name = (
+            workflow_stages[ws_index - 1].display_name if ws_index and ws_index > 0 else "None"
+        )
+        next_stage_slug = "-"
+        next_stage_name = "None"
+        if ws_index is not None and ws_index < len(workflow_stages) - 1:
+            next_stage_slug = workflow_stages[ws_index + 1].slug
+            next_stage_name = workflow_stages[ws_index + 1].display_name
+
+        # Create checkpoint content
+        checkpoint_content = format_checkpoint(
+            stage_slug=stage_slug,
+            stage_name=stage.display_name,
+            status=status,
+            started=started,
+            completed=completed,
+            duration=duration,
+            retry_count=retry_count,
+            execution_mode=execution_mode,
+            agents=agents,
+            errors=errors or [],
+            prev_stage_name=prev_stage_name,
+            next_stage_slug=next_stage_slug,
+            next_stage_name=next_stage_name,
+        )
+
+        # Write checkpoint file
+        checkpoint_path = stage_dir / "checkpoint.md"
+        checkpoint_path.write_text(checkpoint_content)
+
+        # Update session manifest
+        # Update session manifest
+        manifest_path = self.session_dir / "session_manifest.md"
+        if manifest_path.exists():
+            updated = update_manifest(
+                manifest_content=manifest_path.read_text(),
+                stage_slug=stage_slug,
+                stage_display_name=stage.display_name,
+                status=status,
+                started=started,
+                completed=completed,
+                duration=duration,
+                total_stages=len(STAGES),
+                stages_list=[(s.slug, s.display_name) for s in STAGES],
+            )
+            manifest_path.write_text(updated)
+
+    def save_agent_output(
+        self,
+        stage_slug: str,
+        agent_name: str,
+        output_content: str,
+        status: str = "completed",
+        duration: float | None = None,
+        model: str | None = None,
+        input_tokens: int | None = None,
+        output_tokens: int | None = None,
+        tools_used: list[str] | None = None,
+        error_type: str | None = None,
+        error_message: str | None = None,
+        stack_trace: str | None = None,
+    ) -> None:
+        """Save agent output to a markdown file.
+
+        Args:
+            stage_slug: Stage slug (e.g., "idea-refinement")
+            agent_name: Name of the agent
+            output_content: The agent's output content
+            status: Agent status (completed, failed)
+            duration: Execution duration in seconds
+            model: Model identifier used
+            input_tokens: Number of input tokens
+            output_tokens: Number of output tokens
+            tools_used: List of tools used by the agent
+            error_type: Error type (if failed)
+            error_message: Error message (if failed)
+            stack_trace: Stack trace (if failed)
+
+        Raises:
+            ValueError: If stage_slug is invalid
+            FileNotFoundError: If stage directory does not exist
+        """
+        # Validate stage slug
+        try:
+            stage = get_stage_by_slug(stage_slug)
+        except ValueError as e:
+            raise ValueError(f"Invalid stage_slug: {stage_slug}") from e
+
+        stage_dir = self.session_dir / stage_slug
+
+        if not stage_dir.exists():
+            raise FileNotFoundError(f"Stage directory not found: {stage_dir}")
+
+        # Create agent output content
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        agent_output = format_agent_output(
+            agent_name=agent_name,
+            context_label=f"{stage_slug} - {stage.display_name}",
+            executed=now,
+            duration=duration,
+            status=status,
+            model=model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            tools_used=tools_used or [],
+            output_content=output_content,
+            error_type=error_type,
+            error_message=error_message,
+            stack_trace=stack_trace,
+        )
+
+        # Write agent output file
+        output_path = stage_dir / f"{agent_name}.md"
+        output_path.write_text(agent_output)
+
+    def save_user_feedback(
+        self,
+        stage_slug: str,
+        feedback: dict[str, Any],
+    ) -> None:
+        """Save user feedback for a stage.
+
+        Args:
+            stage_slug: Stage slug (e.g., "idea-refinement")
+            feedback: Dict containing feedback data with keys:
+                - reviewed: bool
+                - approved: bool
+                - comments: str (optional)
+                - requested_changes: list[str] (optional)
+                - action: str (optional, default: "approved")
+                - retry_count: int (optional, default: 0)
+
+        Raises:
+            ValueError: If stage_slug is invalid
+            FileNotFoundError: If stage directory does not exist
+        """
+        # Validate stage slug
+        try:
+            stage = get_stage_by_slug(stage_slug)
+        except ValueError as e:
+            raise ValueError(f"Invalid stage_slug: {stage_slug}") from e
+
+        stage_dir = self.session_dir / stage_slug
+
+        if not stage_dir.exists():
+            raise FileNotFoundError(f"Stage directory not found: {stage_dir}")
+
+        # Extract feedback fields with defaults
+        reviewed = feedback.get("reviewed", True)
+        approved = feedback.get("approved", False)
+        comments = feedback.get("comments", "")
+        requested_changes = feedback.get("requested_changes", [])
+        action = feedback.get("action", "approved" if approved else "pending")
+        retry_count = feedback.get("retry_count", 0)
+
+        # Create user feedback content
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        feedback_content = format_user_feedback(
+            context_name=stage.display_name,
+            reviewed=reviewed,
+            approved=approved,
+            timestamp=now,
+            comments=comments,
+            requested_changes=requested_changes,
+            action=action,
+            retry_count=retry_count,
+        )
+
+        # Write user feedback file
+        feedback_path = stage_dir / "user_feedback.md"
+        feedback_path.write_text(feedback_content)
+
+    def get_stage_outputs(self, stage_slugs: list[str] | None = None) -> dict[str, dict[str, str]]:
+        """Load agent outputs from specified stages.
+
+        Args:
+            stage_slugs: List of stage slugs to load (None = all completed stages)
+
+        Returns:
+            Dict mapping stage_slug to dict of agent_name -> output_content
+        """
+        if not self.session_dir.exists():
+            return {}
+
+        # If no stage_slugs specified, load all completed stages
+        if stage_slugs is None:
+            session_state = self.load_session()
+            if session_state:
+                stage_slugs = session_state.get("completed_stages", [])
+            else:
+                stage_slugs = []
+
+        outputs = {}
+
+        for stage_slug in stage_slugs:
+            # Validate stage slug exists
+            try:
+                get_stage_by_slug(stage_slug)
+            except ValueError:
+                continue
+
+            stage_dir = self.session_dir / stage_slug
+
+            if not stage_dir.exists():
+                continue
+
+            stage_outputs = {}
+
+            # Load all .md files except metadata files
+            for output_file in stage_dir.glob("*.md"):
+                if output_file.name in METADATA_FILES:
+                    continue
+
+                agent_name = output_file.stem
+                content = output_file.read_text()
+
+                # Extract just the output content (skip metadata)
+                output_content = extract_output_content(content)
+                stage_outputs[agent_name] = output_content
+
+            if stage_outputs:
+                outputs[stage_slug] = stage_outputs
+
+        return outputs
+
+    def get_approved_stages(self) -> list[str]:
+        """Get list of stages that have been approved by the user.
+
+        A stage is considered approved if:
+        1. It has a stage directory
+        2. It has a user_feedback.md file
+        3. The feedback file shows Approved: true
+
+        Returns:
+            List of approved stage slugs in workflow order
+        """
+        if not self.session_dir.exists():
+            return []
+
+        approved_stages = []
+
+        # Check each stage directory in workflow order
+        for stage in STAGES:
+            stage_dir = self.session_dir / stage.slug
+            feedback_file = stage_dir / "user_feedback.md"
+
+            # Check if directory and feedback file exist
+            if stage_dir.exists() and feedback_file.exists():
+                try:
+                    feedback_content = feedback_file.read_text()
+                    # Look for "- Approved: true" line
+                    if "- Approved: true" in feedback_content:
+                        approved_stages.append(stage.slug)
+                except OSError as e:
+                    logger.debug("Cannot read feedback for %s: %s", stage.slug, e)
+
+        return approved_stages
+
+    def get_next_stage(self, workflow_type: WorkflowType | None = None) -> str | None:
+        """Get the next stage to execute.
+
+        Args:
+            workflow_type: If provided, only consider stages in this workflow.
+                Otherwise searches all stages across all workflows.
+
+        Returns:
+            Next stage slug to execute, or None if all stages complete
+        """
+        approved = set(self.get_approved_stages())
+
+        if workflow_type is not None:
+            registry = get_stage_registry()
+            stages = registry.get_stages_for_workflow(workflow_type)
+        else:
+            stages = STAGES
+
+        for stage in stages:
+            if stage.slug not in approved:
+                return stage.slug
+
+        return None  # All stages complete
+
+    def save_final_output(self, requirements_content: str) -> str:
+        """Save final requirements document to outputs directory.
+
+        Args:
+            requirements_content: The generated requirements.md content
+
+        Returns:
+            Path to the saved requirements file
+        """
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        output_path = self.outputs_dir / f"requirements_{timestamp}.md"
+        output_path.write_text(requirements_content)
+
+        # Also save as latest
+        latest_path = self.outputs_dir / "latest_requirements.md"
+        latest_path.write_text(requirements_content)
+
+        return str(output_path)
+
+    def save_preferences(self, preferences: dict[str, Any]) -> None:
+        """Save user preferences to session.
+
+        Args:
+            preferences: Dict of user preferences
+        """
+        preferences_path = self.session_dir / "preferences.json"
+
+        # Load existing preferences and merge
+        existing = {}
+        if preferences_path.exists():
+            try:
+                existing = json.loads(preferences_path.read_text())
+            except (OSError, json.JSONDecodeError) as e:
+                logger.warning("Failed to load preferences, starting fresh: %s", e)
+
+        existing.update(preferences)
+        existing["updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+        preferences_path.write_text(json.dumps(existing, indent=2))
+
+    def load_preferences(self) -> dict[str, Any]:
+        """Load user preferences from session.
+
+        Returns:
+            Dict of user preferences
+        """
+        preferences_path = self.session_dir / "preferences.json"
+        if not preferences_path.exists():
+            return {}
+
+        try:
+            return json.loads(preferences_path.read_text())
+        except (OSError, json.JSONDecodeError) as e:
+            logger.warning("Failed to read preferences: %s", e)
+            return {}
+
+    def has_mvp_spec(self) -> bool:
+        """Check if an MVP specification has been created and accepted.
+
+        Returns:
+            True if MVP spec exists and was accepted, False otherwise
+        """
+        mvp_spec_path = self.get_mvp_spec_path()
+        accepted_marker = self.session_dir / "mvp-specification" / ".accepted"
+        return mvp_spec_path is not None and accepted_marker.exists()
+
+    def get_mvp_spec_path(self) -> Path | None:
+        """Get the path to the MVP specification file.
+
+        Returns:
+            Path to MVP spec if it exists, None otherwise
+        """
+        mvp_dir = self.session_dir / "mvp-specification"
+        # Check for both possible filenames
+        for filename in ["mvp_specification.md", "mvp_spec.md"]:
+            mvp_spec_path = mvp_dir / filename
+            if mvp_spec_path.exists():
+                return mvp_spec_path
+        return None
+
+    def get_mvp_spec_content(self) -> str | None:
+        """Get the content of the MVP specification.
+
+        Returns:
+            Content of mvp_spec.md if it exists, None otherwise
+        """
+        mvp_spec_path = self.get_mvp_spec_path()
+        if mvp_spec_path:
+            try:
+                return mvp_spec_path.read_text(encoding="utf-8")
+            except OSError as e:
+                logger.warning("Failed to read MVP spec at %s: %s", mvp_spec_path, e)
+                return None
+        return None
+
+    def mark_mvp_spec_accepted(self) -> None:
+        """Mark the MVP specification as accepted.
+
+        Creates a marker file to indicate the MVP spec has been accepted.
+        """
+        mvp_spec_dir = self.session_dir / "mvp-specification"
+        mvp_spec_dir.mkdir(parents=True, exist_ok=True)
+        accepted_marker = mvp_spec_dir / ".accepted"
+        accepted_marker.write_text(datetime.now(UTC).isoformat().replace("+00:00", "Z"))
+
+    def is_mvp_spec_accepted(self) -> bool:
+        """Check if the MVP specification has been accepted.
+
+        Returns:
+            True if MVP spec has been accepted, False otherwise
+        """
+        accepted_marker = self.session_dir / "mvp-specification" / ".accepted"
+        return accepted_marker.exists()
+
+    def is_technical_design_complete(self) -> bool:
+        """Check if the Technical Design workflow (Phase 3: HOW) is complete.
+
+        Returns:
+            True if Technical Design workflow is complete, False otherwise
+        """
+        return self.run_tracker.is_workflow_locked(
+            "technical-design"
+        ) or self.run_tracker.is_workflow_complete("technical-design")
+
+    def has_backlog_tasks_generated(self) -> bool:
+        """Check if Backlog.md tasks have been generated.
+
+        Returns:
+            True if Backlog tasks have been generated, False otherwise
+        """
+        backlog_marker = self.session_dir / ".backlog_generated"
+        return backlog_marker.exists()
+
+    def mark_backlog_tasks_generated(self, task_count: int = 0) -> None:
+        """Mark that Backlog.md tasks have been generated.
+
+        Creates a marker file to track task generation.
+
+        Args:
+            task_count: Number of tasks created
+        """
+        backlog_marker = self.session_dir / ".backlog_generated"
+        marker_data = {
+            "generated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "task_count": task_count,
+        }
+        backlog_marker.write_text(json.dumps(marker_data, indent=2))
+
+    # =========================================================================
+    # ADR-004: Multi-Phase Workflow Support
+    # =========================================================================
+
+    # =========================================================================
+
+    def get_workflow_phase(self) -> str:
+        """Get the current workflow phase.
+
+        Workflow phases (from ADR-005):
+        - "discovery": Workflow 1 - Discovery & Validation (Product Owner role)
+        - "architect": Workflow 2 - Technical Translation (Software Architect role)
+        - "implementation": Workflow 3 - Implementation (Coding Agent role)
+
+        Returns:
+            Current workflow phase string, defaults to DEFAULT_WORKFLOW_PHASE
+        """
+        phase_file = self.session_dir / ".workflow_phase"
+        if phase_file.exists():
+            try:
+                data = json.loads(phase_file.read_text())
+                return data.get("phase", DEFAULT_WORKFLOW_PHASE)
+            except (json.JSONDecodeError, KeyError):
+                pass
+        return DEFAULT_WORKFLOW_PHASE
+
+    def set_workflow_phase(self, phase: str) -> None:
+        """Set the current workflow phase.
+
+        Args:
+            phase: One of "discovery", "architect", "implementation"
+
+        Raises:
+            ValueError: If phase is not valid
+        """
+        valid_phases = WorkflowPhase.values()
+        if phase not in valid_phases:
+            raise ValueError(f"Invalid workflow phase: {phase}. Must be one of {valid_phases}")
+
+        phase_file = self.session_dir / ".workflow_phase"
+        data = {
+            "phase": phase,
+            "updated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        }
+        phase_file.write_text(json.dumps(data, indent=2))
+
+    def get_phase(self) -> str:
+        """Get the current phase in the four-phase workflow.
+
+        Phases (from ADR-016):
+        - "WHY": Phase 1 - Idea Validation (is the idea worth pursuing?)
+        - "WHAT": Phase 2 - MVP Specification (what should we build?)
+        - "HOW": Phase 3 - Technical Design (how should we build it?)
+        - "STORIES": Phase 4 - Story Generation (what are the tasks?)
+
+        Returns:
+            Current phase name as string
+        """
+        # Check phases in order - return the first incomplete phase
+        if not self.run_tracker.is_workflow_locked("idea-validation"):
+            return "WHY"
+        if not self.run_tracker.is_workflow_locked("mvp-specification"):
+            return "WHAT"
+        if not self.run_tracker.is_workflow_locked("technical-design"):
+            return "HOW"
+        return "STORIES"
+
+    def load_stage_output(self, stage_slug: str) -> str | None:
+        """Load the combined output from a completed stage.
+
+        This method reads all agent output files from a stage directory
+        and combines them into a single string. Used for passing upstream
+        context to subsequent workflows (e.g., mvp_scope to Workflow 2).
+
+        Args:
+            stage_slug: Stage slug (e.g., "mvp-scope", "validation-summary")
+
+        Returns:
+            Combined agent outputs as string, or None if stage not found
+        """
+        stage_dir = self.session_dir / stage_slug
+        if not stage_dir.exists():
+            return None
+
+        outputs = []
+        # Sort to ensure consistent ordering
+        for agent_file in sorted(stage_dir.glob("*.md")):
+            # Skip metadata files
+            if agent_file.name in METADATA_FILES:
+                continue
+
+            try:
+                content = agent_file.read_text()
+                # Extract just the output content (skip metadata headers)
+                output_content = extract_output_content(content)
+                if output_content.strip():
+                    outputs.append(output_content)
+            except (OSError, ValueError) as e:
+                logger.debug("Skipping unreadable agent file %s: %s", agent_file, e)
+                continue
+
+        return "\n\n---\n\n".join(outputs) if outputs else None

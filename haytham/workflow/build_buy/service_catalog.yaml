@@ -1,0 +1,478 @@
+# Build vs. Buy Service Catalog
+# Pre-classified services for common technical components
+
+categories:
+  authentication:
+    default_recommendation: BUY
+    keywords:
+      - authentication
+      - auth
+      - login
+      - signup
+      - sign-in
+      - sign-up
+      - jwt
+      - oauth
+      - session
+      - password
+    rationale: "Authentication is security-critical and commoditized. Building custom auth increases security risk and maintenance burden."
+    services:
+      - name: Clerk
+        tier: recommended
+        pricing: "Free up to 10k MAU, then $0.02/MAU"
+        integration_effort: "2-4 hours"
+        docs: "https://clerk.com/docs"
+        best_for: "React/Next.js apps, best DX, pre-built components"
+      - name: Auth0
+        tier: alternative
+        pricing: "Free up to 7k MAU"
+        integration_effort: "4-8 hours"
+        docs: "https://auth0.com/docs"
+        best_for: "Enterprise features, extensive integrations"
+      - name: Supabase Auth
+        tier: alternative
+        pricing: "Included with Supabase"
+        integration_effort: "2-4 hours"
+        docs: "https://supabase.com/docs/guides/auth"
+        best_for: "Already using Supabase for database"
+    if_you_must_build: "Only build custom auth if you have regulatory requirements that prohibit third-party auth providers, or if auth IS your product."
+
+  payments:
+    default_recommendation: BUY
+    keywords:
+      - payment
+      - stripe
+      - billing
+      - subscription
+      - checkout
+      - invoice
+      - pricing
+    rationale: "Payment processing requires PCI compliance and fraud prevention. Third-party services handle this complexity."
+    services:
+      - name: Stripe
+        tier: recommended
+        pricing: "2.9% + $0.30 per transaction"
+        integration_effort: "4-8 hours"
+        docs: "https://stripe.com/docs"
+        best_for: "Most use cases, best ecosystem, extensive documentation"
+      - name: LemonSqueezy
+        tier: alternative
+        pricing: "5% + $0.50 per transaction"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.lemonsqueezy.com"
+        best_for: "Digital products, handles VAT/sales tax automatically"
+      - name: Paddle
+        tier: alternative
+        pricing: "5% + $0.50 per transaction"
+        integration_effort: "4-8 hours"
+        docs: "https://developer.paddle.com"
+        best_for: "B2B SaaS, merchant of record model"
+    if_you_must_build: "Never build your own payment processing. Even if you need custom checkout flows, use Stripe Elements or similar."
+
+  email_transactional:
+    default_recommendation: BUY
+    keywords:
+      - email
+      - transactional email
+      - notification
+      - smtp
+      - sendgrid
+      - postmark
+    rationale: "Email deliverability is complex and requires reputation management. Third-party services handle this automatically."
+    services:
+      - name: Resend
+        tier: recommended
+        pricing: "Free up to 3k emails/month, then $20/month"
+        integration_effort: "1-2 hours"
+        docs: "https://resend.com/docs"
+        best_for: "Modern API, React Email support, great DX"
+      - name: SendGrid
+        tier: alternative
+        pricing: "Free up to 100 emails/day"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.sendgrid.com"
+        best_for: "High volume, extensive templates"
+      - name: Postmark
+        tier: alternative
+        pricing: "Free up to 100 emails/month for testing"
+        integration_effort: "1-2 hours"
+        docs: "https://postmarkapp.com/developer"
+        best_for: "Best deliverability, transactional focus"
+    if_you_must_build: "Only build custom email if you have extreme volume requirements or regulatory needs that prohibit third-party email."
+
+  file_storage:
+    default_recommendation: BUY
+    keywords:
+      - file
+      - upload
+      - storage
+      - s3
+      - blob
+      - media
+      - image
+      - document
+    rationale: "File storage requires CDN, security, and scaling considerations. Cloud providers handle this efficiently."
+    services:
+      - name: Cloudflare R2
+        tier: recommended
+        pricing: "Free up to 10GB, no egress fees"
+        integration_effort: "2-4 hours"
+        docs: "https://developers.cloudflare.com/r2"
+        best_for: "No egress fees, S3-compatible API"
+      - name: AWS S3
+        tier: alternative
+        pricing: "$0.023/GB storage, egress fees apply"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.aws.amazon.com/s3"
+        best_for: "AWS ecosystem, most integrations"
+      - name: Uploadthing
+        tier: alternative
+        pricing: "Free up to 2GB, then $10/month"
+        integration_effort: "1-2 hours"
+        docs: "https://docs.uploadthing.com"
+        best_for: "Next.js/React apps, easiest integration"
+    if_you_must_build: "Only build custom storage for highly specialized compliance requirements."
+
+  database:
+    default_recommendation: BUY
+    keywords:
+      - database
+      - postgresql
+      - mysql
+      - mongodb
+      - db
+      - data storage
+    rationale: "Managed databases provide automatic backups, scaling, and maintenance without DevOps overhead."
+    services:
+      - name: Supabase
+        tier: recommended
+        pricing: "Free tier with 500MB, then $25/month"
+        integration_effort: "1-2 hours"
+        docs: "https://supabase.com/docs"
+        best_for: "Full stack, includes auth/storage/realtime"
+      - name: Neon
+        tier: alternative
+        pricing: "Free tier with 512MB, then usage-based"
+        integration_effort: "1 hour"
+        docs: "https://neon.tech/docs"
+        best_for: "Serverless Postgres, branching for dev"
+      - name: PlanetScale
+        tier: alternative
+        pricing: "Free tier with 5GB, then $29/month"
+        integration_effort: "1-2 hours"
+        docs: "https://docs.planetscale.com"
+        best_for: "MySQL, horizontal scaling, schema branching"
+    if_you_must_build: "Consider self-hosted only if you have strict data residency requirements."
+
+  llm_observability:
+    default_recommendation: BUY
+    keywords:
+      - ai monitoring
+      - llm observability
+      - agent monitoring
+      - ai accuracy
+      - prompt tracking
+      - langfuse
+      - helicone
+    rationale: "LLM observability is complex to build and maintain. Specialized tools provide insights out of the box."
+    services:
+      - name: Langfuse
+        tier: recommended
+        pricing: "Free tier, then usage-based"
+        integration_effort: "1-2 hours"
+        docs: "https://langfuse.com/docs"
+        best_for: "Open source, self-hostable, comprehensive tracing"
+      - name: Helicone
+        tier: alternative
+        pricing: "Free tier available"
+        integration_effort: "1 hour"
+        docs: "https://docs.helicone.ai"
+        best_for: "Simple proxy-based integration"
+      - name: Braintrust
+        tier: alternative
+        pricing: "Free tier available"
+        integration_effort: "2-4 hours"
+        docs: "https://braintrustdata.com/docs"
+        best_for: "Evaluation and testing focus"
+    if_you_must_build: "Only build custom if you have unique evaluation metrics not supported by existing tools."
+
+  error_tracking:
+    default_recommendation: BUY
+    keywords:
+      - error tracking
+      - error handling
+      - exception
+      - monitoring
+      - sentry
+      - crash
+      - bug tracking
+    rationale: "Error tracking requires sophisticated aggregation, alerting, and analysis. Third-party tools excel here."
+    services:
+      - name: Sentry
+        tier: recommended
+        pricing: "Free up to 5k events/month"
+        integration_effort: "1 hour"
+        docs: "https://docs.sentry.io"
+        best_for: "Most comprehensive, great integrations"
+      - name: Highlight.io
+        tier: alternative
+        pricing: "Free up to 500 sessions/month"
+        integration_effort: "1 hour"
+        docs: "https://highlight.io/docs"
+        best_for: "Session replay + errors combined"
+      - name: LogRocket
+        tier: alternative
+        pricing: "Free up to 1k sessions/month"
+        integration_effort: "1 hour"
+        docs: "https://docs.logrocket.com"
+        best_for: "Session replay focus"
+    if_you_must_build: "Never build custom error tracking. Even basic logging should use structured logging libraries."
+
+  analytics:
+    default_recommendation: BUY
+    keywords:
+      - analytics
+      - tracking
+      - metrics
+      - usage
+      - posthog
+      - mixpanel
+      - amplitude
+    rationale: "Product analytics requires data infrastructure, visualization, and privacy compliance."
+    services:
+      - name: PostHog
+        tier: recommended
+        pricing: "Free up to 1M events/month"
+        integration_effort: "1-2 hours"
+        docs: "https://posthog.com/docs"
+        best_for: "All-in-one, self-hostable, generous free tier"
+      - name: Mixpanel
+        tier: alternative
+        pricing: "Free up to 20M events/month"
+        integration_effort: "1-2 hours"
+        docs: "https://developer.mixpanel.com"
+        best_for: "Product analytics focus, great funnels"
+      - name: Plausible
+        tier: alternative
+        pricing: "$9/month for 10k pageviews"
+        integration_effort: "30 minutes"
+        docs: "https://plausible.io/docs"
+        best_for: "Simple, privacy-focused, lightweight"
+    if_you_must_build: "Consider PostHog self-hosted for maximum control over analytics data."
+
+  search:
+    default_recommendation: HYBRID
+    keywords:
+      - search
+      - full-text search
+      - indexing
+      - elasticsearch
+      - algolia
+      - typesense
+    rationale: "Search can be bought for standard use cases but may need customization for domain-specific ranking."
+    services:
+      - name: Typesense
+        tier: recommended
+        pricing: "Free self-hosted, cloud from $29/month"
+        integration_effort: "4-8 hours"
+        docs: "https://typesense.org/docs"
+        best_for: "Open source, typo tolerance, easy setup"
+      - name: Algolia
+        tier: alternative
+        pricing: "Free up to 10k records"
+        integration_effort: "2-4 hours"
+        docs: "https://www.algolia.com/doc"
+        best_for: "Best-in-class relevance, instant search UI"
+      - name: Meilisearch
+        tier: alternative
+        pricing: "Free self-hosted, cloud from $29/month"
+        integration_effort: "4-8 hours"
+        docs: "https://www.meilisearch.com/docs"
+        best_for: "Open source, great typo tolerance"
+    if_you_must_build: "Only build custom search for highly specialized ranking algorithms or real-time requirements."
+
+  background_jobs:
+    default_recommendation: BUY
+    keywords:
+      - background job
+      - queue
+      - cron
+      - scheduled
+      - async
+      - worker
+    rationale: "Background job infrastructure requires reliability, retry logic, and monitoring."
+    services:
+      - name: Trigger.dev
+        tier: recommended
+        pricing: "Free up to 10k runs/month"
+        integration_effort: "2-4 hours"
+        docs: "https://trigger.dev/docs"
+        best_for: "TypeScript-first, great DX, long-running jobs"
+      - name: Inngest
+        tier: alternative
+        pricing: "Free up to 5k runs/month"
+        integration_effort: "2-4 hours"
+        docs: "https://www.inngest.com/docs"
+        best_for: "Event-driven, great for complex workflows"
+      - name: Upstash QStash
+        tier: alternative
+        pricing: "Free up to 500 messages/day"
+        integration_effort: "1-2 hours"
+        docs: "https://upstash.com/docs/qstash"
+        best_for: "Simple HTTP-based queuing, serverless"
+    if_you_must_build: "Only build custom if you have extreme volume or latency requirements."
+
+  feature_flags:
+    default_recommendation: BUY
+    keywords:
+      - feature flag
+      - feature toggle
+      - a/b test
+      - experiment
+      - rollout
+    rationale: "Feature flags require SDKs, targeting rules, and analytics integration."
+    services:
+      - name: PostHog
+        tier: recommended
+        pricing: "Included in PostHog free tier"
+        integration_effort: "1-2 hours"
+        docs: "https://posthog.com/docs/feature-flags"
+        best_for: "Bundled with analytics, generous free tier"
+      - name: Statsig
+        tier: alternative
+        pricing: "Free up to 10M events/month"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.statsig.com"
+        best_for: "Advanced experimentation, stats engine"
+      - name: LaunchDarkly
+        tier: alternative
+        pricing: "Free up to 1k MAU"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.launchdarkly.com"
+        best_for: "Enterprise features, best SDKs"
+    if_you_must_build: "Consider simple environment variables for basic toggles before adding a service."
+
+  notifications:
+    default_recommendation: HYBRID
+    keywords:
+      - notification
+      - push notification
+      - in-app notification
+      - alert
+    rationale: "Basic notifications can use services, but complex routing may need custom logic."
+    services:
+      - name: Novu
+        tier: recommended
+        pricing: "Free up to 10k events/month"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.novu.co"
+        best_for: "Multi-channel, open source, great templates"
+      - name: Knock
+        tier: alternative
+        pricing: "Free up to 10k notifications/month"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.knock.app"
+        best_for: "Notification infrastructure, preferences"
+      - name: OneSignal
+        tier: alternative
+        pricing: "Free up to 10k subscribers"
+        integration_effort: "2-4 hours"
+        docs: "https://documentation.onesignal.com"
+        best_for: "Mobile push focus, easy setup"
+    if_you_must_build: "Build custom notification routing if you have complex multi-tenant or preference requirements."
+
+  api_gateway:
+    default_recommendation: HYBRID
+    keywords:
+      - api gateway
+      - middleware
+      - rate limiting
+      - cors
+      - api routing
+    rationale: "Basic API middleware is often included in frameworks. Advanced features may need services."
+    services:
+      - name: Kong Gateway
+        tier: recommended
+        pricing: "Free open source, cloud from $25/month"
+        integration_effort: "4-8 hours"
+        docs: "https://docs.konghq.com"
+        best_for: "Full-featured, plugins, enterprise-ready"
+      - name: Cloudflare
+        tier: alternative
+        pricing: "Free tier available"
+        integration_effort: "1-2 hours"
+        docs: "https://developers.cloudflare.com"
+        best_for: "CDN + security + rate limiting bundled"
+      - name: AWS API Gateway
+        tier: alternative
+        pricing: "$3.50 per million requests"
+        integration_effort: "4-8 hours"
+        docs: "https://docs.aws.amazon.com/apigateway"
+        best_for: "AWS ecosystem, Lambda integration"
+    if_you_must_build: "Use framework middleware for basic needs. Only add a gateway for complex routing or multiple services."
+
+  data_anonymization:
+    default_recommendation: HYBRID
+    keywords:
+      - anonymization
+      - data privacy
+      - encryption
+      - gdpr
+      - pii
+      - data protection
+    rationale: "Basic encryption is built into databases. Advanced anonymization may need specialized tools."
+    services:
+      - name: AWS Macie
+        tier: recommended
+        pricing: "Usage-based, starts at $1/GB scanned"
+        integration_effort: "2-4 hours"
+        docs: "https://docs.aws.amazon.com/macie"
+        best_for: "PII discovery, AWS ecosystem"
+      - name: Skyflow
+        tier: alternative
+        pricing: "Custom pricing"
+        integration_effort: "4-8 hours"
+        docs: "https://docs.skyflow.com"
+        best_for: "Data vault, tokenization"
+      - name: Transcend
+        tier: alternative
+        pricing: "Custom pricing"
+        integration_effort: "4-8 hours"
+        docs: "https://docs.transcend.io"
+        best_for: "Data mapping, DSR automation"
+    if_you_must_build: "Use database-level encryption and framework validators for basic privacy. Build custom only for complex compliance."
+
+# Components that should almost always be built
+build_categories:
+  - name: core_business_logic
+    keywords:
+      - business logic
+      - domain logic
+      - validation agent
+      - orchestration
+      - custom workflow
+    rationale: "Core business logic is your differentiator. Don't outsource your competitive advantage."
+
+  - name: custom_ui
+    keywords:
+      - user interface
+      - dashboard
+      - custom component
+      - design system
+    rationale: "UI/UX is often a key differentiator. Build custom components for your unique experience."
+
+  - name: domain_models
+    keywords:
+      - entity model
+      - data model
+      - schema
+      - domain entity
+    rationale: "Domain models are specific to your business. Build them to match your exact requirements."
+
+  - name: api_design
+    keywords:
+      - api design
+      - endpoint
+      - rest api
+      - graphql schema
+    rationale: "API design reflects your product's structure. Build it to serve your specific use cases."

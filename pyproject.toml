@@ -1,0 +1,134 @@
+[project]
+name = "haytham"
+version = "0.1.0"
+description = "The control plane for building software systems — from idea to implementation-ready specification"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-only" }
+authors = [
+    { name = "Haytham Contributors" }
+]
+keywords = ["ai", "agents", "multi-agent", "startup", "specification", "workflow"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "streamlit>=1.52.2",
+    "strands-agents[otel]>=1.25.0",
+    "strands-agents-tools>=0.2.20",
+    "bedrock-agentcore>=1.0.0",
+    "boto3>=1.40.0",
+    "botocore>=1.40.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "tenacity>=8.2.0",
+    "burr[start]>=0.40.2",
+    "pyyaml>=6.0.0",
+    "ddgs>=6.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/arslan70/haytham"
+Repository = "https://github.com/arslan70/haytham.git"
+Issues = "https://github.com/arslan70/haytham/issues"
+Documentation = "https://github.com/arslan70/haytham/tree/main/docs"
+
+[project.optional-dependencies]
+observability = ["langfuse>=2.0.0"]
+vectordb = ["lancedb>=0.26.1", "pyarrow>=22.0.0"]
+reports = ["reportlab>=4.0.0"]
+anthropic = ["anthropic>=0.45.0"]
+openai = ["openai>=1.10.0"]
+ollama = ["ollama>=0.4.0"]
+providers = ["haytham[anthropic,openai,ollama]"]
+full = ["haytham[observability,vectordb,reports,providers]"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+# Set the maximum line length to 100
+line-length = 100
+
+# Assume Python 3.11+
+target-version = "py311"
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+
+# Ignore specific rules
+ignore = [
+    "E402",  # Module level import not at top of file (expected for setup_paths/load_dotenv patterns)
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Do not perform function calls in argument defaults
+    "C901",  # Too complex
+]
+
+# Exclude directories
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".pytest_cache",
+    ".ruff_cache",
+    "sidekick",  # Exclude the cloned Sidekick project
+]
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Indent with spaces
+indent-style = "space"
+
+# Use Unix-style line endings
+line-ending = "lf"
+
+[tool.ruff.lint.isort]
+known-first-party = ["haytham"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
+
+[tool.coverage.run]
+source = ["haytham"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if TYPE_CHECKING:"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "strands-agents-evals>=0.1.0",
+    "pre-commit>=3.0.0",
+]

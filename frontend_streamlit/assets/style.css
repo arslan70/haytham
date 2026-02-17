@@ -1,0 +1,495 @@
+/* Haytham Custom Styles
+ * Design System - Light Purple Theme
+ *
+ * Color Palette:
+ * - Primary Purple (Headers): #6B2D8B
+ * - Coral/Orange (CTA Buttons): #EB5E55
+ * - Lavender Background: #D4C4E8 / #C9B8E0
+ * - Light Purple Accent: #E8DCF5
+ * - Dark Text: #333333
+ * - Muted Text: #666666
+ * - White Card: #FFFFFF
+ * - Input Border: #E0D5EE
+ */
+
+/* ============================================
+   CSS Variables / Design Tokens
+   ============================================ */
+:root {
+    /* Primary Colors - light purple theme */
+    --haytham-purple-dark: #6B2D8B;
+    --haytham-purple-medium: #8B5FAF;
+    --haytham-purple-light: #D4C4E8;
+    --haytham-lavender: #C9B8E0;
+    --haytham-lavender-pale: #E8DCF5;
+
+    /* Accent Colors */
+    --haytham-coral: #EB5E55;
+    --haytham-coral-hover: #D94E45;
+    --haytham-orange: #F5A623;
+
+    /* Neutrals - light theme */
+    --haytham-white: #FFFFFF;
+    --haytham-gray-100: #F8F6FA;
+    --haytham-gray-200: #E0D5EE;
+    --haytham-gray-500: #666666;
+    --haytham-gray-900: #333333;
+    
+    /* Status Colors */
+    --haytham-success: #4CAF50;
+    --haytham-warning: #FF9800;
+    --haytham-error: #F44336;
+    --haytham-info: #2196F3;
+    
+    /* Typography */
+    --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xs: 0.75rem;   /* 12px */
+    --font-size-sm: 0.875rem;  /* 14px */
+    --font-size-base: 1rem;    /* 16px */
+    --font-size-lg: 1.125rem;  /* 18px */
+    --font-size-xl: 1.5rem;    /* 24px */
+    --font-size-2xl: 2rem;     /* 32px */
+    --font-size-3xl: 2.5rem;   /* 40px */
+    
+    /* Spacing */
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.5rem;   /* 24px */
+    --space-6: 2rem;     /* 32px */
+    --space-8: 3rem;     /* 48px */
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-card: 0 2px 12px rgba(107, 45, 139, 0.08);
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 350ms ease;
+}
+
+/* ============================================
+   Google Font Import
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ============================================
+   Global Styles
+   ============================================ */
+html, body, [data-testid="stAppViewContainer"] {
+    font-family: var(--font-family-primary);
+}
+
+/* Main app background - light purple theme */
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #FAF8FC 0%, #F5F0FA 100%);
+}
+
+/* ============================================
+   Sidebar Styles
+   ============================================ */
+[data-testid="stSidebar"] {
+    background-color: transparent !important;
+    padding-top: var(--space-6);
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1 {
+    color: var(--haytham-purple-dark);
+    font-weight: 700;
+    font-size: var(--font-size-2xl);
+}
+
+/* Sidebar navigation items */
+[data-testid="stSidebar"] .stRadio > label {
+    background-color: transparent;
+    border-radius: var(--radius-full);
+    padding: var(--space-3) var(--space-4);
+    transition: background-color var(--transition-fast);
+}
+
+[data-testid="stSidebar"] .stRadio > label:hover {
+    background-color: rgba(107, 45, 139, 0.1);
+}
+
+/* Active navigation state - purple pill */
+[data-testid="stSidebar"] .stRadio input[type="radio"]:checked + label {
+    background-color: var(--haytham-lavender-pale);
+    color: var(--haytham-purple-dark);
+    font-weight: 600;
+}
+
+/* ============================================
+   Main Content Card
+   ============================================ */
+.haytham-main-card {
+    background-color: var(--haytham-white);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-card);
+    margin: var(--space-4);
+}
+
+/* Content container for workspace card */
+.haytham-workspace {
+    background-color: var(--haytham-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-8);
+    box-shadow: var(--shadow-card);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Workspace header */
+.haytham-workspace-header {
+    color: var(--haytham-gray-500);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+}
+
+/* Main title */
+.haytham-title {
+    color: var(--haytham-purple-dark);
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: var(--space-4);
+}
+
+/* Description text */
+.haytham-description {
+    color: var(--haytham-gray-500);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    margin-bottom: var(--space-5);
+}
+
+/* ============================================
+   Input Styles (Chat bubble style)
+   ============================================ */
+.haytham-input-container {
+    position: relative;
+    margin-bottom: var(--space-5);
+}
+
+/* Text input with chat bubble styling - light theme */
+[data-testid="stTextArea"] textarea,
+[data-testid="stTextInput"] input {
+    border: 1px solid #E0D5EE !important;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--space-4) !important;
+    font-size: var(--font-size-base) !important;
+    background-color: #FFFFFF !important;
+    color: #333333 !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+[data-testid="stTextArea"] textarea:focus,
+[data-testid="stTextInput"] input:focus {
+    border-color: #8B5FAF !important;
+    box-shadow: 0 0 0 3px rgba(107, 45, 139, 0.1) !important;
+    outline: none !important;
+}
+
+/* Placeholder styling - light theme */
+[data-testid="stTextArea"] textarea::placeholder,
+[data-testid="stTextInput"] input::placeholder {
+    color: #AAAAAA !important;
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+/* Primary button - Coral style */
+[data-testid="stButton"] button[kind="primary"],
+.stButton button[type="submit"] {
+    background-color: var(--haytham-coral) !important;
+    color: var(--haytham-white) !important;
+    border: none !important;
+    border-radius: var(--radius-full) !important;
+    padding: var(--space-3) var(--space-6) !important;
+    font-size: var(--font-size-base) !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    box-shadow: 0 2px 8px rgba(235, 94, 85, 0.3) !important;
+    transition: all var(--transition-fast) !important;
+}
+
+[data-testid="stButton"] button[kind="primary"]:hover,
+.stButton button[type="submit"]:hover {
+    background-color: var(--haytham-coral-hover) !important;
+    box-shadow: 0 4px 12px rgba(235, 94, 85, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+/* Secondary button */
+[data-testid="stButton"] button[kind="secondary"] {
+    background-color: transparent !important;
+    color: var(--haytham-purple-dark) !important;
+    border: 1px solid var(--haytham-gray-200) !important;
+    border-radius: var(--radius-full) !important;
+}
+
+[data-testid="stButton"] button[kind="secondary"]:hover {
+    background-color: var(--haytham-lavender-pale) !important;
+    border-color: var(--haytham-purple-medium) !important;
+}
+
+/* ============================================
+   Progress/Step Indicator
+   ============================================ */
+.haytham-step-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--haytham-gray-500);
+    font-size: var(--font-size-sm);
+}
+
+.haytham-step-progress {
+    width: 80px;
+    height: 4px;
+    background-color: var(--haytham-gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.haytham-step-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--haytham-purple-dark), var(--haytham-purple-medium));
+    border-radius: var(--radius-full);
+    transition: width var(--transition-base);
+}
+
+/* ============================================
+   Status Cards / Info Cards
+   ============================================ */
+.haytham-info-card {
+    background-color: var(--haytham-lavender-pale);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    border-left: 4px solid var(--haytham-purple-dark);
+}
+
+.haytham-success-card {
+    background-color: #E8F5E9;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    border-left: 4px solid var(--haytham-success);
+}
+
+.haytham-warning-card {
+    background-color: #FFF3E0;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    border-left: 4px solid var(--haytham-warning);
+}
+
+/* ============================================
+   Navigation Pills
+   ============================================ */
+.haytham-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-full);
+    color: var(--haytham-gray-900);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.haytham-nav-item:hover {
+    background-color: rgba(107, 45, 139, 0.08);
+}
+
+.haytham-nav-item.active {
+    background-color: var(--haytham-lavender-pale);
+    color: var(--haytham-purple-dark);
+    font-weight: 600;
+}
+
+.haytham-nav-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================
+   Footer / Trust Indicators
+   ============================================ */
+.haytham-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-5);
+    margin-top: var(--space-6);
+    border-top: 1px solid var(--haytham-gray-200);
+}
+
+.haytham-trust-indicator {
+    color: var(--haytham-gray-500);
+    font-size: var(--font-size-sm);
+}
+
+.haytham-link {
+    color: var(--haytham-purple-dark);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.haytham-link:hover {
+    color: var(--haytham-purple-medium);
+}
+
+/* ============================================
+   Streamlit Overrides
+   ============================================ */
+/* Hide default Streamlit branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+
+/* Remove default margins */
+.block-container {
+    padding-top: var(--space-4) !important;
+    padding-bottom: var(--space-4) !important;
+}
+
+/* Style dividers */
+hr {
+    border: none;
+    border-top: 1px solid var(--haytham-gray-200);
+    margin: var(--space-5) 0;
+}
+
+/* Style success/error/info messages */
+[data-testid="stAlert"] {
+    border-radius: var(--radius-md);
+}
+
+/* Expander styling */
+[data-testid="stExpander"] {
+    border: 1px solid var(--haytham-gray-200);
+    border-radius: var(--radius-md);
+    background-color: var(--haytham-white);
+}
+
+[data-testid="stExpander"] summary {
+    font-weight: 500;
+}
+
+/* Metric styling */
+[data-testid="stMetric"] {
+    background-color: var(--haytham-white);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.haytham-fade-in {
+    animation: fadeIn var(--transition-base) ease-out;
+}
+
+.haytham-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   Landing Page Styles (new_project.py)
+   ============================================ */
+
+/* Subtle background gradient for landing page - light theme */
+.landing-page [data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #FAF8FC 0%, #F5F0FA 100%);
+}
+
+/* Haytham title - large, responsive branded text */
+.haytham-brand-title {
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: 800;
+    color: var(--haytham-purple-dark);
+    text-align: center;
+    margin: 0;
+    line-height: 1.1;
+}
+
+/* Landing subtitle */
+.haytham-brand-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--haytham-gray-500);
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto var(--space-5) auto;
+    line-height: 1.6;
+}
+
+/* Feature cards on landing page */
+.landing-feature-card {
+    background: var(--haytham-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-card);
+    height: 100%;
+}
+
+.landing-feature-card h3 {
+    color: var(--haytham-purple-dark);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+}
+
+.landing-feature-card p {
+    color: var(--haytham-gray-500);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Center form on landing page */
+.landing-form [data-testid="stForm"] {
+    max-width: 600px;
+    margin: 0 auto;
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Landing page trust indicators */
+.landing-trust {
+    text-align: center;
+    color: var(--haytham-gray-500);
+    font-size: var(--font-size-sm);
+}
