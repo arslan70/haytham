@@ -8,7 +8,7 @@ from haytham.workflow.stage_registry import WorkflowType
 
 _RECOMMENDATION_RE = re.compile(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)")
 
-from .base import EntryConditionResult, WorkflowEntryValidator
+from .base import MIN_STAGE_OUTPUT_LENGTH, EntryConditionResult, WorkflowEntryValidator
 
 logger = logging.getLogger(__name__)
 
@@ -111,14 +111,14 @@ class MVPSpecificationEntryValidator(WorkflowEntryValidator):
         """Check that Validation Summary document exists."""
         validation_summary = self.session_manager.load_stage_output("validation-summary")
 
-        if validation_summary and len(validation_summary.strip()) >= 100:
+        if validation_summary and len(validation_summary.strip()) >= MIN_STAGE_OUTPUT_LENGTH:
             return True
 
         # Fallback: Check risk-assessment output (last stage before summary)
         # This covers cases where the validation summary save failed but the
         # risk assessment completed successfully
         risk_assessment = self.session_manager.load_stage_output("risk-assessment")
-        if risk_assessment and len(risk_assessment.strip()) >= 100:
+        if risk_assessment and len(risk_assessment.strip()) >= MIN_STAGE_OUTPUT_LENGTH:
             self.warnings.append(
                 "Validation Summary not found, but risk-assessment output exists (used as fallback)"
             )

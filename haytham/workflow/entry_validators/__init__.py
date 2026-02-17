@@ -123,7 +123,7 @@ def get_next_available_workflow(session_manager: "SessionManager") -> WorkflowTy
 
     for workflow_type in workflow_order:
         # Skip if already complete
-        if session_manager.is_workflow_complete(workflow_type.value):
+        if session_manager.run_tracker.is_workflow_complete(workflow_type.value):
             continue
 
         # Check if entry conditions are met

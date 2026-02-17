@@ -94,7 +94,7 @@ class SessionManager:
         self.project_state = ProjectStateManager(self.session_dir)
 
         # Initialize WorkflowRunTracker for workflow state machine
-        self._run_tracker = WorkflowRunTracker(self.session_dir)
+        self.run_tracker = WorkflowRunTracker(self.session_dir)
 
     def has_system_goal(self) -> bool:
         """Check if a system goal has been set.
@@ -131,7 +131,9 @@ class SessionManager:
             return False
 
         try:
-            session = self._parse_manifest(manifest_path.read_text())
+            session = parse_manifest(
+                manifest_path.read_text(), valid_stage_slugs={s.slug for s in STAGES}
+            )
             return session.get("status") == "in_progress"
         except (OSError, ValueError, KeyError) as e:
             logger.warning("Failed to read session manifest: %s", e)
@@ -174,7 +176,12 @@ class SessionManager:
 
         # Create session manifest
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        self._create_manifest(now, system_goal)
+        manifest_content = create_manifest(
+            stages=[(s.slug, s.display_name) for s in STAGES],
+            created=now,
+            system_goal=system_goal,
+        )
+        (self.session_dir / "session_manifest.md").write_text(manifest_content)
 
         # Create empty preferences file
         preferences_path = self.session_dir / "preferences.json"
@@ -197,7 +204,9 @@ class SessionManager:
             return None
 
         try:
-            return self._parse_manifest(manifest_path.read_text())
+            return parse_manifest(
+                manifest_path.read_text(), valid_stage_slugs={s.slug for s in STAGES}
+            )
         except (OSError, ValueError, KeyError) as e:
             logger.warning("Failed to parse session manifest: %s", e)
             return None
@@ -296,8 +305,19 @@ class SessionManager:
         stage_dir = self.session_dir / stage_slug
         stage_dir.mkdir(exist_ok=True)
 
+        # Compute prev/next stage info for checkpoint navigation
+        stage_index = next((i for i, s in enumerate(STAGES) if s.slug == stage_slug), None)
+        prev_stage_name = (
+            STAGES[stage_index - 1].display_name if stage_index and stage_index > 0 else "None"
+        )
+        next_stage_slug = "-"
+        next_stage_name = "None"
+        if stage_index is not None and stage_index < len(STAGES) - 1:
+            next_stage_slug = STAGES[stage_index + 1].slug
+            next_stage_name = STAGES[stage_index + 1].display_name
+
         # Create checkpoint content
-        checkpoint_content = self._format_checkpoint(
+        checkpoint_content = format_checkpoint(
             stage_slug=stage_slug,
             stage_name=stage.display_name,
             status=status,
@@ -308,6 +328,9 @@ class SessionManager:
             execution_mode=execution_mode,
             agents=agents,
             errors=errors or [],
+            prev_stage_name=prev_stage_name,
+            next_stage_slug=next_stage_slug,
+            next_stage_name=next_stage_name,
         )
 
         # Write checkpoint file
@@ -315,7 +338,21 @@ class SessionManager:
         checkpoint_path.write_text(checkpoint_content)
 
         # Update session manifest
-        self._update_manifest(stage_slug, status, started, completed, duration)
+        # Update session manifest
+        manifest_path = self.session_dir / "session_manifest.md"
+        if manifest_path.exists():
+            updated = update_manifest(
+                manifest_content=manifest_path.read_text(),
+                stage_slug=stage_slug,
+                stage_display_name=stage.display_name,
+                status=status,
+                started=started,
+                completed=completed,
+                duration=duration,
+                total_stages=len(STAGES),
+                stages_list=[(s.slug, s.display_name) for s in STAGES],
+            )
+            manifest_path.write_text(updated)
 
     def save_agent_output(
         self,
@@ -365,10 +402,9 @@ class SessionManager:
 
         # Create agent output content
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        agent_output = self._format_agent_output(
+        agent_output = format_agent_output(
             agent_name=agent_name,
-            stage_slug=stage_slug,
-            stage_name=stage.display_name,
+            context_label=f"{stage_slug} - {stage.display_name}",
             executed=now,
             duration=duration,
             status=status,
@@ -428,8 +464,8 @@ class SessionManager:
 
         # Create user feedback content
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        feedback_content = self._format_user_feedback(
-            stage_name=stage.display_name,
+        feedback_content = format_user_feedback(
+            context_name=stage.display_name,
             reviewed=reviewed,
             approved=approved,
             timestamp=now,
@@ -663,9 +699,9 @@ class SessionManager:
         Returns:
             True if Technical Design workflow is complete, False otherwise
         """
-        return self.is_workflow_locked("technical-design") or self.is_workflow_complete(
+        return self.run_tracker.is_workflow_locked(
             "technical-design"
-        )
+        ) or self.run_tracker.is_workflow_complete("technical-design")
 
     def has_backlog_tasks_generated(self) -> bool:
         """Check if Backlog.md tasks have been generated.
@@ -694,68 +730,6 @@ class SessionManager:
     # =========================================================================
     # ADR-004: Multi-Phase Workflow Support
     # =========================================================================
-
-    # =========================================================================
-    # Workflow Locking (Feedback Mechanism Support)
-    # =========================================================================
-
-    def lock_workflow(self, workflow_type: str) -> None:
-        """Lock a workflow, marking its artifacts as immutable.
-
-        Once locked, a workflow cannot receive further feedback. This is the
-        "Accept & Continue" action in the UI. Creates a lock file and updates
-        the workflow run status to "accepted".
-
-        Args:
-            workflow_type: Type of workflow to lock (e.g., "idea-validation",
-                          "mvp-specification", "story-generation")
-        """
-        return self._run_tracker.lock_workflow(workflow_type)
-
-    def is_workflow_locked(self, workflow_type: str) -> bool:
-        """Check if a workflow has been accepted/locked.
-
-        A locked workflow cannot receive further feedback. Users must start
-        a new project/iteration to make changes to locked artifacts.
-
-        Args:
-            workflow_type: Type of workflow to check
-
-        Returns:
-            True if the workflow has been locked, False otherwise
-        """
-        return self._run_tracker.is_workflow_locked(workflow_type)
-
-    def get_workflow_feedback_state(self, workflow_type: str) -> str:
-        """Get the feedback state of a workflow.
-
-        This method determines whether a workflow is available for feedback,
-        which is different from the execution status.
-
-        States:
-        - "not_started": Workflow has not been run yet
-        - "running": Workflow is currently executing
-        - "feedback": Workflow complete, awaiting user review (can provide feedback)
-        - "accepted": Workflow locked, artifacts immutable (no feedback allowed)
-
-        Args:
-            workflow_type: Type of workflow to check
-
-        Returns:
-            State string indicating feedback availability
-        """
-        return self._run_tracker.get_workflow_feedback_state(workflow_type)
-
-    def _update_workflow_run_status(self, workflow_type: str, new_status: str) -> None:
-        """Update the status of the most recent workflow run.
-
-        Internal helper to update workflow run status (e.g., to "accepted").
-
-        Args:
-            workflow_type: Type of workflow to update
-            new_status: New status to set
-        """
-        return self._run_tracker._update_workflow_run_status(workflow_type, new_status)
 
     # =========================================================================
 
@@ -812,11 +786,11 @@ class SessionManager:
             Current phase name as string
         """
         # Check phases in order - return the first incomplete phase
-        if not self.is_workflow_locked("idea-validation"):
+        if not self.run_tracker.is_workflow_locked("idea-validation"):
             return "WHY"
-        if not self.is_workflow_locked("mvp-specification"):
+        if not self.run_tracker.is_workflow_locked("mvp-specification"):
             return "WHAT"
-        if not self.is_workflow_locked("technical-design"):
+        if not self.run_tracker.is_workflow_locked("technical-design"):
             return "HOW"
         return "STORIES"
 
@@ -855,264 +829,3 @@ class SessionManager:
                 continue
 
         return "\n\n---\n\n".join(outputs) if outputs else None
-
-    def record_workflow_complete(
-        self,
-        workflow_type: str,
-        summary: dict | None = None,
-    ) -> dict:
-        """Record workflow completion for handoff to next phase.
-
-        Creates a workflow transition record that captures the completion
-        state of a workflow. This is used for audit trail and handoff
-        metadata between workflows.
-
-        Args:
-            workflow_type: Type of workflow completed ("discovery", "architect")
-            summary: Optional summary data to include
-
-        Returns:
-            Dict containing the transition record
-        """
-        return self._run_tracker.record_workflow_complete(workflow_type, summary)
-
-    def is_workflow_complete(self, workflow_type: str) -> bool:
-        """Check if a specific workflow has been completed.
-
-        Args:
-            workflow_type: Type of workflow to check. Accepts both:
-                - New format: "idea-validation", "mvp-specification", "story-generation"
-                - Legacy format: "discovery", "architect"
-
-        Returns:
-            True if the workflow has a completion record
-        """
-        return self._run_tracker.is_workflow_complete(workflow_type)
-
-    def get_workflow_status(self, workflow_type: str) -> str:
-        """Get the status of a specific workflow.
-
-        Args:
-            workflow_type: Type of workflow ("idea-validation", "mvp-specification", etc.)
-
-        Returns:
-            Status string: "not_started", "in_progress", "completed"
-        """
-        return self._run_tracker.get_workflow_status(workflow_type)
-
-    def get_current_workflow(self) -> str | None:
-        """Get the workflow currently in progress.
-
-        Returns:
-            Workflow type string if a workflow is in progress, None otherwise
-        """
-        return self._run_tracker.get_current_workflow()
-
-    def start_workflow_run(
-        self,
-        workflow_type: str,
-        trigger_type: str = "user_initiated",
-    ) -> dict:
-        """Start a new workflow run and record it.
-
-        Args:
-            workflow_type: Type of workflow ("idea-validation", "mvp-specification", etc.)
-            trigger_type: What triggered this run ("user_initiated", "auto_continue")
-
-        Returns:
-            Dict containing the new run record
-        """
-        return self._run_tracker.start_workflow_run(workflow_type, trigger_type)
-
-    def complete_workflow_run(
-        self,
-        workflow_type: str,
-        summary: dict | None = None,
-    ) -> dict | None:
-        """Mark the current workflow run as completed.
-
-        Args:
-            workflow_type: Type of workflow that completed
-            summary: Optional summary data to include
-
-        Returns:
-            Updated run record, or None if no running workflow found
-        """
-        return self._run_tracker.complete_workflow_run(workflow_type, summary)
-
-    def fail_workflow_run(
-        self,
-        workflow_type: str,
-        error_message: str,
-    ) -> dict | None:
-        """Mark the current workflow run as failed.
-
-        Args:
-            workflow_type: Type of workflow that failed
-            error_message: Error message describing the failure
-
-        Returns:
-            Updated run record, or None if no running workflow found
-        """
-        return self._run_tracker.fail_workflow_run(workflow_type, error_message)
-
-    # Private helper methods
-
-    def _create_manifest(self, created: str, system_goal: str | None = None) -> None:
-        """Create initial session_manifest.md.
-
-        Args:
-            created: ISO 8601 timestamp
-            system_goal: The system goal string (may be None if not set yet)
-        """
-        content = create_manifest(
-            stages=[(s.slug, s.display_name) for s in STAGES],
-            created=created,
-            system_goal=system_goal,
-        )
-
-        manifest_path = self.session_dir / "session_manifest.md"
-        manifest_path.write_text(content)
-
-    def _update_manifest(
-        self,
-        stage_slug: str,
-        status: str,
-        started: str | None,
-        completed: str | None,
-        duration: float | None,
-    ) -> None:
-        """Update session_manifest.md with stage status."""
-        manifest_path = self.session_dir / "session_manifest.md"
-
-        if not manifest_path.exists():
-            return
-
-        stage = get_stage_by_slug(stage_slug)
-        content = manifest_path.read_text()
-
-        updated = update_manifest(
-            manifest_content=content,
-            stage_slug=stage_slug,
-            stage_display_name=stage.display_name,
-            status=status,
-            started=started,
-            completed=completed,
-            duration=duration,
-            total_stages=len(STAGES),
-            stages_list=[(s.slug, s.display_name) for s in STAGES],
-        )
-
-        manifest_path.write_text(updated)
-
-    def _parse_manifest(self, content: str) -> dict[str, Any]:
-        """Parse session_manifest.md content."""
-        return parse_manifest(
-            content,
-            valid_stage_slugs={s.slug for s in STAGES},
-        )
-
-    def _format_checkpoint(
-        self,
-        stage_slug: str,
-        stage_name: str,
-        status: str,
-        started: str | None,
-        completed: str | None,
-        duration: float | None,
-        retry_count: int,
-        execution_mode: str,
-        agents: list[dict[str, Any]],
-        errors: list[str],
-    ) -> str:
-        """Format checkpoint.md content."""
-
-        # Compute prev/next stage info from STAGES
-        stage_index = None
-        for i, stage in enumerate(STAGES):
-            if stage.slug == stage_slug:
-                stage_index = i
-                break
-
-        prev_stage_name = (
-            STAGES[stage_index - 1].display_name if stage_index and stage_index > 0 else "None"
-        )
-
-        next_stage_slug = "-"
-        next_stage_name = "None"
-        if stage_index is not None and stage_index < len(STAGES) - 1:
-            next_stage_slug = STAGES[stage_index + 1].slug
-            next_stage_name = STAGES[stage_index + 1].display_name
-
-        return format_checkpoint(
-            stage_slug=stage_slug,
-            stage_name=stage_name,
-            status=status,
-            started=started,
-            completed=completed,
-            duration=duration,
-            retry_count=retry_count,
-            execution_mode=execution_mode,
-            agents=agents,
-            errors=errors,
-            prev_stage_name=prev_stage_name,
-            next_stage_slug=next_stage_slug,
-            next_stage_name=next_stage_name,
-        )
-
-    def _format_agent_output(
-        self,
-        agent_name: str,
-        stage_slug: str,
-        stage_name: str,
-        executed: str,
-        duration: float | None,
-        status: str,
-        model: str | None,
-        input_tokens: int | None,
-        output_tokens: int | None,
-        tools_used: list[str],
-        output_content: str,
-        error_type: str | None,
-        error_message: str | None,
-        stack_trace: str | None,
-    ) -> str:
-        """Format agent output markdown content."""
-        return format_agent_output(
-            agent_name=agent_name,
-            context_label=f"{stage_slug} - {stage_name}",
-            executed=executed,
-            duration=duration,
-            status=status,
-            model=model,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            tools_used=tools_used,
-            output_content=output_content,
-            error_type=error_type,
-            error_message=error_message,
-            stack_trace=stack_trace,
-        )
-
-    def _format_user_feedback(
-        self,
-        stage_name: str,
-        reviewed: bool,
-        approved: bool,
-        timestamp: str,
-        comments: str,
-        requested_changes: list[str],
-        action: str,
-        retry_count: int,
-    ) -> str:
-        """Format user_feedback.md content."""
-        return format_user_feedback(
-            context_name=stage_name,
-            reviewed=reviewed,
-            approved=approved,
-            timestamp=timestamp,
-            comments=comments,
-            requested_changes=requested_changes,
-            action=action,
-            retry_count=retry_count,
-        )

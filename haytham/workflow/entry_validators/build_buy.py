@@ -4,7 +4,7 @@ import logging
 
 from haytham.workflow.stage_registry import WorkflowType
 
-from .base import EntryConditionResult, WorkflowEntryValidator
+from .base import MIN_STAGE_OUTPUT_LENGTH, EntryConditionResult, WorkflowEntryValidator
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class BuildBuyAnalysisEntryValidator(WorkflowEntryValidator):
             self.errors.append("Capability Model document not found")
             return False
 
-        if len(capability_model.strip()) < 100:
+        if len(capability_model.strip()) < MIN_STAGE_OUTPUT_LENGTH:
             self.warnings.append("Capability Model document seems too short")
 
         return True

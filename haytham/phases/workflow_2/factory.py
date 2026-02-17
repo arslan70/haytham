@@ -112,7 +112,7 @@ class Workflow2EntryValidator:
     def _check_workflow_1_complete(self) -> bool:
         """Check if Workflow 1 (Discovery) is complete."""
         # Check for workflow completion record
-        if self.session_manager.is_workflow_complete("discovery"):
+        if self.session_manager.run_tracker.is_workflow_complete("discovery"):
             return True
 
         # Fallback: Check if capability_model stage is complete

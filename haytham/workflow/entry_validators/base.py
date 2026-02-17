@@ -15,6 +15,11 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Minimum character count (after stripping whitespace) for a stage output
+# to be considered substantive. Used across validators to detect empty or
+# placeholder outputs.
+MIN_STAGE_OUTPUT_LENGTH = 100
+
 
 # =============================================================================
 # ADR-022: State Adapter for Phase Verifiers
@@ -223,7 +228,7 @@ class WorkflowEntryValidator:
     ) -> bool:
         """Check if a prerequisite workflow is complete (3-tier fallback).
 
-        1. ``session_manager.is_workflow_complete(workflow_slug)``
+        1. ``session_manager.run_tracker.is_workflow_complete(workflow_slug)``
         2. ``stage_statuses[final_stage_slug] == "completed"``
         3. Lock file ``.{workflow_slug}.locked`` exists
 
@@ -236,12 +241,12 @@ class WorkflowEntryValidator:
             True if the workflow is considered complete
         """
         # Primary check
-        if self.session_manager.is_workflow_complete(workflow_slug):
+        if self.session_manager.run_tracker.is_workflow_complete(workflow_slug):
             return True
 
         # Legacy slug checks
         for slug in legacy_slugs:
-            if self.session_manager.is_workflow_complete(slug):
+            if self.session_manager.run_tracker.is_workflow_complete(slug):
                 return True
 
         # Fallback: stage status

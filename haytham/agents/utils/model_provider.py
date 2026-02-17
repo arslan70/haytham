@@ -19,10 +19,10 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Any
 
-from haytham.agents.utils.bedrock_config import (
+from haytham.agents.utils._bedrock_config import (
     create_bedrock_model,
 )
-from haytham.agents.utils.bedrock_config import (
+from haytham.agents.utils._bedrock_config import (
     get_model_id_for_tier as bedrock_get_model_id,
 )
 

@@ -405,7 +405,7 @@ class TestWorkflowLocking:
         """lock_workflow creates a .{workflow_type}.locked file."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
-        session_manager.lock_workflow("idea-validation")
+        session_manager.run_tracker.lock_workflow("idea-validation")
 
         lock_file = session_manager.session_dir / ".idea-validation.locked"
         assert lock_file.exists()
@@ -419,25 +419,25 @@ class TestWorkflowLocking:
         """is_workflow_locked returns False when no lock file exists."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
-        assert session_manager.is_workflow_locked("idea-validation") is False
+        assert session_manager.run_tracker.is_workflow_locked("idea-validation") is False
 
     def test_is_workflow_locked_returns_true_when_locked(self, session_manager):
         """is_workflow_locked returns True when lock file exists."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
-        session_manager.lock_workflow("idea-validation")
+        session_manager.run_tracker.lock_workflow("idea-validation")
 
-        assert session_manager.is_workflow_locked("idea-validation") is True
+        assert session_manager.run_tracker.is_workflow_locked("idea-validation") is True
 
     def test_lock_workflow_updates_workflow_run_status(self, session_manager):
         """lock_workflow updates the workflow run status to 'accepted'."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a completed workflow run
-        session_manager.start_workflow_run("idea-validation")
-        session_manager.complete_workflow_run("idea-validation")
+        session_manager.run_tracker.start_workflow_run("idea-validation")
+        session_manager.run_tracker.complete_workflow_run("idea-validation")
 
         # Lock the workflow
-        session_manager.lock_workflow("idea-validation")
+        session_manager.run_tracker.lock_workflow("idea-validation")
 
         # Check that status was updated
         workflow_runs_file = session_manager.session_dir / "workflow_runs.json"
@@ -452,34 +452,34 @@ class TestWorkflowLocking:
         """get_workflow_feedback_state returns 'not_started' for new workflow."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
-        state = session_manager.get_workflow_feedback_state("idea-validation")
+        state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "not_started"
 
     def test_get_workflow_feedback_state_running(self, session_manager):
         """get_workflow_feedback_state returns 'running' for in-progress workflow."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
-        session_manager.start_workflow_run("idea-validation")
+        session_manager.run_tracker.start_workflow_run("idea-validation")
 
-        state = session_manager.get_workflow_feedback_state("idea-validation")
+        state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "running"
 
     def test_get_workflow_feedback_state_feedback(self, session_manager):
         """get_workflow_feedback_state returns 'feedback' for completed but unlocked workflow."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
-        session_manager.start_workflow_run("idea-validation")
-        session_manager.complete_workflow_run("idea-validation")
+        session_manager.run_tracker.start_workflow_run("idea-validation")
+        session_manager.run_tracker.complete_workflow_run("idea-validation")
 
-        state = session_manager.get_workflow_feedback_state("idea-validation")
+        state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "feedback"
 
     def test_get_workflow_feedback_state_accepted(self, session_manager):
         """get_workflow_feedback_state returns 'accepted' for locked workflow."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
-        session_manager.start_workflow_run("idea-validation")
-        session_manager.complete_workflow_run("idea-validation")
-        session_manager.lock_workflow("idea-validation")
+        session_manager.run_tracker.start_workflow_run("idea-validation")
+        session_manager.run_tracker.complete_workflow_run("idea-validation")
+        session_manager.run_tracker.lock_workflow("idea-validation")
 
-        state = session_manager.get_workflow_feedback_state("idea-validation")
+        state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "accepted"
 
     def test_lock_file_takes_precedence_over_run_status(self, session_manager):
@@ -487,8 +487,8 @@ class TestWorkflowLocking:
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a completed workflow run (status = "completed")
-        session_manager.start_workflow_run("idea-validation")
-        session_manager.complete_workflow_run("idea-validation")
+        session_manager.run_tracker.start_workflow_run("idea-validation")
+        session_manager.run_tracker.complete_workflow_run("idea-validation")
 
         # Manually create lock file without going through lock_workflow
         # (simulates edge case where run status wasn't updated)
@@ -496,7 +496,7 @@ class TestWorkflowLocking:
         lock_file.write_text('{"locked_at": "2024-01-01T00:00:00Z"}')
 
         # Should still return accepted because lock file exists
-        state = session_manager.get_workflow_feedback_state("idea-validation")
+        state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "accepted"
 
     def test_multiple_workflows_independent_locking(self, session_manager):
@@ -504,20 +504,20 @@ class TestWorkflowLocking:
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
         # Lock only idea-validation
-        session_manager.lock_workflow("idea-validation")
+        session_manager.run_tracker.lock_workflow("idea-validation")
 
-        assert session_manager.is_workflow_locked("idea-validation") is True
-        assert session_manager.is_workflow_locked("mvp-specification") is False
-        assert session_manager.is_workflow_locked("story-generation") is False
+        assert session_manager.run_tracker.is_workflow_locked("idea-validation") is True
+        assert session_manager.run_tracker.is_workflow_locked("mvp-specification") is False
+        assert session_manager.run_tracker.is_workflow_locked("story-generation") is False
 
     def test_workflow_feedback_state_with_legacy_aliases(self, session_manager):
         """get_workflow_feedback_state handles legacy workflow names."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
         # Start with legacy name "discovery"
-        session_manager.start_workflow_run("discovery")
-        session_manager.complete_workflow_run("discovery")
+        session_manager.run_tracker.start_workflow_run("discovery")
+        session_manager.run_tracker.complete_workflow_run("discovery")
 
         # Query with new name "idea-validation" should find it
-        state = session_manager.get_workflow_feedback_state("idea-validation")
+        state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "feedback"

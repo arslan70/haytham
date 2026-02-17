@@ -190,11 +190,25 @@ Before defining a constant, helper, or pattern in a new file, **search the codeb
 
 **Check**: Before adding code, grep for similar patterns. If it exists elsewhere, import it.
 
-### Single Responsibility: Keep Files and Classes Focused
+### Single Responsibility: Split by Responsibility, Not by Size
 
-- **File limit**: If a file exceeds ~500 lines, it likely has multiple responsibilities. Split it.
-- **Class limit**: If a class has more than ~15 public methods, it's doing too much. Decompose into focused collaborators.
-- **Function limit**: If a function exceeds ~50 lines or handles multiple execution paths (if/elif chains for different "modes"), extract each mode into its own function or use a strategy pattern.
+Line counts and method counts are symptoms, not diagnoses. A 800-line file with one cohesive responsibility is healthier than five 160-line files with tangled dependencies. Before splitting, apply four tests:
+
+1. **Debuggability**: When this breaks, does the module name in the traceback tell you what went wrong? If "session_manager.py" could mean 5 different things, split. If it clearly means "session state," it's fine.
+2. **Reusability**: Can the extracted piece be used independently by other modules? If the extraction only makes sense in the context of the parent class (e.g., methods that all operate on `self.session_dir`), don't split.
+3. **Responsibility boundaries**: Does the class/file mix genuinely different concerns (e.g., HTTP handling + business logic + formatting)? Split at the seam. But "reads files" and "writes files" in the same domain are not different responsibilities.
+4. **Testability**: Can you test this piece in isolation without mocking half the system? If pure logic is trapped inside a class that requires infrastructure setup, extract it into standalone functions. (Example: `formatting.py` was extracted from `SessionManager` because formatting logic is pure and testable without a session directory.)
+
+**When to split:**
+- A class delegates to an internal collaborator via 5+ pure-forwarding wrappers (expose the collaborator instead).
+- Private methods with zero callers (dead code, just delete).
+- A function handles multiple execution paths via if/elif chains for different "modes" (extract each mode or use a strategy pattern).
+- Two genuinely independent concerns share a file only because they were written at the same time.
+
+**When NOT to split:**
+- Methods all operate on the same state (`self.session_dir`, `self.config`) and serve the same domain.
+- The extracted module would have zero reuse outside its parent.
+- The split creates more import wiring than it removes complexity.
 
 ### Open/Closed: Extend via Configuration, Not Modification
 

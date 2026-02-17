@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from haytham.agents.utils.bedrock_config import (
+from haytham.agents.utils._bedrock_config import (
     create_bedrock_model,
     create_bedrock_model_for_file_operations,
     get_default_timeout_config,

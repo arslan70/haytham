@@ -1,22 +1,4 @@
-"""
-Logging utilities for Haytham agents.
-
-DEPRECATED: This module is deprecated in favor of OpenTelemetry-based observability.
-Use haytham.telemetry instead for tracing and logging.
-
-Migration guide:
-    # Old (deprecated)
-    from haytham.agents.utils.logging_utils import AgentLogger, SessionManager
-
-    # New (recommended)
-    from haytham.telemetry import init_telemetry, workflow_span, stage_span
-    init_telemetry()  # Call once at startup
-
-    # Tracing is now automatic via Strands telemetry
-    # Use workflow_span and stage_span for custom spans
-
-This module is kept for backward compatibility and will be removed in a future version.
-"""
+"""Logging utilities for Haytham agents."""
 
 import json
 import logging

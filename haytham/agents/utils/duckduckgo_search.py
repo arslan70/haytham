@@ -56,27 +56,9 @@ def search_duckduckgo(query: str, max_results: int = 5) -> list[DuckDuckGoResult
     return results
 
 
-def format_duckduckgo_results(results: list[DuckDuckGoResult], query: str) -> str:
-    """Format DuckDuckGo results into a readable string."""
-    if not results:
-        return f"No results found for: {query}"
-
-    lines = [f"Search results for: {query}", "(Source: DuckDuckGo)", ""]
-
-    for i, result in enumerate(results, 1):
-        lines.append(f"{i}. {result.title}")
-        lines.append(f"   URL: {result.url}")
-        if result.snippet:
-            lines.append(f"   {result.snippet}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
 __all__ = [
     "DuckDuckGoResult",
     "search_duckduckgo",
-    "format_duckduckgo_results",
     "RatelimitException",
     "DDGSException",
 ]

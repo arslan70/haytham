@@ -4,7 +4,7 @@ import logging
 
 from haytham.workflow.stage_registry import WorkflowType
 
-from .base import EntryConditionResult, WorkflowEntryValidator
+from .base import MIN_STAGE_OUTPUT_LENGTH, EntryConditionResult, WorkflowEntryValidator
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ class StoryGenerationEntryValidator(WorkflowEntryValidator):
             self.errors.append("Build vs Buy Analysis document not found")
             return False
 
-        if len(build_buy.strip()) < 100:
+        if len(build_buy.strip()) < MIN_STAGE_OUTPUT_LENGTH:
             self.warnings.append("Build vs Buy Analysis document seems too short")
 
         return True
@@ -92,7 +92,7 @@ class StoryGenerationEntryValidator(WorkflowEntryValidator):
             self.errors.append("Architecture Decisions document not found")
             return False
 
-        if len(architecture.strip()) < 100:
+        if len(architecture.strip()) < MIN_STAGE_OUTPUT_LENGTH:
             self.warnings.append("Architecture Decisions document seems too short")
 
         return True

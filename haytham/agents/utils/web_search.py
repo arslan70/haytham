@@ -20,14 +20,12 @@ from strands import tool
 from .brave_search import (
     BraveAPIKeyMissing,
     BraveSearchError,
-    format_brave_results,
     get_brave_api_key,
     search_brave,
 )
 from .duckduckgo_search import (
     DDGSException,
     RatelimitException,
-    format_duckduckgo_results,
     search_duckduckgo,
 )
 
@@ -129,6 +127,32 @@ def get_session_stats() -> dict:
         "remaining": max(0, limit - count),
         "session_id": sid,
     }
+
+
+# -----------------------------------------------------------------------------
+# Shared Result Formatting
+# -----------------------------------------------------------------------------
+
+
+def format_search_results(results: list, query: str, source: str) -> str:
+    """Format search results into a readable string.
+
+    Works with any result object that has title, url, and snippet attributes
+    (BraveResult, DuckDuckGoResult, etc.).
+    """
+    if not results:
+        return f"No results found for: {query}"
+
+    lines = [f"Search results for: {query}", f"(Source: {source})", ""]
+
+    for i, result in enumerate(results, 1):
+        lines.append(f"{i}. {result.title}")
+        lines.append(f"   URL: {result.url}")
+        if result.snippet:
+            lines.append(f"   {result.snippet}")
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 # -----------------------------------------------------------------------------
@@ -241,7 +265,7 @@ def _execute_search_with_fallback(
     try:
         results = search_duckduckgo(filtered_query, max_results)
         if results:
-            return format_duckduckgo_results(results, query)
+            return format_search_results(results, query, "DuckDuckGo")
         errors.append("DuckDuckGo: No results")
     except RatelimitException as e:
         logger.warning(f"DuckDuckGo rate limited: {e}")
@@ -258,7 +282,7 @@ def _execute_search_with_fallback(
         try:
             results = search_brave(filtered_query, max_results)
             if results:
-                return format_brave_results(results, query)
+                return format_search_results(results, query, "Brave Search")
             errors.append("Brave: No results")
         except BraveAPIKeyMissing:
             pass  # Already checked, shouldn't happen
@@ -376,6 +400,7 @@ def web_search(
 
 __all__ = [
     "web_search",
+    "format_search_results",
     "reset_session_counter",
     "get_session_stats",
 ]

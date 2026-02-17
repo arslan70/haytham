@@ -111,28 +111,10 @@ def search_brave(query: str, max_results: int = 5) -> list[BraveResult]:
     return results
 
 
-def format_brave_results(results: list[BraveResult], query: str) -> str:
-    """Format Brave results into a readable string."""
-    if not results:
-        return f"No results found for: {query}"
-
-    lines = [f"Search results for: {query}", "(Source: Brave Search)", ""]
-
-    for i, result in enumerate(results, 1):
-        lines.append(f"{i}. {result.title}")
-        lines.append(f"   URL: {result.url}")
-        if result.snippet:
-            lines.append(f"   {result.snippet}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
 __all__ = [
     "BraveResult",
     "BraveSearchError",
     "BraveAPIKeyMissing",
     "search_brave",
-    "format_brave_results",
     "get_brave_api_key",
 ]
