@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!frontend_streamlit/lib/
 lib64/
 parts/
 sdist/
