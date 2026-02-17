@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import streamlit as st
+from lib.session_utils import get_session_dir
 
 
 def load_verification_result(phase: str, session_dir: Path | None = None) -> dict | None:
@@ -20,7 +21,7 @@ def load_verification_result(phase: str, session_dir: Path | None = None) -> dic
         Dict with verification data or None if not found
     """
     if session_dir is None:
-        session_dir = Path(__file__).parent.parent.parent / "session"
+        session_dir = get_session_dir()
 
     filepath = session_dir / f"verification_{phase.lower()}.json"
     if filepath.exists():

@@ -7,7 +7,7 @@ Phase 3: Technical Design (Build vs Buy Analysis).
 
 import re
 
-from lib.session_utils import get_session_dir, load_environment, setup_paths
+from lib.session_utils import METADATA_FILES, get_session_dir, load_environment, setup_paths
 
 setup_paths()
 load_environment()
@@ -24,8 +24,6 @@ SESSION_DIR = get_session_dir()
 # Workflow configuration
 WORKFLOW_TYPE = "system-traits"
 WORKFLOW_DISPLAY_NAME = "System Traits"
-
-METADATA_FILES = {"checkpoint.md", "user_feedback.md"}
 
 # Badge colors for trait values
 TRAIT_COLORS = {

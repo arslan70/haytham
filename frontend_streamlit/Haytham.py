@@ -5,7 +5,7 @@ Main entry point with dynamic navigation based on project state.
 Run with: streamlit run frontend_streamlit/Haytham.py
 """
 
-from lib.session_utils import get_session_dir, setup_paths
+from lib.session_utils import METADATA_FILES, get_session_dir, setup_paths
 
 setup_paths()
 
@@ -53,9 +53,6 @@ def is_workflow_locked(workflow_type: str) -> bool:
     """Check if a workflow has been accepted/locked."""
     lock_file = SESSION_DIR / f".{workflow_type}.locked"
     return lock_file.exists()
-
-
-METADATA_FILES = {"checkpoint.md", "user_feedback.md"}
 
 
 def _has_stage_output(stage_slug: str) -> bool:

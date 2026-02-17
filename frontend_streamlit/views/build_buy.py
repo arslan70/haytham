@@ -6,7 +6,7 @@ This view displays build vs buy recommendations with:
 3. Alternatives - other options with pros/cons
 """
 
-from lib.session_utils import get_session_dir, load_environment, setup_paths
+from lib.session_utils import METADATA_FILES, get_session_dir, load_environment, setup_paths
 
 setup_paths()
 load_environment()
@@ -34,9 +34,6 @@ def load_startup_idea() -> str | None:
         except Exception:
             pass
     return None
-
-
-METADATA_FILES = {"checkpoint.md", "user_feedback.md"}
 
 
 def load_build_buy_output() -> str | None:

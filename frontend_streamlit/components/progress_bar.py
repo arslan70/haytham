@@ -4,7 +4,7 @@ Renders WHY -> WHAT -> HOW -> STORIES with BUILD/VALIDATE as Coming Soon placeho
 Status per phase derived from lock files and stage output existence.
 """
 
-from lib.session_utils import get_session_dir, setup_paths
+from lib.session_utils import METADATA_FILES, get_session_dir, setup_paths
 
 setup_paths()
 
@@ -48,8 +48,6 @@ PLACEHOLDER_PHASES = [
     {"key": "build", "label": "BUILD", "subtitle": "Coming Soon"},
     {"key": "validate", "label": "VALIDATE", "subtitle": "Coming Soon"},
 ]
-
-METADATA_FILES = {"checkpoint.md", "user_feedback.md"}
 
 
 def _is_locked(workflow_type: str) -> bool:

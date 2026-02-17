@@ -2,7 +2,7 @@
 
 import json
 
-from lib.session_utils import get_session_dir, setup_paths
+from lib.session_utils import METADATA_FILES, get_session_dir, setup_paths
 
 setup_paths()
 
@@ -11,8 +11,6 @@ import yaml  # noqa: E402
 from components.progress_bar import render_genesis_progress  # noqa: E402
 
 SESSION_DIR = get_session_dir()
-
-METADATA_FILES = {"checkpoint.md", "user_feedback.md"}
 
 
 def load_startup_idea():

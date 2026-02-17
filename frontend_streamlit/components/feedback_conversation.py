@@ -7,6 +7,7 @@ that can answer questions, discuss improvements, and make changes when requested
 from pathlib import Path
 
 import streamlit as st
+from lib.session_utils import get_session_dir
 
 
 def init_feedback_chat(workflow_type: str) -> None:
@@ -125,7 +126,7 @@ def render_feedback_conversation(
     """
     # Resolve session directory
     if session_dir is None:
-        session_dir = Path(__file__).parent.parent.parent / "session"
+        session_dir = get_session_dir()
 
     # Initialize chat state
     init_feedback_chat(workflow_type)
