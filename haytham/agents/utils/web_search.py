@@ -13,6 +13,7 @@ See ADR-014 for design details.
 
 import logging
 import os
+import threading
 
 from strands import tool
 
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 
 _session_search_count: int = 0
 _session_id: str | None = None
+_session_lock = threading.Lock()
 
 
 def _get_session_limit() -> int:
@@ -54,6 +56,9 @@ def _check_session_limit() -> tuple[bool, str]:
     """
     Check if session search limit has been reached.
 
+    Thread-safe: uses ``_session_lock`` to protect the shared counter
+    since agents may run searches in parallel.
+
     Returns:
         Tuple of (allowed, warning_message)
         - allowed: True if search is permitted
@@ -61,27 +66,28 @@ def _check_session_limit() -> tuple[bool, str]:
     """
     global _session_search_count
 
-    limit = _get_session_limit()
-    warning_threshold = _get_warning_threshold()
+    with _session_lock:
+        limit = _get_session_limit()
+        warning_threshold = _get_warning_threshold()
 
-    if _session_search_count >= limit:
-        return False, (
-            f"Search limit reached ({_session_search_count}/{limit}). "
-            "Use existing results or training knowledge. "
-            "Limit resets with new session."
-        )
+        if _session_search_count >= limit:
+            return False, (
+                f"Search limit reached ({_session_search_count}/{limit}). "
+                "Use existing results or training knowledge. "
+                "Limit resets with new session."
+            )
 
-    # Increment counter
-    _session_search_count += 1
-    remaining = limit - _session_search_count
+        # Increment counter
+        _session_search_count += 1
+        remaining = limit - _session_search_count
 
-    # Warning message when approaching limit
-    if _session_search_count >= warning_threshold:
-        warning = f"[WARNING: {remaining} searches remaining in session]"
-    else:
-        warning = ""
+        # Warning message when approaching limit
+        if _session_search_count >= warning_threshold:
+            warning = f"[WARNING: {remaining} searches remaining in session]"
+        else:
+            warning = ""
 
-    return True, warning
+        return True, warning
 
 
 def reset_session_counter(session_id: str | None = None) -> None:
@@ -89,23 +95,29 @@ def reset_session_counter(session_id: str | None = None) -> None:
     Reset the session search counter.
 
     Called at workflow start to give each session a fresh quota.
+    Thread-safe: uses ``_session_lock``.
 
     Args:
         session_id: Optional session identifier for logging
     """
     global _session_search_count, _session_id
-    _session_search_count = 0
-    _session_id = session_id
+    with _session_lock:
+        _session_search_count = 0
+        _session_id = session_id
     logger.info(f"Web search session counter reset (session: {session_id})")
 
 
 def get_session_stats() -> dict:
     """Get current session search statistics."""
+    with _session_lock:
+        count = _session_search_count
+        sid = _session_id
+    limit = _get_session_limit()
     return {
-        "count": _session_search_count,
-        "limit": _get_session_limit(),
-        "remaining": max(0, _get_session_limit() - _session_search_count),
-        "session_id": _session_id,
+        "count": count,
+        "limit": limit,
+        "remaining": max(0, limit - count),
+        "session_id": sid,
     }
 
 
@@ -156,7 +168,7 @@ def _search_tavily(
         result = tavily_search(**kwargs)
 
         if result:
-            logger.info(f"Tavily search successful for: {query[:50]}")
+            logger.info("Tavily search successful")
             # Add source attribution if not present
             if "(Source:" not in result:
                 result = f"Search results for: {query}\n(Source: Tavily)\n\n{result}"
@@ -164,7 +176,7 @@ def _search_tavily(
 
     except ImportError:
         logger.warning("strands_tools.tavily_search not available")
-    except Exception as e:
+    except (ConnectionError, TimeoutError, ValueError) as e:
         logger.error(f"Tavily search error: {e}")
 
     return None
@@ -227,7 +239,7 @@ def _execute_search_with_fallback(
     except DDGSException as e:
         logger.warning(f"DuckDuckGo error: {e}")
         errors.append(f"DuckDuckGo: {e}")
-    except Exception as e:
+    except (ConnectionError, TimeoutError, OSError, ValueError) as e:
         logger.warning(f"DuckDuckGo unexpected error: {e}")
         errors.append(f"DuckDuckGo: {e}")
 
@@ -243,7 +255,7 @@ def _execute_search_with_fallback(
         except BraveSearchError as e:
             logger.warning(f"Brave search error: {e}")
             errors.append(f"Brave: {e}")
-        except Exception as e:
+        except (ConnectionError, TimeoutError, OSError, ValueError) as e:
             logger.warning(f"Brave unexpected error: {e}")
             errors.append(f"Brave: {e}")
     else:
@@ -263,7 +275,7 @@ def _execute_search_with_fallback(
 
     # All providers failed
     error_summary = "; ".join(errors) if errors else "No providers available"
-    logger.error(f"All search providers failed for query: {query[:50]}. Errors: {error_summary}")
+    logger.error(f"All search providers failed. Errors: {error_summary}")
 
     return (
         f"Web search unavailable for: {query}\n\n"
@@ -323,7 +335,7 @@ def web_search(
     # Check session limit FIRST (cost protection)
     allowed, warning = _check_session_limit()
     if not allowed:
-        logger.warning(f"Search limit reached, blocking query: {query[:50]}")
+        logger.warning("Search limit reached, blocking query")
         return warning
 
     # Log search with session context

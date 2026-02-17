@@ -11,6 +11,7 @@ The envelope includes:
 - content: The actual markdown output (freeform)
 """
 
+import re
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -134,8 +135,6 @@ class StageOutput(BaseModel):
         Returns:
             StageOutput with the content wrapped
         """
-        import re
-
         extracted_tldr = tldr
 
         # Try to extract TL;DR from content

@@ -28,7 +28,7 @@ import uuid
 import warnings
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from burr.core import ApplicationBuilder
@@ -402,7 +402,7 @@ def create_architect_workflow(
         "run_id": context.run_id,
         "workflow_type": "architect",
         "run_number": context.run_number,
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "status": "running",
         "trigger": {
             "type": "user_initiated",
@@ -668,7 +668,7 @@ def _update_workflow_run_status(session_manager, run_id: str, status: str):
         for run in runs:
             if run.get("run_id") == run_id:
                 run["status"] = status
-                run["completed_at"] = datetime.utcnow().isoformat() + "Z"
+                run["completed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                 break
         workflow_runs_file.write_text(json.dumps(runs, indent=2))
     except Exception as e:

@@ -94,6 +94,10 @@ Or combined: `uv run ruff check haytham/ --fix && uv run ruff format haytham/ &&
 - Unused imports or variables → run `uv run ruff check haytham/ --fix`
 - Test regressions → run `uv run pytest tests/ -v -m "not integration"` and fix
 
+## Before Every PR (REQUIRED)
+
+Always run the `/audit` skill before creating a pull request. Do not proceed with PR creation until the audit passes.
+
 ---
 
 ## Architecture
@@ -165,6 +169,13 @@ validation_complete(NO-GO) + gate_approved → END
 - `haytham/session/` is imported by both `workflow/` and `agents/` — keep it dependency-free
 - `haytham/agents/output_utils.py` is the shared extraction layer — individual `worker_*/` modules import from here, not from each other
 - `haytham/phases/` is **deprecated** — it re-exports from `haytham/workflow/stage_registry`. Import from `workflow/` directly
+
+
+## Documentation Editing Standards
+- Write in plain, human-friendly language. Avoid jargon and verbose AI-sounding prose.
+- Never use em dashes (—). Use commas, periods, or parentheses instead.
+- Prefer diagrams (mermaid) over long explanatory paragraphs when showing architecture or flows.
+- When editing docs, keep it concise. If the user asks for simplification, go further than you think necessary.
 
 ## Code Hygiene Rules
 

@@ -59,13 +59,8 @@ def _call_evaluate_recommendation(**kwargs) -> dict:
 
 
 def _import_burr_actions_formatter():
-    """Import _format_validation_summary_output, mocking burr if needed."""
-    if "burr" not in sys.modules and "burr.core" not in sys.modules:
-        # Provide stubs so the module can be imported
-        burr_mock = mock.MagicMock()
-        sys.modules.setdefault("burr", burr_mock)
-        sys.modules.setdefault("burr.core", burr_mock)
-    mod = importlib.import_module("haytham.workflow.burr_actions")
+    """Import _format_validation_summary_output from output_utils."""
+    mod = importlib.import_module("haytham.agents.output_utils")
     return mod._format_validation_summary_output
 
 

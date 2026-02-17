@@ -5,7 +5,7 @@ for the phased workflow architecture.
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -88,7 +88,7 @@ class ProjectManager:
         (project_dir / "history").mkdir(exist_ok=True)
 
         # Initialize project configuration
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         project_config = {
             "project_id": project_id,
             "user_id": user_id,
@@ -159,7 +159,7 @@ class ProjectManager:
         session_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize session metadata
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         session_metadata = {
             "session_id": session_id,
             "project_id": project_id,
@@ -237,7 +237,7 @@ class ProjectManager:
         latest_path.write_text(requirements_content)
 
         # Update session status
-        now = datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         for session in project_config["sessions"]:
             if session["session_id"] == session_id:
                 session["status"] = "completed"
@@ -369,7 +369,7 @@ class ProjectManager:
 
         # Update preferences
         project_config["user_preferences"].update(preferences)
-        project_config["updated_at"] = datetime.utcnow().isoformat() + "Z"
+        project_config["updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
         self._save_project_config(project_id, project_config)
 
@@ -399,7 +399,7 @@ class ProjectManager:
         """
         project_config = self._load_project_config(project_id)
         project_config["status"] = "archived"
-        project_config["updated_at"] = datetime.utcnow().isoformat() + "Z"
+        project_config["updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         self._save_project_config(project_id, project_config)
 
     def delete_project(self, project_id: str) -> None:

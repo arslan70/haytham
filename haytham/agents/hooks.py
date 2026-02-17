@@ -42,7 +42,7 @@ class HaythamAgentHooks(HookProvider):
         logger.info(f"Agent {agent_name} invocation started")
 
     def _on_after_invocation(self, event: AfterInvocationEvent) -> None:
-        self.execution_time = time.time() - (self._start_time or time.time())
+        self.execution_time = (time.time() - self._start_time) if self._start_time else 0.0
         agent_name = getattr(event.agent, "name", "unknown")
 
         if event.result:

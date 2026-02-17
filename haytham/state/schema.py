@@ -3,7 +3,7 @@
 Defines the data models for entries stored in the vector database.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from itertools import count
 from typing import Any, Literal
 
@@ -49,7 +49,7 @@ class SystemStateEntry(BaseModel):
     depends_on: list[str] = Field(default_factory=list, description="IDs of dependencies")
 
     # Temporal (for traceability)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     supersedes: str | None = Field(None, description="ID of entry this replaces")
     superseded_by: str | None = Field(None, description="ID of entry that replaced this")
 

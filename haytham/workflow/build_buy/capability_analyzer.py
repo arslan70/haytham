@@ -276,8 +276,6 @@ def _extract_json_from_output(output: str) -> str:
 
     parsed = extract_json_from_text(output)
     if parsed is not None:
-        import json
-
         return json.dumps(parsed)
     return output
 

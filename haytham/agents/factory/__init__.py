@@ -33,11 +33,9 @@ Use the Burr workflow engine instead for orchestration.
 """
 
 from haytham.agents.factory.agent_factory import (
-    AGENT_FACTORIES,
     create_agent_by_name,
 )
 
 __all__ = [
-    "AGENT_FACTORIES",
     "create_agent_by_name",
 ]

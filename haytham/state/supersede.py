@@ -18,7 +18,7 @@ This is critical for maintaining traceability as defined in ADR-005.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ class ChangeImpactReport:
 
     def __post_init__(self):
         if not self.generated_at:
-            self.generated_at = datetime.utcnow().isoformat() + "Z"
+            self.generated_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
     @property
     def has_affected_artifacts(self) -> bool:

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -619,8 +620,6 @@ def generate_pdf_tool(report_config_json: str) -> str:
     Returns:
         Base64-encoded PDF string.
     """
-    import json
-
     data = json.loads(report_config_json)
 
     cover_data = data.get("cover", {})

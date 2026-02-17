@@ -7,13 +7,12 @@ build vs buy decisions using consistent business rules.
 import json
 from pathlib import Path
 
+import yaml
 from strands import tool
 
 
 def _load_catalog_data() -> dict:
     """Load the service catalog YAML as a dictionary."""
-    import yaml
-
     catalog_path = (
         Path(__file__).parent.parent.parent / "workflow" / "build_buy" / "service_catalog.yaml"
     )

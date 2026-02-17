@@ -9,11 +9,11 @@ This module provides the core data structures and business logic.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
-from haytham.phases.stage_config import get_stage_by_slug, get_stage_index
 from haytham.session.session_manager import SessionManager
+from haytham.workflow.stage_registry import get_stage_by_slug, get_stage_index
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class ChangeRequest:
     def __post_init__(self):
         """Set timestamp if not provided."""
         if self.timestamp is None:
-            self.timestamp = datetime.utcnow().isoformat() + "Z"
+            self.timestamp = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 class UserFeedbackLoop:

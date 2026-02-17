@@ -15,7 +15,9 @@ Resolution order for model IDs:
 
 import logging
 import os
+from collections.abc import Callable
 from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +159,7 @@ def get_model_id_for_tier(tier: str) -> str:
 # Provider factory registry
 # ---------------------------------------------------------------------------
 
-_PROVIDER_FACTORIES: dict[LLMProvider, callable] = {}
+_PROVIDER_FACTORIES: dict[LLMProvider, Callable[..., Any]] = {}
 
 
 def _register_provider(provider: LLMProvider):
@@ -168,6 +170,15 @@ def _register_provider(provider: LLMProvider):
         return fn
 
     return decorator
+
+
+_BEDROCK_ONLY_KWARGS = ("read_timeout", "connect_timeout", "region_name")
+
+
+def _strip_bedrock_kwargs(kwargs: dict) -> None:
+    """Remove Bedrock-specific kwargs that other providers don't accept."""
+    for key in _BEDROCK_ONLY_KWARGS:
+        kwargs.pop(key, None)
 
 
 @_register_provider(LLMProvider.BEDROCK)
@@ -185,18 +196,15 @@ def _create_bedrock(model_id, max_tokens, streaming, temperature, **kwargs):
 
 @_register_provider(LLMProvider.ANTHROPIC)
 def _create_anthropic(model_id, max_tokens, streaming, temperature, **kwargs):
-    # Drop bedrock-specific kwargs silently
-    kwargs.pop("read_timeout", None)
-    kwargs.pop("connect_timeout", None)
-    kwargs.pop("region_name", None)
+    _strip_bedrock_kwargs(kwargs)
 
     try:
         from strands.models.anthropic import AnthropicModel
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "Anthropic provider requires the 'anthropic' package. "
             "Install it with: pip install 'haytham[anthropic]'"
-        ) from None
+        ) from e
 
     client_args = {}
     api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -217,18 +225,15 @@ def _create_anthropic(model_id, max_tokens, streaming, temperature, **kwargs):
 
 @_register_provider(LLMProvider.OPENAI)
 def _create_openai(model_id, max_tokens, streaming, temperature, **kwargs):
-    # Drop bedrock-specific kwargs silently
-    kwargs.pop("read_timeout", None)
-    kwargs.pop("connect_timeout", None)
-    kwargs.pop("region_name", None)
+    _strip_bedrock_kwargs(kwargs)
 
     try:
         from strands.models.openai import OpenAIModel
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "OpenAI provider requires the 'openai' package. "
             "Install it with: pip install 'haytham[openai]'"
-        ) from None
+        ) from e
 
     client_args = {}
     api_key = os.getenv("OPENAI_API_KEY")
@@ -250,18 +255,15 @@ def _create_openai(model_id, max_tokens, streaming, temperature, **kwargs):
 
 @_register_provider(LLMProvider.OLLAMA)
 def _create_ollama(model_id, max_tokens, streaming, temperature, **kwargs):
-    # Drop bedrock-specific kwargs silently
-    kwargs.pop("read_timeout", None)
-    kwargs.pop("connect_timeout", None)
-    kwargs.pop("region_name", None)
+    _strip_bedrock_kwargs(kwargs)
 
     try:
         from strands.models.ollama import OllamaModel
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "Ollama provider requires the 'ollama' package. "
             "Install it with: pip install 'haytham[ollama]'"
-        ) from None
+        ) from e
 
     host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 

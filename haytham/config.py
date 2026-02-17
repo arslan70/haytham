@@ -10,6 +10,9 @@ Design Principles:
 - Enums for type-safe status values
 """
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -164,6 +167,112 @@ class ToolProfile(Enum):
     PDF_REPORT = "pdf_report"  # For PDF report generation
 
 
+def _tools_none() -> list:
+    return []
+
+
+def _tools_thinking() -> list:
+    from strands_tools import think
+
+    return [think]
+
+
+def _tools_web_research() -> list:
+    from strands_tools import current_time, file_read, file_write, http_request
+
+    from haytham.agents.utils.web_search import web_search
+
+    return [file_read, file_write, http_request, current_time, web_search]
+
+
+def _tools_competitor_research() -> list:
+    from strands_tools import current_time, file_read, file_write, http_request
+
+    from haytham.agents.tools.competitor_recording import (
+        record_competitor,
+        record_market_positioning,
+        record_sentiment,
+    )
+    from haytham.agents.utils.web_search import web_search
+
+    return [
+        file_read,
+        file_write,
+        http_request,
+        current_time,
+        web_search,
+        record_competitor,
+        record_sentiment,
+        record_market_positioning,
+    ]
+
+
+def _tools_risk_classification() -> list:
+    from haytham.agents.tools.risk_classification import classify_risk_level
+
+    return [classify_risk_level]
+
+
+def _tools_recommendation() -> list:
+    from haytham.agents.tools.recommendation import (
+        compute_verdict,
+        record_counter_signal,
+        record_dimension_score,
+        record_knockout,
+        set_risk_and_evidence,
+    )
+
+    return [
+        record_knockout,
+        record_dimension_score,
+        record_counter_signal,
+        set_risk_and_evidence,
+        compute_verdict,
+    ]
+
+
+def _tools_build_buy() -> list:
+    from haytham.agents.tools.build_buy import (
+        estimate_integration_effort,
+        evaluate_build_buy_decision,
+        search_service_catalog,
+    )
+
+    return [search_service_catalog, evaluate_build_buy_decision, estimate_integration_effort]
+
+
+def _tools_build_buy_web() -> list:
+    from haytham.agents.utils.web_search import web_search
+
+    return [web_search]
+
+
+def _tools_story_generation() -> list:
+    # Story generation validation tools are provided via custom tool handlers
+    # in the agent execution, not as strands tools
+    return []
+
+
+def _tools_pdf_report() -> list:
+    from haytham.agents.tools.pdf_report import generate_pdf_tool
+
+    return [generate_pdf_tool]
+
+
+_TOOL_RESOLVERS: dict[ToolProfile, Callable[[], list]] = {
+    ToolProfile.NONE: _tools_none,
+    ToolProfile.THINKING: _tools_thinking,
+    ToolProfile.WEB_RESEARCH: _tools_web_research,
+    ToolProfile.COMPETITOR_RESEARCH: _tools_competitor_research,
+    ToolProfile.RISK_CLASSIFICATION: _tools_risk_classification,
+    ToolProfile.RECOMMENDATION: _tools_recommendation,
+    ToolProfile.BUILD_BUY: _tools_build_buy,
+    ToolProfile.BUILD_BUY_WEB: _tools_build_buy_web,
+    ToolProfile.STORY_GENERATION: _tools_story_generation,
+    ToolProfile.PDF_REPORT: _tools_pdf_report,
+}
+
+
 def get_tools_for_profile(profile: ToolProfile) -> list:
     """Get tool instances for a given profile.
 
@@ -174,93 +283,13 @@ def get_tools_for_profile(profile: ToolProfile) -> list:
         List of tool instances
 
     Note:
-        Import happens lazily to avoid circular imports and
-        to only import tools when actually needed.
+        Import happens lazily inside each resolver to avoid circular
+        imports and to only import tools when actually needed.
     """
-    if profile == ToolProfile.NONE:
+    resolver = _TOOL_RESOLVERS.get(profile)
+    if resolver is None:
         return []
-
-    if profile == ToolProfile.THINKING:
-        from strands_tools import think
-
-        return [think]
-
-    if profile == ToolProfile.WEB_RESEARCH:
-        from strands_tools import current_time, file_read, file_write, http_request
-
-        from haytham.agents.utils.web_search import web_search
-
-        return [file_read, file_write, http_request, current_time, web_search]
-
-    if profile == ToolProfile.COMPETITOR_RESEARCH:
-        from strands_tools import current_time, file_read, file_write, http_request
-
-        from haytham.agents.tools.competitor_recording import (
-            record_competitor,
-            record_market_positioning,
-            record_sentiment,
-        )
-        from haytham.agents.utils.web_search import web_search
-
-        return [
-            file_read,
-            file_write,
-            http_request,
-            current_time,
-            web_search,
-            record_competitor,
-            record_sentiment,
-            record_market_positioning,
-        ]
-
-    if profile == ToolProfile.RISK_CLASSIFICATION:
-        from haytham.agents.tools.risk_classification import classify_risk_level
-
-        return [classify_risk_level]
-
-    if profile == ToolProfile.RECOMMENDATION:
-        from haytham.agents.tools.recommendation import (
-            compute_verdict,
-            record_counter_signal,
-            record_dimension_score,
-            record_knockout,
-            set_risk_and_evidence,
-        )
-
-        return [
-            record_knockout,
-            record_dimension_score,
-            record_counter_signal,
-            set_risk_and_evidence,
-            compute_verdict,
-        ]
-
-    if profile == ToolProfile.BUILD_BUY:
-        from haytham.agents.tools.build_buy import (
-            estimate_integration_effort,
-            evaluate_build_buy_decision,
-            search_service_catalog,
-        )
-
-        return [search_service_catalog, evaluate_build_buy_decision, estimate_integration_effort]
-
-    if profile == ToolProfile.BUILD_BUY_WEB:
-        from haytham.agents.utils.web_search import web_search
-
-        # Build vs Buy analyzer with web search for current pricing/features
-        return [web_search]
-
-    if profile == ToolProfile.STORY_GENERATION:
-        # Story generation validation tools are provided via custom tool handlers
-        # in the agent execution, not as strands tools
-        return []
-
-    if profile == ToolProfile.PDF_REPORT:
-        from haytham.agents.tools.pdf_report import generate_pdf_tool
-
-        return [generate_pdf_tool]
-
-    return []
+    return resolver()
 
 
 # =============================================================================

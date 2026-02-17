@@ -5,7 +5,7 @@ as the single source of truth for project state, replacing hardcoded constants.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -141,7 +141,7 @@ class ProjectStateManager:
         Args:
             state: ProjectState object to save
         """
-        state.updated_at = datetime.utcnow().isoformat() + "Z"
+        state.updated_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
         data = {
             "system_goal": state.system_goal,
@@ -178,7 +178,7 @@ class ProjectStateManager:
         state.status = "in_progress"
         state.current_phase = 1
         if not state.created_at:
-            state.created_at = datetime.utcnow().isoformat() + "Z"
+            state.created_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         self.save(state)
         return state
 

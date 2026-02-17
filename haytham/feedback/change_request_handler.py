@@ -13,8 +13,8 @@ import time
 from dataclasses import dataclass
 
 from haytham.feedback.user_feedback_loop import ChangeRequest
-from haytham.phases.stage_config import get_stage_by_slug
 from haytham.session.session_manager import SessionManager
+from haytham.workflow.stage_registry import get_stage_by_slug
 
 logger = logging.getLogger(__name__)
 

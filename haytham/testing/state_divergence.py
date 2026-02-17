@@ -10,6 +10,7 @@ idea should exceed 60% (vs. the research baseline of 34% without anchoring).
 
 import hashlib
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -114,8 +115,6 @@ def extract_key_terms(text: str, min_length: int = 4) -> set[str]:
     Returns:
         Set of key terms (lowercased)
     """
-    import re
-
     # Normalize text
     text = text.lower()
 

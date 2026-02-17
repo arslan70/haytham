@@ -11,6 +11,7 @@ to stage_executor, Streamlit, or downstream stages.
 
 import json
 import logging
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from strands import Agent
@@ -322,8 +323,6 @@ def parse_stories_from_markdown(markdown: str) -> list[dict]:
     Returns:
         List of story dicts with id, title, layer, implements, depends_on, content
     """
-    import re
-
     stories = []
 
     # Split by story boundaries (--- followed by id:)

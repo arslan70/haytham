@@ -8,17 +8,17 @@ Simplified for single-session architecture using stage slugs instead of phase nu
 
 import json
 import logging
-import re
 from pathlib import Path
 from typing import Any
 
+from haytham.agents.output_utils import extract_output_content
 from haytham.agents.utils.context_summarizer import ContextSummarizer
-from haytham.phases.stage_config import (
+from haytham.project.project_state import ProjectStateManager
+from haytham.workflow.stage_registry import (
     STAGES,
     get_stage_by_slug,
     get_stage_index,
 )
-from haytham.project.project_state import ProjectStateManager
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +278,7 @@ class ContextLoader:
                 try:
                     content = output_file.read_text()
                     # Extract just the output content (skip metadata)
-                    output_content = self._extract_output_content(content)
+                    output_content = extract_output_content(content)
                     agent_outputs[agent_name] = output_content
                     logger.debug(f"Loaded output for {agent_name}: {len(output_content)} chars")
                 except Exception as e:
@@ -316,61 +316,6 @@ class ContextLoader:
 
         logger.debug(f"No preferences available for stage {stage_slug}")
         return None
-
-    def _extract_output_content(self, full_content: str) -> str:
-        """Extract just the output content from agent output file.
-
-        Skips metadata sections and extracts the ## Output section.
-
-        Args:
-            full_content: Full agent output file content
-
-        Returns:
-            Extracted output content
-        """
-        # Find the "## Output" section
-        if "## Output" not in full_content:
-            return full_content
-
-        # Extract content after "## Output"
-        parts = full_content.split("## Output", 1)
-        if len(parts) < 2:
-            return full_content
-
-        output_section = parts[1]
-
-        # Check if output contains a raw SwarmResult string (from old buggy saves)
-        # If so, try to extract the actual text from it
-        if "SwarmResult(" in output_section and "'text':" in output_section:
-            # Extract text content from the SwarmResult string representation
-            # Pattern: 'text': 'actual content here'
-            text_matches = re.findall(r"'text':\s*'([^']*(?:''[^']*)*)'", output_section)
-            if text_matches:
-                # Join all text blocks and unescape
-                extracted_text = "\n\n".join(text_matches)
-                # Unescape common escape sequences
-                extracted_text = extracted_text.replace("\\n", "\n")
-                extracted_text = extracted_text.replace("\\t", "\t")
-                extracted_text = extracted_text.replace("\\'", "'")
-                return extracted_text.strip()
-
-        # Remove any subsequent top-level sections (## Error Details, ## Metadata, etc.)
-        # But keep content headers like "## 1. Problem" or "## 2. Solution"
-        # Look for sections that are NOT numbered (i.e., metadata sections)
-        # Split on sections that start with ## but NOT followed by a digit
-        # This preserves numbered sections like "## 1. Problem" but removes "## Error Details"
-        lines = output_section.split("\n")
-        result_lines = []
-        for line in lines:
-            # Check if this is a top-level metadata section (not a numbered content section)
-            if line.strip().startswith("## ") and not re.match(r"##\s+\d+\.", line.strip()):
-                # This is a metadata section like "## Error Details", stop here
-                break
-            result_lines.append(line)
-
-        output_section = "\n".join(result_lines)
-
-        return output_section.strip()
 
     def _estimate_tokens(
         self, agent_outputs: dict[str, str], preferences: dict[str, Any] | None

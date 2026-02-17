@@ -9,9 +9,11 @@ with knockout criteria and scored dimensions for transparent decision-making.
 
 from __future__ import annotations
 
+import json
+import re
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 
 def _verdict_display(verdict: str) -> str:
@@ -345,8 +347,6 @@ def _fix_exec_summary_verdict(exec_summary: str, recommendation: str) -> str:
     (e.g. writing "NO-GO" when the scorer said "PIVOT").  This function
     detects the mismatch and patches the text deterministically.
     """
-    import re
-
     rec_upper = recommendation.upper()
     # All possible verdict/recommendation terms the narrator might use
     verdict_terms = ["NO-GO", "NOGO", "NO GO", "PIVOT", "CONDITIONAL GO", "GO"]
@@ -441,8 +441,6 @@ def format_validation_summary(data: dict | ValidationSummaryOutput) -> str:
     try:
         model = ValidationSummaryOutput.model_validate(data)
         return model.to_markdown()
-    except Exception:
+    except (ValidationError, TypeError, ValueError):
         # Fallback: return raw dict as formatted string
-        import json
-
         return f"```json\n{json.dumps(data, indent=2)}\n```"

@@ -671,6 +671,30 @@ def get_all_stage_slugs(include_optional: bool = True) -> list[str]:
     return get_stage_registry().get_stage_order(include_optional)
 
 
+def get_stage_index(slug: str) -> int:
+    """Get the 0-based index of a stage in the global stage order.
+
+    Args:
+        slug: The stage slug to look up
+
+    Returns:
+        The index of the stage
+
+    Raises:
+        ValueError: If the slug is not found
+    """
+    for i, stage in enumerate(get_stage_registry().all_stages(include_optional=True)):
+        if stage.slug == slug:
+            return i
+    raise ValueError(f"Unknown stage: {slug}")
+
+
 def format_query(slug: str, **kwargs) -> str:
     """Format query template with provided arguments."""
     return get_stage_registry().format_query(slug, **kwargs)
+
+
+# Computed once at import time for backward compatibility.
+# Callers that iterate all stages can use this instead of
+# get_stage_registry().all_stages() for brevity.
+STAGES: list[StageMetadata] = get_stage_registry().all_stages(include_optional=True)

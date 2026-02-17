@@ -6,7 +6,7 @@ with semantic search capabilities.
 
 import json
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -341,7 +341,7 @@ class SystemStateDB:
             tags=old_entry.get("tags", []),
             affects=old_entry.get("affects", []),
             depends_on=old_entry.get("depends_on", []),
-            created_at=old_entry.get("created_at", datetime.utcnow()),
+            created_at=old_entry.get("created_at", datetime.now(UTC)),
             supersedes=old_entry.get("supersedes"),
             superseded_by="PENDING",  # Temporary placeholder
             source_stage=old_entry.get("source_stage"),

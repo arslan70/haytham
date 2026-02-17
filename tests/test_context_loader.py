@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from haytham.agents.output_utils import extract_output_content
 from haytham.context import ContextLoader
 
 # Test system goal used across all tests
@@ -331,8 +332,6 @@ class TestContextLoader:
 
     def test_extract_output_content(self, sample_session):
         """Test extraction of output content from agent output files."""
-        loader = ContextLoader(base_dir=sample_session["base_dir"])
-
         full_content = """# Agent Output: test_agent
 
 ## Metadata
@@ -348,7 +347,7 @@ It should be extracted.
 - Error: None
 """
 
-        extracted = loader._extract_output_content(full_content)
+        extracted = extract_output_content(full_content)
 
         assert "This is the actual output content" in extracted
         assert "## Metadata" not in extracted
