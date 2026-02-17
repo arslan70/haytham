@@ -62,7 +62,7 @@ def search_brave(query: str, max_results: int = 5) -> list[BraveResult]:
     if not api_key:
         raise BraveAPIKeyMissing("BRAVE_API_KEY environment variable not set")
 
-    logger.info(f"Brave search: {query[:100]}")
+    logger.info("Brave search executing")
 
     try:
         with httpx.Client(timeout=30.0) as client:

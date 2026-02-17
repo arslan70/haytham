@@ -91,7 +91,7 @@ class SessionStateAdapter:
 
         try:
             return json.loads(anchor_file.read_text())
-        except Exception as e:
+        except (json.JSONDecodeError, OSError) as e:
             logger.warning(f"Failed to load concept anchor file: {e}")
             return None
 
@@ -210,7 +210,7 @@ class WorkflowEntryValidator:
                 "genericizations_count": len(result.identity_genericized),
             }
 
-        except Exception as e:
+        except (ImportError, TypeError, ValueError, AttributeError) as e:
             logger.warning(f"Phase verification failed (non-blocking): {e}")
             return {"phase": phase, "passed": True, "error": str(e)}
 

@@ -33,7 +33,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
         Tuple of (combined_output, status) where status is "completed" or "failed".
     """
     from haytham.agents.factory.agent_factory import create_agent_by_name
-    from haytham.workflow.agent_runner import _extract_agent_output
+    from haytham.agents.output_utils import extract_text_from_result
     from haytham.workflow.context_builder import render_validation_summary_from_json
     from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 
@@ -74,7 +74,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
             "Honor all constraints from the Concept Anchor above."
         )
         core_result = core_agent(core_context)
-        core_output = _extract_agent_output(core_result)
+        core_output = extract_text_from_result(core_result)
         outputs.append(core_output)
         logger.info(f"mvp_scope_core completed ({len(core_output)} chars)")
     except Exception as e:
@@ -93,7 +93,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
             "Non-Goals from the Concept Anchor MUST appear in OUT scope."
         )
         boundaries_result = boundaries_agent(boundaries_context)
-        boundaries_output = _extract_agent_output(boundaries_result)
+        boundaries_output = extract_text_from_result(boundaries_result)
         outputs.append(boundaries_output)
         logger.info(f"mvp_scope_boundaries completed ({len(boundaries_output)} chars)")
     except Exception as e:
@@ -115,7 +115,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
             "User flows must reflect Identity Features from the Concept Anchor."
         )
         flows_result = flows_agent(flows_context)
-        flows_output = _extract_agent_output(flows_result)
+        flows_output = extract_text_from_result(flows_result)
         outputs.append(flows_output)
         logger.info(f"mvp_scope_flows completed ({len(flows_output)} chars)")
     except Exception as e:

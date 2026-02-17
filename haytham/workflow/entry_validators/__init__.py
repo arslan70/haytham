@@ -94,7 +94,7 @@ def get_available_workflows(session_manager: "SessionManager") -> list[WorkflowT
             result = validate_workflow_entry(workflow_type, session_manager)
             if result.passed:
                 available.append(workflow_type)
-        except Exception as e:
+        except (ValueError, KeyError, TypeError) as e:
             logger.warning(f"Error checking availability for {workflow_type}: {e}")
 
     return available

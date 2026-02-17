@@ -9,8 +9,7 @@ Tests the Session 3 deliverables:
 
 Reference: ADR-001b: Platform & Stack Proposal
 
-Note: This file is named stack_selection_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/stack_selection_tests.py -v
+Run with: pytest tests/test_stack_selection.py -v
 """
 
 # Import human_gates directly to avoid triggering workflow __init__

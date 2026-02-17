@@ -9,8 +9,7 @@ Tests the Session 1 deliverables:
 
 Reference: ADR-001c: System State Model
 
-Note: This file is named pipeline_state_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/pipeline_state_tests.py -v
+Run with: pytest tests/test_pipeline_state.py -v
 """
 
 import tempfile

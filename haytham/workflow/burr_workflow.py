@@ -9,7 +9,6 @@ the high-level execution layer that adds telemetry, error classification,
 and result extraction on top.
 """
 
-import asyncio
 import logging
 import re
 import time
@@ -20,10 +19,12 @@ from typing import Any
 
 from burr.core import State
 
+from .stage_registry import WorkflowType
 from .workflow_factories import (
     WORKFLOW_TERMINAL_STAGES,
     create_idea_validation_workflow,
 )
+from .workflow_specs import IDEA_VALIDATION_SPEC
 
 logger = logging.getLogger(__name__)
 
@@ -112,18 +113,10 @@ class BurrWorkflowRunner:
         Returns:
             WorkflowResult with execution status and outputs
         """
-        # Import telemetry (lazy to avoid circular imports)
-        try:
-            from haytham.telemetry import init_telemetry, workflow_span
+        from haytham.telemetry_utils import get_workflow_span
 
-            # Initialize telemetry if not already done
-            init_telemetry()
-        except ImportError:
-            # Telemetry not available - use no-op context manager
-            from contextlib import nullcontext
-
-            def workflow_span(*args, **kwargs):
-                return nullcontext()
+        init_telemetry, workflow_span = get_workflow_span()
+        init_telemetry()
 
         start_time = time.time()
         self._is_running = True
@@ -132,8 +125,6 @@ class BurrWorkflowRunner:
         session_id = str(uuid.uuid4())
 
         # Terminal stage for the idea-validation workflow
-        from .stage_registry import WorkflowType
-
         terminal = WORKFLOW_TERMINAL_STAGES.get(WorkflowType.IDEA_VALIDATION, "validation_summary")
 
         # Execute workflow within a workflow span
@@ -148,7 +139,7 @@ class BurrWorkflowRunner:
 
                 logger.info("=" * 60)
                 logger.info("BURR WORKFLOW EXECUTION STARTED")
-                logger.info(f"System Goal: {system_goal[:50]}...")
+                logger.info(f"System goal provided (length={len(system_goal)})")
                 logger.info(f"Session ID: {session_id}")
                 logger.info("=" * 60)
 
@@ -171,12 +162,7 @@ class BurrWorkflowRunner:
                     span.set_attribute("workflow.risk_level", risk_level)
 
                 # Check for failures and identify which stage failed
-                stage_names = [
-                    "idea_analysis",
-                    "market_context",
-                    "risk_assessment",
-                    "validation_summary",
-                ]
+                stage_names = IDEA_VALIDATION_SPEC.stages
                 failed_stage = None
                 stage_error = None
 
@@ -234,7 +220,7 @@ class BurrWorkflowRunner:
                     recommendation=recommendation,
                 )
 
-            except Exception as e:
+            except Exception as e:  # Intentional catch-all: top-level workflow boundary
                 execution_time = time.time() - start_time
                 logger.error(f"Workflow execution failed: {e}", exc_info=True)
 
@@ -252,39 +238,6 @@ class BurrWorkflowRunner:
 
             finally:
                 self._is_running = False
-
-    def run_single_stage(
-        self,
-        stage_name: str,
-        system_goal: str,
-    ) -> dict[str, Any]:
-        """Run a single stage of the workflow.
-
-        This is useful for step-by-step execution with user approval
-        between stages.
-
-        Args:
-            stage_name: Name of the stage to run
-            system_goal: The startup idea
-
-        Returns:
-            Dict with stage output and status
-        """
-
-        # Create workflow with previous state
-        self.create_workflow(system_goal)
-
-        # Run until this stage completes
-        action, result, state = self.app.run(
-            halt_after=[stage_name],
-            inputs={},
-        )
-
-        return {
-            "stage": stage_name,
-            "status": state.get(f"{stage_name}_status", "unknown"),
-            "output": state.get(stage_name.replace("_status", ""), ""),
-        }
 
     def _extract_results(self, state: State) -> dict[str, Any]:
         """Extract results from workflow state."""
@@ -316,41 +269,3 @@ class BurrWorkflowRunner:
     def is_running(self) -> bool:
         """Check if workflow is currently running."""
         return self._is_running
-
-
-# =============================================================================
-# Async Wrapper
-# =============================================================================
-
-
-async def run_workflow_async(
-    system_goal: str,
-    session_manager: Any = None,
-    on_stage_start: Callable | None = None,
-    on_stage_complete: Callable | None = None,
-) -> WorkflowResult:
-    """Run the workflow asynchronously.
-
-    Args:
-        system_goal: The startup idea to validate
-        session_manager: SessionManager for persistence
-        on_stage_start: Async callback when stage starts
-        on_stage_complete: Async callback when stage completes
-
-    Returns:
-        WorkflowResult with execution status
-    """
-    runner = BurrWorkflowRunner(
-        session_manager=session_manager,
-        on_stage_start=on_stage_start,
-        on_stage_complete=on_stage_complete,
-    )
-
-    # Run in thread pool since Burr is synchronous
-    loop = asyncio.get_running_loop()
-    result = await loop.run_in_executor(
-        None,
-        lambda: runner.run(system_goal),
-    )
-
-    return result

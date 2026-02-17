@@ -12,34 +12,16 @@ import json
 import sys
 from unittest import mock
 
+from haytham.agents.tools import recommendation as _recommendation_mod
+
 # =============================================================================
 # Helpers to import modules with heavy transitive deps
 # =============================================================================
 
 
 def _import_recommendation():
-    """Import recommendation module, mocking reportlab if absent."""
-    if "reportlab" not in sys.modules:
-        rl_mock = mock.MagicMock()
-        for sub in [
-            "reportlab",
-            "reportlab.lib",
-            "reportlab.lib.colors",
-            "reportlab.lib.pagesizes",
-            "reportlab.lib.styles",
-            "reportlab.lib.units",
-            "reportlab.lib.enums",
-            "reportlab.platypus",
-            "reportlab.platypus.doctemplate",
-            "reportlab.platypus.frames",
-            "reportlab.platypus.paragraph",
-            "reportlab.platypus.spacer",
-            "reportlab.platypus.table",
-            "reportlab.platypus.flowables",
-            "reportlab.pdfgen",
-        ]:
-            sys.modules.setdefault(sub, rl_mock)
-    return importlib.import_module("haytham.agents.tools.recommendation")
+    """Return the recommendation module (reportlab mocked by conftest)."""
+    return _recommendation_mod
 
 
 def _import_idea_validation():

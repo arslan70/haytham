@@ -252,7 +252,7 @@ if hasattr(result, "output"):  # DON'T DO THIS
     ...
 ```
 
-Reference implementation: `haytham/workflow/burr_actions.py:_extract_agent_output()`
+Reference implementation: `haytham/agents/output_utils.py:extract_text_from_result()`
 
 ### PITFALL: Agent Registration
 

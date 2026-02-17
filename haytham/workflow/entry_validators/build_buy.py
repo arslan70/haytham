@@ -1,14 +1,10 @@
 """Entry condition validator for Build vs Buy Analysis workflow."""
 
 import logging
-from typing import TYPE_CHECKING
 
 from haytham.workflow.stage_registry import WorkflowType
 
 from .base import EntryConditionResult, WorkflowEntryValidator
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +92,7 @@ class BuildBuyAnalysisEntryValidator(WorkflowEntryValidator):
         except ImportError:
             self.warnings.append("VectorDB module not available - skipping capability check")
             return 0
-        except Exception as e:
+        except (OSError, KeyError, TypeError, AttributeError) as e:
             self.errors.append(f"Failed to load capabilities: {e!s}")
             return 0
 

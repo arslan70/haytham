@@ -10,6 +10,9 @@ import re
 
 from strands import tool
 
+# Max line length to treat as a colon-based section header (e.g. "Problem:")
+_HEADER_MAX_LEN = 60
+
 
 @tool
 def identify_document_sections(content: str) -> str:
@@ -49,7 +52,7 @@ def identify_document_sections(content: str) -> str:
             }
 
         # Detect colon-based headers (e.g., "Problem:" or "Solution:")
-        elif ":" in line and len(line) < 50 and not line.startswith("-"):
+        elif ":" in line and len(line) < _HEADER_MAX_LEN and not line.startswith("-"):
             potential_header = line.split(":")[0].strip()
             if potential_header and potential_header[0].isupper():
                 if current_section:
@@ -115,7 +118,7 @@ def extract_section_content(
         line_lower = line.lower()
 
         # Check if this line is a header matching our keywords
-        is_header = line.startswith("#") or (":" in line and len(line) < 60)
+        is_header = line.startswith("#") or (":" in line and len(line) < _HEADER_MAX_LEN)
         if is_header and any(kw in line_lower for kw in keywords):
             found_section = line.strip()
             # Extract following content
@@ -256,7 +259,9 @@ def extract_list_items(
         # Extract items from section
         if in_section:
             # Stop at next header
-            if line.startswith("#") or (line.strip() and ":" in line and len(line) < 50):
+            if line.startswith("#") or (
+                line.strip() and ":" in line and len(line) < _HEADER_MAX_LEN
+            ):
                 if items:
                     break
                 in_section = False

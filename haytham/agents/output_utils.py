@@ -23,6 +23,8 @@ import re
 from collections.abc import Callable
 from typing import Any
 
+from pydantic import BaseModel
+
 logger = logging.getLogger(__name__)
 
 # Compiled regex patterns (module-level for performance)
@@ -96,9 +98,9 @@ def extract_text_from_result(result: Any, output_as_json: bool = False) -> str:
         output_as_json: If True and result has a Pydantic structured output,
             return model_dump_json() instead of rendering markdown.
     """
-    from pydantic import BaseModel
-
     # --- StageOutput envelope (ADR-022) ---
+    # Lazy import: agents/ → workflow/ cross-boundary (would create circular dep
+    # since workflow/ imports from agents/output_utils at module level).
     try:
         from haytham.workflow.stage_output import StageOutput
 
@@ -293,8 +295,6 @@ def _format_pydantic_model_as_markdown(model: Any) -> str:
     Returns:
         Formatted markdown string
     """
-    from pydantic import BaseModel
-
     if not isinstance(model, BaseModel):
         return ""
 

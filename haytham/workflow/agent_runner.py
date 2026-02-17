@@ -9,7 +9,6 @@ Functions:
     run_agent          -- Execute a single agent via the agent factory.
     run_parallel_agents -- Execute multiple agents concurrently.
     save_stage_output  -- Persist agent output to the session directory.
-    _extract_agent_output -- Thin wrapper around output_utils extraction.
     _is_token_limit_error -- Classify Bedrock token-limit exceptions.
     _get_user_friendly_error -- Map exceptions to user-facing messages.
 """
@@ -111,11 +110,13 @@ def run_agent(
     Returns:
         Dict with agent output and metadata
     """
-    from .context_builder import _build_context_summary
+    # Lazy import: avoids circular dep (context_builder → stage_registry → ... → agent_runner)
+    from .context_builder import build_context_summary
 
     start_time = time.time()
 
     try:
+        # Lazy import: workflow/ → agents/ would create circular dep at module level
         from haytham.agents.factory.agent_factory import create_agent_by_name
 
         agent = create_agent_by_name(agent_name, trace_attributes=trace_attributes)
@@ -127,6 +128,7 @@ def run_agent(
         full_query = query
 
         if use_context_tools:
+            # Lazy import: workflow/ → agents/ would create circular dep at module level
             from haytham.agents.tools.context_retrieval import (
                 clear_context_store,
                 set_context_store,
@@ -135,7 +137,7 @@ def run_agent(
             set_context_store(context)
             full_query += "\n\nUse the context retrieval tools to access relevant information from previous stages."
         else:
-            context_summary = _build_context_summary(context)
+            context_summary = build_context_summary(context)
             if context_summary:
                 full_query += f"\n\n## Context from Previous Stages:\n{context_summary}"
 
@@ -143,7 +145,10 @@ def run_agent(
 
         try:
             result = agent(full_query)
-            output_text = _extract_agent_output(result, output_as_json=output_as_json)
+            # Lazy import: workflow/ → agents/ would create circular dep at module level
+            from haytham.agents.output_utils import extract_text_from_result
+
+            output_text = extract_text_from_result(result, output_as_json=output_as_json)
             execution_time = time.time() - start_time
 
             if not output_text or not output_text.strip():
@@ -270,17 +275,6 @@ def run_parallel_agents(
     return results
 
 
-def _extract_agent_output(result: Any, output_as_json: bool = False) -> str:
-    """Extract text output from various agent result formats.
-
-    Thin wrapper around :func:`haytham.agents.output_utils.extract_text_from_result`
-    kept for backward compatibility with existing import sites.
-    """
-    from haytham.agents.output_utils import extract_text_from_result
-
-    return extract_text_from_result(result, output_as_json=output_as_json)
-
-
 def save_stage_output(
     session_manager: Any,
     stage_slug: str,
@@ -302,7 +296,7 @@ def save_stage_output(
         output_file.write_text(output, encoding="utf-8")
 
         logger.info(f"Saved output to {output_file}")
-    except Exception as e:
+    except OSError as e:
         logger.error(f"Failed to save stage output file: {e}")
 
     # Save checkpoint separately - non-critical, don't block on failure
@@ -313,5 +307,5 @@ def save_stage_output(
             agents=[{"agent_name": agent_name, "status": status, "output_length": len(output)}],
             completed=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         )
-    except Exception as e:
+    except (OSError, TypeError, ValueError) as e:
         logger.error(f"Failed to save checkpoint for {stage_slug}: {e}")

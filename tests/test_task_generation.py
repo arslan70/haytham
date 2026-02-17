@@ -9,8 +9,7 @@ Tests the Session 6 deliverables:
 
 Reference: ADR-001f: Task Generation & Refinement
 
-Note: This file is named task_generation_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/task_generation_tests.py -v
+Run with: pytest tests/test_task_generation.py -v
 """
 
 import pytest

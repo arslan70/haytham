@@ -6,11 +6,18 @@ intelligent context selection based on the agent's current task.
 """
 
 import json
+import threading
 
 from strands import tool
 
-# Global context store - set by workflow before agent execution
-_context_store: dict[str, str] = {}
+# Thread-local context store - each thread gets its own copy so parallel
+# agent execution (run_parallel_agents) doesn't cause cross-contamination.
+_thread_local = threading.local()
+
+
+def _get_context_store() -> dict[str, str]:
+    """Return the context store for the current thread."""
+    return getattr(_thread_local, "context_store", {})
 
 
 def set_context_store(context: dict[str, str]) -> None:
@@ -18,18 +25,17 @@ def set_context_store(context: dict[str, str]) -> None:
 
     Called by the workflow before agent execution to make
     previous stage outputs available to the context retrieval tools.
+    Each thread maintains its own store, so parallel agents are isolated.
 
     Args:
         context: Dict mapping stage keys to their output content
     """
-    global _context_store
-    _context_store = context.copy()
+    _thread_local.context_store = context.copy()
 
 
 def clear_context_store() -> None:
     """Clear the context store after agent execution."""
-    global _context_store
-    _context_store = {}
+    _thread_local.context_store = {}
 
 
 @tool
@@ -44,7 +50,7 @@ def list_available_context() -> str:
     """
     available = []
 
-    for key, content in _context_store.items():
+    for key, content in _get_context_store().items():
         if content and isinstance(content, str):
             # Get preview of content
             preview = content[:200].replace("\n", " ").strip()
@@ -82,8 +88,10 @@ def get_context_by_key(context_key: str, max_chars: int = 2000) -> str:
     Returns:
         The context content, or error message if not found
     """
-    if context_key not in _context_store:
-        available_keys = list(_context_store.keys())
+    store = _get_context_store()
+
+    if context_key not in store:
+        available_keys = list(store.keys())
         return json.dumps(
             {
                 "error": f"Context key '{context_key}' not found",
@@ -91,7 +99,7 @@ def get_context_by_key(context_key: str, max_chars: int = 2000) -> str:
             }
         )
 
-    content = _context_store[context_key]
+    content = store[context_key]
     if not content:
         return json.dumps(
             {
@@ -99,18 +107,17 @@ def get_context_by_key(context_key: str, max_chars: int = 2000) -> str:
             }
         )
 
+    full_length = len(content)
+
     # Truncate if needed
-    if len(content) > max_chars:
-        content = (
-            content[:max_chars]
-            + f"\n\n[...truncated, {len(_context_store[context_key]) - max_chars} more chars]"
-        )
+    if full_length > max_chars:
+        content = content[:max_chars] + f"\n\n[...truncated, {full_length - max_chars} more chars]"
 
     return json.dumps(
         {
             "key": context_key,
             "content": content,
-            "truncated": len(_context_store[context_key]) > max_chars,
+            "truncated": full_length > max_chars,
         },
         indent=2,
     )
@@ -134,7 +141,7 @@ def search_context(query: str, max_results: int = 3) -> str:
     keywords = query_lower.split()
     results = []
 
-    for key, content in _context_store.items():
+    for key, content in _get_context_store().items():
         if not content or not isinstance(content, str):
             continue
 
@@ -189,14 +196,14 @@ def get_context_summary(context_key: str) -> str:
     Returns:
         JSON with key statistics and first/last sections
     """
-    if context_key not in _context_store:
+    if context_key not in _get_context_store():
         return json.dumps(
             {
                 "error": f"Context key '{context_key}' not found",
             }
         )
 
-    content = _context_store[context_key]
+    content = _get_context_store()[context_key]
     if not content:
         return json.dumps(
             {

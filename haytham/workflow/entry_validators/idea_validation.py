@@ -1,13 +1,8 @@
 """Entry condition validator for Idea Validation workflow."""
 
-from typing import TYPE_CHECKING
-
 from haytham.workflow.stage_registry import WorkflowType
 
 from .base import EntryConditionResult, WorkflowEntryValidator
-
-if TYPE_CHECKING:
-    pass
 
 
 class IdeaValidationEntryValidator(WorkflowEntryValidator):

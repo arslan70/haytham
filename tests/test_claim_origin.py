@@ -8,42 +8,13 @@ Tests cover:
 """
 
 import json
-import sys
-from unittest import mock
 
+from haytham.agents.tools.risk_classification import classify_risk_level
 from haytham.workflow.validators.claim_origin import (
     _extract_composite_score,
     _extract_external_ratio,
     validate_claim_origin,
 )
-
-
-def _mock_reportlab():
-    """Mock reportlab if absent (needed for package __init__ import chain)."""
-    if "reportlab" not in sys.modules:
-        rl_mock = mock.MagicMock()
-        for sub in [
-            "reportlab",
-            "reportlab.lib",
-            "reportlab.lib.colors",
-            "reportlab.lib.pagesizes",
-            "reportlab.lib.styles",
-            "reportlab.lib.units",
-            "reportlab.lib.enums",
-            "reportlab.platypus",
-            "reportlab.platypus.doctemplate",
-            "reportlab.platypus.frames",
-            "reportlab.platypus.paragraph",
-            "reportlab.platypus.spacer",
-            "reportlab.platypus.table",
-            "reportlab.platypus.flowables",
-            "reportlab.pdfgen",
-        ]:
-            sys.modules.setdefault(sub, rl_mock)
-
-
-_mock_reportlab()
-from haytham.agents.tools.risk_classification import classify_risk_level  # noqa: E402
 
 # =============================================================================
 # _extract_external_ratio

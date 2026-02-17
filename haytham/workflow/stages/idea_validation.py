@@ -457,7 +457,7 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
     # Build scorer query with FULL upstream context inline.
     # The scorer's job is cross-referencing specific evidence (market sizes,
     # competitor traction, claim validation results). The generic
-    # _build_context_summary() truncates each stage to ~200 chars, which
+    # build_context_summary() truncates each stage to ~200 chars, which
     # strips all the data the scorer needs to cite. Pass full text instead.
     from haytham.workflow.anchor_schema import FounderPersona
 

@@ -37,6 +37,14 @@ class WorkflowRunTracker:
     def __init__(self, session_dir: Path) -> None:
         self.session_dir = session_dir
 
+    def _get_aliases(self, workflow_type: str) -> list[str]:
+        """Return all recognized names for a workflow type.
+
+        Ensures that both legacy ("discovery") and canonical ("idea-validation")
+        names match interchangeably when looking up workflow runs.
+        """
+        return self.WORKFLOW_ALIASES.get(workflow_type, [workflow_type])
+
     def lock_workflow(self, workflow_type: str) -> None:
         """Lock a workflow, marking its artifacts as immutable.
 
@@ -103,8 +111,7 @@ class WorkflowRunTracker:
         if not workflow_runs_file.exists():
             return "not_started"
 
-        # Map legacy names for lookup
-        aliases = self.WORKFLOW_ALIASES.get(workflow_type, [workflow_type])
+        aliases = self._get_aliases(workflow_type)
 
         try:
             runs = json.loads(workflow_runs_file.read_text())
@@ -123,6 +130,7 @@ class WorkflowRunTracker:
 
             return "not_started"
         except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning not_started")
             return "not_started"
 
     def _update_workflow_run_status(self, workflow_type: str, new_status: str) -> None:
@@ -142,15 +150,16 @@ class WorkflowRunTracker:
             runs = json.loads(workflow_runs_file.read_text())
 
             # Find and update the most recent completed run of this type
+            aliases = self._get_aliases(workflow_type)
             for run in reversed(runs):
-                if run.get("workflow_type") == workflow_type:
+                if run.get("workflow_type") in aliases:
                     run["status"] = new_status
                     run["status_updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     workflow_runs_file.write_text(json.dumps(runs, indent=2))
                     return
 
         except json.JSONDecodeError:
-            pass
+            logger.warning("Corrupted workflow_runs.json, skipping status update")
 
     def record_workflow_complete(
         self,
@@ -177,6 +186,7 @@ class WorkflowRunTracker:
             try:
                 runs = json.loads(workflow_runs_file.read_text())
             except json.JSONDecodeError:
+                logger.warning("Corrupted workflow_runs.json, starting fresh list")
                 runs = []
         else:
             runs = []
@@ -210,8 +220,7 @@ class WorkflowRunTracker:
         if not workflow_runs_file.exists():
             return False
 
-        # Map legacy names to new names for lookup
-        aliases = self.WORKFLOW_ALIASES.get(workflow_type, [workflow_type])
+        aliases = self._get_aliases(workflow_type)
 
         try:
             runs = json.loads(workflow_runs_file.read_text())
@@ -219,6 +228,7 @@ class WorkflowRunTracker:
                 r.get("workflow_type") in aliases and r.get("status") == "completed" for r in runs
             )
         except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning False")
             return False
 
     def get_workflow_status(self, workflow_type: str) -> str:
@@ -234,8 +244,7 @@ class WorkflowRunTracker:
         if not workflow_runs_file.exists():
             return "not_started"
 
-        # Map legacy names to new names for lookup
-        aliases = self.WORKFLOW_ALIASES.get(workflow_type, [workflow_type])
+        aliases = self._get_aliases(workflow_type)
 
         try:
             runs = json.loads(workflow_runs_file.read_text())
@@ -249,6 +258,7 @@ class WorkflowRunTracker:
                         return "in_progress"
             return "not_started"
         except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning not_started")
             return "not_started"
 
     def get_current_workflow(self) -> str | None:
@@ -269,6 +279,7 @@ class WorkflowRunTracker:
                     return run.get("workflow_type")
             return None
         except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning None")
             return None
 
     def start_workflow_run(
@@ -292,6 +303,7 @@ class WorkflowRunTracker:
             try:
                 runs = json.loads(workflow_runs_file.read_text())
             except json.JSONDecodeError:
+                logger.warning("Corrupted workflow_runs.json, starting fresh list")
                 runs = []
         else:
             runs = []
@@ -334,8 +346,9 @@ class WorkflowRunTracker:
             runs = json.loads(workflow_runs_file.read_text())
 
             # Find and update the running workflow of this type
+            aliases = self._get_aliases(workflow_type)
             for run in reversed(runs):
-                if run.get("workflow_type") == workflow_type and run.get("status") == "running":
+                if run.get("workflow_type") in aliases and run.get("status") == "running":
                     run["status"] = "completed"
                     run["completed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     if summary:
@@ -346,6 +359,7 @@ class WorkflowRunTracker:
 
             return None
         except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning None")
             return None
 
     def fail_workflow_run(
@@ -370,8 +384,9 @@ class WorkflowRunTracker:
             runs = json.loads(workflow_runs_file.read_text())
 
             # Find and update the running workflow of this type
+            aliases = self._get_aliases(workflow_type)
             for run in reversed(runs):
-                if run.get("workflow_type") == workflow_type and run.get("status") == "running":
+                if run.get("workflow_type") in aliases and run.get("status") == "running":
                     run["status"] = "failed"
                     run["failed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     run["error"] = error_message
@@ -381,4 +396,5 @@ class WorkflowRunTracker:
 
             return None
         except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning None")
             return None

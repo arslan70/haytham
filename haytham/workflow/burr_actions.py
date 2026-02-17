@@ -42,7 +42,7 @@ def idea_analysis(state: State) -> State:
 
 
 @action(
-    reads=["system_goal", "idea_analysis", "market_context_status"],
+    reads=["system_goal", "idea_analysis", "market_context_status", "session_manager"],
     writes=[
         "market_context",
         "market_context_status",
@@ -58,7 +58,13 @@ def market_context(state: State) -> State:
 
 
 @action(
-    reads=["system_goal", "idea_analysis", "market_context", "risk_assessment_status"],
+    reads=[
+        "system_goal",
+        "idea_analysis",
+        "market_context",
+        "risk_assessment_status",
+        "session_manager",
+    ],
     writes=["risk_assessment", "risk_level", "risk_assessment_status", "current_stage"],
 )
 def risk_assessment(state: State) -> State:
@@ -73,6 +79,7 @@ def risk_assessment(state: State) -> State:
         "market_context",
         "risk_assessment",
         "pivot_strategy_status",
+        "session_manager",
     ],
     writes=["pivot_strategy", "pivot_strategy_status", "current_stage"],
 )
@@ -89,6 +96,7 @@ def pivot_strategy(state: State) -> State:
         "risk_assessment",
         "pivot_strategy",
         "validation_summary_status",
+        "session_manager",
     ],
     writes=["validation_summary", "validation_summary_status", "current_stage"],
 )
@@ -262,7 +270,13 @@ def story_generation(state: State) -> State:
 
 
 @action(
-    reads=["capability_model", "story_generation", "system_goal", "story_validation_status"],
+    reads=[
+        "capability_model",
+        "story_generation",
+        "system_goal",
+        "story_validation_status",
+        "session_manager",
+    ],
     writes=["story_validation", "story_validation_status", "current_stage"],
 )
 def story_validation(state: State) -> State:
@@ -280,7 +294,13 @@ def story_validation(state: State) -> State:
 
 
 @action(
-    reads=["story_generation", "story_validation", "system_goal", "dependency_ordering_status"],
+    reads=[
+        "story_generation",
+        "story_validation",
+        "system_goal",
+        "dependency_ordering_status",
+        "session_manager",
+    ],
     writes=["dependency_ordering", "dependency_ordering_status", "current_stage"],
 )
 def dependency_ordering(state: State) -> State:

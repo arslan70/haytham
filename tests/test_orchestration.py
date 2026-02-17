@@ -8,8 +8,7 @@ Tests the Session 8 deliverables:
 
 Reference: ADR-001h: Orchestration & Feedback Loops
 
-Note: This file is named orchestration_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/orchestration_tests.py -v
+Run with: pytest tests/test_orchestration.py -v
 """
 
 import tempfile

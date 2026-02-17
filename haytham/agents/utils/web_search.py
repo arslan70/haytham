@@ -42,14 +42,24 @@ _session_id: str | None = None
 _session_lock = threading.Lock()
 
 
+def _safe_int_env(name: str, default: int) -> int:
+    """Read an integer env var, falling back to *default* on bad values."""
+    raw = os.getenv(name, "")
+    try:
+        return int(raw) if raw else default
+    except ValueError:
+        logger.warning("Invalid integer for %s=%r, using default %d", name, raw, default)
+        return default
+
+
 def _get_session_limit() -> int:
     """Get configured session limit from environment."""
-    return int(os.getenv("WEB_SEARCH_SESSION_LIMIT", "20"))
+    return _safe_int_env("WEB_SEARCH_SESSION_LIMIT", 20)
 
 
 def _get_warning_threshold() -> int:
     """Get warning threshold from environment."""
-    return int(os.getenv("WEB_SEARCH_WARNING_THRESHOLD", "15"))
+    return _safe_int_env("WEB_SEARCH_WARNING_THRESHOLD", 15)
 
 
 def _check_session_limit() -> tuple[bool, str]:
@@ -342,7 +352,7 @@ def web_search(
     logger.info(
         "Web search executing",
         extra={
-            "query": query[:100],
+            "query_length": len(query),
             "session_count": _session_search_count,
             "session_limit": _get_session_limit(),
             "session_id": _session_id,

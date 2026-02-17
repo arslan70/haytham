@@ -324,16 +324,6 @@ class TestGetNextStage:
         assert session_manager.get_next_stage() is None
 
 
-class TestArchiveSession:
-    """Tests for archive_session() method (deprecated)."""
-
-    def test_archive_session_returns_empty_string(self, session_manager):
-        """archive_session returns empty string (deprecated)."""
-        session_manager.create_session()
-        result = session_manager.archive_session("completed")
-        assert result == ""
-
-
 class TestSaveAndLoadPreferences:
     """Tests for save_preferences() and load_preferences() methods."""
 

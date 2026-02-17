@@ -156,11 +156,7 @@ def create_workflow_for_type(
 # ---------------------------------------------------------------------------
 
 WORKFLOW_TERMINAL_STAGES: dict[WorkflowType, str] = {
-    WorkflowType.IDEA_VALIDATION: "validation_summary",
-    WorkflowType.MVP_SPECIFICATION: "system_traits",
-    WorkflowType.BUILD_BUY_ANALYSIS: "build_buy_analysis",
-    WorkflowType.ARCHITECTURE_DECISIONS: "architecture_decisions",
-    WorkflowType.STORY_GENERATION: "dependency_ordering",
+    wt: spec.stages[-1] for wt, spec in WORKFLOW_SPECS.items()
 }
 
 
@@ -172,5 +168,11 @@ def get_terminal_stage(workflow_type: WorkflowType) -> str:
 
     Returns:
         Name of the terminal stage action
+
+    Raises:
+        ValueError: If workflow_type is not recognised
     """
-    return WORKFLOW_TERMINAL_STAGES.get(workflow_type, "")
+    try:
+        return WORKFLOW_TERMINAL_STAGES[workflow_type]
+    except KeyError:
+        raise ValueError(f"Unknown workflow type: {workflow_type!r}") from None

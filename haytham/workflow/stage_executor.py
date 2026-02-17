@@ -20,8 +20,9 @@ from typing import Any
 
 from burr.core import State
 
+from haytham.agents.output_utils import extract_text_from_result
+
 from .agent_runner import (
-    _extract_agent_output,
     run_agent,
     run_parallel_agents,
     save_stage_output,
@@ -121,15 +122,9 @@ class StageExecutor:
         Returns:
             Updated state with stage outputs
         """
-        # Import telemetry (lazy to avoid circular imports)
-        try:
-            from haytham.telemetry import stage_span
-        except ImportError:
-            # Telemetry not available - use no-op context manager
-            from contextlib import nullcontext
+        from haytham.telemetry_utils import get_stage_span
 
-            def stage_span(*args, **kwargs):
-                return nullcontext()
+        stage_span = get_stage_span()
 
         # 1. Idempotent check - skip if already completed
         if self._is_already_completed(state):
@@ -190,7 +185,7 @@ class StageExecutor:
                     try:
                         warnings = validator(output, state)
                         validation_warnings.extend(warnings)
-                    except Exception as e:
+                    except (TypeError, KeyError, ValueError, AttributeError) as e:
                         logger.warning(f"Post-validator failed: {e}")
 
                 if validation_warnings:
@@ -199,7 +194,9 @@ class StageExecutor:
                         + "\n".join(f"  - {w}" for w in validation_warnings)
                     )
                     # Store warnings in state for decision gate surfacing
-                    extra_state_updates["validation_warnings"] = validation_warnings
+                    extra_state_updates[f"{self.stage.slug}_validation_warnings"] = (
+                        validation_warnings
+                    )
                     if hasattr(span, "set_attribute"):
                         span.set_attribute("stage.validation_warnings", len(validation_warnings))
 
@@ -212,7 +209,7 @@ class StageExecutor:
                         display_output = self.config.output_model.model_validate_json(
                             output
                         ).to_markdown()
-                    except Exception as e:
+                    except (ValueError, AttributeError) as e:
                         logger.warning(
                             f"Stage {self.stage.slug}: Failed to render markdown from output_model: {e}. "
                             "Saving raw output instead."
@@ -382,12 +379,12 @@ class StageExecutor:
             context_str = context.get("_context_str", f"## Startup Idea\n{system_goal}\n\n")
 
             result_raw = agent(context_str)
-            output = _extract_agent_output(
+            output = extract_text_from_result(
                 result_raw, output_as_json=self.config.output_model is not None
             )
             return output, "completed"
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: agent execution boundary
             logger.error(f"Custom agent failed: {e}")
             return f"Error: {str(e)}", "failed"
 

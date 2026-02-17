@@ -58,7 +58,7 @@ def _load_anchor_from_disk(
         anchor_str = data.get("anchor_str", "")
         logger.info(f"Loaded concept anchor from disk ({len(anchor_str)} chars)")
         return anchor, anchor_str
-    except Exception as e:
+    except (json.JSONDecodeError, OSError) as e:
         logger.warning(f"Failed to load anchor from disk: {e}")
         return None, ""
 
@@ -87,7 +87,7 @@ class WorkflowProgressHook(PostRunStepHook, PreRunStepHook):
         if self.on_stage_start:
             try:
                 self.on_stage_start(stage_name, stage_index, total_stages)
-            except Exception as e:
+            except (TypeError, AttributeError, ValueError) as e:
                 logger.error(f"on_stage_start callback failed: {e}")
 
     def post_run_step(self, *, action, state, result, **kwargs):
@@ -108,7 +108,7 @@ class WorkflowProgressHook(PostRunStepHook, PreRunStepHook):
                     "output": state.get(stage_name, ""),
                 }
                 self.on_stage_complete(stage_name, stage_index, total_stages, stage_result)
-            except Exception as e:
+            except (TypeError, AttributeError, ValueError) as e:
                 logger.error(f"on_stage_complete callback failed: {e}")
 
     def _get_stage_index(self, stage_name: str) -> int:
@@ -190,7 +190,7 @@ def build_workflow(
 
     logger.info(f"App ID: {app_id}")
     if system_goal:
-        logger.info(f"System Goal: {system_goal[:50]}...")
+        logger.info(f"System goal provided (length={len(system_goal)})")
 
     # 4. Create tracker
     tracker = None
@@ -198,7 +198,7 @@ def build_workflow(
         try:
             tracker = LocalTrackingClient(project=project)
             logger.info(f"Burr tracking enabled: {project}")
-        except Exception as e:
+        except (OSError, ImportError, RuntimeError) as e:
             logger.warning(f"Could not enable tracking: {e}")
 
     # 5. Create progress hook

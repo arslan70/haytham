@@ -37,7 +37,7 @@ def search_duckduckgo(query: str, max_results: int = 5) -> list[DuckDuckGoResult
         RatelimitException: If rate limited by DuckDuckGo
         DuckDuckGoSearchException: If search fails
     """
-    logger.info(f"DuckDuckGo search: {query[:100]}")
+    logger.info("DuckDuckGo search executing")
 
     results = []
     with DDGS() as ddgs:

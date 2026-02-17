@@ -7,8 +7,7 @@ Tests the Session 2 deliverables:
 
 Reference: ADR-001a: MVP Spec Enhancement
 
-Note: This file is named mvp_spec_parser_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/mvp_spec_parser_tests.py -v
+Run with: pytest tests/test_mvp_spec_parser.py -v
 """
 
 import tempfile

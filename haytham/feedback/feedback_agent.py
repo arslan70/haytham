@@ -323,9 +323,9 @@ Generate comprehensive, well-structured output for this stage following your sta
             result = agent(prompt)
 
             # Extract and format output using the same logic as the workflow
-            from haytham.workflow.agent_runner import _extract_agent_output
+            from haytham.agents.output_utils import extract_text_from_result
 
-            output = _extract_agent_output(result)
+            output = extract_text_from_result(result)
             outputs.append(output)
 
             # Save the output

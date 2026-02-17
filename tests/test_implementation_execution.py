@@ -8,8 +8,7 @@ Tests the Session 7 deliverables:
 
 Reference: ADR-001g: Implementation Execution
 
-Note: This file is named implementation_execution_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/implementation_execution_tests.py -v
+Run with: pytest tests/test_implementation_execution.py -v
 """
 
 import pytest

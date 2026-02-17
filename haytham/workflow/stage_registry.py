@@ -501,13 +501,6 @@ class StageRegistry:
     # Validation Helpers
     # =========================================================================
 
-    def is_final_stage(self, action_name: str) -> bool:
-        """Check if this is the final stage in the workflow."""
-        stage = self.get_by_action_safe(action_name)
-        if not stage:
-            return False
-        return stage == self._stages[-1]
-
     # =========================================================================
     # Workflow-Based Methods
     # =========================================================================
@@ -553,7 +546,7 @@ class StageRegistry:
             WorkflowType that the stage belongs to
 
         Raises:
-            KeyError: If slug not found
+            ValueError: If slug not found
         """
         stage = self.get_by_slug(slug)
         return stage.workflow_type
@@ -620,7 +613,8 @@ class StageRegistry:
             Formatted query string
 
         Raises:
-            KeyError: If slug not found or required template variables missing
+            ValueError: If slug not found
+            KeyError: If required template variables missing
         """
         stage = self.get_by_slug(slug)
         try:

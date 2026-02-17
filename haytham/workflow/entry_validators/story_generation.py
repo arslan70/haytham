@@ -1,14 +1,10 @@
 """Entry condition validator for Story Generation workflow."""
 
 import logging
-from typing import TYPE_CHECKING
 
 from haytham.workflow.stage_registry import WorkflowType
 
 from .base import EntryConditionResult, WorkflowEntryValidator
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 

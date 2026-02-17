@@ -19,6 +19,13 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Any
 
+from haytham.agents.utils.bedrock_config import (
+    create_bedrock_model,
+)
+from haytham.agents.utils.bedrock_config import (
+    get_model_id_for_tier as bedrock_get_model_id,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -125,10 +132,6 @@ def get_model_id_for_tier(tier: str) -> str:
 
     # 2. Bedrock backward compat — delegate to existing bedrock_config
     if provider is LLMProvider.BEDROCK:
-        from haytham.agents.utils.bedrock_config import (
-            get_model_id_for_tier as bedrock_get_model_id,
-        )
-
         try:
             return bedrock_get_model_id(tier)
         except ValueError:
@@ -183,8 +186,6 @@ def _strip_bedrock_kwargs(kwargs: dict) -> None:
 
 @_register_provider(LLMProvider.BEDROCK)
 def _create_bedrock(model_id, max_tokens, streaming, temperature, **kwargs):
-    from haytham.agents.utils.bedrock_config import create_bedrock_model
-
     return create_bedrock_model(
         model_id=model_id,
         max_tokens=max_tokens,
@@ -197,6 +198,8 @@ def _create_bedrock(model_id, max_tokens, streaming, temperature, **kwargs):
 @_register_provider(LLMProvider.ANTHROPIC)
 def _create_anthropic(model_id, max_tokens, streaming, temperature, **kwargs):
     _strip_bedrock_kwargs(kwargs)
+    if streaming:
+        logger.warning("streaming=True ignored for Anthropic provider")
 
     try:
         from strands.models.anthropic import AnthropicModel
@@ -226,6 +229,8 @@ def _create_anthropic(model_id, max_tokens, streaming, temperature, **kwargs):
 @_register_provider(LLMProvider.OPENAI)
 def _create_openai(model_id, max_tokens, streaming, temperature, **kwargs):
     _strip_bedrock_kwargs(kwargs)
+    if streaming:
+        logger.warning("streaming=True ignored for OpenAI provider")
 
     try:
         from strands.models.openai import OpenAIModel
@@ -256,6 +261,8 @@ def _create_openai(model_id, max_tokens, streaming, temperature, **kwargs):
 @_register_provider(LLMProvider.OLLAMA)
 def _create_ollama(model_id, max_tokens, streaming, temperature, **kwargs):
     _strip_bedrock_kwargs(kwargs)
+    if streaming:
+        logger.warning("streaming=True ignored for Ollama provider")
 
     try:
         from strands.models.ollama import OllamaModel

@@ -3,14 +3,12 @@
 import json
 import logging
 import re
-from typing import TYPE_CHECKING
 
 from haytham.workflow.stage_registry import WorkflowType
 
-from .base import EntryConditionResult, WorkflowEntryValidator
+_RECOMMENDATION_RE = re.compile(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)")
 
-if TYPE_CHECKING:
-    pass
+from .base import EntryConditionResult, WorkflowEntryValidator
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +162,7 @@ class MVPSpecificationEntryValidator(WorkflowEntryValidator):
         summary_upper = validation_summary.upper()
 
         # Look for explicit "Recommendation:" line from ValidationSummaryOutput
-        match = re.search(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)", summary_upper)
+        match = _RECOMMENDATION_RE.search(summary_upper)
         if match:
             recommendation = match.group(1)
             logger.info(f"Recommendation from markdown regex: {recommendation}")

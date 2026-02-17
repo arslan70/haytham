@@ -3,7 +3,7 @@
 Tests the BacklogCLI class and its task management methods.
 Uses mocking to simulate CLI commands without requiring actual Backlog.md installation.
 
-Run with: pytest tests/backlog_cli_tests.py -v
+Run with: pytest tests/test_backlog_cli.py -v
 """
 
 from pathlib import Path

@@ -1,7 +1,7 @@
 # Haytham Development Makefile
 # Quick iteration commands for development workflow
 
-.PHONY: help run stage resume reset test-idea test lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures
+.PHONY: help run burr stage resume reset test-idea test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages
 
 # Default target
 help:
@@ -152,13 +152,13 @@ endif
 # =============================================================================
 
 test:
-	pytest tests/ -v
+	uv run pytest tests/ -v
 
 test-unit:
-	pytest tests/ -v -m "not integration"
+	uv run pytest tests/ -v -m "not integration"
 
 test-e2e:
-	pytest tests/ -v -m integration
+	uv run pytest tests/ -v -m integration
 
 # =============================================================================
 # Agent Quality (LLM-as-Judge, ADR-018)
@@ -184,10 +184,10 @@ endif
 # =============================================================================
 
 lint:
-	ruff check haytham/
+	uv run ruff check haytham/ --fix
 
 format:
-	ruff format haytham/
+	uv run ruff format haytham/
 
 clean:
 	rm -rf __pycache__ .pytest_cache .ruff_cache

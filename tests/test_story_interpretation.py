@@ -9,8 +9,7 @@ Tests the Session 4 deliverables:
 
 Reference: ADR-001d: Story Interpretation Engine
 
-Note: This file is named story_interpretation_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/story_interpretation_tests.py -v
+Run with: pytest tests/test_story_interpretation.py -v
 """
 
 import pytest

@@ -21,6 +21,7 @@ Decision rules (Robert Cooper Stage-Gate inspired):
 
 import json
 import re
+import threading
 
 from strands import tool
 
@@ -160,30 +161,38 @@ def _validate_evidence(score: int, evidence: str) -> str | None:
 
 
 # ---------------------------------------------------------------------------
-# Module-level accumulator (same pattern as context_retrieval.py)
+# Thread-local accumulator (same pattern as context_retrieval.py)
 # ---------------------------------------------------------------------------
 
-_scorecard: dict = {
-    "knockouts": [],
-    "dimensions": [],
-    "counter_signals": [],
-    "risk_level": "",
-    "evidence_quality": {},
-}
+_thread_local = threading.local()
+
+
+def _new_scorecard() -> dict:
+    """Create a fresh scorecard with default structure."""
+    return {
+        "knockouts": [],
+        "dimensions": [],
+        "counter_signals": [],
+        "risk_level": "",
+        "evidence_quality": {},
+    }
+
+
+def _get_scorecard() -> dict:
+    """Return the current thread's scorecard, initializing if needed."""
+    if not hasattr(_thread_local, "scorecard"):
+        _thread_local.scorecard = _new_scorecard()
+    return _thread_local.scorecard
 
 
 def clear_scorecard() -> None:
     """Reset the scorecard accumulator to empty state."""
-    _scorecard["knockouts"] = []
-    _scorecard["dimensions"] = []
-    _scorecard["counter_signals"] = []
-    _scorecard["risk_level"] = ""
-    _scorecard["evidence_quality"] = {}
+    _thread_local.scorecard = _new_scorecard()
 
 
 def get_scorecard() -> dict:
-    """Return the current scorecard state (testing/debugging only)."""
-    return dict(_scorecard)
+    """Return a copy of the current scorecard state (testing/debugging only)."""
+    return dict(_get_scorecard())
 
 
 # ---------------------------------------------------------------------------
@@ -338,14 +347,15 @@ def record_knockout(criterion: str, result: str, evidence: str) -> str:
     Returns:
         Confirmation message with current knockout count.
     """
-    _scorecard["knockouts"].append(
+    sc = _get_scorecard()
+    sc["knockouts"].append(
         {
             "criterion": criterion,
             "result": result.upper(),
             "evidence": evidence,
         }
     )
-    n = len(_scorecard["knockouts"])
+    n = len(sc["knockouts"])
     return f"Recorded knockout '{criterion}' = {result.upper()}. Total knockouts: {n}"
 
 
@@ -368,19 +378,21 @@ def record_dimension_score(dimension: str, score: int, evidence: str) -> str:
     if error:
         return error
 
+    sc = _get_scorecard()
+
     # Evidence dedup: reject if >70% word overlap with already-recorded dimension
-    dedup_error = _check_evidence_dedup(evidence, _scorecard["dimensions"])
+    dedup_error = _check_evidence_dedup(evidence, sc["dimensions"])
     if dedup_error:
         return dedup_error
 
-    _scorecard["dimensions"].append(
+    sc["dimensions"].append(
         {
             "dimension": dimension,
             "score": int(score),
             "evidence": evidence,
         }
     )
-    n = len(_scorecard["dimensions"])
+    n = len(sc["dimensions"])
     return f"Recorded dimension '{dimension}' = {score}/5. Total dimensions: {n}"
 
 
@@ -421,8 +433,9 @@ def record_counter_signal(
             f"Re-call with a valid source."
         )
 
+    sc = _get_scorecard()
     dims = [d.strip() for d in affected_dimensions.split(",") if d.strip()]
-    _scorecard["counter_signals"].append(
+    sc["counter_signals"].append(
         {
             "signal": signal,
             "source": normalized_source,
@@ -432,7 +445,7 @@ def record_counter_signal(
             "what_would_change_score": what_would_change_score,
         }
     )
-    n = len(_scorecard["counter_signals"])
+    n = len(sc["counter_signals"])
     return f"Recorded counter-signal '{signal[:40]}...'. Total signals: {n}"
 
 
@@ -457,8 +470,9 @@ def set_risk_and_evidence(
     Returns:
         Confirmation message.
     """
-    _scorecard["risk_level"] = risk_level.upper()
-    _scorecard["evidence_quality"] = {
+    sc = _get_scorecard()
+    sc["risk_level"] = risk_level.upper()
+    sc["evidence_quality"] = {
         "external_supported": int(external_supported),
         "external_total": int(external_total),
         "contradicted_critical": int(contradicted_critical),
@@ -484,11 +498,12 @@ def compute_verdict() -> str:
         adjusted, floor_capped, floor_violations, risk_capped, and
         confidence_hint.  Returns an error message if required data is missing.
     """
-    knockouts = _scorecard["knockouts"]
-    dimensions = _scorecard["dimensions"]
-    signals = _scorecard["counter_signals"]
-    risk_level = _scorecard["risk_level"]
-    eq = _scorecard["evidence_quality"]
+    sc = _get_scorecard()
+    knockouts = sc["knockouts"]
+    dimensions = sc["dimensions"]
+    signals = sc["counter_signals"]
+    risk_level = sc["risk_level"]
+    eq = sc["evidence_quality"]
 
     # Validate required data
     if not knockouts:

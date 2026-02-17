@@ -21,6 +21,14 @@ from haytham.config import (
     WorkflowPhase,
 )
 from haytham.project.project_state import ProjectStateManager
+from haytham.session.formatting import (
+    create_manifest,
+    format_agent_output,
+    format_checkpoint,
+    format_user_feedback,
+    parse_manifest,
+    update_manifest,
+)
 from haytham.session.workflow_runs import WorkflowRunTracker
 from haytham.workflow.stage_registry import (
     STAGES,
@@ -240,7 +248,7 @@ class SessionManager:
             filtered_runs = [r for r in runs if r.get("workflow_type") != workflow_type]
             workflow_runs_file.write_text(json.dumps(filtered_runs, indent=2))
         except json.JSONDecodeError:
-            pass
+            logger.warning("Corrupted workflow_runs.json, skipping clear")
 
     def save_checkpoint(
         self,
@@ -535,27 +543,6 @@ class SessionManager:
 
         return None  # All stages complete
 
-    def archive_session(self, status: str = "completed") -> str:
-        """DEPRECATED: Archive functionality is no longer used.
-
-        The system now operates with a single persistent project.
-        Sessions are not archived - they remain active for MVP specification
-        and future iterations.
-
-        This method is kept for backwards compatibility but does nothing.
-
-        Args:
-            status: Status to include in archive name (ignored)
-
-        Returns:
-            Empty string (no archive created)
-        """
-        logger.warning(
-            "archive_session() is deprecated. Sessions are no longer archived. "
-            "The project remains active for MVP specification."
-        )
-        return ""
-
     def save_final_output(self, requirements_content: str) -> str:
         """Save final requirements document to outputs directory.
 
@@ -565,7 +552,7 @@ class SessionManager:
         Returns:
             Path to the saved requirements file
         """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output_path = self.outputs_dir / f"requirements_{timestamp}.md"
         output_path.write_text(requirements_content)
 
@@ -978,8 +965,6 @@ class SessionManager:
             created: ISO 8601 timestamp
             system_goal: The system goal string (may be None if not set yet)
         """
-        from haytham.session.formatting import create_manifest
-
         content = create_manifest(
             stages=[(s.slug, s.display_name) for s in STAGES],
             created=created,
@@ -998,8 +983,6 @@ class SessionManager:
         duration: float | None,
     ) -> None:
         """Update session_manifest.md with stage status."""
-        from haytham.session.formatting import update_manifest
-
         manifest_path = self.session_dir / "session_manifest.md"
 
         if not manifest_path.exists():
@@ -1024,8 +1007,6 @@ class SessionManager:
 
     def _parse_manifest(self, content: str) -> dict[str, Any]:
         """Parse session_manifest.md content."""
-        from haytham.session.formatting import parse_manifest
-
         return parse_manifest(
             content,
             valid_stage_slugs={s.slug for s in STAGES},
@@ -1045,7 +1026,6 @@ class SessionManager:
         errors: list[str],
     ) -> str:
         """Format checkpoint.md content."""
-        from haytham.session.formatting import format_checkpoint
 
         # Compute prev/next stage info from STAGES
         stage_index = None
@@ -1098,8 +1078,6 @@ class SessionManager:
         stack_trace: str | None,
     ) -> str:
         """Format agent output markdown content."""
-        from haytham.session.formatting import format_agent_output
-
         return format_agent_output(
             agent_name=agent_name,
             context_label=f"{stage_slug} - {stage_name}",
@@ -1128,8 +1106,6 @@ class SessionManager:
         retry_count: int,
     ) -> str:
         """Format user_feedback.md content."""
-        from haytham.session.formatting import format_user_feedback
-
         return format_user_feedback(
             context_name=stage_name,
             reviewed=reviewed,

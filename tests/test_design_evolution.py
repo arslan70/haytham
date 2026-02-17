@@ -9,8 +9,7 @@ Tests the Session 5 deliverables:
 
 Reference: ADR-001e: System Design Evolution
 
-Note: This file is named design_evolution_tests.py to avoid gitignore pattern test_*.py
-Run with: pytest tests/design_evolution_tests.py -v
+Run with: pytest tests/test_design_evolution.py -v
 """
 
 import pytest

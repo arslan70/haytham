@@ -45,10 +45,10 @@ def format_agent_output(
         error_message: Error description on failure, or ``None``.
         stack_trace: Full traceback on failure, or ``None``.
     """
-    duration_str = f"{duration:.1f}s" if duration else "-"
+    duration_str = f"{duration:.1f}s" if duration is not None else "-"
     model_str = model if model else "-"
-    input_tokens_str = str(input_tokens) if input_tokens else "-"
-    output_tokens_str = str(output_tokens) if output_tokens else "-"
+    input_tokens_str = str(input_tokens) if input_tokens is not None else "-"
+    output_tokens_str = str(output_tokens) if output_tokens is not None else "-"
     tools_str = ", ".join(tools_used) if tools_used else "none"
 
     content = f"""# Agent Output: {agent_name}
@@ -172,7 +172,7 @@ def format_checkpoint(
     """
     started_str = started if started else "-"
     completed_str = completed if completed else "-"
-    duration_str = f"{duration:.1f}s" if duration else "-"
+    duration_str = f"{duration:.1f}s" if duration is not None else "-"
 
     content = f"""# Stage Checkpoint: {stage_name}
 

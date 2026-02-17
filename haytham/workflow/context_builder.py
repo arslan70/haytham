@@ -4,7 +4,7 @@ Pure functions that build concise context summaries from previous stage outputs
 for downstream agents. Extracted from burr_actions.py (ADR-024).
 
 Key functions:
-    _build_context_summary   -- Main entry point, builds context from stage outputs.
+    build_context_summary    -- Main entry point, builds context from stage outputs.
     render_validation_summary_from_json -- Public, used by mvp_scope_swarm and mvp_specification.
 """
 
@@ -12,6 +12,8 @@ import json
 import logging
 import re
 from typing import Any
+
+from haytham.workflow.stage_registry import get_stage_registry
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +90,7 @@ def _render_risk_assessment_context(data: dict) -> str:
 def render_validation_summary_from_json(data: dict) -> str:
     """Render validation_summary JSON into context for downstream agents.
 
-    Shared renderer used by _build_context_summary(), run_mvp_scope_chain(),
+    Shared renderer used by build_context_summary(), run_mvp_scope_chain(),
     and build_mvp_scope_context() to avoid triplicated parsing logic.
     """
     lines = [
@@ -109,7 +111,7 @@ def render_validation_summary_from_json(data: dict) -> str:
 
 
 def _render_validation_summary_context(data: dict) -> str:
-    """Render validation_summary JSON for _build_context_summary()."""
+    """Render validation_summary JSON for build_context_summary()."""
     return render_validation_summary_from_json(data)
 
 
@@ -166,7 +168,7 @@ def _try_render_json_context(key: str, content: str) -> str | None:
         return None
 
 
-def _build_context_summary(context: dict[str, Any], max_chars: int = 200) -> str:
+def build_context_summary(context: dict[str, Any], max_chars: int = 200) -> str:
     """Build a concise context summary from previous stage outputs.
 
     ADR-022: Uses TL;DR sections when available, falls back to first-line
@@ -196,14 +198,10 @@ def _build_context_summary(context: dict[str, Any], max_chars: int = 200) -> str
         summaries.append(f"\n{context['concept_anchor']}")
 
     # Stage outputs - prefer JSON rendering, then TL;DR, then first paragraph
+    # Derived from the registry so new stages are picked up automatically.
+    registry = get_stage_registry()
     stage_keys = [
-        ("idea_analysis", "Idea Analysis"),
-        ("market_context", "Market Context"),
-        ("risk_assessment", "Risk Assessment"),
-        ("validation_summary", "Validation Summary"),
-        ("mvp_scope", "MVP Scope"),
-        ("capability_model", "Capability Model"),
-        ("system_traits", "System Traits"),
+        (s.state_key, s.display_name) for s in registry.all_stages(include_optional=False)
     ]
 
     for key, label in stage_keys:
