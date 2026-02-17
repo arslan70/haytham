@@ -280,7 +280,7 @@ class TestDetectStoryAmbiguities:
         auto_resolved = [a for a in ambiguities if a.classification == "auto_resolvable"]
 
         for amb in auto_resolved:
-            assert amb.resolved is True
+            assert amb.resolved
             assert amb.resolution is not None
 
 
@@ -297,7 +297,7 @@ class TestConsistencyChecker:
 
         report = checker.check(story)
 
-        assert report.passed is True
+        assert report.passed
         assert report.passed_count >= 2  # At least E-001 and E-002
 
     def test_check_fails_for_missing_entity(self, notes_app_state):
@@ -314,7 +314,7 @@ class TestConsistencyChecker:
 
         report = checker.check(bad_story)
 
-        assert report.passed is False
+        assert not report.passed
         assert "E-999" in str(report.prerequisites_needed)
 
     def test_check_passes_for_story_dependencies(self, notes_app_state):
@@ -327,7 +327,7 @@ class TestConsistencyChecker:
         # Should pass because S-002 exists
         story_check = next((c for c in report.checks if c.check_type == "story_exists"), None)
         assert story_check is not None
-        assert story_check.passed is True
+        assert story_check.passed
 
 
 # ========== Story Interpreter Tests ==========
@@ -385,7 +385,7 @@ class TestStoryInterpreter:
         # Should be blocked due to search scope ambiguity
         if result.pending_ambiguities:
             assert result.status == "blocked"
-            assert result.is_blocked is True
+            assert result.is_blocked
 
     def test_interpret_collects_assumptions(self, notes_app_state):
         """Interpreter collects assumptions from auto-resolved ambiguities."""
@@ -431,7 +431,7 @@ class TestStoryInterpreterUpdate:
             story = next(s for s in notes_app_state.stories if s.id == "S-003")
             resolved_amb = next((a for a in story.ambiguities if a.question == question), None)
             assert resolved_amb is not None
-            assert resolved_amb.resolved is True
+            assert resolved_amb.resolved
             assert resolved_amb.resolution == "Title and content"
 
 

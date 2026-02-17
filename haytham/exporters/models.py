@@ -2,6 +2,14 @@
 
 from dataclasses import dataclass, field
 
+# Single source of truth for layer number → display name mapping.
+LAYER_NAMES: dict[int, str] = {
+    1: "Bootstrap",
+    2: "Entity Models",
+    3: "Infrastructure",
+    4: "Features",
+}
+
 
 @dataclass
 class ExportableStory:
@@ -31,13 +39,7 @@ class ExportableStory:
     @property
     def layer_name(self) -> str:
         """Get human-readable layer name."""
-        layer_names = {
-            1: "Bootstrap",
-            2: "Entity Models",
-            3: "Infrastructure",
-            4: "Features",
-        }
-        return layer_names.get(self.layer, "Unknown")
+        return LAYER_NAMES.get(self.layer, "Unknown")
 
     @property
     def clean_labels(self) -> list[str]:

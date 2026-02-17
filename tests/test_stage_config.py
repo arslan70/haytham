@@ -49,7 +49,7 @@ class TestStageMetadata:
         assert stage.workflow_type == WorkflowType.IDEA_VALIDATION
         assert stage.query_template == "Test query: {system_goal}"
         assert stage.agent_names == ["test_agent"]
-        assert stage.is_optional is False
+        assert not stage.is_optional
         assert stage.execution_mode == "single"
 
     def test_stage_metadata_immutable(self):
@@ -157,7 +157,7 @@ class TestStageConfigs:
     def test_pivot_strategy_is_optional(self):
         """Test pivot-strategy stage is marked as optional."""
         stage = get_stage_by_slug("pivot-strategy")
-        assert stage.is_optional is True
+        assert stage.is_optional
         assert stage.display_index == "3b"
 
     def test_build_buy_analysis_stage(self):

@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from burr.core import State
+from pydantic import ValidationError
 
 from haytham.agents.tools.competitor_recording import (
     clear_competitor_accumulator,
@@ -396,7 +397,7 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
                 completed=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                 execution_mode="sequential",
             )
-        except Exception as e:
+        except (ValueError, FileNotFoundError, OSError) as e:
             logger.error(f"Failed to save final market-context checkpoint: {e}")
 
     logger.info(
@@ -573,7 +574,7 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
         # Validate the merged dict parses as ValidationSummaryOutput
         ValidationSummaryOutput.model_validate(merged)
         merged_json = json.dumps(merged)
-    except Exception as e:
+    except (ValidationError, KeyError, TypeError, ValueError) as e:
         logger.error(f"Failed to merge scorer+narrator outputs: {e}")
         return scorer_output, "partial"
 

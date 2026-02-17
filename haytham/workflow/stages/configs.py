@@ -90,17 +90,13 @@ def story_coherence_validator(output: str, state: "State") -> list[str]:
 STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     "idea-analysis": StageExecutionConfig(
         stage_slug="idea-analysis",
-        query_template=(
-            "Analyze this startup idea in depth. Identify the core problems it solves, "
-            "target users, and unique value proposition: {system_goal}"
-        ),
+        # query_template inherited from StageMetadata in registry
         # ADR-022: Extract concept anchor after idea analysis to prevent concept drift
         # The post_processor extracts the anchor and saves it to disk in one step
         post_processor=extract_anchor_post_processor,
     ),
     "market-context": StageExecutionConfig(
         stage_slug="market-context",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_market_context_sequential,
         post_processor=extract_competitor_data_processor,
     ),
@@ -123,7 +119,6 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     ),
     "validation-summary": StageExecutionConfig(
         stage_slug="validation-summary",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_validation_summary_sequential,
         additional_save=save_final_output,
         output_model=_ValidationSummaryOutput,
@@ -139,7 +134,6 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     ),
     "mvp-scope": StageExecutionConfig(
         stage_slug="mvp-scope",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_mvp_scope_swarm,
     ),
     "capability-model": StageExecutionConfig(
@@ -159,11 +153,7 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     ),
     "system-traits": StageExecutionConfig(
         stage_slug="system-traits",
-        query_template=(
-            "Classify the system traits for this startup idea based on the capability model "
-            "and MVP scope. Determine: interface type, auth model, deployment targets, "
-            "data layer, and realtime requirements."
-        ),
+        # query_template inherited from StageMetadata in registry
         custom_agent_factory=create_system_traits_agent,
         custom_context_builder=build_system_traits_context,
         post_processor=extract_system_traits_processor,
@@ -173,18 +163,15 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     ),
     "build-buy-analysis": StageExecutionConfig(
         stage_slug="build-buy-analysis",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=analyze_capabilities_for_build_buy,
         output_model=_BuildBuyAnalysisOutput,
     ),
     "architecture-decisions": StageExecutionConfig(
         stage_slug="architecture-decisions",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_architecture_decisions,
     ),
     "story-generation": StageExecutionConfig(
         stage_slug="story-generation",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_story_generation,
         # ADR-022 Part 4: Validate story count against appetite limits
         post_validators=[story_coherence_validator],
@@ -192,12 +179,10 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     ),
     "story-validation": StageExecutionConfig(
         stage_slug="story-validation",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_story_validation,
     ),
     "dependency-ordering": StageExecutionConfig(
         stage_slug="dependency-ordering",
-        query_template="",  # Not used for programmatic stages
         programmatic_executor=run_dependency_ordering,
         additional_save=create_backlog_drafts_after_ordering,
     ),

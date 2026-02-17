@@ -289,11 +289,11 @@ def generate_missing_stage(stage_slug: str) -> str:
 
     try:
         from haytham.agents.factory.agent_factory import create_agent_by_name
-        from haytham.feedback.revision_executor import STAGE_AGENT_MAP, _save_revised_output
+        from haytham.feedback.revision_executor import _get_agents_for_stage, _save_revised_output
         from haytham.session.session_manager import SessionManager
 
         # Get agent(s) for this stage
-        agent_names = STAGE_AGENT_MAP.get(stage_slug, [])
+        agent_names = _get_agents_for_stage(stage_slug)
         if not agent_names:
             return f"No agent configured for stage '{stage_slug}'. Cannot generate output."
 

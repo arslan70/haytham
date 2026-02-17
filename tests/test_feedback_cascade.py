@@ -117,32 +117,32 @@ class TestIsCascadeNeeded:
     def test_first_stage_needs_cascade(self):
         """Affecting first stage should need cascade."""
         result = is_cascade_needed(["idea-analysis"], IDEA_VALIDATION_STAGES)
-        assert result is True
+        assert result
 
     def test_middle_stage_needs_cascade(self):
         """Affecting middle stage should need cascade."""
         result = is_cascade_needed(["market-context"], IDEA_VALIDATION_STAGES)
-        assert result is True
+        assert result
 
     def test_last_stage_no_cascade(self):
         """Affecting last stage should not need cascade."""
         result = is_cascade_needed(["validation-summary"], IDEA_VALIDATION_STAGES)
-        assert result is False
+        assert not result
 
     def test_empty_affected_no_cascade(self):
         """Empty affected stages should not need cascade."""
         result = is_cascade_needed([], IDEA_VALIDATION_STAGES)
-        assert result is False
+        assert not result
 
     def test_empty_workflow_no_cascade(self):
         """Empty workflow should not need cascade."""
         result = is_cascade_needed(["idea-analysis"], [])
-        assert result is False
+        assert not result
 
     def test_single_stage_workflow_no_cascade(self):
         """Single stage workflow should not need cascade."""
         result = is_cascade_needed(["mvp-scope"], ["mvp-scope"])
-        assert result is False
+        assert not result
 
 
 # Note: get_cascade_summary tests are skipped because they require

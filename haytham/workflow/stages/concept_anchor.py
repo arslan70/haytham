@@ -14,6 +14,8 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any
 
+from pydantic import ValidationError
+
 from haytham.agents.factory.agent_factory import create_agent_by_name
 from haytham.workflow.anchor_schema import ConceptAnchor, ConceptHealth
 
@@ -73,7 +75,7 @@ Return the structured ConceptAnchor."""
                 anchor = ConceptAnchor.model_validate(result.structured_output)
                 logger.info("Anchor extracted from Strands output dict")
                 return anchor
-            except Exception as e:
+            except ValidationError as e:
                 logger.warning(f"Failed to validate Strands output dict: {e}")
 
     # 2. Fall back to parsing JSON from message content
@@ -87,7 +89,7 @@ Return the structured ConceptAnchor."""
                 anchor = ConceptAnchor.model_validate(data)
                 logger.info("Anchor extracted from message content JSON")
                 return anchor
-            except Exception as e:
+            except ValidationError as e:
                 logger.warning(f"Failed to validate anchor from JSON: {e}")
 
     # 3. Fallback: create a minimal anchor
@@ -223,7 +225,7 @@ def extract_anchor_post_processor(output: str, state: "State") -> dict[str, Any]
                 }
                 anchor_file.write_text(json.dumps(anchor_data, indent=2))
                 logger.info(f"Saved concept anchor to {anchor_file}")
-            except Exception as save_err:
+            except (OSError, TypeError, ValueError) as save_err:
                 logger.error(f"Failed to save anchor file: {save_err}", exc_info=True)
         else:
             logger.warning("No session_manager in state - anchor file not saved to disk")

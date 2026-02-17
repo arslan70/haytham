@@ -144,7 +144,7 @@ class TestChangeRequestHandler:
         )
 
         assert modified_query == "New custom prompt for this stage"
-        assert should_retry is True
+        assert should_retry
 
         # Verify feedback was saved
         feedback_file = temp_session_dir / "session" / "idea-analysis" / "user_feedback.md"
@@ -171,7 +171,7 @@ class TestChangeRequestHandler:
 
         assert "Conduct market research" in modified_query
         assert "Additional guidance: Focus on B2B market segment" in modified_query
-        assert should_retry is True
+        assert should_retry
 
         # Verify feedback was saved
         feedback_file = temp_session_dir / "session" / "market-context" / "user_feedback.md"
@@ -193,7 +193,7 @@ class TestChangeRequestHandler:
         )
 
         assert modified_query == "Identify profitable niches"
-        assert should_retry is True
+        assert should_retry
 
         # Verify feedback was saved
         feedback_file = temp_session_dir / "session" / "risk-assessment" / "user_feedback.md"
@@ -214,7 +214,7 @@ class TestChangeRequestHandler:
         )
 
         assert modified_query == "Default query"
-        assert should_retry is False
+        assert not should_retry
 
         # Verify max retries feedback was saved
         feedback_file = temp_session_dir / "session" / "idea-analysis" / "user_feedback.md"
@@ -240,7 +240,7 @@ class TestChangeRequestHandler:
         elapsed_time = time.time() - start_time
 
         assert elapsed_time >= 1.8
-        assert should_retry is True
+        assert should_retry
 
     def test_no_delay_on_first_attempt(self, change_request_handler):
         """Test that no delay is applied on first attempt (retry_count=0)."""
@@ -258,15 +258,15 @@ class TestChangeRequestHandler:
         elapsed_time = time.time() - start_time
 
         assert elapsed_time < 0.1
-        assert should_retry is True
+        assert should_retry
 
     def test_should_allow_retry(self, change_request_handler):
         """Test should_allow_retry method."""
-        assert change_request_handler.should_allow_retry(0) is True
-        assert change_request_handler.should_allow_retry(1) is True
-        assert change_request_handler.should_allow_retry(2) is True
-        assert change_request_handler.should_allow_retry(3) is False
-        assert change_request_handler.should_allow_retry(4) is False
+        assert change_request_handler.should_allow_retry(0)
+        assert change_request_handler.should_allow_retry(1)
+        assert change_request_handler.should_allow_retry(2)
+        assert not change_request_handler.should_allow_retry(3)
+        assert not change_request_handler.should_allow_retry(4)
 
     def test_get_retry_delay(self, change_request_handler):
         """Test get_retry_delay method."""
@@ -287,7 +287,7 @@ class TestChangeRequestHandler:
         )
 
         assert modified_query == "Default query"
-        assert should_retry is True
+        assert should_retry
 
     def test_empty_guidance_fallback(self, change_request_handler):
         """Test fallback to default when guidance is empty."""
@@ -301,7 +301,7 @@ class TestChangeRequestHandler:
         )
 
         assert modified_query == "Default query"
-        assert should_retry is True
+        assert should_retry
 
     def test_long_prompt_truncation_in_feedback(self, change_request_handler, temp_session_dir):
         """Test that long prompts are truncated in feedback file."""
@@ -334,7 +334,7 @@ class TestChangeRequestHandler:
                 default_query="Default query",
                 retry_count=retry_count,
             )
-            assert should_retry is True
+            assert should_retry
 
         # Fourth retry (should fail - max retries exceeded)
         _, should_retry = change_request_handler.handle_change_request(
@@ -343,7 +343,7 @@ class TestChangeRequestHandler:
             default_query="Default query",
             retry_count=3,
         )
-        assert should_retry is False
+        assert not should_retry
 
 
 class TestIntegration:
@@ -365,7 +365,7 @@ class TestIntegration:
         )
 
         assert "Focus on enterprise customers" in query_1
-        assert should_retry_1 is True
+        assert should_retry_1
 
         # Second attempt: modify prompt
         change_request_2 = ChangeRequest(
@@ -381,7 +381,7 @@ class TestIntegration:
         )
 
         assert query_2 == "Research only B2B SaaS market"
-        assert should_retry_2 is True
+        assert should_retry_2
 
         # Third attempt: retry with same
         change_request_3 = ChangeRequest(change_type="retry_with_same")
@@ -394,7 +394,7 @@ class TestIntegration:
         )
 
         assert query_3 == "Conduct market research"
-        assert should_retry_3 is True
+        assert should_retry_3
 
         # Fourth attempt: should fail (max retries)
         change_request_4 = ChangeRequest(change_type="retry_with_same")
@@ -406,4 +406,4 @@ class TestIntegration:
             retry_count=3,
         )
 
-        assert should_retry_4 is False
+        assert not should_retry_4

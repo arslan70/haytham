@@ -52,134 +52,21 @@ class EntryConditionResult:
     details: dict[str, Any]
 
 
-class Workflow2EntryValidator:
-    """Validates that all entry conditions for Workflow 2 are met.
-
-    Entry conditions (from ADR-005):
-    - capability_model_status == "completed" in Workflow 1
-    - At least 1 functional capability exists in VectorDB
-    - MVP Scope document exists
-    """
-
-    def __init__(self, session_manager):
-        """Initialize validator with session manager.
-
-        Args:
-            session_manager: SessionManager instance for loading state
-        """
-        self.session_manager = session_manager
-        self.errors: list[str] = []
-        self.warnings: list[str] = []
-
-    def validate(self) -> EntryConditionResult:
-        """Run all entry condition checks.
-
-        Returns:
-            EntryConditionResult with pass/fail status and details
-        """
-        self.errors = []
-        self.warnings = []
-
-        # Check 1: Workflow 1 completed
-        workflow_1_complete = self._check_workflow_1_complete()
-
-        # Check 2: Functional capabilities exist
-        capability_count = self._check_functional_capabilities()
-
-        # Check 3: MVP Scope exists
-        mvp_scope_exists = self._check_mvp_scope()
-
-        # Compile result
-        passed = len(self.errors) == 0
-
-        if passed:
-            message = f"All entry conditions met. {capability_count} functional capabilities found."
-        else:
-            message = f"Entry conditions not met: {'; '.join(self.errors)}"
-
-        return EntryConditionResult(
-            passed=passed,
-            message=message,
-            details={
-                "workflow_1_complete": workflow_1_complete,
-                "capability_count": capability_count,
-                "mvp_scope_exists": mvp_scope_exists,
-                "errors": self.errors,
-                "warnings": self.warnings,
-            },
-        )
-
-    def _check_workflow_1_complete(self) -> bool:
-        """Check if Workflow 1 (Discovery) is complete."""
-        # Check for workflow completion record
-        if self.session_manager.run_tracker.is_workflow_complete("discovery"):
-            return True
-
-        # Fallback: Check if capability_model stage is complete
-        session = self.session_manager.load_session()
-        if session:
-            stage_statuses = session.get("stage_statuses", {})
-            if stage_statuses.get("capability-model") == "completed":
-                self.warnings.append(
-                    "Workflow 1 completion not recorded, but capability_model stage is complete"
-                )
-                return True
-
-        self.errors.append("Workflow 1 (Discovery) is not complete")
-        return False
-
-    def _check_functional_capabilities(self) -> int:
-        """Check that at least 1 functional capability exists."""
-        try:
-            from haytham.state.vector_db import SystemStateDB
-
-            db_path = self.session_manager.session_dir / "vector_db"
-            if not db_path.exists():
-                self.errors.append("VectorDB directory not found")
-                return 0
-
-            db = SystemStateDB(str(db_path))
-            capabilities = db.get_capabilities()
-
-            # Filter for functional capabilities
-            # Note: Capabilities use "subtype" (functional, non_functional, operational)
-            functional_caps = [c for c in capabilities if c.get("subtype") == "functional"]
-
-            if not functional_caps:
-                self.errors.append("No functional capabilities found in VectorDB")
-                return 0
-
-            return len(functional_caps)
-
-        except Exception as e:
-            self.errors.append(f"Failed to load capabilities: {str(e)}")
-            return 0
-
-    def _check_mvp_scope(self) -> bool:
-        """Check that MVP Scope document exists."""
-        mvp_scope = self.session_manager.load_stage_output("mvp-scope")
-
-        if not mvp_scope:
-            self.errors.append("MVP Scope document not found")
-            return False
-
-        if len(mvp_scope.strip()) < 100:
-            self.warnings.append("MVP Scope document seems too short")
-
-        return True
-
-
 def validate_entry_conditions(session_manager) -> EntryConditionResult:
-    """Convenience function to validate entry conditions.
+    """Validate entry conditions for Workflow 2 via the canonical validator.
 
-    Args:
-        session_manager: SessionManager instance
-
-    Returns:
-        EntryConditionResult with validation outcome
+    Delegates to BuildBuyAnalysisEntryValidator in entry_validators/build_buy.py,
+    which is the single source of truth for Build/Buy entry validation.
     """
-    validator = Workflow2EntryValidator(session_manager)
-    return validator.validate()
+    from haytham.workflow.entry_validators import validate_workflow_entry
+    from haytham.workflow.stage_registry import WorkflowType
+
+    result = validate_workflow_entry(WorkflowType.BUILD_BUY_ANALYSIS, session_manager)
+    return EntryConditionResult(
+        passed=result.passed,
+        message=result.message,
+        details={"errors": [], "warnings": []},
+    )
 
 
 # =============================================================================

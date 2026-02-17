@@ -232,7 +232,7 @@ class TestEvaluateRecommendationCounterSignals:
         assert result["recommendation"] == "GO"
         assert result["composite_score"] == 4.0
         assert any("counter-signal(s) recorded" in w for w in result["warnings"])
-        assert result["adjusted"] is False
+        assert not result["adjusted"]
 
     def test_reconciled_signals_no_penalty(self):
         """Properly reconciled counter-signals produce no inconsistency warnings.
@@ -256,7 +256,7 @@ class TestEvaluateRecommendationCounterSignals:
         )
         # Only the low-signal-count warning, no inconsistency warning
         assert all("scored" not in w for w in result["warnings"])
-        assert result["adjusted"] is False
+        assert not result["adjusted"]
         assert result["composite_score"] == 4.0
 
     def test_one_inconsistency_warns_but_no_penalty(self):
@@ -280,7 +280,7 @@ class TestEvaluateRecommendationCounterSignals:
         assert len(result["warnings"]) == 2
         assert any("Problem Severity" in w for w in result["warnings"])
         assert any("counter-signal(s) recorded" in w for w in result["warnings"])
-        assert result["adjusted"] is True
+        assert result["adjusted"]
         assert result["composite_score"] == 3.5
 
     def test_two_inconsistencies_trigger_penalty(self):
@@ -307,7 +307,7 @@ class TestEvaluateRecommendationCounterSignals:
             counter_signals=signals,
         )
         assert len(result["warnings"]) >= 2
-        assert result["adjusted"] is True
+        assert result["adjusted"]
         assert result["composite_score"] == 3.5  # 4.0 - 0.5
 
     def test_penalty_can_shift_verdict_to_pivot(self):
@@ -381,7 +381,7 @@ class TestEvaluateRecommendationCounterSignals:
         )
         assert result["recommendation"] == "NO-GO"
         assert result["warnings"] == []
-        assert result["adjusted"] is False
+        assert not result["adjusted"]
 
 
 # =============================================================================
@@ -730,7 +730,7 @@ class TestFloorRule:
             dimension_scores=dims,
         )
         assert result["composite_score"] == 3.0
-        assert result["floor_capped"] is True
+        assert result["floor_capped"]
         assert "Revenue Viability" in result["floor_violations"]
         assert result["recommendation"] == "PIVOT"
 
@@ -740,7 +740,7 @@ class TestFloorRule:
             knockout_results=_knockouts_pass(),
             dimension_scores=_dimensions_high(),
         )
-        assert result["floor_capped"] is False
+        assert not result["floor_capped"]
         assert result["floor_violations"] == []
 
     def test_no_floor_when_composite_already_low(self):
@@ -757,7 +757,7 @@ class TestFloorRule:
             dimension_scores=dims,
         )
         # (2+2+3)/3 = 2.33 — already below 3.0
-        assert result["floor_capped"] is False
+        assert not result["floor_capped"]
         assert len(result["floor_violations"]) == 2  # Still lists violations
 
     def test_floor_and_counter_signal_penalty_interact(self):
@@ -791,8 +791,8 @@ class TestFloorRule:
             counter_signals=signals,
         )
         # Floor caps to 3.0, then -0.5 penalty → 2.5 → PIVOT
-        assert result["floor_capped"] is True
-        assert result["adjusted"] is True
+        assert result["floor_capped"]
+        assert result["adjusted"]
         assert result["composite_score"] == 2.5
         assert result["recommendation"] == "PIVOT"
 
@@ -809,7 +809,7 @@ class TestFloorRule:
             knockout_results=_knockouts_pass(),
             dimension_scores=dims,
         )
-        assert result["floor_capped"] is True
+        assert result["floor_capped"]
         assert result["composite_score"] == 3.0
 
 
@@ -829,7 +829,7 @@ class TestRiskLevelVeto:
             risk_level="HIGH",
         )
         assert result["recommendation"] == "PIVOT"
-        assert result["risk_capped"] is True
+        assert result["risk_capped"]
 
     def test_high_risk_with_good_reconciliation_preserves_go(self):
         """HIGH risk with 2+ well-reconciled signals → GO preserved."""
@@ -860,7 +860,7 @@ class TestRiskLevelVeto:
             risk_level="HIGH",
         )
         assert result["recommendation"] == "GO"
-        assert result["risk_capped"] is False
+        assert not result["risk_capped"]
 
     def test_medium_risk_no_veto(self):
         """MEDIUM risk does not trigger veto."""
@@ -870,7 +870,7 @@ class TestRiskLevelVeto:
             risk_level="MEDIUM",
         )
         assert result["recommendation"] == "GO"
-        assert result["risk_capped"] is False
+        assert not result["risk_capped"]
 
     def test_empty_risk_level_backward_compat(self):
         """Empty string risk_level (default) → no veto."""
@@ -879,7 +879,7 @@ class TestRiskLevelVeto:
             dimension_scores=_dimensions_high(),
         )
         assert result["recommendation"] == "GO"
-        assert result["risk_capped"] is False
+        assert not result["risk_capped"]
 
     def test_already_pivot_not_double_penalized(self):
         """Already-PIVOT verdict not affected by risk veto."""
@@ -896,7 +896,7 @@ class TestRiskLevelVeto:
             risk_level="HIGH",
         )
         assert result["recommendation"] == "PIVOT"
-        assert result["risk_capped"] is False  # Was already PIVOT
+        assert not result["risk_capped"]  # Was already PIVOT
 
     def test_high_risk_with_legacy_long_reconciliation(self):
         """Legacy reconciliation ≥ 50 chars counts as well-reconciled for veto override."""
@@ -923,7 +923,7 @@ class TestRiskLevelVeto:
             risk_level="HIGH",
         )
         assert result["recommendation"] == "GO"
-        assert result["risk_capped"] is False
+        assert not result["risk_capped"]
 
 
 # =============================================================================
@@ -958,7 +958,7 @@ class TestStructuredReconciliation:
         )
         # No inconsistency warnings, only the low-signal-count warning
         assert all("scored" not in w for w in result["warnings"])
-        assert result["adjusted"] is False
+        assert not result["adjusted"]
 
     def test_partial_fields_warning(self):
         """Only 2 of 3 structured fields → not reconciled, warning on high-scored dim.
@@ -1158,7 +1158,7 @@ class TestReconciliationQualityGate:
         )
         # No inconsistency warnings, only the low-signal-count warning
         assert all("scored" not in w for w in result["warnings"])
-        assert result["adjusted"] is False
+        assert not result["adjusted"]
 
     def test_circular_evidence_blocks_risk_veto_override(self):
         """Circular evidence should not count as well-reconciled for risk veto override.

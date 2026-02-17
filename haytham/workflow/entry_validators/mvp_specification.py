@@ -2,11 +2,9 @@
 
 import json
 import logging
-import re
 
+from haytham.agents.tools.metric_patterns import RE_RECOMMENDATION_PLAIN
 from haytham.workflow.stage_registry import WorkflowType
-
-_RECOMMENDATION_RE = re.compile(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)")
 
 from .base import MIN_STAGE_OUTPUT_LENGTH, EntryConditionResult, WorkflowEntryValidator
 
@@ -162,7 +160,7 @@ class MVPSpecificationEntryValidator(WorkflowEntryValidator):
         summary_upper = validation_summary.upper()
 
         # Look for explicit "Recommendation:" line from ValidationSummaryOutput
-        match = _RECOMMENDATION_RE.search(summary_upper)
+        match = RE_RECOMMENDATION_PLAIN.search(summary_upper)
         if match:
             recommendation = match.group(1)
             logger.info(f"Recommendation from markdown regex: {recommendation}")

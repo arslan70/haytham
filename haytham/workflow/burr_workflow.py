@@ -9,17 +9,20 @@ the high-level execution layer that adds telemetry, error classification,
 and result extraction on top.
 """
 
+import json
 import logging
-import re
 import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from burr.core import State
 
-from .stage_registry import WorkflowType
+from haytham.agents.tools.metric_patterns import RE_RECOMMENDATION_PLAIN
+
+from .stage_registry import WorkflowType, get_stage_registry
 from .workflow_factories import (
     WORKFLOW_TERMINAL_STAGES,
     create_idea_validation_workflow,
@@ -35,6 +38,68 @@ logger = logging.getLogger(__name__)
 
 # Existing callers (e.g. haytham/workflow/__init__.py) import this name.
 create_validation_workflow = create_idea_validation_workflow
+
+
+# =============================================================================
+# Recommendation Extraction
+# =============================================================================
+
+
+def _extract_recommendation(
+    final_state: State,
+    results: dict[str, Any],
+    session_manager: Any,
+) -> str | None:
+    """Extract GO/NO-GO/PIVOT recommendation via 3-tier fallback.
+
+    Tier 1: Burr state (written by extract_recommendation_processor).
+    Tier 2: recommendation.json on disk (written by same processor).
+    Tier 3: Anchored regex on validation-summary output (backward compat).
+
+    Args:
+        final_state: Final Burr state after workflow execution.
+        results: Extracted results dict from _extract_results().
+        session_manager: SessionManager instance (may be None).
+
+    Returns:
+        Recommendation string ("GO", "NO-GO", "PIVOT") or None.
+    """
+    # Tier 1: Burr state (set by extract_recommendation_processor post-processor)
+    rec = final_state.get("recommendation")
+    if rec and rec in ("GO", "NO-GO", "PIVOT"):
+        logger.info(f"Recommendation from Burr state: {rec}")
+        return rec
+
+    # Tier 2: recommendation.json on disk
+    if session_manager and hasattr(session_manager, "session_dir"):
+        meta_path = Path(session_manager.session_dir) / "recommendation.json"
+        if meta_path.exists():
+            try:
+                data = json.loads(meta_path.read_text())
+                rec = data.get("recommendation", "").upper().strip()
+                if rec in ("GO", "NO-GO", "PIVOT"):
+                    logger.info(f"Recommendation from recommendation.json: {rec}")
+                    return rec
+            except (json.JSONDecodeError, OSError):
+                pass
+
+    # Tier 3: Anchored regex on validation-summary output (correct hyphenated key)
+    vs_result = results.get("validation-summary")
+    if vs_result:
+        summary_text = ""
+        if isinstance(vs_result, dict):
+            outputs = vs_result.get("outputs", {})
+            summary_text = outputs.get("report_synthesis", "")
+        elif isinstance(vs_result, str):
+            summary_text = vs_result
+        if summary_text:
+            match = RE_RECOMMENDATION_PLAIN.search(summary_text.upper())
+            if match:
+                rec = match.group(1)
+                logger.info(f"Recommendation from regex fallback: {rec}")
+                return rec
+
+    return None
 
 
 # =============================================================================
@@ -162,15 +227,19 @@ class BurrWorkflowRunner:
                     span.set_attribute("workflow.risk_level", risk_level)
 
                 # Check for failures and identify which stage failed
+                registry = get_stage_registry()
                 stage_names = IDEA_VALIDATION_SPEC.stages
                 failed_stage = None
                 stage_error = None
 
                 for stage in stage_names:
-                    if final_state.get(f"{stage}_status") == "failed":
+                    stage_meta = registry.get_by_action_safe(stage)
+                    status_key = stage_meta.status_key if stage_meta else f"{stage}_status"
+                    if final_state.get(status_key) == "failed":
                         failed_stage = stage
                         # Try to get the error from the stage output
-                        stage_output = final_state.get(stage, "")
+                        state_key = stage_meta.state_key if stage_meta else stage
+                        stage_output = final_state.get(state_key, "")
                         if isinstance(stage_output, str) and stage_output.startswith("Error"):
                             stage_error = stage_output
                         break
@@ -193,13 +262,8 @@ class BurrWorkflowRunner:
                         execution_time=execution_time,
                     )
 
-                # Extract recommendation from results
-                recommendation = None
-                if results.get("validation_summary"):
-                    summary = results["validation_summary"]
-                    match = re.search(r"\b(NO-GO|PIVOT|GO)\b", summary.upper())
-                    if match:
-                        recommendation = match.group(1)
+                # Extract recommendation via 3-tier fallback
+                recommendation = _extract_recommendation(final_state, results, self.session_manager)
 
                 logger.info("=" * 60)
                 logger.info("WORKFLOW COMPLETED SUCCESSFULLY")

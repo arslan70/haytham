@@ -203,7 +203,7 @@ class TestContextLoader:
         assert context["system_goal"] == TEST_SYSTEM_GOAL
         assert context["_missing_agents"] == []
         # Token count may be > 0 if preferences are loaded
-        assert context["_summarized"] is False
+        assert not context["_summarized"]
 
     def test_load_context_market_context(self, sample_session):
         """Test loading context for market-context stage."""
@@ -258,7 +258,7 @@ class TestContextLoader:
 
         # market-context should be valid (concept_expansion exists)
         is_valid, missing = loader.validate_stage_context(stage_slug="market-context")
-        assert is_valid is True
+        assert is_valid
         assert missing == []
 
     def test_temporal_guardrail_enforcement(self, sample_session):
@@ -312,7 +312,7 @@ class TestContextLoader:
 
         context = loader.load_context(stage_slug="risk-assessment")
 
-        assert context["_summarized"] is True
+        assert context["_summarized"]
         assert context["_context_size_tokens"] < 100
 
     def test_disable_summarization(self, sample_session):
@@ -328,7 +328,7 @@ class TestContextLoader:
             disable_summarization=True,
         )
 
-        assert context["_summarized"] is False
+        assert not context["_summarized"]
 
     def test_extract_output_content(self, sample_session):
         """Test extraction of output content from agent output files."""

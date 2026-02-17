@@ -218,6 +218,11 @@ def build_workflow(
         context[key] = session_manager.load_stage_output(stage_slug) or ""
 
     # 8. Build state
+    # NOTE: session_manager is a non-serializable Python object stored in Burr
+    # state. This prevents Burr's built-in state serialization (checkpoints,
+    # persistence). Refactoring it out requires changing 12+ Burr actions that
+    # declare reads=["session_manager"]. Tracked for a future PR; the current
+    # approach works because we only use in-process state, not Burr persistence.
     state: dict[str, Any] = {
         "system_goal": system_goal,
         "session_manager": session_manager,

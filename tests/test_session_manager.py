@@ -9,6 +9,7 @@ Tests cover:
 - get_next_stage() returns correct next stage
 """
 
+import concurrent.futures
 import json
 import shutil
 
@@ -34,12 +35,12 @@ class TestHasActiveSession:
 
     def test_no_session_returns_false(self, session_manager):
         """has_active_session returns False when no session exists."""
-        assert session_manager.has_active_session() is False
+        assert not session_manager.has_active_session()
 
     def test_active_session_returns_true(self, session_manager):
         """has_active_session returns True when in_progress session exists."""
         session_manager.create_session()
-        assert session_manager.has_active_session() is True
+        assert session_manager.has_active_session()
 
     def test_completed_session_returns_false(self, session_manager):
         """has_active_session returns False when session is completed."""
@@ -49,14 +50,14 @@ class TestHasActiveSession:
         content = manifest_path.read_text()
         content = content.replace("- Status: in_progress", "- Status: completed")
         manifest_path.write_text(content)
-        assert session_manager.has_active_session() is False
+        assert not session_manager.has_active_session()
 
     def test_corrupted_manifest_returns_false(self, session_manager):
         """has_active_session returns False when manifest is corrupted."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
         manifest_path = session_manager.session_dir / "session_manifest.md"
         manifest_path.write_text("invalid content")
-        assert session_manager.has_active_session() is False
+        assert not session_manager.has_active_session()
 
 
 class TestCreateSession:
@@ -419,14 +420,14 @@ class TestWorkflowLocking:
         """is_workflow_locked returns False when no lock file exists."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
 
-        assert session_manager.run_tracker.is_workflow_locked("idea-validation") is False
+        assert not session_manager.run_tracker.is_workflow_locked("idea-validation")
 
     def test_is_workflow_locked_returns_true_when_locked(self, session_manager):
         """is_workflow_locked returns True when lock file exists."""
         session_manager.session_dir.mkdir(parents=True, exist_ok=True)
         session_manager.run_tracker.lock_workflow("idea-validation")
 
-        assert session_manager.run_tracker.is_workflow_locked("idea-validation") is True
+        assert session_manager.run_tracker.is_workflow_locked("idea-validation")
 
     def test_lock_workflow_updates_workflow_run_status(self, session_manager):
         """lock_workflow updates the workflow run status to 'accepted'."""
@@ -506,9 +507,9 @@ class TestWorkflowLocking:
         # Lock only idea-validation
         session_manager.run_tracker.lock_workflow("idea-validation")
 
-        assert session_manager.run_tracker.is_workflow_locked("idea-validation") is True
-        assert session_manager.run_tracker.is_workflow_locked("mvp-specification") is False
-        assert session_manager.run_tracker.is_workflow_locked("story-generation") is False
+        assert session_manager.run_tracker.is_workflow_locked("idea-validation")
+        assert not session_manager.run_tracker.is_workflow_locked("mvp-specification")
+        assert not session_manager.run_tracker.is_workflow_locked("story-generation")
 
     def test_workflow_feedback_state_with_legacy_aliases(self, session_manager):
         """get_workflow_feedback_state handles legacy workflow names."""
@@ -521,3 +522,94 @@ class TestWorkflowLocking:
         # Query with new name "idea-validation" should find it
         state = session_manager.run_tracker.get_workflow_feedback_state("idea-validation")
         assert state == "feedback"
+
+
+class TestConcurrentSessionOperations:
+    """Smoke tests for concurrent file I/O in session operations.
+
+    Exercises save_checkpoint() and WorkflowRunTracker from multiple threads.
+    Note: save_checkpoint has no internal lock, so these verify filesystem-level
+    behavior (disjoint paths, last-writer-wins) rather than application-level
+    thread safety. Operations on the SAME paths (e.g. concurrent create+delete)
+    are known-racy due to TOCTOU patterns (pre-merge-fixes C3) and are not
+    tested here.
+    """
+
+    def test_concurrent_save_checkpoint_different_stages(self, session_manager):
+        """Concurrent saves to disjoint stage directories should not crash or corrupt."""
+
+        session_manager.create_session()
+        stages = ["idea-analysis", "market-context", "risk-assessment"]
+
+        def save(slug):
+            session_manager.save_checkpoint(
+                stage_slug=slug,
+                status="completed",
+                agents=[{"agent_name": "test_agent", "status": "completed"}],
+            )
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [pool.submit(save, s) for s in stages]
+            for f in concurrent.futures.as_completed(futures):
+                f.result()
+
+        # Each stage directory should have a checkpoint
+        for slug in stages:
+            checkpoint = session_manager.session_dir / slug / "checkpoint.md"
+            assert checkpoint.exists(), f"Missing checkpoint for {slug}"
+            content = checkpoint.read_text()
+            assert f"Stage: {slug}" in content
+
+    def test_concurrent_save_checkpoint_same_stage(self, session_manager):
+        """Concurrent saves to the same stage: last writer wins, no partial writes."""
+
+        session_manager.create_session()
+
+        def save(i):
+            session_manager.save_checkpoint(
+                stage_slug="idea-analysis",
+                status="completed",
+                agents=[{"agent_name": f"agent_{i}", "status": "completed"}],
+            )
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            futures = [pool.submit(save, i) for i in range(4)]
+            for f in concurrent.futures.as_completed(futures):
+                f.result()
+
+        # Checkpoint must exist and be valid markdown (not a partial write)
+        checkpoint = session_manager.session_dir / "idea-analysis" / "checkpoint.md"
+        assert checkpoint.exists()
+        content = checkpoint.read_text()
+        assert "Stage: idea-analysis" in content
+        assert "Status: completed" in content
+
+    def test_concurrent_workflow_run_tracking(self, session_manager):
+        """WorkflowRunTracker (which uses threading.Lock) must not corrupt JSON."""
+
+        session_manager.create_session()
+        tracker = session_manager.run_tracker
+
+        def start_and_complete(wf_type):
+            tracker.start_workflow_run(wf_type)
+            tracker.complete_workflow_run(wf_type)
+
+        workflow_types = [
+            "idea-validation",
+            "mvp-specification",
+            "technical-design",
+        ]
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            futures = [pool.submit(start_and_complete, wt) for wt in workflow_types]
+            for f in concurrent.futures.as_completed(futures):
+                f.result()
+
+        # JSON file must be valid and contain all workflow types
+        runs_file = session_manager.session_dir / "workflow_runs.json"
+        assert runs_file.exists()
+        runs = json.loads(runs_file.read_text())
+        assert isinstance(runs, list)
+        recorded_types = {r.get("workflow_type") for r in runs}
+        for wt in workflow_types:
+            assert wt in recorded_types, f"Missing workflow type: {wt}"

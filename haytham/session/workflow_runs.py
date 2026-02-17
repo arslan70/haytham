@@ -7,6 +7,7 @@ within the session directory.
 
 import json
 import logging
+import threading
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -36,6 +37,7 @@ class WorkflowRunTracker:
 
     def __init__(self, session_dir: Path) -> None:
         self.session_dir = session_dir
+        self._lock = threading.Lock()
 
     def _get_aliases(self, workflow_type: str) -> list[str]:
         """Return all recognized names for a workflow type.
@@ -44,6 +46,22 @@ class WorkflowRunTracker:
         names match interchangeably when looking up workflow runs.
         """
         return self.WORKFLOW_ALIASES.get(workflow_type, [workflow_type])
+
+    def _read_runs(self) -> list[dict]:
+        """Read workflow runs from disk. Caller must hold self._lock."""
+        workflow_runs_file = self.session_dir / "workflow_runs.json"
+        if not workflow_runs_file.exists():
+            return []
+        try:
+            return json.loads(workflow_runs_file.read_text())
+        except json.JSONDecodeError:
+            logger.warning("Corrupted workflow_runs.json, returning empty list")
+            return []
+
+    def _write_runs(self, runs: list[dict]) -> None:
+        """Write workflow runs to disk. Caller must hold self._lock."""
+        workflow_runs_file = self.session_dir / "workflow_runs.json"
+        workflow_runs_file.write_text(json.dumps(runs, indent=2))
 
     def lock_workflow(self, workflow_type: str) -> None:
         """Lock a workflow, marking its artifacts as immutable.
@@ -106,60 +124,47 @@ class WorkflowRunTracker:
         if self.is_workflow_locked(workflow_type):
             return "accepted"
 
-        # Check workflow run status
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return "not_started"
-
         aliases = self._get_aliases(workflow_type)
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
+        with self._lock:
+            runs = self._read_runs()
 
-            # Find the most recent run for this workflow type
-            for run in reversed(runs):
-                if run.get("workflow_type") in aliases:
-                    status = run.get("status", "not_started")
-                    if status == "completed":
-                        # Completed but not locked = feedback phase
-                        return "feedback"
-                    elif status == "running":
-                        return "running"
-                    elif status == "accepted":
-                        return "accepted"
+        # Find the most recent run for this workflow type
+        for run in reversed(runs):
+            if run.get("workflow_type") in aliases:
+                status = run.get("status", "not_started")
+                if status == "completed":
+                    return "feedback"
+                elif status == "running":
+                    return "running"
+                elif status == "accepted":
+                    return "accepted"
 
-            return "not_started"
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, returning not_started")
-            return "not_started"
+        return "not_started"
 
     def _update_workflow_run_status(self, workflow_type: str, new_status: str) -> None:
         """Update the status of the most recent workflow run.
 
         Internal helper to update workflow run status (e.g., to "accepted").
+        Acquires self._lock internally.
 
         Args:
             workflow_type: Type of workflow to update
             new_status: New status to set
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return
+        aliases = self._get_aliases(workflow_type)
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
+        with self._lock:
+            runs = self._read_runs()
+            if not runs:
+                return
 
-            # Find and update the most recent completed run of this type
-            aliases = self._get_aliases(workflow_type)
             for run in reversed(runs):
                 if run.get("workflow_type") in aliases:
                     run["status"] = new_status
                     run["status_updated_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                    workflow_runs_file.write_text(json.dumps(runs, indent=2))
+                    self._write_runs(runs)
                     return
-
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, skipping status update")
 
     def record_workflow_complete(
         self,
@@ -179,19 +184,6 @@ class WorkflowRunTracker:
         Returns:
             Dict containing the transition record
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-
-        # Load existing runs
-        if workflow_runs_file.exists():
-            try:
-                runs = json.loads(workflow_runs_file.read_text())
-            except json.JSONDecodeError:
-                logger.warning("Corrupted workflow_runs.json, starting fresh list")
-                runs = []
-        else:
-            runs = []
-
-        # Create new run record
         run_record = {
             "run_id": str(uuid.uuid4()),
             "workflow_type": workflow_type,
@@ -200,8 +192,10 @@ class WorkflowRunTracker:
             "summary": summary or {},
         }
 
-        runs.append(run_record)
-        workflow_runs_file.write_text(json.dumps(runs, indent=2))
+        with self._lock:
+            runs = self._read_runs()
+            runs.append(run_record)
+            self._write_runs(runs)
 
         return run_record
 
@@ -216,20 +210,14 @@ class WorkflowRunTracker:
         Returns:
             True if the workflow has a completion record
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return False
-
         aliases = self._get_aliases(workflow_type)
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
-            return any(
-                r.get("workflow_type") in aliases and r.get("status") == "completed" for r in runs
-            )
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, returning False")
-            return False
+        with self._lock:
+            runs = self._read_runs()
+
+        return any(
+            r.get("workflow_type") in aliases and r.get("status") == "completed" for r in runs
+        )
 
     def get_workflow_status(self, workflow_type: str) -> str:
         """Get the status of a specific workflow.
@@ -240,26 +228,19 @@ class WorkflowRunTracker:
         Returns:
             Status string: "not_started", "in_progress", "completed"
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return "not_started"
-
         aliases = self._get_aliases(workflow_type)
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
-            # Find the most recent run for this workflow type
-            for run in reversed(runs):
-                if run.get("workflow_type") in aliases:
-                    status = run.get("status", "not_started")
-                    if status == "completed":
-                        return "completed"
-                    elif status == "running":
-                        return "in_progress"
-            return "not_started"
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, returning not_started")
-            return "not_started"
+        with self._lock:
+            runs = self._read_runs()
+
+        for run in reversed(runs):
+            if run.get("workflow_type") in aliases:
+                status = run.get("status", "not_started")
+                if status == "completed":
+                    return "completed"
+                elif status == "running":
+                    return "in_progress"
+        return "not_started"
 
     def get_current_workflow(self) -> str | None:
         """Get the workflow currently in progress.
@@ -267,20 +248,13 @@ class WorkflowRunTracker:
         Returns:
             Workflow type string if a workflow is in progress, None otherwise
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return None
+        with self._lock:
+            runs = self._read_runs()
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
-            # Find the most recent running workflow
-            for run in reversed(runs):
-                if run.get("status") == "running":
-                    return run.get("workflow_type")
-            return None
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, returning None")
-            return None
+        for run in reversed(runs):
+            if run.get("status") == "running":
+                return run.get("workflow_type")
+        return None
 
     def start_workflow_run(
         self,
@@ -296,19 +270,6 @@ class WorkflowRunTracker:
         Returns:
             Dict containing the new run record
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-
-        # Load existing runs
-        if workflow_runs_file.exists():
-            try:
-                runs = json.loads(workflow_runs_file.read_text())
-            except json.JSONDecodeError:
-                logger.warning("Corrupted workflow_runs.json, starting fresh list")
-                runs = []
-        else:
-            runs = []
-
-        # Create new run record
         run_record = {
             "run_id": str(uuid.uuid4()),
             "workflow_type": workflow_type,
@@ -319,8 +280,10 @@ class WorkflowRunTracker:
             },
         }
 
-        runs.append(run_record)
-        workflow_runs_file.write_text(json.dumps(runs, indent=2))
+        with self._lock:
+            runs = self._read_runs()
+            runs.append(run_record)
+            self._write_runs(runs)
 
         return run_record
 
@@ -338,29 +301,23 @@ class WorkflowRunTracker:
         Returns:
             Updated run record, or None if no running workflow found
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return None
+        aliases = self._get_aliases(workflow_type)
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
+        with self._lock:
+            runs = self._read_runs()
+            if not runs:
+                return None
 
-            # Find and update the running workflow of this type
-            aliases = self._get_aliases(workflow_type)
             for run in reversed(runs):
                 if run.get("workflow_type") in aliases and run.get("status") == "running":
                     run["status"] = "completed"
                     run["completed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     if summary:
                         run["summary"] = summary
-
-                    workflow_runs_file.write_text(json.dumps(runs, indent=2))
+                    self._write_runs(runs)
                     return run
 
-            return None
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, returning None")
-            return None
+        return None
 
     def fail_workflow_run(
         self,
@@ -376,25 +333,37 @@ class WorkflowRunTracker:
         Returns:
             Updated run record, or None if no running workflow found
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return None
+        aliases = self._get_aliases(workflow_type)
 
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
+        with self._lock:
+            runs = self._read_runs()
+            if not runs:
+                return None
 
-            # Find and update the running workflow of this type
-            aliases = self._get_aliases(workflow_type)
             for run in reversed(runs):
                 if run.get("workflow_type") in aliases and run.get("status") == "running":
                     run["status"] = "failed"
                     run["failed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     run["error"] = error_message
-
-                    workflow_runs_file.write_text(json.dumps(runs, indent=2))
+                    self._write_runs(runs)
                     return run
 
-            return None
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, returning None")
-            return None
+        return None
+
+    def clear_runs(self, workflow_type: str) -> None:
+        """Remove all run records for a specific workflow type.
+
+        Used when clearing a workflow for re-run. Respects alias mapping
+        so clearing "discovery" also removes "idea-validation" records.
+
+        Args:
+            workflow_type: Type of workflow to clear runs for
+        """
+        aliases = set(self._get_aliases(workflow_type))
+
+        with self._lock:
+            runs = self._read_runs()
+            if not runs:
+                return
+            filtered = [r for r in runs if r.get("workflow_type") not in aliases]
+            self._write_runs(filtered)

@@ -15,3 +15,7 @@ RE_CLAIMS = re.compile(
     r"\*\*Summary:\*\*\s*(\d+) claims analyzed:\s*(\d+) supported,\s*(\d+) partial",
     re.IGNORECASE,
 )
+
+# Plain-text (non-markdown) recommendation pattern used by workflow runner
+# and entry validators to extract the verdict from uppercased output.
+RE_RECOMMENDATION_PLAIN = re.compile(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)")

@@ -154,7 +154,7 @@ class TestCreateModelForFileOperations:
         create_model_for_file_operations(model_id="test-model")
         kwargs = mock.call_args[1]
         assert kwargs["max_tokens"] == 4096
-        assert kwargs["streaming"] is False
+        assert not kwargs["streaming"]
         assert kwargs["read_timeout"] == 600.0
         assert kwargs["connect_timeout"] == 60.0
 

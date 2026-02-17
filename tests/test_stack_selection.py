@@ -261,7 +261,7 @@ class TestHumanGates:
         )
 
         assert presentation.recommended.template_id == "web-python-react"
-        assert presentation.recommended.is_recommended is True
+        assert presentation.recommended.is_recommended
         assert len(presentation.alternatives) >= 1  # Other web stacks
         assert "Platform Decision" in presentation.formatted_text
         assert "Recommended" in presentation.formatted_text
@@ -309,7 +309,7 @@ class TestStateUpdaterStack:
 
         result = updater.set_stack("web-python-react")
 
-        assert result is True
+        assert result
         assert empty_pipeline_state.stack is not None
         assert empty_pipeline_state.stack.platform == "web_application"
         assert empty_pipeline_state.stack.backend.language == "python"
@@ -321,7 +321,7 @@ class TestStateUpdaterStack:
 
         result = updater.set_stack("invalid-template")
 
-        assert result is False
+        assert not result
         assert empty_pipeline_state.stack is None
 
     def test_set_stack_persists_to_yaml(self, temp_session_dir):

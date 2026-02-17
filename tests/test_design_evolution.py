@@ -182,7 +182,7 @@ class TestImpactAnalyzer:
         # Should propose search implementation decision
         search_decisions = [d for d in result.new_decisions if "search" in d.topic]
         assert len(search_decisions) >= 1
-        assert search_decisions[0].auto_resolvable is True
+        assert search_decisions[0].auto_resolvable
 
     def test_analyze_missing_entity(self, empty_state):
         """Analyzer identifies missing entity dependency."""
@@ -218,7 +218,7 @@ class TestDesignEvolutionEngine:
         engine = DesignEvolutionEngine(notes_app_state)
         result = engine.evolve(create_note_story)
 
-        assert result.has_conflicts is False
+        assert not result.has_conflicts
         assert result.status != "blocked_on_conflicts"
 
     def test_evolve_generates_decisions(self, notes_app_state, create_note_story):
@@ -266,7 +266,7 @@ class TestEntityRegistration:
 
         # E-002 should already be planned
         result = engine.register_entity_as_planned("E-002")
-        assert result is True
+        assert result
 
     def test_register_all_story_entities(self, notes_app_state, create_note_story):
         """Can register all entities from story dependencies."""
@@ -310,7 +310,7 @@ class TestConflictDetection:
         engine = DesignEvolutionEngine(notes_app_state)
         result = engine.evolve(create_note_story)
 
-        assert result.has_conflicts is False
+        assert not result.has_conflicts
 
     def test_conflict_detection_with_existing_decision(self, notes_app_state):
         """Conflict detected when decision topic matches existing."""
@@ -330,7 +330,7 @@ class TestConflictDetection:
         result = engine.evolve(search_story)
 
         # Should detect conflict
-        assert result.has_conflicts is True
+        assert result.has_conflicts
         assert result.status == "blocked_on_conflicts"
 
 

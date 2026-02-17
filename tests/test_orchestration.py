@@ -85,7 +85,7 @@ class TestPipelineOrchestrator:
         """Can initialize state from MVP spec."""
         result = orchestrator.initialize_from_mvp_spec(notes_app_mvp_spec)
 
-        assert result is True
+        assert result
         assert orchestrator.state is not None
         assert len(orchestrator.state.stories) >= 1
 
@@ -96,7 +96,7 @@ class TestPipelineOrchestrator:
         assert isinstance(gate, HumanGateRequest)
         assert gate.gate_type == "stack_selection"
         assert len(gate.options) >= 1
-        assert gate.needs_response() is True
+        assert gate.needs_response()
 
     def test_apply_stack_selection(self, orchestrator, notes_app_mvp_spec):
         """Can apply stack selection."""
@@ -104,7 +104,7 @@ class TestPipelineOrchestrator:
 
         result = orchestrator.apply_stack_selection("web-python-react")
 
-        assert result is True
+        assert result
         assert orchestrator.state.stack is not None
         assert orchestrator.state.stack.platform == "web_application"
 
@@ -135,7 +135,7 @@ class TestStoryProcessing:
 
         assert isinstance(result, StoryProcessingResult)
         assert result.story_id == story.id
-        assert result.success is True
+        assert result.success
 
     def test_process_story_creates_tasks(self, orchestrator, notes_app_mvp_spec):
         """process_story creates tasks for the story."""

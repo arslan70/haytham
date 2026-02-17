@@ -107,11 +107,11 @@ class TestMVPSpecParser:
         id_attr = next((a for a in user.attributes if a.name == "id"), None)
         assert id_attr is not None
         assert id_attr.type == "UUID"
-        assert id_attr.primary_key is True
+        assert id_attr.primary_key
 
         email_attr = next((a for a in user.attributes if a.name == "email"), None)
         assert email_attr is not None
-        assert email_attr.unique is True
+        assert email_attr.unique
 
     def test_parse_extracts_entity_relationships(self, parser, notes_app_mvp_spec):
         """Parser extracts entity relationships."""
@@ -193,7 +193,7 @@ class TestMVPSpecParser:
 
     def test_has_pipeline_data(self, parser, notes_app_mvp_spec):
         """Parser detects pipeline data complete marker."""
-        assert parser.has_pipeline_data(notes_app_mvp_spec) is True
+        assert parser.has_pipeline_data(notes_app_mvp_spec)
 
     def test_validate_completeness_passes(self, parser, notes_app_mvp_spec):
         """Validate completeness passes for valid spec."""
@@ -336,7 +336,7 @@ class TestStateInitializer:
         assert state is not None
         assert len(state.entities) == 2
         assert len(state.stories) == 4
-        assert manager.has_pipeline_state() is True
+        assert manager.has_pipeline_state()
 
     def test_initialize_sets_entity_status_to_planned(
         self, parser, notes_app_mvp_spec, temp_session_dir

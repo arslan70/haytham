@@ -39,7 +39,6 @@ from haytham.feedback.feedback_router import (
     route_feedback,
 )
 from haytham.feedback.revision_executor import (
-    STAGE_AGENT_MAP,
     RevisionResult,
     execute_revision,
 )
@@ -67,7 +66,6 @@ __all__ = [
     # New post-workflow feedback - Executor
     "execute_revision",
     "RevisionResult",
-    "STAGE_AGENT_MAP",
     # New post-workflow feedback - Processor
     "FeedbackProcessor",
     "FeedbackResult",

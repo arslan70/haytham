@@ -1,7 +1,7 @@
 """Export stories to Markdown format."""
 
 from .base import BaseExporter
-from .models import ExportableStory
+from .models import LAYER_NAMES, ExportableStory
 from .transformer import get_stories_by_layer
 
 
@@ -15,13 +15,6 @@ class MarkdownExporter(BaseExporter):
     format_name = "Markdown"
     file_extension = "md"
     mime_type = "text/markdown"
-
-    LAYER_NAMES = {
-        1: "Bootstrap",
-        2: "Entity Models",
-        3: "Infrastructure",
-        4: "Features",
-    }
 
     def export(self, stories: list[ExportableStory]) -> str:
         """Transform stories to Markdown format."""
@@ -40,7 +33,7 @@ class MarkdownExporter(BaseExporter):
         layers = get_stories_by_layer(filtered_stories)
         for layer_num in sorted(layers.keys()):
             layer_stories = layers[layer_num]
-            layer_name = self.LAYER_NAMES.get(layer_num, f"Layer {layer_num}")
+            layer_name = LAYER_NAMES.get(layer_num, f"Layer {layer_num}")
             high = sum(1 for s in layer_stories if s.priority == "high")
             med = sum(1 for s in layer_stories if s.priority == "medium")
             low = sum(1 for s in layer_stories if s.priority == "low")
@@ -53,7 +46,7 @@ class MarkdownExporter(BaseExporter):
         # Stories by layer
         for layer_num in sorted(layers.keys()):
             layer_stories = layers[layer_num]
-            layer_name = self.LAYER_NAMES.get(layer_num, f"Layer {layer_num}")
+            layer_name = LAYER_NAMES.get(layer_num, f"Layer {layer_num}")
 
             lines.append(f"## Layer {layer_num}: {layer_name} ({len(layer_stories)} stories)\n")
 

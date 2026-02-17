@@ -205,8 +205,8 @@ class TestTaskStatus:
         assert isinstance(result, TaskExecutionResult)
         assert result.task_id == "T-001"
         assert result.status == TaskStatus.COMPLETED
-        assert result.succeeded is True
-        assert result.failed is False
+        assert result.succeeded
+        assert not result.failed
 
 
 # ========== Task Queue Tests ==========
@@ -310,7 +310,7 @@ class TestSimulatedExecution:
             "T-001", success=True, file_path="src/models/note.py"
         )
 
-        assert result.succeeded is True
+        assert result.succeeded
         assert result.file_path == "src/models/note.py"
 
         queries = StateQueries(notes_app_state_with_tasks)
@@ -321,7 +321,7 @@ class TestSimulatedExecution:
         """Simulated execution with failure."""
         result = executor.execute_task_simulated("T-001", success=False)
 
-        assert result.failed is True
+        assert result.failed
         assert result.error_message == "Simulated failure"
 
     def test_execute_story_tasks_all_success(self, executor, notes_app_state_with_tasks):
@@ -332,7 +332,7 @@ class TestSimulatedExecution:
         assert result.story_id == "S-001"
         assert result.completed_count == 4
         assert result.failed_count == 0
-        assert result.all_completed is True
+        assert result.all_completed
 
 
 # ========== Prompt Generation Tests ==========
@@ -402,8 +402,8 @@ class TestNotesAppExecution:
         result1 = executor.execute_story_tasks("S-001", simulate_success=True)
         result2 = executor.execute_story_tasks("S-003", simulate_success=True)
 
-        assert result1.all_completed is True
-        assert result2.all_completed is True
+        assert result1.all_completed
+        assert result2.all_completed
 
         queries = StateQueries(notes_app_state_with_tasks)
         assert queries.get_story("S-001").status == "completed"

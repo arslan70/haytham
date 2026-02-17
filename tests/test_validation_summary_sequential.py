@@ -121,8 +121,8 @@ class TestScorerOutputModel:
         del data["risk_level"]
         model = ScorerOutput.model_validate(data)
         assert model.confidence_hint == ""
-        assert model.floor_capped is False
-        assert model.risk_capped is False
+        assert not model.floor_capped
+        assert not model.risk_capped
         assert model.risk_level == "MEDIUM"
 
 
@@ -155,7 +155,7 @@ class TestMergeScorerNarrator:
         """Analytical fields from scorer copied verbatim."""
         scorer = _scorer_dict(floor_capped=True, critical_gaps=["Revenue Viability"])
         merged = merge_scorer_narrator(scorer, _narrator_dict())
-        assert merged["go_no_go_assessment"]["floor_capped"] is True
+        assert merged["go_no_go_assessment"]["floor_capped"]
         assert merged["go_no_go_assessment"]["critical_gaps"] == ["Revenue Viability"]
         assert merged["recommendation"] == "GO"
         assert merged["go_no_go_assessment"]["verdict"] == "CONDITIONAL GO"

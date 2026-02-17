@@ -48,12 +48,12 @@ class TestBacklogCLIInit:
     def test_is_initialized_true(self, cli):
         """is_initialized returns True when backlog folder exists."""
         with patch.object(Path, "exists", return_value=True):
-            assert cli.is_initialized() is True
+            assert cli.is_initialized()
 
     def test_is_initialized_false(self, cli):
         """is_initialized returns False when backlog folder missing."""
         with patch.object(Path, "exists", return_value=False):
-            assert cli.is_initialized() is False
+            assert not cli.is_initialized()
 
 
 # ========== Task Creation Tests ==========
@@ -135,7 +135,7 @@ class TestTaskCreation:
 
         result = cli.promote_draft("draft-1.1")
 
-        assert result is True
+        assert result
         args = mock_run.call_args[0][0]
         assert args[:3] == ["backlog", "draft", "promote"]
         assert "1.1" in args
@@ -153,7 +153,7 @@ class TestTaskUpdates:
 
         result = cli.update_status("task-5", "In Progress")
 
-        assert result is True
+        assert result
         args = mock_run.call_args[0][0]
         assert "5" in args
         assert "-s" in args
@@ -165,7 +165,7 @@ class TestTaskUpdates:
 
         result = cli.check_acceptance_criteria("task-3", 1)
 
-        assert result is True
+        assert result
         args = mock_run.call_args[0][0]
         assert "--check-ac" in args
         assert "1" in args
@@ -176,7 +176,7 @@ class TestTaskUpdates:
 
         result = cli.add_notes("task-7", "Implementation complete")
 
-        assert result is True
+        assert result
         args = mock_run.call_args[0][0]
         assert "--notes" in args
         assert "Implementation complete" in args
@@ -187,7 +187,7 @@ class TestTaskUpdates:
 
         result = cli.append_notes("task-7", "Additional notes")
 
-        assert result is True
+        assert result
         args = mock_run.call_args[0][0]
         assert "--append-notes" in args
 
@@ -197,7 +197,7 @@ class TestTaskUpdates:
 
         result = cli.archive_task("task-10")
 
-        assert result is True
+        assert result
         args = mock_run.call_args[0][0]
         assert args[:3] == ["backlog", "task", "archive"]
 
@@ -275,7 +275,7 @@ task-2: Second task [In Progress] (medium)
 
         assert len(drafts) == 2
         assert drafts[0].id == "draft-1.1"
-        assert drafts[0].is_draft is True
+        assert drafts[0].is_draft
 
 
 # ========== Board Operations Tests ==========

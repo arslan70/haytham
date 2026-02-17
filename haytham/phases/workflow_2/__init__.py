@@ -40,7 +40,6 @@ from .diff import (
 )
 from .factory import (
     EntryConditionResult,
-    Workflow2EntryValidator,
     Workflow2Result,
     WorkflowContext,
     create_architect_workflow,
@@ -56,7 +55,6 @@ __all__ = [
     "get_diff_context_for_prompt",
     # Entry validation
     "EntryConditionResult",
-    "Workflow2EntryValidator",
     "validate_entry_conditions",
     # Context loading
     "WorkflowContext",

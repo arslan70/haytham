@@ -244,20 +244,13 @@ class SessionManager:
     def _clear_workflow_runs(self, workflow_type: str) -> None:
         """Clear workflow run records for a specific workflow type.
 
+        Delegates to WorkflowRunTracker.clear_runs() which holds the
+        file lock and respects workflow alias mapping.
+
         Args:
             workflow_type: Type of workflow to clear runs for
         """
-        workflow_runs_file = self.session_dir / "workflow_runs.json"
-        if not workflow_runs_file.exists():
-            return
-
-        try:
-            runs = json.loads(workflow_runs_file.read_text())
-            # Filter out runs for this workflow type
-            filtered_runs = [r for r in runs if r.get("workflow_type") != workflow_type]
-            workflow_runs_file.write_text(json.dumps(filtered_runs, indent=2))
-        except json.JSONDecodeError:
-            logger.warning("Corrupted workflow_runs.json, skipping clear")
+        self.run_tracker.clear_runs(workflow_type)
 
     def save_checkpoint(
         self,
@@ -305,16 +298,21 @@ class SessionManager:
         stage_dir = self.session_dir / stage_slug
         stage_dir.mkdir(exist_ok=True)
 
-        # Compute prev/next stage info for checkpoint navigation
-        stage_index = next((i for i, s in enumerate(STAGES) if s.slug == stage_slug), None)
+        # Compute prev/next stage info scoped to the same workflow phase.
+        # Using the flat STAGES list would cross workflow boundaries (e.g.,
+        # validation-summary → mvp-scope), which is wrong because gates
+        # separate workflow phases.
+        registry = get_stage_registry()
+        workflow_stages = registry.get_stages_for_workflow(stage.workflow_type)
+        ws_index = next((i for i, s in enumerate(workflow_stages) if s.slug == stage_slug), None)
         prev_stage_name = (
-            STAGES[stage_index - 1].display_name if stage_index and stage_index > 0 else "None"
+            workflow_stages[ws_index - 1].display_name if ws_index and ws_index > 0 else "None"
         )
         next_stage_slug = "-"
         next_stage_name = "None"
-        if stage_index is not None and stage_index < len(STAGES) - 1:
-            next_stage_slug = STAGES[stage_index + 1].slug
-            next_stage_name = STAGES[stage_index + 1].display_name
+        if ws_index is not None and ws_index < len(workflow_stages) - 1:
+            next_stage_slug = workflow_stages[ws_index + 1].slug
+            next_stage_name = workflow_stages[ws_index + 1].display_name
 
         # Create checkpoint content
         checkpoint_content = format_checkpoint(
@@ -565,15 +563,25 @@ class SessionManager:
 
         return approved_stages
 
-    def get_next_stage(self) -> str | None:
+    def get_next_stage(self, workflow_type: WorkflowType | None = None) -> str | None:
         """Get the next stage to execute.
+
+        Args:
+            workflow_type: If provided, only consider stages in this workflow.
+                Otherwise searches all stages across all workflows.
 
         Returns:
             Next stage slug to execute, or None if all stages complete
         """
         approved = set(self.get_approved_stages())
 
-        for stage in STAGES:
+        if workflow_type is not None:
+            registry = get_stage_registry()
+            stages = registry.get_stages_for_workflow(workflow_type)
+        else:
+            stages = STAGES
+
+        for stage in stages:
             if stage.slug not in approved:
                 return stage.slug
 

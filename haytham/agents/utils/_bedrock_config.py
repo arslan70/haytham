@@ -23,6 +23,15 @@ from strands.models.bedrock import BedrockModel
 logger = logging.getLogger(__name__)
 
 
+def get_default_max_tokens() -> int:
+    """Resolve max_tokens from DEFAULT_MAX_TOKENS env var (default: 5000).
+
+    Nova models support up to 10,000 output tokens; the 5000 default
+    provides headroom for complex responses.
+    """
+    return int(os.getenv("DEFAULT_MAX_TOKENS", "5000"))
+
+
 def _log_aws_profile_info() -> None:
     """Log information about which AWS profile is being used."""
     profile = os.getenv("AWS_PROFILE")
@@ -132,10 +141,8 @@ def create_bedrock_model(
                 "variable is not set. Please configure it in your .env file."
             )
 
-    # Get max_tokens from environment if not provided
-    # DEFAULT_MAX_TOKENS defaults to 5000 - Nova models support up to 10,000
     if max_tokens is None:
-        max_tokens = int(os.getenv("DEFAULT_MAX_TOKENS", "5000"))
+        max_tokens = get_default_max_tokens()
 
     # Create boto3 client configuration with extended timeouts and retry logic
     # Using 'standard' mode with exponential backoff for transient errors

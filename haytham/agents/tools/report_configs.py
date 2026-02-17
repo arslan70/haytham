@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml
 
@@ -20,13 +19,13 @@ from .metric_patterns import (
     RE_RECOMMENDATION,
     RE_RISK_LEVEL,
 )
-
-if TYPE_CHECKING:
-    from .pdf_report import (
-        MetricBadge,
-        ReportConfig,
-        ReportSection,
-    )
+from .pdf_report import (
+    CoverConfig,
+    MetricBadge,
+    ReportConfig,
+    ReportSection,
+    SectionType,
+)
 
 _HEADING_RE = re.compile(r"^(#{2,3})\s+", re.MULTILINE)
 
@@ -134,7 +133,6 @@ def _extract_section(text: str, heading: str) -> str | None:
 
 def _build_executive_summary(summary_text: str, verdict: str | None) -> list[ReportSection]:
     """Build Executive Summary + metric badges."""
-    from .pdf_report import MetricBadge, ReportSection, SectionType
 
     sections: list[ReportSection] = []
 
@@ -167,7 +165,6 @@ def _build_executive_summary(summary_text: str, verdict: str | None) -> list[Rep
 
 def _build_problem_analysis(session_dir: Path) -> ReportSection | None:
     """Build Problem & User Analysis section from concept expansion."""
-    from .pdf_report import ReportSection, SectionType
 
     text = _load_markdown(session_dir, "idea-analysis", "concept_expansion.md")
     if not text:
@@ -180,7 +177,6 @@ def _build_problem_analysis(session_dir: Path) -> ReportSection | None:
 
 def _build_market_context(session_dir: Path) -> ReportSection | None:
     """Build Market Context section."""
-    from .pdf_report import ReportSection, SectionType
 
     text = _load_markdown(session_dir, "market-context", "market_intelligence.md")
     if not text:
@@ -194,7 +190,6 @@ def _build_market_context(session_dir: Path) -> ReportSection | None:
 
 def _build_competitive_landscape(session_dir: Path) -> ReportSection | None:
     """Build Competitive Landscape section."""
-    from .pdf_report import ReportSection, SectionType
 
     text = _load_markdown(session_dir, "market-context", "competitor_analysis.md")
     if not text:
@@ -207,7 +202,6 @@ def _build_competitive_landscape(session_dir: Path) -> ReportSection | None:
 
 def _build_risk_assessment(session_dir: Path) -> ReportSection | None:
     """Build Risk Assessment section."""
-    from .pdf_report import ReportSection, SectionType
 
     text = _load_markdown(session_dir, "risk-assessment", "startup_validator.md")
     if not text:
@@ -220,7 +214,6 @@ def _build_risk_assessment(session_dir: Path) -> ReportSection | None:
 
 def _build_scorecard(summary_text: str) -> ReportSection | None:
     """Build Go/No-Go Scorecard section."""
-    from .pdf_report import ReportSection, SectionType
 
     scorecard = _extract_section(summary_text, "Go/No-Go Scorecard")
     if not scorecard:
@@ -230,7 +223,6 @@ def _build_scorecard(summary_text: str) -> ReportSection | None:
 
 def _build_next_steps(summary_text: str) -> ReportSection | None:
     """Build Next Steps section."""
-    from .pdf_report import ReportSection, SectionType
 
     steps = _extract_section(summary_text, "Next Steps")
     if not steps:
@@ -240,7 +232,6 @@ def _build_next_steps(summary_text: str) -> ReportSection | None:
 
 def _build_pivot_strategy(session_dir: Path) -> ReportSection | None:
     """Build Pivot Strategy section (only present if HIGH risk)."""
-    from .pdf_report import ReportSection, SectionType
 
     text = _load_markdown(session_dir, "pivot-strategy", "pivot_strategy.md")
     if not text:
@@ -262,7 +253,6 @@ def build_idea_validation_config(session_dir: Path) -> ReportConfig:
     Returns:
         ReportConfig ready to pass to generate_pdf().
     """
-    from .pdf_report import CoverConfig, ReportConfig
 
     idea_text = _load_system_goal(session_dir)
     summary_text = _load_markdown(session_dir, "validation-summary", "validation_scorer.md")

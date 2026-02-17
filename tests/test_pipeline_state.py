@@ -229,8 +229,8 @@ class TestPydanticModels:
             ],
         )
         assert len(entity.attributes) == 2
-        assert entity.attributes[0].primary_key is True
-        assert entity.attributes[1].unique is True
+        assert entity.attributes[0].primary_key
+        assert entity.attributes[1].unique
 
 
 # ========== PipelineStateManager Tests ==========
@@ -295,17 +295,17 @@ class TestPipelineStateManager:
     def test_has_pipeline_state(self, temp_project_yaml):
         """has_pipeline_state returns correct value."""
         manager = PipelineStateManager(temp_project_yaml.parent)
-        assert manager.has_pipeline_state() is False
+        assert not manager.has_pipeline_state()
 
         manager.save_pipeline_state(PipelineState())
-        assert manager.has_pipeline_state() is True
+        assert manager.has_pipeline_state()
 
     def test_initialize_pipeline_state(self, temp_project_yaml):
         """initialize_pipeline_state creates empty state if none exists."""
         manager = PipelineStateManager(temp_project_yaml.parent)
         state = manager.initialize_pipeline_state()
         assert state.schema_version == "1.0"
-        assert manager.has_pipeline_state() is True
+        assert manager.has_pipeline_state()
 
 
 # ========== StateQueries Tests ==========
@@ -333,9 +333,9 @@ class TestStateQueries:
     def test_entity_exists(self, notes_app_state):
         """entity_exists returns correct boolean."""
         queries = StateQueries(notes_app_state)
-        assert queries.entity_exists("User") is True
-        assert queries.entity_exists("Note") is True
-        assert queries.entity_exists("Nonexistent") is False
+        assert queries.entity_exists("User")
+        assert queries.entity_exists("Note")
+        assert not queries.entity_exists("Nonexistent")
 
     def test_get_story_by_id(self, notes_app_state):
         """Can retrieve story by S-XXX ID."""
@@ -422,7 +422,7 @@ class TestStateUpdater:
         updater = StateUpdater(notes_app_state, lambda s: saves.append(s))
 
         result = updater.update_entity_status("E-001", "implemented", "backend/models/user.py")
-        assert result is True
+        assert result
         assert notes_app_state.entities[0].status == "implemented"
         assert notes_app_state.entities[0].file_path == "backend/models/user.py"
         assert len(saves) == 1
@@ -493,7 +493,7 @@ class TestStateUpdater:
                 default="10000 characters",
             ),
         )
-        assert result is True
+        assert result
         assert len(notes_app_state.stories[0].ambiguities) == 1
 
     def test_resolve_ambiguity(self, notes_app_state):
@@ -506,8 +506,8 @@ class TestStateUpdater:
             "Should search include note content or just titles?",
             "Title and content",
         )
-        assert result is True
-        assert notes_app_state.stories[2].ambiguities[0].resolved is True
+        assert result
+        assert notes_app_state.stories[2].ambiguities[0].resolved
         assert notes_app_state.stories[2].ambiguities[0].resolution == "Title and content"
 
 

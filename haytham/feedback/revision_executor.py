@@ -22,23 +22,6 @@ from haytham.workflow.stage_registry import get_stage_registry
 logger = logging.getLogger(__name__)
 
 
-# Mapping from stage slug to the agent(s) responsible for that stage
-# This maps to the agent_names in StageMetadata but provides a direct lookup
-STAGE_AGENT_MAP: dict[str, list[str]] = {
-    # Idea Validation workflow
-    "idea-analysis": ["concept_expansion"],
-    "market-context": ["market_intelligence", "competitor_analysis"],
-    "risk-assessment": ["startup_validator"],
-    "pivot-strategy": ["pivot_strategy"],
-    "validation-summary": ["validation_scorer", "validation_narrator"],
-    # MVP Specification workflow
-    "mvp-scope": ["mvp_scope"],
-    "capability-model": ["capability_model"],
-    # Story Generation workflow (future)
-    "story-generation": ["story_generator"],
-}
-
-
 # Prompt template for direct feedback revision
 REVISION_PROMPT_TEMPLATE = """Please revise your previous output based on user feedback.
 
@@ -232,10 +215,7 @@ def execute_revision(
 
 
 def _get_agents_for_stage(stage_slug: str) -> list[str]:
-    """Get the agent name(s) responsible for a stage.
-
-    First checks the hardcoded STAGE_AGENT_MAP, then falls back to
-    the StageRegistry metadata.
+    """Get the agent name(s) responsible for a stage from the registry.
 
     Args:
         stage_slug: Stage slug to look up
@@ -243,11 +223,6 @@ def _get_agents_for_stage(stage_slug: str) -> list[str]:
     Returns:
         List of agent names for the stage
     """
-    # Check the hardcoded map first
-    if stage_slug in STAGE_AGENT_MAP:
-        return STAGE_AGENT_MAP[stage_slug]
-
-    # Fall back to registry
     registry = get_stage_registry()
     stage = registry.get_by_slug_safe(stage_slug)
     if stage and stage.agent_names:

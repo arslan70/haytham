@@ -361,7 +361,7 @@ def store_capabilities_in_vector_db(session_manager: Any, output: str) -> None:
 
     except ImportError as e:
         logger.warning(f"State infrastructure not available: {e}")
-    except Exception as e:
+    except (OSError, KeyError, TypeError, ValueError, RuntimeError) as e:
         logger.error(f"Failed to store capabilities in vector DB: {e}", exc_info=True)
 
 

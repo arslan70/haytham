@@ -21,6 +21,7 @@ from typing import Any
 
 from haytham.agents.utils._bedrock_config import (
     create_bedrock_model,
+    get_default_max_tokens,
 )
 from haytham.agents.utils._bedrock_config import (
     get_model_id_for_tier as bedrock_get_model_id,
@@ -325,7 +326,7 @@ def create_model(
         model_id = get_model_id_for_tier(tier)
 
     if max_tokens is None:
-        max_tokens = int(os.getenv("DEFAULT_MAX_TOKENS", "5000"))
+        max_tokens = get_default_max_tokens()
 
     factory = _PROVIDER_FACTORIES[provider]
 

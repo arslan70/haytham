@@ -47,8 +47,11 @@ class StageExecutionConfig:
     # Stage identifier (used to look up metadata from registry)
     stage_slug: str
 
-    # Query template (can include {system_goal} placeholder)
-    query_template: str
+    # Query template (can include {system_goal} placeholder).
+    # Defaults to "" for programmatic stages. When empty on non-programmatic
+    # stages, the executor falls back to StageMetadata.query_template from
+    # the registry.
+    query_template: str = ""
 
     # For parallel execution: list of agent configs
     # Each config is {"name": "agent_name", "query": "query string"}
@@ -305,7 +308,8 @@ class StageExecutor:
         system_goal: str,
     ) -> tuple[str, str]:
         """Execute a single agent."""
-        query = self.config.query_template.format(system_goal=system_goal)
+        template = self.config.query_template or self.stage.query_template
+        query = template.format(system_goal=system_goal)
         agent_name = self.stage.agent_names[0] if self.stage.agent_names else "unknown"
 
         # ADR-022: Pass use_context_tools to enable selective context retrieval

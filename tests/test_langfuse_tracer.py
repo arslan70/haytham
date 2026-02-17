@@ -62,7 +62,7 @@ class TestLangfuseTracerInitialization:
         """Test initialization when disabled."""
         tracer = LangfuseTracer(enabled=False)
 
-        assert tracer.enabled is False
+        assert not tracer.enabled
         assert tracer.client is None
 
     def test_init_enabled_with_credentials(self, mock_langfuse_client):
@@ -75,7 +75,7 @@ class TestLangfuseTracerInitialization:
             environment="production",
         )
 
-        assert tracer.enabled is True
+        assert tracer.enabled
         assert tracer.client is not None
         assert tracer.public_key == "pk-test"
         assert tracer.secret_key == "sk-test"
@@ -87,7 +87,7 @@ class TestLangfuseTracerInitialization:
         tracer = LangfuseTracer(enabled=True, public_key=None, secret_key=None)
 
         # Should fall back to disabled
-        assert tracer.enabled is False
+        assert not tracer.enabled
         assert tracer.client is None
 
     def test_init_from_environment_variables(self, mock_langfuse_client):
@@ -103,7 +103,7 @@ class TestLangfuseTracerInitialization:
         ):
             tracer = LangfuseTracer()
 
-            assert tracer.enabled is True
+            assert tracer.enabled
             assert tracer.public_key == "pk-env"
             assert tracer.secret_key == "sk-env"
             assert tracer.host == "https://env.langfuse.com"
@@ -115,7 +115,7 @@ class TestLangfuseTracerInitialization:
             tracer = LangfuseTracer(enabled=True, public_key="pk-test", secret_key="sk-test")
 
             # Should fall back to disabled
-            assert tracer.enabled is False
+            assert not tracer.enabled
             assert tracer.client is None
 
 

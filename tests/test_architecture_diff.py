@@ -17,17 +17,17 @@ class TestArchitectureDiff:
     def test_empty_diff(self):
         """Empty diff should report nothing to do."""
         diff = ArchitectureDiff()
-        assert diff.is_empty() is True
-        assert diff.is_greenfield() is False
-        assert diff.has_revisions_needed() is False
+        assert diff.is_empty()
+        assert not diff.is_greenfield()
+        assert not diff.has_revisions_needed()
         assert diff.summary() == "No architecture changes needed"
 
     def test_greenfield_diff(self):
         """Diff with only uncovered capabilities is greenfield."""
         diff = ArchitectureDiff(uncovered_capabilities=["CAP-F-001", "CAP-F-002"])
-        assert diff.is_empty() is False
-        assert diff.is_greenfield() is True
-        assert diff.has_revisions_needed() is False
+        assert not diff.is_empty()
+        assert diff.is_greenfield()
+        assert not diff.has_revisions_needed()
         assert "2 uncovered capabilities" in diff.summary()
 
     def test_revision_diff(self):
@@ -36,9 +36,9 @@ class TestArchitectureDiff:
             affected_decisions=["DEC-001"],
             affected_entities=["ENT-001"],
         )
-        assert diff.is_empty() is False
-        assert diff.is_greenfield() is False
-        assert diff.has_revisions_needed() is True
+        assert not diff.is_empty()
+        assert not diff.is_greenfield()
+        assert diff.has_revisions_needed()
         assert "1 affected decisions" in diff.summary()
         assert "1 affected entities" in diff.summary()
 
@@ -49,9 +49,9 @@ class TestArchitectureDiff:
             affected_decisions=["DEC-001"],
             affected_stories=["STORY-001", "STORY-002"],
         )
-        assert diff.is_empty() is False
-        assert diff.is_greenfield() is False  # Has affected decisions
-        assert diff.has_revisions_needed() is True
+        assert not diff.is_empty()
+        assert not diff.is_greenfield()  # Has affected decisions
+        assert diff.has_revisions_needed()
 
 
 class TestComputeArchitectureDiff:
@@ -60,7 +60,7 @@ class TestComputeArchitectureDiff:
     def test_empty_inputs(self):
         """Empty inputs should produce empty diff."""
         diff = compute_architecture_diff([], [], [], [])
-        assert diff.is_empty() is True
+        assert diff.is_empty()
 
     def test_all_capabilities_covered(self):
         """When all capabilities are covered, no uncovered list."""
@@ -75,7 +75,7 @@ class TestComputeArchitectureDiff:
         diff = compute_architecture_diff(capabilities, decisions, [], [])
 
         assert diff.uncovered_capabilities == []
-        assert diff.is_empty() is True
+        assert diff.is_empty()
 
     def test_uncovered_capabilities(self):
         """Capabilities not served by any decision should be uncovered."""
