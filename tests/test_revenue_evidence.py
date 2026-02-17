@@ -2,7 +2,6 @@
 
 import json
 
-from haytham.workflow.stages.idea_validation import _extract_revenue_evidence_tag
 from haytham.workflow.validators._scorecard_utils import extract_dimension_score
 from haytham.workflow.validators.revenue_evidence import (
     _extract_assumed_price,
@@ -13,39 +12,39 @@ from haytham.workflow.validators.revenue_evidence import (
 )
 
 # =============================================================================
-# _extract_revenue_evidence_tag (idea_validation.py)
+# _extract_revenue_tag (revenue_evidence.py)
 # =============================================================================
 
 
 class TestExtractRevenueEvidenceTag:
-    """Test _extract_revenue_evidence_tag from competitor analysis output."""
+    """Test _extract_revenue_tag from competitor analysis output."""
 
     def test_extracts_priced(self):
         output = "**Revenue Evidence Tag:** [Priced]"
-        assert _extract_revenue_evidence_tag(output) == "Priced"
+        assert _extract_revenue_tag(output) == "Priced"
 
     def test_extracts_freemium_dominant(self):
         output = "**Revenue Evidence Tag:** [Freemium-Dominant]"
-        assert _extract_revenue_evidence_tag(output) == "Freemium-Dominant"
+        assert _extract_revenue_tag(output) == "Freemium-Dominant"
 
     def test_extracts_no_pricing_found(self):
         output = "**Revenue Evidence Tag:** [No-Pricing-Found]"
-        assert _extract_revenue_evidence_tag(output) == "No-Pricing-Found"
+        assert _extract_revenue_tag(output) == "No-Pricing-Found"
 
     def test_extracts_without_brackets(self):
         output = "**Revenue Evidence Tag:** Priced"
-        assert _extract_revenue_evidence_tag(output) == "Priced"
+        assert _extract_revenue_tag(output) == "Priced"
 
     def test_case_insensitive(self):
         output = "**Revenue Evidence Tag:** [priced]"
-        assert _extract_revenue_evidence_tag(output).lower() == "priced"
+        assert _extract_revenue_tag(output).lower() == "priced"
 
     def test_returns_empty_string_when_missing(self):
         output = "### 3. Competitive Positioning\n\n- No tag here"
-        assert _extract_revenue_evidence_tag(output) == ""
+        assert _extract_revenue_tag(output) == ""
 
     def test_returns_empty_string_for_empty_input(self):
-        assert _extract_revenue_evidence_tag("") == ""
+        assert _extract_revenue_tag("") == ""
 
     def test_extracts_from_full_section(self):
         output = """\
@@ -58,7 +57,7 @@ class TestExtractRevenueEvidenceTag:
   - Price range across competitors: $0-$12.50/user/mo
 - **Revenue Evidence Tag:** [Priced]
 """
-        assert _extract_revenue_evidence_tag(output) == "Priced"
+        assert _extract_revenue_tag(output) == "Priced"
 
 
 # =============================================================================

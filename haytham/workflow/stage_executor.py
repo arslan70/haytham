@@ -295,10 +295,6 @@ class StageExecutor:
                 if value:
                     context[stage_meta.state_key] = value
 
-        # Also include pivot_strategy if it exists (special case)
-        if state.get("pivot_strategy"):
-            context["pivot_strategy"] = state["pivot_strategy"]
-
         return context
 
     def _execute_single(

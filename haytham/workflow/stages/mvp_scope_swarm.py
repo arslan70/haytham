@@ -7,6 +7,7 @@ task prompt and can see prior agents' output in working memory.
 Returns: tuple[str, str] — (combined_output, status) for stage_executor compat.
 """
 
+import json
 import logging
 
 from burr.core import State
@@ -28,8 +29,6 @@ def run_mvp_scope_swarm(state: State) -> tuple[str, str]:
     Returns:
         Tuple of (combined_output, status) where status is "completed" or "failed".
     """
-    import json
-
     from strands import Agent
     from strands.multiagent.swarm import Swarm
 

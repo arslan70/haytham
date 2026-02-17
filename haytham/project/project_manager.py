@@ -4,6 +4,7 @@ This module provides project CRUD operations, session management, and version tr
 for the phased workflow architecture.
 """
 
+import shutil
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -417,8 +418,6 @@ class ProjectManager:
             raise FileNotFoundError(f"Project not found: {project_id}")
 
         # Remove entire project directory
-        import shutil
-
         shutil.rmtree(project_dir)
 
     # Private helper methods

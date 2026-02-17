@@ -304,30 +304,27 @@ class BurrWorkflowRunner:
                 self._is_running = False
 
     def _extract_results(self, state: State) -> dict[str, Any]:
-        """Extract results from workflow state."""
-        return {
-            "idea-analysis": {
-                "status": state.get("idea_analysis_status", "pending"),
-                "outputs": {"concept_expansion": state.get("idea_analysis", "")},
-            },
-            "market-context": {
-                "status": state.get("market_context_status", "pending"),
-                "outputs": {"combined": state.get("market_context", "")},
-            },
-            "risk-assessment": {
-                "status": state.get("risk_assessment_status", "pending"),
-                "outputs": {"startup_validator": state.get("risk_assessment", "")},
-                "risk_level": state.get("risk_level", "MEDIUM"),
-            },
-            "pivot-strategy": {
-                "status": state.get("pivot_strategy_status", "pending"),
-                "outputs": {"pivot_advisor": state.get("pivot_strategy", "")},
-            },
-            "validation-summary": {
-                "status": state.get("validation_summary_status", "pending"),
-                "outputs": {"report_synthesis": state.get("validation_summary", "")},
-            },
-        }
+        """Extract results from workflow state using the stage registry.
+
+        Dynamically reads stage metadata so this method works for any
+        workflow type, not just idea-validation.
+        """
+        registry = get_stage_registry()
+        results: dict[str, Any] = {}
+        for stage in registry.get_stages_for_workflow(WorkflowType.IDEA_VALIDATION):
+            entry: dict[str, Any] = {
+                "status": state.get(stage.status_key, "pending"),
+                "outputs": {
+                    stage.agent_names[0] if stage.agent_names else "output": state.get(
+                        stage.state_key, ""
+                    )
+                },
+            }
+            # Include risk_level for the risk-assessment stage
+            if stage.slug == "risk-assessment":
+                entry["risk_level"] = state.get("risk_level", "MEDIUM")
+            results[stage.slug] = entry
+        return results
 
     @property
     def is_running(self) -> bool:

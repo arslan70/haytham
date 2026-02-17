@@ -12,6 +12,9 @@ from burr.core import State
 
 logger = logging.getLogger(__name__)
 
+# Regex for extracting system trait key-value pairs from markdown fallback output
+_TRAIT_PATTERN = re.compile(r"\*\*(\w+):\*\*\s*(.+?)(?:\n|$)", re.IGNORECASE)
+
 
 # ---------------------------------------------------------------------------
 # MVP Scope chain executor (3 sub-agents: core → boundaries → flows)
@@ -397,9 +400,7 @@ def extract_system_traits_processor(output: str, state: State) -> dict[str, Any]
 
     # Fallback: regex from markdown output
     if not parsed_from_json:
-        trait_pattern = re.compile(r"\*\*(\w+):\*\*\s*(.+?)(?:\n|$)", re.IGNORECASE)
-
-        for match in trait_pattern.finditer(output):
+        for match in _TRAIT_PATTERN.finditer(output):
             trait_name = match.group(1).strip().lower()
             raw_value = match.group(2).strip()
 

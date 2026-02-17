@@ -20,8 +20,9 @@ from .schemas import PhaseVerification
 
 logger = logging.getLogger(__name__)
 
-# Default session directory for saving verification results
-SESSION_DIR = Path(__file__).parent.parent.parent.parent / "session"
+# Fallback session directory (used only when session_manager is unavailable).
+# Prefer passing session_dir from SessionManager.session_dir at call sites.
+_FALLBACK_SESSION_DIR = Path(__file__).resolve().parents[3] / "session"
 
 
 def save_verification_result(result: PhaseVerification, session_dir: Path | None = None) -> Path:
@@ -34,7 +35,7 @@ def save_verification_result(result: PhaseVerification, session_dir: Path | None
     Returns:
         Path to the saved file
     """
-    save_dir = session_dir or SESSION_DIR
+    save_dir = session_dir or _FALLBACK_SESSION_DIR
     logger.info(f"Saving verification result to {save_dir}")
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -363,6 +364,10 @@ class WhatPhaseVerifier(PhaseVerifier):
             run_what_phase_swarm_verification,
         )
 
+        # Extract session_dir from session_manager (prefer over fallback constant)
+        sm = state.get("session_manager")
+        session_dir = getattr(sm, "session_dir", None) if sm else None
+
         # Get the anchor
         anchor = state.get("concept_anchor")
         anchor_str = state.get("concept_anchor_str", "")
@@ -376,7 +381,7 @@ class WhatPhaseVerifier(PhaseVerifier):
                 confidence_rationale="No concept anchor available - verification skipped",
                 warnings=["No concept anchor available - skipping verification"],
             )
-            save_verification_result(result)
+            save_verification_result(result, session_dir=session_dir)
             return result
 
         # Get phase outputs
@@ -393,7 +398,7 @@ class WhatPhaseVerifier(PhaseVerifier):
                 confidence_rationale="No phase outputs available - verification skipped",
                 warnings=["No phase outputs available - skipping verification"],
             )
-            save_verification_result(result)
+            save_verification_result(result, session_dir=session_dir)
             return result
 
         try:
@@ -412,7 +417,7 @@ class WhatPhaseVerifier(PhaseVerifier):
 
             # Save result to file for debugging/UI display
             try:
-                save_verification_result(result)
+                save_verification_result(result, session_dir=session_dir)
                 logger.info("Verification result saved successfully")
             except Exception as save_err:
                 logger.error(f"Failed to save verification result: {save_err}")
@@ -429,7 +434,7 @@ class WhatPhaseVerifier(PhaseVerifier):
             )
             # Still save error result for visibility
             try:
-                save_verification_result(error_result)
+                save_verification_result(error_result, session_dir=session_dir)
                 logger.info("Error verification result saved")
             except Exception as save_err:
                 logger.error(f"Failed to save error verification result: {save_err}")

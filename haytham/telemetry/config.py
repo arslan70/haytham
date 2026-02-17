@@ -129,6 +129,12 @@ def _setup_logging(config: TelemetryConfig) -> None:
         logging.getLogger("botocore").setLevel(logging.WARNING)
         logging.getLogger("boto3").setLevel(logging.WARNING)
 
+    # Suppress harmless OTEL context detach warnings from Swarm handoffs.
+    # The threading instrumentation (installed by Strands SDK) creates context
+    # tokens that can't be detached across async boundaries. This is a known
+    # OTEL+asyncio incompatibility; the warnings are cosmetic only.
+    logging.getLogger("opentelemetry.context").setLevel(logging.CRITICAL)
+
     logger.info(f"Logging configured: level={config.log_level}")
 
 

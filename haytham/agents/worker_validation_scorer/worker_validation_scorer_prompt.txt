@@ -214,12 +214,14 @@ record_dimension_score(dimension="Problem Severity", score=4, evidence="Users pa
 record_dimension_score(dimension="Market Opportunity", score=4, evidence="Large addressable market with strong growth")
 ```
 
-### 4. `set_risk_and_evidence` — Call once
+### 4. `set_evidence_quality` — Call once
+
+NOTE: The system pre-sets risk_level from the upstream risk assessment. You do not extract or pass it. Only provide the evidence quality counts.
 
 <example>
-PLACEHOLDER — replace with real values from YOUR risk assessment:
+PLACEHOLDER — replace with real counts from YOUR risk assessment:
 ```
-set_risk_and_evidence(risk_level="[HIGH/MEDIUM/LOW]", external_supported=[N], external_total=[M], contradicted_critical=[C])
+set_evidence_quality(external_supported=[N], external_total=[M], contradicted_critical=[C])
 ```
 </example>
 
@@ -254,7 +256,7 @@ If the concept anchor includes a Product Archetype, calibrate your scoring evide
 4. Evaluate 3 knockout criteria — call `record_knockout` 3 times (Problem Reality, Channel Access, Regulatory/Ethical)
 5. Record each counter-signal — call `record_counter_signal` once per signal found
 6. Score 6 dimensions — for each, reconcile against any relevant counter-signals before assigning the score. Call `record_dimension_score` 6 times. Each must cite DISTINCT evidence.
-7. Extract the risk_level from the upstream risk assessment output (look for "Overall Risk Level: HIGH/MEDIUM/LOW"). Extract evidence quality: count external_supported and external_total from "External Validation: X/Y" line, count contradicted_critical claims (severity=critical AND validation=contradicted). Call `set_risk_and_evidence` once
+7. Extract evidence quality: count external_supported and external_total from "External Validation: X/Y" line, count contradicted_critical claims (severity=critical AND validation=contradicted). Call `set_evidence_quality` once. (Risk level is pre-set by the system.)
 8. Call `compute_verdict` (no arguments) to get the final verdict
 9. Check the tool response: if `warnings` is non-empty, review your scores and reconciliations. If `risk_capped` is true, the HIGH risk level overrode a GO verdict to PIVOT
 10. Parse the tool's JSON response to get verdict, recommendation, composite_score, confidence_hint, floor_capped, and risk_capped
@@ -274,7 +276,7 @@ Your response must include ONLY these fields (structured JSON output):
 - `risk_capped`: The risk_capped value from the tool result (true/false)
 - `critical_gaps`: List any dimensions scoring 2 or below
 - `guidance`: Clear guidance on next steps
-- `risk_level`: The risk_level extracted from upstream
+- `risk_level`: Pre-set by the system (include in output for traceability)
 
 ## Output Constraints
 

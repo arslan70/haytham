@@ -405,71 +405,121 @@ class TestMVPScopeConsistency:
 
 
 # =============================================================================
-# Fixtures - Override these in conftest.py with real data
+# Negative Tests — Verify validators catch real problems
 # =============================================================================
 
 
-@pytest.fixture
-def mvp_scope() -> dict | str:
-    """
-    Override this fixture in conftest.py to provide real MVP scope output.
+class TestCapabilityModelNegative:
+    """Verify validators catch invalid capability models."""
 
-    Can return either:
-    - A dict with 'in_scope', 'out_of_scope', 'flows' keys
-    - A string with the raw markdown output
-
-    Example for conftest.py:
-        @pytest.fixture
-        def mvp_scope():
-            return Path("session/mvp-scope/output.md").read_text()
-    """
-    pytest.skip("No mvp_scope fixture provided. Override in conftest.py")
-
-
-@pytest.fixture
-def capability_model() -> dict:
-    """
-    Override this fixture in conftest.py to provide real capability model output.
-
-    Should return a dict with structure:
-    {
-        "capabilities": {
-            "functional": [
-                {"id": "...", "name": "...", "serves_scope_item": "...", "user_flow": "..."}
-            ],
-            "non_functional": [...]
+    def test_rejects_empty_serves_scope_item(self, mvp_scope):
+        """Capability with empty serves_scope_item is caught."""
+        bad_model = {
+            "capabilities": {
+                "functional": [
+                    {
+                        "id": "CAP-001",
+                        "name": "Orphan Feature",
+                        "serves_scope_item": "",
+                        "user_flow": "Flow 1",
+                    },
+                ],
+            }
         }
-    }
+        errors = validate_capability_model(bad_model, mvp_scope)
+        assert any("empty serves_scope_item" in e for e in errors)
 
-    Example for conftest.py:
-        @pytest.fixture
-        def capability_model():
-            return json.loads(Path("session/capability-model/output.json").read_text())
-    """
-    pytest.skip("No capability_model fixture provided. Override in conftest.py")
+    def test_rejects_supporting_flow_reference(self, mvp_scope):
+        """'Supporting flow' reference is caught."""
+        bad_model = {
+            "capabilities": {
+                "functional": [
+                    {
+                        "id": "CAP-001",
+                        "name": "Background Sync",
+                        "serves_scope_item": "User registration and login",
+                        "user_flow": "Supporting flow",
+                    },
+                ],
+            }
+        }
+        errors = validate_capability_model(bad_model, mvp_scope)
+        assert any("Supporting flow" in e for e in errors)
+
+    def test_rejects_nonexistent_flow_reference(self, mvp_scope):
+        """Reference to Flow 99 when only 2 flows exist is caught."""
+        bad_model = {
+            "capabilities": {
+                "functional": [
+                    {
+                        "id": "CAP-001",
+                        "name": "Time Travel",
+                        "serves_scope_item": "User registration and login",
+                        "user_flow": "Flow 99",
+                    },
+                ],
+            }
+        }
+        errors = validate_capability_model(bad_model, mvp_scope)
+        assert any("Flow 99" in e for e in errors)
 
 
-@pytest.fixture
-def build_buy_output() -> dict:
-    """
-    Override this fixture in conftest.py to provide real build/buy output.
+class TestBuildBuyNegative:
+    """Verify validators catch invalid build/buy output."""
 
-    Should return a dict with structure:
-    {
-        "recommended_stack": [
-            {"name": "...", "category": "...", "capabilities_served": [...], "rationale": "..."}
-        ],
-        "alternatives": [
-            {"alternatives": [{"name": "..."}]}
-        ]
-    }
+    def test_rejects_framework_in_stack(self):
+        """Framework in recommended_stack is caught."""
+        bad_output = {
+            "recommended_stack": [
+                {
+                    "name": "React",
+                    "category": "Frontend Framework",
+                    "capabilities_served": ["CAP-001"],
+                    "rationale": "Popular UI library.",
+                },
+            ],
+            "alternatives": [],
+        }
+        errors = validate_build_buy(bad_output)
+        assert any("react" in e.lower() for e in errors)
 
-    Example for conftest.py:
-        @pytest.fixture
-        def build_buy_output():
-            return json.loads(Path("session/build-buy-analysis/output.json").read_text())
-    """
-    pytest.skip("No build_buy_output fixture provided. Override in conftest.py")
+    def test_rejects_empty_capabilities_served(self):
+        """Service with no capabilities_served is caught."""
+        bad_output = {
+            "recommended_stack": [
+                {
+                    "name": "RandomService",
+                    "category": "Mystery",
+                    "capabilities_served": [],
+                    "rationale": "No clear purpose.",
+                },
+            ],
+            "alternatives": [],
+        }
+        errors = validate_build_buy(bad_output)
+        assert any("empty capabilities_served" in e for e in errors)
+
+    def test_rejects_duplicate_across_sections(self):
+        """Service in both recommended and alternatives is caught."""
+        bad_output = {
+            "recommended_stack": [
+                {
+                    "name": "Supabase",
+                    "category": "Database",
+                    "capabilities_served": ["CAP-001"],
+                    "rationale": "Managed Postgres.",
+                },
+            ],
+            "alternatives": [
+                {
+                    "alternatives": [
+                        {"name": "Supabase", "rationale": "Also an alternative."},
+                    ],
+                },
+            ],
+        }
+        errors = validate_build_buy(bad_output)
+        assert any("both recommended and alternatives" in e.lower() for e in errors)
 
 
 # =============================================================================

@@ -21,7 +21,6 @@ from .metric_patterns import (
 )
 from .pdf_report import (
     CoverConfig,
-    MetricBadge,
     ReportConfig,
     ReportSection,
     SectionType,
@@ -136,26 +135,7 @@ def _build_executive_summary(summary_text: str, verdict: str | None) -> list[Rep
 
     sections: list[ReportSection] = []
 
-    # Metric badges
-    badges: list[MetricBadge] = []
-    if verdict:
-        color_map = {"GO": "#4CAF50", "PIVOT": "#FF9800", "NO-GO": "#F44336"}
-        badges.append(MetricBadge("Verdict", verdict, color_map.get(verdict, "#9E9E9E")))
-
-    m = RE_CONFIDENCE.search(summary_text)
-    if m:
-        badges.append(MetricBadge("Evidence Quality", m.group(1).upper(), "#6B2D8B"))
-
-    m = RE_COMPOSITE.search(summary_text)
-    if m:
-        score_val = float(m.group(1))
-        c = "#4CAF50" if score_val >= 3.5 else "#FF9800" if score_val >= 2.5 else "#F44336"
-        badges.append(MetricBadge("Score", f"{m.group(1)}/5.0", c))
-
-    if badges:
-        sections.append(ReportSection("Key Metrics", SectionType.METRIC_BADGES, badges))
-
-    # Executive summary text
+    # Executive summary text (metric badges moved to cover page)
     exec_text = _extract_section(summary_text, "Executive Summary")
     if exec_text:
         sections.append(ReportSection("Executive Summary", SectionType.MARKDOWN, exec_text))
@@ -181,6 +161,8 @@ def _build_market_context(session_dir: Path) -> ReportSection | None:
     text = _load_markdown(session_dir, "market-context", "market_intelligence.md")
     if not text:
         return None
+    # Strip leading "## Market Intelligence" heading (redundant with section title)
+    text = re.sub(r"^## Market Intelligence\s*\n+", "", text)
     text = _strip_sections(text, _MI_OVERLAP_KEYWORDS)
     text = _strip_sections(text, _BIAS_CHECK_KEYWORDS)
     if not text:
@@ -273,12 +255,19 @@ def build_idea_validation_config(session_dir: Path) -> ReportConfig:
         if m:
             risk_level = m.group(1).upper()
 
+    confidence = None
+    if summary_text:
+        m = RE_CONFIDENCE.search(summary_text)
+        if m:
+            confidence = m.group(1).upper()
+
     cover = CoverConfig(
         title="Idea Validation Report",
         idea_text=idea_text,
         verdict=verdict,
         composite_score=composite_score,
         risk_level=risk_level,
+        confidence=confidence,
     )
 
     # Build sections in order

@@ -40,10 +40,11 @@ from .recommendation import (
     clear_scorecard,
     compute_verdict,
     evaluate_recommendation,
+    init_scorecard,
     record_counter_signal,
     record_dimension_score,
     record_knockout,
-    set_risk_and_evidence,
+    set_evidence_quality,
 )
 from .risk_classification import classify_risk_level
 
@@ -73,6 +74,7 @@ __all__ = [
     "search_context",
     "search_service_catalog",
     "set_context_store",
-    "set_risk_and_evidence",
+    "init_scorecard",
+    "set_evidence_quality",
     "summarize_for_stage",
 ]

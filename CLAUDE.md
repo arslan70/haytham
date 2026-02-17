@@ -124,7 +124,7 @@ validation_complete(NO-GO) + gate_approved → END
 - **Burr Workflow** (`haytham/workflow/burr_workflow.py`): State machine with conditional branching. `when(risk_level="HIGH")` for pivot strategy.
 - **StageRegistry** (`haytham/workflow/stage_registry.py`): Single source of truth for stage metadata. O(1) lookups by slug or action name.
 - **StageExecutor** (`haytham/workflow/stage_executor.py`): Template Method Pattern. Stage configs in `haytham/workflow/stages/configs.py`.
-- **Agent Factory** (`haytham/agents/factory/agent_factory.py`): Creates agents with Strands SDK. `AGENT_FACTORIES` dict for dynamic creation.
+- **Agent Factory** (`haytham/agents/factory/agent_factory.py`): Creates agents with Strands SDK. Config-driven via `AGENT_CONFIGS` in `config.py`.
 - **SessionManager** (`haytham/session/session_manager.py`): State, checkpoints, stage outputs. Saves to `session/{stage-slug}/`.
 
 **Key files:**
@@ -134,14 +134,14 @@ validation_complete(NO-GO) + gate_approved → END
 - `haytham/workflow/stage_executor.py` — `StageExecutor` class
 - `haytham/workflow/stages/configs.py` — `STAGE_CONFIGS` dict (assembled from domain modules)
 - `haytham/workflow/entry_conditions.py` — Entry validators, `_VALIDATORS` dict
-- `haytham/agents/factory/agent_factory.py` — Agent creation, `AGENT_FACTORIES` dict
+- `haytham/agents/factory/agent_factory.py` — Agent creation via `create_agent_by_name()`
 - `haytham/session/session_manager.py` — Session state, checkpoints, stage outputs
 
 ### Adding a New Agent
 
 1. Create `haytham/agents/worker_{name}/worker_{name}_prompt.txt`
-2. Add config entry in `AGENT_CONFIGS` (including structured output model if needed — don't add conditional blocks in `create_agent_by_name()`)
-3. Add factory function in `agent_factory.py` and register in `AGENT_FACTORIES`
+2. Add config entry in `AGENT_CONFIGS` in `config.py` (including `structured_output_model_path` if needed)
+3. The generic `create_agent_by_name()` handles creation automatically from the config
 
 **Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/hooks.py`, `haytham/config.py`
 
@@ -276,12 +276,11 @@ def create_agent_by_name(name):
     if name == "new_agent":
         return Agent(structured_output=MyModel)  # DON'T ADD HERE
 
-# CORRECT — declare in AGENT_CONFIGS, register factory in AGENT_FACTORIES
+# CORRECT — declare in AGENT_CONFIGS, create_agent_by_name() handles the rest
 AGENT_CONFIGS["new_agent"] = AgentConfig(
-    structured_output_model=MyModel,
+    structured_output_model_path="haytham.models:MyModel",
     ...
 )
-AGENT_FACTORIES["new_agent"] = create_new_agent
 ```
 
 **Key file:** `haytham/agents/factory/agent_factory.py`
@@ -298,6 +297,29 @@ _VALIDATORS["new_type"] = validate_new_type
 ```
 
 **Key file:** `haytham/workflow/entry_conditions.py`
+
+### PITFALL: Agents Re-deriving Known Values
+
+If the system has already extracted a value (e.g., `risk_level` from the Burr state), pass it explicitly to downstream agents as a structured input. Never embed it in prose and hope the agent extracts it correctly. Agents should receive facts, not re-derive them.
+
+```python
+# WRONG — burying a known value in prose for the LLM to re-extract
+scorer_query = f"...Risk Assessment output:\n{risk_assessment_text}..."
+# Agent must grep for "Overall Risk Level: HIGH" in thousands of chars
+# and pass it to set_risk_and_evidence(risk_level="HIGH", ...)
+# If the LLM extracts "MEDIUM" instead, the verdict is silently wrong.
+
+# CORRECT — pass known values explicitly, fail if missing
+risk_level = state.get("risk_level")
+if not risk_level:
+    raise ValueError("risk_level is required")
+init_scorecard(risk_level=risk_level)  # pre-set before agent runs
+# Agent tools read the pre-set value; agent cannot override it
+```
+
+**The principle**: Treat agent inputs like function arguments. If a value is already in the system state, it flows as typed data, not prose. If a required value is missing, fail loudly instead of letting the agent invent it. Structured output defines the output contract; apply the same discipline to inputs.
+
+**Key file:** `haytham/agents/tools/recommendation.py` (`init_scorecard`), `haytham/workflow/stages/idea_validation.py`
 
 ### PITFALL: Imports Inside Function Bodies
 

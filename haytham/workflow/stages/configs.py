@@ -29,6 +29,7 @@ from haytham.workflow.validators.dim8_inputs import validate_dim8_inputs
 from haytham.workflow.validators.jtbd_match import validate_jtbd_match
 from haytham.workflow.validators.revenue_evidence import validate_revenue_evidence
 from haytham.workflow.validators.som_sanity import validate_som_sanity
+from haytham.workflow.validators.story_coherence import validate_story_coherence
 
 from .concept_anchor import extract_anchor_post_processor
 from .idea_validation import (
@@ -74,8 +75,6 @@ def story_coherence_validator(output: str, state: "State") -> list[str]:
     ADR-022 Part 4: Detects multiple frontend/backend frameworks that would
     indicate inconsistent architecture decisions.
     """
-    from haytham.workflow.validators import validate_story_coherence
-
     report = validate_story_coherence(output)
 
     warnings = []

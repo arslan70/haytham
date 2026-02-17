@@ -28,6 +28,9 @@ from .story_generation_models import (
 
 logger = logging.getLogger(__name__)
 
+# Regex for splitting YAML frontmatter story blocks from markdown output
+_STORY_BLOCK_PATTERN = re.compile(r"---\s*\n(id:\s*STORY-\d+.*?)(?=\n---\s*\nid:|$)", re.DOTALL)
+
 # Maps layer number to the detail prompt filename
 LAYER_DETAIL_PROMPTS: dict[int, str] = {
     0: "detail_foundation_prompt.txt",
@@ -326,9 +329,7 @@ def parse_stories_from_markdown(markdown: str) -> list[dict]:
     stories = []
 
     # Split by story boundaries (--- followed by id:)
-    story_pattern = re.compile(r"---\s*\n(id:\s*STORY-\d+.*?)(?=\n---\s*\nid:|$)", re.DOTALL)
-
-    matches = story_pattern.findall(markdown)
+    matches = _STORY_BLOCK_PATTERN.findall(markdown)
 
     for match in matches:
         story = {}

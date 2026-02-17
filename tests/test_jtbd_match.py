@@ -2,16 +2,14 @@
 
 import json
 
-from haytham.workflow.stages.idea_validation import (
-    _extract_jtbd_matches,
-)
 from haytham.workflow.validators._scorecard_utils import extract_dimension_score
 from haytham.workflow.validators.jtbd_match import (
+    _extract_jtbd_matches,
     validate_jtbd_match,
 )
 
 # =============================================================================
-# _extract_jtbd_matches (idea_validation.py)
+# _extract_jtbd_matches (jtbd_match.py)
 # =============================================================================
 
 

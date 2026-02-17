@@ -240,53 +240,6 @@ def extract_anchor_post_processor(output: str, state: "State") -> dict[str, Any]
         return {}
 
 
-def save_concept_anchor(session_manager: Any, output: str) -> None:
-    """Save the concept anchor to session directory.
-
-    DEPRECATED: This function is no longer used as additional_save.
-    The anchor is now saved directly in extract_anchor_post_processor
-    to avoid duplicate LLM calls.
-
-    This function is kept for backwards compatibility and manual use cases
-    where you need to regenerate the anchor file.
-
-    Args:
-        session_manager: SessionManager with session_dir path
-        output: The idea-analysis output (used for extraction if needed)
-    """
-    if session_manager is None:
-        logger.warning("No session manager - cannot save anchor file")
-        return
-
-    # Load system_goal from session
-    session = session_manager.load_session()
-    if not session:
-        logger.warning("No session found - cannot save anchor file")
-        return
-
-    system_goal = session.get("system_goal", "")
-    if not system_goal:
-        logger.warning("No system_goal in session - cannot extract anchor")
-        return
-
-    try:
-        anchor = extract_concept_anchor(system_goal, output)
-        anchor_str = anchor.to_context_string()
-
-        anchor_file = session_manager.session_dir / "concept_anchor.json"
-        anchor_data = {
-            "anchor": anchor.model_dump(),
-            "anchor_str": anchor_str,
-        }
-        anchor_file.write_text(json.dumps(anchor_data, indent=2))
-        logger.info(
-            f"Saved concept anchor to {anchor_file} "
-            f"({len(anchor.invariants)} invariants, {len(anchor.identity)} identity features)"
-        )
-    except Exception as e:
-        logger.error(f"Failed to save concept anchor: {e}", exc_info=True)
-
-
 def get_anchor_from_state(state: "State") -> ConceptAnchor | None:
     """Retrieve the concept anchor from state.
 

@@ -1,7 +1,7 @@
 # Haytham Development Makefile
 # Quick iteration commands for development workflow
 
-.PHONY: help run burr stage resume reset test-idea test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages
+.PHONY: help run burr stage resume reset test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages
 
 # Default target
 help:
@@ -22,7 +22,6 @@ help:
 	@echo "  make reset            - Clear session and start fresh"
 	@echo "  make clear-from STAGE=... - Clear outputs from stage onward (for re-run)"
 	@echo "  make stages-list      - List all stages in order"
-	@echo "  make test-idea IDEA=  - Quick test with inline idea"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test             - Run all tests"
@@ -42,17 +41,17 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make stage STAGE=idea-analysis"
-	@echo "  make test-idea IDEA=\"A gym leaderboard app\""
+	@echo "  make clear-from STAGE=market-context"
 
 # =============================================================================
 # Application
 # =============================================================================
 
 run:
-	streamlit run frontend_streamlit/Haytham.py
+	uv run streamlit run frontend_streamlit/Haytham.py
 
 burr:
-	burr
+	uv run burr
 
 # =============================================================================
 # Observability
@@ -92,7 +91,7 @@ ifndef STAGE
 	$(error STAGE is required. Usage: make stage STAGE=idea-analysis)
 endif
 	@echo "Running stage: $(STAGE)"
-	python -c "from haytham.workflow.stage_executor import execute_stage; \
+	uv run python -c "from haytham.workflow.stage_executor import execute_stage; \
 		from burr.core import State; \
 		from haytham.session.session_manager import SessionManager; \
 		sm = SessionManager(); \
@@ -102,7 +101,7 @@ endif
 # Resume from last checkpoint
 resume:
 	@echo "Resuming workflow from last checkpoint..."
-	python -c "from haytham.session.session_manager import SessionManager; \
+	uv run python -c "from haytham.session.session_manager import SessionManager; \
 		sm = SessionManager(); \
 		session = sm.load_session(); \
 		if session: \
@@ -124,7 +123,19 @@ clear-from:
 ifndef STAGE
 	$(error STAGE is required. Usage: make clear-from STAGE=market-context)
 endif
-	python scripts/clear_stages.py --from $(STAGE)
+	uv run python -c "import shutil; \
+		from pathlib import Path; \
+		from haytham.workflow.stage_registry import get_stage_registry; \
+		registry = get_stage_registry(); \
+		all_slugs = [m.slug for m in registry.all_stages()]; \
+		start = '$(STAGE)'; \
+		assert start in all_slugs, f'{start} not found. Use: make stages-list'; \
+		idx = all_slugs.index(start); \
+		to_clear = all_slugs[idx:]; \
+		session = Path('session'); \
+		cleared = []; \
+		[cleared.append(s) or shutil.rmtree(session / s) for s in to_clear if (session / s).exists()]; \
+		print(f'Cleared {len(cleared)} stage(s): {cleared}' if cleared else 'Nothing to clear.')"
 
 # Preview what would be cleared (dry run)
 # Usage: make clear-from-preview STAGE=market-context
@@ -132,20 +143,26 @@ clear-from-preview:
 ifndef STAGE
 	$(error STAGE is required. Usage: make clear-from-preview STAGE=market-context)
 endif
-	python scripts/clear_stages.py --from $(STAGE) --dry-run
+	uv run python -c "from pathlib import Path; \
+		from haytham.workflow.stage_registry import get_stage_registry; \
+		registry = get_stage_registry(); \
+		all_slugs = [m.slug for m in registry.all_stages()]; \
+		start = '$(STAGE)'; \
+		assert start in all_slugs, f'{start} not found. Use: make stages-list'; \
+		idx = all_slugs.index(start); \
+		to_clear = all_slugs[idx:]; \
+		session = Path('session'); \
+		existing = [s for s in to_clear if (session / s).exists()]; \
+		print('Would clear:'); \
+		[print(f'  - {s}') for s in existing] if existing else print('  (nothing to clear)')"
 
 # List all stages in order
 stages-list:
-	python scripts/clear_stages.py --list
-
-# Quick test with inline idea
-# Usage: make test-idea IDEA="A gym leaderboard app"
-test-idea:
-ifndef IDEA
-	$(error IDEA is required. Usage: make test-idea IDEA="A gym leaderboard app")
-endif
-	@echo "Testing idea: $(IDEA)"
-	python scripts/e2e_test.py --idea "$(IDEA)" --stages idea-analysis
+	@uv run python -c "from haytham.workflow.stage_registry import get_stage_registry; \
+		registry = get_stage_registry(); \
+		print('All stages in execution order:'); \
+		print(); \
+		[print(f'  {m.display_index:>3}  {m.slug:<30} {m.display_name}') for m in registry.all_stages()]"
 
 # =============================================================================
 # Testing

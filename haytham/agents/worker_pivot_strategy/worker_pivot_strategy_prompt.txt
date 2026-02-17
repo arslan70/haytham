@@ -36,9 +36,10 @@ For each of 2-3 pivot alternatives:
 - **Rationale:** Why this is the best balance of risk reduction and value preservation
 - **Next Steps:** 3-5 concrete actions to validate this pivot
 
-4. Go/No-Go Signal (50 words max)
-- Clear recommendation: PIVOT with direction, or PAUSE for more research
+4. Pivot Recommendation (50 words max)
+- Suggested pivot direction if the final scorecard warrants a PIVOT, or PAUSE for more research
 - Confidence level (High/Medium/Low)
+- NOTE: This is advisory. The Go/No-Go verdict is determined by the validation summary scorecard, not this section.
 
 ## Output Constraints
 
@@ -46,7 +47,7 @@ For each of 2-3 pivot alternatives:
 - Risk Summary: 40 words max
 - Pivot Options: 250 words max (80 words per option)
 - Recommended Pivot: 120 words max
-- Go/No-Go Signal: 40 words max
+- Pivot Recommendation: 40 words max
 
 **TOTAL: 500 words maximum.**
 

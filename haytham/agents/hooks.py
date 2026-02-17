@@ -45,23 +45,21 @@ class HaythamAgentHooks(HookProvider):
         self.execution_time = (time.time() - self._start_time) if self._start_time else 0.0
         agent_name = getattr(event.agent, "name", "unknown")
 
-        if event.result:
-            stop_reason = getattr(event.result, "stop_reason", "unknown")
+        result = getattr(event, "result", None)
+        if result:
+            stop_reason = getattr(result, "stop_reason", "unknown")
             logger.info(
                 f"Agent {agent_name} invocation completed in {self.execution_time:.2f}s "
                 f"(stop_reason={stop_reason})"
             )
 
             # Log cache metrics when available
-            self._log_cache_metrics(agent_name, event.result)
+            self._log_cache_metrics(agent_name, result)
 
             # Annotate current OTEL span if available
             self._record_span_attributes(agent_name, stop_reason)
         else:
-            logger.warning(
-                f"Agent {agent_name} invocation completed in {self.execution_time:.2f}s "
-                f"with no result"
-            )
+            logger.info(f"Agent {agent_name} invocation completed in {self.execution_time:.2f}s")
 
     def _on_before_tool(self, event: BeforeToolCallEvent) -> None:
         tool_name = event.tool_use.get("name", "unknown") if event.tool_use else "unknown"

@@ -24,6 +24,7 @@ full traceability (implements:CAP-* labels).
 
 import json
 import logging
+import time
 import uuid
 import warnings
 from collections.abc import Callable
@@ -424,7 +425,6 @@ def run_architect_workflow(session_manager, execute: bool = True) -> Workflow2Re
         DeprecationWarning,
         stacklevel=2,
     )
-    import time
 
     try:
         # Create the workflow

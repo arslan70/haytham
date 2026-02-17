@@ -10,8 +10,6 @@ Covers:
 import json
 from unittest.mock import MagicMock
 
-import pytest
-
 from haytham.workflow.burr_workflow import _extract_recommendation
 
 
@@ -82,9 +80,7 @@ class TestTier3Regex:
         results = {
             "validation-summary": {
                 "status": "completed",
-                "outputs": {
-                    "report_synthesis": "## Summary\nRECOMMENDATION: GO\nSome other text."
-                },
+                "outputs": {"report_synthesis": "## Summary\nRECOMMENDATION: GO\nSome other text."},
             }
         }
         state = _make_state({})

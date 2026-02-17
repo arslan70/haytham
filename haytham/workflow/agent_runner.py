@@ -54,6 +54,42 @@ def _is_token_limit_error(error: Exception) -> bool:
     return any(indicator in error_str for indicator in token_limit_indicators)
 
 
+_TRANSIENT_INDICATORS = [
+    "response ended prematurely",
+    "connection reset",
+    "connection aborted",
+    "broken pipe",
+    "timed out",
+    "read timed out",
+    "network is unreachable",
+    "internal server error",
+]
+
+_MAX_RETRIES = 2
+_RETRY_DELAY_SECONDS = 5
+
+
+def _is_transient_error(error: Exception) -> bool:
+    """Check if an error is a transient network error worth retrying.
+
+    Walks the full exception chain (__cause__) to catch errors wrapped
+    by the Strands SDK's EventLoopException.
+
+    Args:
+        error: The exception to check.
+
+    Returns:
+        True if this looks like a transient network/server error.
+    """
+    parts = [str(error).lower()]
+    cause = error.__cause__
+    while cause:
+        parts.append(str(cause).lower())
+        cause = cause.__cause__
+    combined = " ".join(parts)
+    return any(indicator in combined for indicator in _TRANSIENT_INDICATORS)
+
+
 def _get_user_friendly_error(error: Exception, agent_name: str) -> str:
     """Get a user-friendly error message for display.
 
@@ -144,7 +180,30 @@ def run_agent(
         logger.info(f"Running agent {agent_name} with query length: {len(full_query)}")
 
         try:
-            result = agent(full_query)
+            # Retry loop for transient network errors (e.g. Bedrock stream drops).
+            # Boto3 retries don't cover mid-stream failures when streaming=True.
+            for attempt in range(_MAX_RETRIES + 1):
+                try:
+                    result = agent(full_query)
+                    break
+                except Exception as e:
+                    if (
+                        attempt < _MAX_RETRIES
+                        and _is_transient_error(e)
+                        and not _is_token_limit_error(e)
+                    ):
+                        logger.warning(
+                            "Agent %s transient error (attempt %d/%d): %s. Retrying in %ds...",
+                            agent_name,
+                            attempt + 1,
+                            _MAX_RETRIES + 1,
+                            e,
+                            _RETRY_DELAY_SECONDS,
+                        )
+                        time.sleep(_RETRY_DELAY_SECONDS)
+                        continue
+                    raise
+
             # Lazy import: workflow/ → agents/ would create circular dep at module level
             from haytham.agents.output_utils import extract_text_from_result
 
@@ -219,11 +278,15 @@ def run_parallel_agents(
         Dict mapping agent_name -> result
     """
 
+    # Snapshot context to prevent race conditions if callers mutate it later.
+    # Each thread gets the same frozen view (read-only by convention).
+    frozen_context = context.copy()
+
     def run_single(config):
         return run_agent(
             agent_name=config["name"],
             query=config["query"],
-            context=context,
+            context=frozen_context,
             session_manager=session_manager,
             use_context_tools=use_context_tools,
         )

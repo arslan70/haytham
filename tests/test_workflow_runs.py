@@ -7,7 +7,6 @@ Covers:
 - clear_runs() is a no-op when file doesn't exist
 """
 
-import json
 import threading
 
 import pytest

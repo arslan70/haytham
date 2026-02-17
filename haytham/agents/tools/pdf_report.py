@@ -72,6 +72,7 @@ class CoverConfig:
     verdict: str | None = None
     composite_score: str | None = None
     risk_level: str | None = None
+    confidence: str | None = None
     date: str = field(default_factory=lambda: datetime.now().strftime("%B %d, %Y"))
 
 
@@ -141,6 +142,16 @@ def _build_styles() -> dict[str, ParagraphStyle]:
         bulletIndent=6,
         spaceAfter=3,
     )
+    custom["sub_bullet"] = ParagraphStyle(
+        "HaythamSubBullet",
+        parent=base["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=14,
+        leftIndent=36,
+        bulletIndent=24,
+        spaceAfter=3,
+    )
     custom["cover_title"] = ParagraphStyle(
         "HaythamCoverTitle",
         parent=base["Title"],
@@ -152,11 +163,11 @@ def _build_styles() -> dict[str, ParagraphStyle]:
     custom["cover_idea"] = ParagraphStyle(
         "HaythamCoverIdea",
         parent=base["Normal"],
-        fontName="Helvetica-Oblique",
+        fontName="Helvetica",
         fontSize=11,
         leading=15,
-        textColor=colors.HexColor("#555555"),
-        spaceAfter=24,
+        textColor=colors.HexColor("#333333"),
+        spaceAfter=0,
     )
     custom["footer"] = ParagraphStyle(
         "HaythamFooter",
@@ -243,7 +254,7 @@ _RE_BOLD = re.compile(r"\*\*(.+?)\*\*")
 _RE_ITALIC = re.compile(r"\*(.+?)\*")
 _RE_MD_TABLE_ROW = re.compile(r"^\|(.+)\|$")
 _RE_MD_SEP_ROW = re.compile(r"^\|[-\s|:]+\|$")
-_RE_SCORE_BAR = re.compile(r"[█░]+\s*")  # visual score bars in markdown
+_RE_SCORE_BAR = re.compile(r"[█░■□▪▫▓▒]+\s*")  # visual score bars in markdown
 
 
 def _md_inline(text: str) -> str:
@@ -263,7 +274,7 @@ def _parse_markdown_table(lines: list[str], styles: dict) -> Table | None:
             continue
         m = _RE_MD_TABLE_ROW.match(line.strip())
         if m:
-            cells = [c.strip() for c in m.group(1).split("|")]
+            cells = [_RE_SCORE_BAR.sub("", c).strip() for c in m.group(1).split("|")]
             rows.append(cells)
 
     if not rows:
@@ -343,6 +354,19 @@ def _markdown_to_flowables(text: str, styles: dict) -> list:
                 flowables.append(Spacer(1, 4))
                 flowables.append(tbl)
                 flowables.append(Spacer(1, 6))
+            continue
+
+        # Indented sub-bullet points (2+ spaces then - or *)
+        sub_m = re.match(r"^(\s{2,})[-*]\s+(.+)$", line)
+        if sub_m:
+            bullet_text = _RE_SCORE_BAR.sub("", sub_m.group(2).strip())
+            flowables.append(
+                Paragraph(
+                    f"&bull; {_md_inline(bullet_text)}",
+                    styles["sub_bullet"],
+                )
+            )
+            i += 1
             continue
 
         # Bullet points
@@ -523,14 +547,27 @@ def _build_cover(cover: CoverConfig, styles: dict, page_width: float) -> list:
     # Title
     elems.append(Paragraph(cover.title, styles["cover_title"]))
 
-    # Idea text (truncated)
+    # Idea text (full, in a styled box)
     if cover.idea_text:
-        truncated = cover.idea_text[:300]
-        if len(cover.idea_text) > 300:
-            truncated += "..."
-        elems.append(Paragraph(f"&ldquo;{_md_inline(truncated)}&rdquo;", styles["cover_idea"]))
+        idea_para = Paragraph(_md_inline(cover.idea_text), styles["cover_idea"])
+        idea_table = Table([[idea_para]], colWidths=[usable - 24])
+        idea_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F3EDF8")),
+                    ("ROUNDEDCORNERS", [6, 6, 6, 6]),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                    ("TOPPADDING", (0, 0), (-1, -1), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                    ("BOX", (0, 0), (-1, -1), 0.5, LIGHT_PURPLE),
+                ]
+            )
+        )
+        elems.append(idea_table)
+        elems.append(Spacer(1, 12))
 
-    # Badges row: verdict, score, risk
+    # Badges row: verdict, score, risk, confidence
     badge_items = []
     if cover.verdict:
         c = VERDICT_COLORS.get(cover.verdict, colors.gray)
@@ -542,9 +579,19 @@ def _build_cover(cover: CoverConfig, styles: dict, page_width: float) -> list:
     if cover.risk_level:
         c = RISK_COLORS.get(cover.risk_level, colors.gray)
         badge_items.append(_Badge(f"Risk: {cover.risk_level}", c, width=120, height=32))
+    if cover.confidence:
+        badge_items.append(_Badge(f"Confidence: {cover.confidence}", PURPLE, width=160, height=32))
 
     if badge_items:
-        t = Table([badge_items], colWidths=[170] * len(badge_items))
+        # Compute column widths proportional to badge sizes, scaling if needed
+        gap = 10
+        total_desired = sum(b.width + gap for b in badge_items)
+        if total_desired > usable:
+            scale = usable / total_desired
+            for b in badge_items:
+                b.width = int(b.width * scale)
+        col_widths = [b.width + gap for b in badge_items]
+        t = Table([badge_items], colWidths=col_widths)
         t.setStyle(
             TableStyle(
                 [
@@ -629,6 +676,7 @@ def generate_pdf_tool(report_config_json: str) -> str:
         verdict=cover_data.get("verdict"),
         composite_score=cover_data.get("composite_score"),
         risk_level=cover_data.get("risk_level"),
+        confidence=cover_data.get("confidence"),
     )
 
     sections = []

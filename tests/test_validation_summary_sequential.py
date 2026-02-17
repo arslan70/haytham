@@ -256,6 +256,7 @@ def _mock_state(**overrides):
         "risk_assessment": (
             "## Risk Assessment\nOverall Risk Level: MEDIUM\nExternal Validation: 5/8"
         ),
+        "risk_level": "MEDIUM",
         "pivot_strategy": "",
         "session_manager": None,
         "concept_anchor_str": "",
@@ -267,8 +268,8 @@ def _mock_state(**overrides):
 
 
 class TestRunValidationSummarySequential:
-    @mock.patch("haytham.workflow.agent_runner.save_stage_output")
-    @mock.patch("haytham.workflow.agent_runner.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     def test_happy_path(self, mock_run_agent, mock_save):
         """Both agents succeed → returns valid merged JSON with 'completed'."""
         from haytham.workflow.stages.idea_validation import (
@@ -293,8 +294,8 @@ class TestRunValidationSummarySequential:
         assert model.go_no_go_assessment.composite_score == 3.4
         assert "scheduling" in model.executive_summary.lower()
 
-    @mock.patch("haytham.workflow.agent_runner.save_stage_output")
-    @mock.patch("haytham.workflow.agent_runner.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     def test_scorer_failure(self, mock_run_agent, mock_save):
         """Scorer fails → returns early with 'failed'."""
         from haytham.workflow.stages.idea_validation import (
@@ -313,8 +314,8 @@ class TestRunValidationSummarySequential:
         # run_agent only called once (no narrator call)
         assert mock_run_agent.call_count == 1
 
-    @mock.patch("haytham.workflow.agent_runner.save_stage_output")
-    @mock.patch("haytham.workflow.agent_runner.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     def test_narrator_failure(self, mock_run_agent, mock_save):
         """Narrator fails → returns scorer output with 'partial'."""
         from haytham.workflow.stages.idea_validation import (
@@ -333,8 +334,8 @@ class TestRunValidationSummarySequential:
         # Output should be the scorer output (fallback)
         assert output == scorer_json
 
-    @mock.patch("haytham.workflow.agent_runner.save_stage_output")
-    @mock.patch("haytham.workflow.agent_runner.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     def test_scorer_invalid_json(self, mock_run_agent, mock_save):
         """Scorer returns non-JSON → returns 'failed'."""
         from haytham.workflow.stages.idea_validation import (
@@ -350,8 +351,8 @@ class TestRunValidationSummarySequential:
 
         assert status == "failed"
 
-    @mock.patch("haytham.workflow.agent_runner.save_stage_output")
-    @mock.patch("haytham.workflow.agent_runner.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     def test_scorer_missing_fields(self, mock_run_agent, mock_save):
         """Scorer output missing critical fields → returns 'failed'."""
         from haytham.workflow.stages.idea_validation import (

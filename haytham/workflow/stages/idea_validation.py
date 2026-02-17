@@ -17,6 +17,18 @@ from haytham.agents.tools.competitor_recording import (
     clear_competitor_accumulator,
     get_competitor_data,
 )
+from haytham.agents.tools.recommendation import (
+    _compute_confidence_hint,
+    clear_scorecard,
+    init_scorecard,
+)
+from haytham.agents.worker_validation_summary.validation_summary_models import (
+    ValidationSummaryOutput,
+    merge_scorer_narrator,
+)
+from haytham.workflow.agent_runner import run_agent, save_stage_output
+from haytham.workflow.anchor_schema import FounderPersona
+from haytham.workflow.stages.concept_anchor import get_anchor_context_string
 from haytham.workflow.validators.dim8_inputs import _SWITCHING_COST_RE
 from haytham.workflow.validators.jtbd_match import _JTBD_MATCH_RE
 from haytham.workflow.validators.revenue_evidence import _REVENUE_TAG_RE as _REVENUE_EVIDENCE_RE
@@ -89,8 +101,6 @@ def _apply_confidence_rubric(
     Wraps ``_compute_confidence_hint`` from ``recommendation.py`` with
     scalar arguments and a ``MEDIUM`` default (instead of ``None``).
     """
-    from haytham.agents.tools.recommendation import _compute_confidence_hint
-
     result = _compute_confidence_hint(
         {
             "external_supported": ext_supported,
@@ -219,30 +229,6 @@ def _extract_jtbd_section(market_intelligence_output: str) -> str:
     return ""
 
 
-def _extract_jtbd_matches(competitor_analysis_output: str) -> list[str]:
-    """Extract all JTBD Match tags from competitor analysis output."""
-    return [m.group(1).strip() for m in _JTBD_MATCH_RE.finditer(competitor_analysis_output)]
-
-
-def _extract_switching_cost(competitor_analysis_output: str) -> str:
-    """Extract Switching Cost tag from competitor analysis Section 4.
-
-    Returns the tag value (e.g. "High", "Low") or empty string if not found.
-    """
-    match = _SWITCHING_COST_RE.search(competitor_analysis_output)
-    return match.group(1).strip() if match else ""
-
-
-def _extract_revenue_evidence_tag(competitor_analysis_output: str) -> str:
-    """Extract Revenue Evidence Tag from competitor analysis output.
-
-    Returns the tag value (e.g. "Priced", "No-Pricing-Found") or empty string
-    if not found.
-    """
-    match = _REVENUE_EVIDENCE_RE.search(competitor_analysis_output)
-    return match.group(1).strip() if match else ""
-
-
 def extract_competitor_data_processor(output: str, state: State) -> dict[str, Any]:
     """Post-processor: extract structured competitor data from accumulator.
 
@@ -283,9 +269,6 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
     Returns:
         Tuple of (combined_output, status) for stage_executor compatibility.
     """
-    from haytham.workflow.agent_runner import run_agent, save_stage_output
-    from haytham.workflow.stages.concept_anchor import get_anchor_context_string
-
     system_goal = state.get("system_goal", "")
     idea_analysis = state.get("idea_analysis", "")
     session_manager = state.get("session_manager")
@@ -354,17 +337,19 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
 
     # --- Revenue evidence observability ---
     if ca_output:
-        rev_tag = _extract_revenue_evidence_tag(ca_output)
+        rev_match = _REVENUE_EVIDENCE_RE.search(ca_output)
+        rev_tag = rev_match.group(1).strip() if rev_match else ""
         if rev_tag:
             logger.info(f"Revenue Evidence Tag: {rev_tag}")
         else:
             logger.warning("No Revenue Evidence Tag found in competitor analysis output")
 
-        jtbd_matches = _extract_jtbd_matches(ca_output)
+        jtbd_matches = [m.group(1).strip() for m in _JTBD_MATCH_RE.finditer(ca_output)]
         if jtbd_matches:
             logger.info(f"JTBD Matches: {jtbd_matches}")
 
-        switching_cost = _extract_switching_cost(ca_output)
+        sc_match = _SWITCHING_COST_RE.search(ca_output)
+        switching_cost = sc_match.group(1).strip() if sc_match else ""
         if switching_cost:
             logger.info(f"Switching Cost: {switching_cost}")
 
@@ -423,13 +408,6 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
     Returns:
         Tuple of (merged_json, status) for stage_executor compatibility.
     """
-    from haytham.agents.worker_validation_summary.validation_summary_models import (
-        ValidationSummaryOutput,
-        merge_scorer_narrator,
-    )
-    from haytham.workflow.agent_runner import run_agent, save_stage_output
-    from haytham.workflow.stages.concept_anchor import get_anchor_context_string
-
     system_goal = state.get("system_goal", "")
     idea_analysis = state.get("idea_analysis", "")
     market_context = state.get("market_context", "")
@@ -453,15 +431,11 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
         context["concept_anchor"] = anchor_str
 
     # --- 1. Run validation_scorer ---
-    from haytham.agents.tools.recommendation import clear_scorecard
-
     # Build scorer query with FULL upstream context inline.
     # The scorer's job is cross-referencing specific evidence (market sizes,
     # competitor traction, claim validation results). The generic
     # build_context_summary() truncates each stage to ~200 chars, which
     # strips all the data the scorer needs to cite. Pass full text instead.
-    from haytham.workflow.anchor_schema import FounderPersona
-
     founder_persona = FounderPersona()
     scorer_sections = [
         "Evaluate all upstream findings using the Stage-Gate scorecard. "
@@ -486,7 +460,14 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
 
     scorer_query = "\n".join(scorer_sections)
 
-    clear_scorecard()
+    # Pre-set authoritative upstream values in the scorecard.
+    # risk_level was extracted by extract_risk_level_processor after
+    # risk_assessment. Pass it as a structured input, not prose.
+    risk_level = state.get("risk_level", "")
+    if not risk_level:
+        logger.error("risk_level missing from state — risk_assessment must run first")
+        return "Error: risk_level not found in state", "failed"
+    init_scorecard(risk_level=risk_level)
     try:
         # Pass empty context — full text is already in scorer_query
         scorer_result = run_agent(

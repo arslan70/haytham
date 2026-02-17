@@ -219,14 +219,14 @@ def _tools_recommendation() -> list:
         record_counter_signal,
         record_dimension_score,
         record_knockout,
-        set_risk_and_evidence,
+        set_evidence_quality,
     )
 
     return [
         record_knockout,
         record_dimension_score,
         record_counter_signal,
-        set_risk_and_evidence,
+        set_evidence_quality,
         compute_verdict,
     ]
 

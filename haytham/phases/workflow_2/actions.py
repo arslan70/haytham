@@ -15,6 +15,7 @@ The stages are:
 import json
 import logging
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -69,8 +70,6 @@ def run_architect_agent(
     Returns:
         Dict with output and metadata
     """
-    import time
-
     from strands import Agent
 
     start_time = time.time()

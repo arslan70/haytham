@@ -2,9 +2,6 @@
 
 import json
 
-from haytham.workflow.stages.idea_validation import (
-    _extract_switching_cost as extract_switching_cost_iv,
-)
 from haytham.workflow.validators._scorecard_utils import extract_dimension_score
 from haytham.workflow.validators.dim8_inputs import (
     _extract_switching_cost,
@@ -12,7 +9,7 @@ from haytham.workflow.validators.dim8_inputs import (
 )
 
 # =============================================================================
-# _extract_switching_cost (dim8_inputs.py + idea_validation.py)
+# _extract_switching_cost (dim8_inputs.py)
 # =============================================================================
 
 
@@ -45,11 +42,6 @@ class TestExtractSwitchingCost:
 
     def test_returns_empty_for_empty_input(self):
         assert _extract_switching_cost("") == ""
-
-    def test_idea_validation_extractor_matches(self):
-        """Verify idea_validation.py extractor produces same results."""
-        output = "- **Switching Cost:** [High] — data migration"
-        assert extract_switching_cost_iv(output) == "High"
 
 
 # =============================================================================

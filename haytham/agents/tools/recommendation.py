@@ -6,8 +6,10 @@ parameter tools, then calls compute_verdict to apply consistent decision rules.
 
 A module-level ``_scorecard`` accumulator collects items across tool calls
 (same pattern as ``context_retrieval.py``).  Lifecycle helpers
-``clear_scorecard()`` / ``get_scorecard()`` are plain functions used by the
-stage executor to bracket each agent run.
+``init_scorecard()`` / ``clear_scorecard()`` / ``get_scorecard()`` are plain
+functions used by the stage executor to bracket each agent run.
+``init_scorecard(risk_level=...)`` pre-sets authoritative upstream values
+so the agent cannot re-derive or misextract them.
 
 The legacy ``evaluate_recommendation()`` function is kept as a regular function
 (no @tool decorator) for backward compatibility with existing tests and callers.
@@ -188,6 +190,27 @@ def _get_scorecard() -> dict:
 def clear_scorecard() -> None:
     """Reset the scorecard accumulator to empty state."""
     _thread_local.scorecard = _new_scorecard()
+
+
+def init_scorecard(*, risk_level: str) -> None:
+    """Initialize scorecard with authoritative upstream values.
+
+    Pre-sets values that the system already extracted in prior stages.
+    Call this instead of clear_scorecard() when upstream values are available.
+    The agent's tools will use these pre-set values directly.
+
+    Args:
+        risk_level: Authoritative risk level from the Burr state
+            (extracted by risk_assessment stage). Must be HIGH, MEDIUM, or LOW.
+
+    Raises:
+        ValueError: If risk_level is empty or not a valid level.
+    """
+    if not risk_level or risk_level.upper() not in ("HIGH", "MEDIUM", "LOW"):
+        raise ValueError(f"risk_level must be HIGH, MEDIUM, or LOW, got: {risk_level!r}")
+    sc = _new_scorecard()
+    sc["risk_level"] = risk_level.upper()
+    _thread_local.scorecard = sc
 
 
 def get_scorecard() -> dict:
@@ -450,19 +473,17 @@ def record_counter_signal(
 
 
 @tool
-def set_risk_and_evidence(
-    risk_level: str,
+def set_evidence_quality(
     external_supported: int,
     external_total: int,
     contradicted_critical: int,
 ) -> str:
-    """Set the overall risk level and evidence quality metrics.
+    """Set evidence quality metrics from the risk assessment claims analysis.
 
-    Call this once after scoring all dimensions. These values are used by
-    compute_verdict for risk veto and confidence hint computation.
+    Call this once after scoring all dimensions. Risk level is pre-set by the
+    system from upstream state and does not need to be provided.
 
     Args:
-        risk_level: Overall risk level from upstream ("HIGH", "MEDIUM", or "LOW").
         external_supported: Number of externally supported claims.
         external_total: Total number of external claims evaluated.
         contradicted_critical: Number of contradicted critical-severity claims.
@@ -471,16 +492,16 @@ def set_risk_and_evidence(
         Confirmation message.
     """
     sc = _get_scorecard()
-    sc["risk_level"] = risk_level.upper()
+    risk_level = sc["risk_level"]
     sc["evidence_quality"] = {
         "external_supported": int(external_supported),
         "external_total": int(external_total),
         "contradicted_critical": int(contradicted_critical),
-        "risk_level": risk_level.upper(),
+        "risk_level": risk_level,
     }
     return (
-        f"Set risk_level={risk_level.upper()}, "
-        f"evidence_quality: {external_supported}/{external_total} external, "
+        f"Evidence quality set (risk_level={risk_level} from system): "
+        f"{external_supported}/{external_total} external, "
         f"{contradicted_critical} contradicted critical"
     )
 

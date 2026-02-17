@@ -17,6 +17,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Regex for extracting layer numbers from story output
+_LAYER_PATTERN = re.compile(r'"?layer"?\s*[=:]\s*(\d+)', re.IGNORECASE)
+
 
 @dataclass
 class FrameworkConflict:
@@ -111,8 +114,7 @@ def detect_max_layer(content: str) -> int:
     Returns:
         Maximum layer number found (0 if none detected)
     """
-    layer_pattern = re.compile(r'"?layer"?\s*[=:]\s*(\d+)', re.IGNORECASE)
-    matches = layer_pattern.findall(content)
+    matches = _LAYER_PATTERN.findall(content)
 
     if matches:
         return max(int(m) for m in matches)
