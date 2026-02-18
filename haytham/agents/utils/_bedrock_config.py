@@ -19,6 +19,7 @@ import os
 
 from botocore.config import Config
 from strands.models.bedrock import BedrockModel
+from strands.models.model import CacheConfig
 
 logger = logging.getLogger(__name__)
 
@@ -166,11 +167,9 @@ def create_bedrock_model(
     _log_aws_profile_info()
 
     # Create BedrockModel with boto client configuration
-    # cache_prompt="default" caches the system prompt (5-minute TTL),
-    # reducing latency and cost for repeated agent invocations.
-    # Note: cache_tools="default" is NOT enabled here because Nova Lite v1
-    # rejects the cachePoint key in toolConfig. Only add it for models that
-    # support it (Claude, Nova 2+).
+    # cache_config with strategy="auto" injects cachePoint at optimal
+    # positions (system prompt, last assistant turn), reducing latency and
+    # cost for repeated invocations.
     model = BedrockModel(
         model_id=model_id,
         region_name=region_name,
@@ -178,7 +177,7 @@ def create_bedrock_model(
         streaming=streaming,
         temperature=temperature,
         max_tokens=max_tokens,
-        cache_prompt="default",
+        cache_config=CacheConfig(strategy="auto"),
         **kwargs,
     )
 

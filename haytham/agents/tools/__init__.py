@@ -38,13 +38,11 @@ from .context_retrieval import (
 )
 from .recommendation import (
     clear_scorecard,
-    compute_verdict,
     evaluate_recommendation,
     init_scorecard,
     record_counter_signal,
     record_dimension_score,
     record_knockout,
-    set_evidence_quality,
 )
 from .risk_classification import classify_risk_level
 
@@ -53,7 +51,6 @@ __all__ = [
     "clear_competitor_accumulator",
     "clear_context_store",
     "clear_scorecard",
-    "compute_verdict",
     "estimate_integration_effort",
     "evaluate_build_buy_decision",
     "evaluate_recommendation",
@@ -75,6 +72,5 @@ __all__ = [
     "search_service_catalog",
     "set_context_store",
     "init_scorecard",
-    "set_evidence_quality",
     "summarize_for_stage",
 ]

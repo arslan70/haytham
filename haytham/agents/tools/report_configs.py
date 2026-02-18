@@ -15,7 +15,6 @@ import yaml
 
 from .metric_patterns import (
     RE_COMPOSITE,
-    RE_CONFIDENCE,
     RE_RECOMMENDATION,
     RE_RISK_LEVEL,
 )
@@ -255,19 +254,12 @@ def build_idea_validation_config(session_dir: Path) -> ReportConfig:
         if m:
             risk_level = m.group(1).upper()
 
-    confidence = None
-    if summary_text:
-        m = RE_CONFIDENCE.search(summary_text)
-        if m:
-            confidence = m.group(1).upper()
-
     cover = CoverConfig(
         title="Idea Validation Report",
         idea_text=idea_text,
         verdict=verdict,
         composite_score=composite_score,
         risk_level=risk_level,
-        confidence=confidence,
     )
 
     # Build sections in order

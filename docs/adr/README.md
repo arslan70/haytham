@@ -2,6 +2,17 @@
 
 This directory contains Architecture Decision Records (ADRs) for Haytham. Each ADR captures a significant design decision — the context, the decision, the rationale, and the implications.
 
+## Start Here
+
+New to the project? These two ADRs give you the mental model for everything else:
+
+1. **[ADR-016: Four-Phase Workflow](ADR-016-four-phase-workflow.md)** — How the pipeline is structured and why stages run in the order they do
+2. **[ADR-022: Concept Fidelity](ADR-022-concept-fidelity-pipeline-integrity.md)** — How the system prevents meaning drift across agents (the "telephone problem")
+
+Once you understand the workflow and the fidelity mechanism, the other ADRs fill in specific design choices within that framework.
+
+---
+
 ## Index
 
 ### Core Architecture
@@ -50,6 +61,7 @@ This directory contains Architecture Decision Records (ADRs) for Haytham. Each A
 | ADR | Title | Status |
 |-----|-------|--------|
 | [ADR-020](ADR-020-project-rename.md) | Project Rename (kickstarter to haytham) | Completed |
+| [ADR-024](ADR-024-split-oversized-modules.md) | Split Oversized Modules | Accepted |
 
 ### Genesis Foundation (Early ADRs)
 

@@ -460,7 +460,7 @@ if new_idea:
                     answer = st.text_input(
                         question.question,
                         key=f"discovery_q{i}",
-                        placeholder=question.placeholder,
+                        value=question.placeholder,
                     )
                     answers[question.dimension] = answer
 

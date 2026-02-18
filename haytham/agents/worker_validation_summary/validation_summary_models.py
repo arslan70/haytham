@@ -70,7 +70,11 @@ class ScorecardDimension(BaseModel):
 
 
 class CounterSignal(BaseModel):
-    """A negative upstream signal that must be reconciled against dimension scores."""
+    """A negative upstream signal displayed for transparency.
+
+    Counter-signals are informational: they show risks the system identified
+    but do not override the deterministic verdict rules.
+    """
 
     signal: str = Field(
         description="The negative finding (e.g. 'No independent evidence users want this')"
@@ -83,20 +87,7 @@ class CounterSignal(BaseModel):
     )
     reconciliation: str = Field(
         default="",
-        deprecated="Use structured fields (evidence_cited, why_score_holds, what_would_change_score) instead.",
-        description="Free-text reconciliation. Legacy field — use structured fields instead.",
-    )
-    evidence_cited: str = Field(
-        default="",
-        description="Specific upstream evidence that justifies the current score despite this signal",
-    )
-    why_score_holds: str = Field(
-        default="",
-        description="Reasoning for why the dimension score is still appropriate",
-    )
-    what_would_change_score: str = Field(
-        default="",
-        description="What new evidence would cause the score to change",
+        description="Why the dimension score is still appropriate despite this signal",
     )
 
 
@@ -144,7 +135,7 @@ class ValidationSummaryOutput(BaseModel):
     executive_summary: str = Field(
         description=(
             "One-paragraph overview of the startup concept (60 words max). "
-            "Include overall validation verdict and confidence level."
+            "Include overall validation verdict."
         )
     )
     recommendation: str = Field(
@@ -154,9 +145,6 @@ class ValidationSummaryOutput(BaseModel):
             "PIVOT - Concept has potential but needs significant changes before proceeding. "
             "NO-GO - Do not proceed, fundamental issues identified that cannot be easily resolved."
         )
-    )
-    confidence: str = Field(
-        description="Evidence quality level: HIGH, MEDIUM, or LOW — measures how much external evidence supports the assessment"
     )
     lean_canvas: LeanCanvas = Field(description="Condensed Lean Canvas summary")
     validation_findings: ValidationFindings = Field(
@@ -241,15 +229,7 @@ class ValidationSummaryOutput(BaseModel):
             for cs in self.go_no_go_assessment.counter_signals:
                 dims = ", ".join(cs.affected_dimensions)
                 lines.append(f"- **{cs.signal}** (source: {cs.source}, affects: {dims})")
-                # Prefer structured fields; fall back to legacy reconciliation
-                if cs.evidence_cited or cs.why_score_holds or cs.what_would_change_score:
-                    if cs.evidence_cited:
-                        lines.append(f"  - *Evidence cited:* {cs.evidence_cited}")
-                    if cs.why_score_holds:
-                        lines.append(f"  - *Why score holds:* {cs.why_score_holds}")
-                    if cs.what_would_change_score:
-                        lines.append(f"  - *What would change score:* {cs.what_would_change_score}")
-                elif cs.reconciliation:
+                if cs.reconciliation:
                     lines.append(f"  - *Reconciliation:* {cs.reconciliation}")
 
         lines.extend(
@@ -310,7 +290,7 @@ class ScorerOutput(BaseModel):
     """Intermediate output from validation_scorer agent.
 
     Contains all analytical fields: knockouts, dimension scores,
-    counter-signals, and the recommendation tool result.
+    counter-signals, and the deterministic verdict.
     """
 
     knockout_criteria: list[KnockoutCriterion]
@@ -319,7 +299,6 @@ class ScorerOutput(BaseModel):
     composite_score: float = Field(ge=0.0, le=5.0)
     verdict: str
     recommendation: str
-    confidence_hint: str = Field(default="")
     floor_capped: bool = False
     risk_capped: bool = False
     critical_gaps: list[str] = Field(default_factory=list)
@@ -407,7 +386,6 @@ def merge_scorer_narrator(scorer: dict, narrator: dict) -> dict:
     return {
         "executive_summary": exec_summary,
         "recommendation": scorer["recommendation"],
-        "confidence": scorer.get("confidence_hint") or "MEDIUM",
         "lean_canvas": narrator["lean_canvas"],
         "validation_findings": narrator["validation_findings"],
         "go_no_go_assessment": {

@@ -382,6 +382,13 @@ class StageExecutor:
             output = extract_text_from_result(
                 result_raw, output_as_json=self.config.output_model is not None
             )
+            if not output or not output.strip():
+                logger.error(f"Custom agent {self.stage.slug} returned empty output")
+                return (
+                    f"Error: Agent produced no output for {self.stage.slug}. "
+                    "This may indicate a content filter, token limit, or transient model issue.",
+                    "failed",
+                )
             return output, "completed"
 
         except Exception as e:  # Intentional catch-all: agent execution boundary

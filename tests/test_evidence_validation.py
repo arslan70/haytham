@@ -134,9 +134,7 @@ class TestCounterSignalSourceValidation:
             signal="Market size unverified",
             source="competitor_analysis",
             affected_dimensions="Market Opportunity",
-            evidence_cited="Some evidence here",
-            why_score_holds="Score is conservative",
-            what_would_change_score="Direct market data",
+            reconciliation="Score is conservative based on limited data",
         )
         assert "REJECTED" in result
         assert "competitor_analysis" in result
@@ -149,9 +147,7 @@ class TestCounterSignalSourceValidation:
             signal="Market size unverified",
             source="market_context",
             affected_dimensions="Market Opportunity",
-            evidence_cited="Some evidence here",
-            why_score_holds="Score is conservative",
-            what_would_change_score="Direct market data",
+            reconciliation="Score is conservative based on limited data",
         )
         assert "REJECTED" not in result
         assert "Recorded" in result
@@ -164,9 +160,7 @@ class TestCounterSignalSourceValidation:
             signal="Claims lack external validation",
             source="risk assessment",
             affected_dimensions="Market Opportunity",
-            evidence_cited="Some evidence here",
-            why_score_holds="Score is conservative",
-            what_would_change_score="Direct market data",
+            reconciliation="Score is conservative based on limited data",
         )
         assert "REJECTED" not in result
         assert "Recorded" in result
@@ -201,98 +195,17 @@ class TestSourceNormalizationInEvidence:
 
 
 # =============================================================================
-# Evidence dedup tests (ADR-023)
-# =============================================================================
-
-
-class TestEvidenceDedup:
-    """Test evidence dedup gate on record_dimension_score."""
-
-    def test_identical_evidence_rejected(self):
-        """Second dimension with identical evidence is REJECTED."""
-        mod = _import_recommendation()
-        # Record first dimension
-        result1 = mod.record_dimension_score(
-            dimension="Problem Severity",
-            score=3,
-            evidence="ShipFast has 12K users validating demand for logistics automation",
-        )
-        assert "Recorded" in result1
-        # Attempt same evidence for different dimension
-        result2 = mod.record_dimension_score(
-            dimension="Market Opportunity",
-            score=3,
-            evidence="ShipFast has 12K users validating demand for logistics automation",
-        )
-        assert "REJECTED" in result2
-        assert "word overlap" in result2
-        assert len(mod.get_scorecard()["dimensions"]) == 1
-
-    def test_high_overlap_rejected(self):
-        """Evidence with >70% word overlap is REJECTED."""
-        mod = _import_recommendation()
-        result1 = mod.record_dimension_score(
-            dimension="Problem Severity",
-            score=3,
-            evidence="ShipFast has 12K users and 4.2 star rating validating logistics pain",
-        )
-        assert "Recorded" in result1
-        # Very similar evidence — most words overlap
-        result2 = mod.record_dimension_score(
-            dimension="Market Opportunity",
-            score=3,
-            evidence="ShipFast has 12K users and 4.2 star rating validating logistics demand",
-        )
-        assert "REJECTED" in result2
-        assert len(mod.get_scorecard()["dimensions"]) == 1
-
-    def test_distinct_evidence_accepted(self):
-        """Dimensions with distinct evidence are both accepted."""
-        mod = _import_recommendation()
-        result1 = mod.record_dimension_score(
-            dimension="Problem Severity",
-            score=3,
-            evidence="ShipFast users report hours wasted on manual routing daily",
-        )
-        assert "Recorded" in result1
-        result2 = mod.record_dimension_score(
-            dimension="Market Opportunity",
-            score=3,
-            evidence="TAM $8.1B freight tech verified by Gartner 2024 report",
-        )
-        assert "Recorded" in result2
-        assert len(mod.get_scorecard()["dimensions"]) == 2
-
-    def test_partial_overlap_below_threshold_accepted(self):
-        """Evidence with moderate overlap (<70%) is accepted."""
-        mod = _import_recommendation()
-        result1 = mod.record_dimension_score(
-            dimension="Problem Severity",
-            score=3,
-            evidence="Users report constant frustration with manual spreadsheet tracking",
-        )
-        assert "Recorded" in result1
-        # Shares some words but well below 70% overlap
-        result2 = mod.record_dimension_score(
-            dimension="Revenue Viability",
-            score=3,
-            evidence="Competitor pricing shows $49-99/mo subscription for tracking solutions",
-        )
-        assert "Recorded" in result2
-        assert len(mod.get_scorecard()["dimensions"]) == 2
-
-
-# =============================================================================
 # Dimension count guard tests (missing dimension rejection)
 # =============================================================================
 
 
 class TestDimensionCountGuard:
-    """Test that compute_verdict rejects incomplete dimension sets."""
+    """Test that build_scorer_output rejects incomplete dimension sets."""
 
-    def test_missing_dimensions_rejected(self):
-        """compute_verdict with only 4 of 6 dimensions returns error listing missing ones."""
+    def test_missing_dimensions_returns_none(self):
+        """build_scorer_output with only 4 of 6 dimensions returns None."""
         mod = _import_recommendation()
+        mod.init_scorecard(risk_level="MEDIUM")
         # Record knockouts
         mod.record_knockout(criterion="Problem Reality", result="PASS", evidence="Confirmed")
         mod.record_knockout(criterion="Channel Access", result="PASS", evidence="SEO viable")
@@ -312,17 +225,14 @@ class TestDimensionCountGuard:
             score=3,
             evidence="Low switching cost from forums",
         )
-        import json
 
-        result = json.loads(mod.compute_verdict())
-        assert "error" in result
-        assert "Competitive Differentiation" in result["error"]
-        assert "Execution Feasibility" in result["error"]
-        assert "Missing 2" in result["error"]
+        result = mod.build_scorer_output()
+        assert result is None
 
     def test_all_six_dimensions_accepted(self):
-        """compute_verdict with all 6 dimensions proceeds normally."""
+        """build_scorer_output with all 6 dimensions returns valid output."""
         mod = _import_recommendation()
+        mod.init_scorecard(risk_level="MEDIUM")
         mod.record_knockout(criterion="Problem Reality", result="PASS", evidence="Confirmed")
         mod.record_knockout(criterion="Channel Access", result="PASS", evidence="SEO viable")
         mod.record_knockout(criterion="Regulatory/Ethical", result="PASS", evidence="No blockers")
@@ -348,31 +258,9 @@ class TestDimensionCountGuard:
             score=3,
             evidence="Low switching cost from forums",
         )
-        import json
 
-        result = json.loads(mod.compute_verdict())
-        assert "error" not in result
+        result = mod.build_scorer_output()
+        assert result is not None
         assert "recommendation" in result
 
 
-class TestWordOverlap:
-    """Test _word_overlap helper directly."""
-
-    def test_identical_strings(self):
-        mod = _import_recommendation()
-        assert mod._word_overlap("hello world", "hello world") == 1.0
-
-    def test_no_overlap(self):
-        mod = _import_recommendation()
-        assert mod._word_overlap("hello world", "foo bar") == 0.0
-
-    def test_partial_overlap(self):
-        mod = _import_recommendation()
-        overlap = mod._word_overlap("hello world foo", "hello world bar")
-        # intersection={hello, world}, union={hello, world, foo, bar} → 2/4 = 0.5
-        assert abs(overlap - 0.5) < 0.01
-
-    def test_empty_string(self):
-        mod = _import_recommendation()
-        assert mod._word_overlap("", "hello") == 0.0
-        assert mod._word_overlap("hello", "") == 0.0

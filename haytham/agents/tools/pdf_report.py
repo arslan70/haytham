@@ -72,7 +72,6 @@ class CoverConfig:
     verdict: str | None = None
     composite_score: str | None = None
     risk_level: str | None = None
-    confidence: str | None = None
     date: str = field(default_factory=lambda: datetime.now().strftime("%B %d, %Y"))
 
 
@@ -579,8 +578,6 @@ def _build_cover(cover: CoverConfig, styles: dict, page_width: float) -> list:
     if cover.risk_level:
         c = RISK_COLORS.get(cover.risk_level, colors.gray)
         badge_items.append(_Badge(f"Risk: {cover.risk_level}", c, width=120, height=32))
-    if cover.confidence:
-        badge_items.append(_Badge(f"Confidence: {cover.confidence}", PURPLE, width=160, height=32))
 
     if badge_items:
         # Compute column widths proportional to badge sizes, scaling if needed
@@ -676,7 +673,6 @@ def generate_pdf_tool(report_config_json: str) -> str:
         verdict=cover_data.get("verdict"),
         composite_score=cover_data.get("composite_score"),
         risk_level=cover_data.get("risk_level"),
-        confidence=cover_data.get("confidence"),
     )
 
     sections = []

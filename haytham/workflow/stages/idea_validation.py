@@ -18,7 +18,7 @@ from haytham.agents.tools.competitor_recording import (
     get_competitor_data,
 )
 from haytham.agents.tools.recommendation import (
-    _compute_confidence_hint,
+    build_scorer_output,
     clear_scorecard,
     init_scorecard,
 )
@@ -79,48 +79,6 @@ def extract_risk_level_processor(output: str, state: State) -> dict[str, Any]:
     return {"risk_level": risk_level}
 
 
-_CONFIDENCE_EXTERNAL_RATIO_RE = re.compile(
-    r"external\s+validation:\*?\*?\s*(\d+)/(\d+)",
-    re.IGNORECASE,
-)
-
-_CONTRADICTED_CRITICAL_RE = re.compile(
-    r"\|\s*C\d+\s*\|[^|]*\|[^|]*\|[^|]*\|\s*critical\s*\|\s*contradicted\s*\|",
-    re.IGNORECASE,
-)
-
-
-def _apply_confidence_rubric(
-    ext_supported: int,
-    ext_total: int,
-    contradicted_critical: int,
-    risk_level: str,
-) -> str:
-    """Deterministic confidence rubric — delegates to canonical implementation.
-
-    Wraps ``_compute_confidence_hint`` from ``recommendation.py`` with
-    scalar arguments and a ``MEDIUM`` default (instead of ``None``).
-    """
-    result = _compute_confidence_hint(
-        {
-            "external_supported": ext_supported,
-            "external_total": ext_total,
-            "contradicted_critical": contradicted_critical,
-            "risk_level": risk_level,
-        }
-    )
-    return result or "MEDIUM"
-
-
-def _count_contradicted_critical(risk_assessment: str) -> int:
-    """Count contradicted critical-severity claims in risk assessment output.
-
-    Parses the markdown table format:
-    | ID | Claim | Type | Origin | Severity | Validation | Reasoning |
-    """
-    return len(_CONTRADICTED_CRITICAL_RE.findall(risk_assessment))
-
-
 def extract_recommendation_processor(output: str, state: State) -> dict[str, Any]:
     """Post-processor to extract recommendation from validation summary JSON.
 
@@ -129,12 +87,11 @@ def extract_recommendation_processor(output: str, state: State) -> dict[str, Any
     recommendation directly from JSON, avoiding the regex-from-markdown
     round-trip in entry_conditions.py.
 
-    Also extracts composite_score from the Stage-Gate scorecard if present,
-    and computes authoritative confidence from evidence quality metrics.
+    Also extracts composite_score from the Stage-Gate scorecard if present.
 
     Returns:
         Dict with ``recommendation`` key (e.g. ``{"recommendation": "GO"}``),
-        and optionally ``composite_score`` and ``computed_confidence``.
+        and optionally ``composite_score``.
     """
     result: dict[str, Any] = {}
 
@@ -160,30 +117,6 @@ def extract_recommendation_processor(output: str, state: State) -> dict[str, Any
                     meta_path.write_text(json.dumps({"recommendation": rec}))
                 except OSError:
                     pass  # Non-critical
-
-            # Compute authoritative confidence from evidence quality
-            risk_assessment = state.get("risk_assessment", "")
-            risk_level = state.get("risk_level", "MEDIUM")
-
-            if risk_assessment:
-                ext_match = _CONFIDENCE_EXTERNAL_RATIO_RE.search(risk_assessment)
-                ext_supported = int(ext_match.group(1)) if ext_match else 0
-                ext_total = int(ext_match.group(2)) if ext_match else 0
-                contradicted_critical = _count_contradicted_critical(risk_assessment)
-
-                computed = _apply_confidence_rubric(
-                    ext_supported,
-                    ext_total,
-                    contradicted_critical,
-                    risk_level,
-                )
-                result["computed_confidence"] = computed
-
-                agent_confidence = data.get("confidence", "").upper().strip()
-                if agent_confidence and agent_confidence != computed:
-                    logger.warning(
-                        f"Confidence override: agent={agent_confidence} → computed={computed}"
-                    )
 
             return result
     except (json.JSONDecodeError, TypeError, AttributeError):
@@ -439,8 +372,8 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
     founder_persona = FounderPersona()
     scorer_sections = [
         "Evaluate all upstream findings using the Stage-Gate scorecard. "
-        "Record knockouts, dimension scores, counter-signals, risk/evidence, "
-        "then call compute_verdict.",
+        "Record knockouts, counter-signals, dimension scores, and evidence quality "
+        "using the provided tools.",
         "\n## Context from Previous Stages:",
         f"\n**ORIGINAL IDEA (Source of Truth - read carefully for explicit constraints):**\n{system_goal}",
     ]
@@ -475,39 +408,35 @@ def run_validation_summary_sequential(state: State) -> tuple[str, str]:
             scorer_query,
             {},
             session_manager,
-            output_as_json=True,
         )
+        # Build ScorerOutput from the scorecard accumulator (tools already
+        # collected all structured data). No structured_output_model needed.
+        scorer_data = build_scorer_output()
     finally:
         clear_scorecard()
-    scorer_output = scorer_result.get("output", "")
+
     scorer_status = scorer_result.get("status", "failed")
 
-    # Save scorer output for observability
-    if session_manager and scorer_output:
+    # Save agent text output for observability
+    scorer_text = scorer_result.get("output", "")
+    if session_manager and scorer_text:
         save_stage_output(
             session_manager,
             "validation-summary",
             "validation_scorer",
-            scorer_output,
+            scorer_text,
             status="in_progress",
         )
 
     if scorer_status != "completed":
         logger.error(f"Validation scorer failed: {scorer_result.get('error', 'unknown')}")
-        return scorer_output or "Error: Scorer agent failed", "failed"
+        return scorer_text or "Error: Scorer agent failed", "failed"
 
-    # Parse scorer JSON
-    try:
-        scorer_data = json.loads(scorer_output)
-    except json.JSONDecodeError:
-        logger.error("Validation scorer output is not valid JSON")
-        return scorer_output, "failed"
+    if not scorer_data:
+        logger.error("Scorecard incomplete — agent may not have called all tools")
+        return scorer_text or "Error: Scorer tools did not complete", "failed"
 
-    # Validate critical scorer fields
-    missing = [f for f in ("composite_score", "verdict", "recommendation") if f not in scorer_data]
-    if missing:
-        logger.error(f"Scorer output missing critical fields: {missing}")
-        return scorer_output, "failed"
+    scorer_output = json.dumps(scorer_data)
 
     # --- 2. Run validation_narrator with scorer output as context ---
     narrator_context = dict(context)

@@ -25,7 +25,7 @@ SESSION_DIR = get_session_dir()
 
 # Known labels that appear in founder-submitted ideas
 _IDEA_LABELS = re.compile(
-    r"(Problem|Customer Segments?|UVP|Founder'?s clarifications?)\s*:",
+    r"(Problem|Customer Segments?|UVP|Solution|Founder'?s clarifications?)\s*:",
     re.IGNORECASE,
 )
 
@@ -47,7 +47,7 @@ def _format_idea_markdown(raw: str) -> str:
         if len(parts) == 1:
             preamble_lines.append(para)
         else:
-            pre = parts[0].strip()
+            pre = re.sub(r"^[-*\d.]+\s*", "", parts[0]).strip()
             if pre:
                 preamble_lines.append(pre)
             i = 1
@@ -212,9 +212,6 @@ from haytham.agents.tools.metric_patterns import (
     RE_COMPOSITE as _RE_COMPOSITE,
 )
 from haytham.agents.tools.metric_patterns import (
-    RE_CONFIDENCE as _RE_CONFIDENCE,
-)
-from haytham.agents.tools.metric_patterns import (
     RE_RECOMMENDATION as _RE_RECOMMENDATION,
 )
 from haytham.agents.tools.metric_patterns import (
@@ -241,7 +238,6 @@ def extract_metrics() -> dict:
     """Extract key validation signals and rationale from saved session files."""
     metrics: dict = {
         "verdict": None,
-        "confidence": None,
         "composite_score": None,
         "risk_level": None,
         "claims_supported": None,
@@ -272,9 +268,6 @@ def extract_metrics() -> dict:
             m = _RE_RECOMMENDATION.search(summary_text)
             if m:
                 metrics["verdict"] = m.group(1).upper()
-        m = _RE_CONFIDENCE.search(summary_text)
-        if m:
-            metrics["confidence"] = m.group(1).upper()
         m = _RE_COMPOSITE.search(summary_text)
         if m:
             metrics["composite_score"] = m.group(1)
@@ -399,11 +392,8 @@ def render_metrics_dashboard(metrics: dict) -> None:
         )
     with right:
         score = metrics.get("composite_score")
-        if score:
-            score_val = float(score)
-            color = "#4CAF50" if score_val >= 3.5 else "#FF9800" if score_val >= 2.5 else "#F44336"
-        else:
-            color = "#9E9E9E"
+        # Score color follows the verdict so the two markers stay visually consistent
+        color = _VERDICT_COLORS.get(verdict, "#9E9E9E") if verdict else "#9E9E9E"
         _render_metric_with_rationale(
             "Score",
             f"{score} / 5.0" if score else "---",

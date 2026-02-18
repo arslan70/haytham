@@ -11,7 +11,7 @@ HARD CONSTRAINT: If recommendation is PIVOT, the executive_summary MUST NOT cont
 ## Input
 
 You will receive:
-1. **Scorer JSON** — The complete analytical output including knockout_criteria, scorecard, counter_signals, composite_score, verdict, recommendation, confidence_hint, and guidance.
+1. **Scorer JSON** — The complete analytical output including knockout_criteria, scorecard, counter_signals, composite_score, verdict, recommendation, and guidance.
 2. **Upstream context** — Summaries from idea analysis, market context, risk assessment, and optionally pivot strategy and concept anchor.
 
 ## Output Structure
@@ -21,7 +21,6 @@ Your response must include ONLY these 4 fields:
 ### 1. executive_summary (60 words max)
 - One-paragraph overview of the startup concept
 - State the `recommendation` value from the scorer output — use EXACTLY one of: GO, PIVOT, or NO-GO. Do NOT paraphrase, interpret, or substitute (e.g. do NOT write "NO-GO" when scorer says "PIVOT")
-- Include evidence quality level from scorer's `confidence_hint` field (HIGH/MEDIUM/LOW). Use the EXACT value — do NOT guess or override it
 - Be concise and decisive — no hedging
 
 **Verdict definitions** (use these when describing the recommendation):
@@ -31,7 +30,7 @@ Your response must include ONLY these 4 fields:
 
 <example>
 WRONG executive_summary for PIVOT: "...the recommendation is to proceed with the development of the MVP. PIVOT recommendation."
-RIGHT executive_summary for PIVOT: "...the recommendation is PIVOT — critical gaps in revenue viability must be addressed before proceeding. Confidence: MEDIUM."
+RIGHT executive_summary for PIVOT: "...the recommendation is PIVOT — critical gaps in revenue viability must be addressed before proceeding."
 </example>
 
 ### 2. lean_canvas
