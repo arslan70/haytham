@@ -25,11 +25,9 @@ The test suite runs entirely without LLM calls. Tests use synthetic fixtures and
 3. Add a test case for an edge case or untested path
 4. Run: `uv run pytest tests/ -v -m "not integration" -x`
 
-### Path 3: Work from the Dogfood Backlog
+### Path 3: Pick a Roadmap Item
 
-Haytham generates its own implementation stories by running the pipeline on itself. These stories come with capability references, architecture decisions, and acceptance criteria, so you can jump straight into implementation.
-
-Browse the backlog: [dogfood issues](https://github.com/arslan70/haytham/labels/dogfood-v1) | [docs/dogfood/](docs/dogfood/)
+The [Roadmap](docs/roadmap.md) marks items as **Community Welcome** where external contributors can make an impact. Items 4 (Google Stitch integration) and 5 (Spec-Driven Export) are good intermediate-level starting points with well-defined scope.
 
 ---
 
@@ -103,7 +101,6 @@ This saves real agent outputs to `tests/fixtures/upstream_outputs/` so other tes
 | Documentation | Beginner | Fix unclear explanations, add examples, improve getting-started flow |
 | Export formats | Intermediate | Implement OpenSpec or Spec Kit exporters ([Roadmap Item 5](docs/roadmap.md#5-spec-driven-export-openspec--spec-kit)) |
 | Stitch integration | Intermediate | Connect Google Stitch MCP endpoint ([Roadmap Item 4](docs/roadmap.md#4-google-stitch-integration)) |
-| Dogfood stories | Mixed | Implement stories from Haytham's self-generated backlog |
 
 ---
 

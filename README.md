@@ -101,12 +101,6 @@ uv run pytest tests/ -v -m "not integration"
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide.
 
-## Dogfooding: Haytham Specs Itself
-
-We run Haytham on its own idea to generate implementation stories for the next version. The full session outputs, team annotations, and generated backlog are published in [docs/dogfood/](docs/dogfood/).
-
-Want to contribute? Pick a story from the [dogfood backlog](https://github.com/arslan70/haytham/labels/dogfood-v1) and follow the [Contributing Guide](CONTRIBUTING.md).
-
 ## Documentation
 
 - [Getting Started](docs/getting-started.md) — provider setup and first run

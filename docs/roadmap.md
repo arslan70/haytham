@@ -4,7 +4,7 @@ Here's where Haytham is headed and where you can help.
 
 Haytham's first milestone, **Genesis** (idea to validated specification), is complete. The items below advance **Milestone 2: Evolution**, extending the system from specification into execution so the loop closes end-to-end: idea in, working validated MVP out. See [VISION.md](../VISION.md) for the full narrative.
 
-**Contribution key:** Items marked **Community Welcome** are good candidates for external contributors. Items marked **Core Team** require deep familiarity with the pipeline internals. If you're unsure, open a discussion or pick from the [dogfood backlog](#7-dogfooding-haytham-specs-itself) first.
+**Contribution key:** Items marked **Community Welcome** are good candidates for external contributors. Items marked **Core Team** require deep familiarity with the pipeline internals. If you're unsure, open a discussion or look at the [Contributing Guide](../CONTRIBUTING.md) for starter ideas.
 
 ---
 
@@ -159,25 +159,24 @@ This item exists to prevent scope creep. Revisit after Items 2 and 4 are complet
 
 ## 7. Dogfooding: Haytham Specs Itself
 
-**Priority:** High | **Contribution:** Community Welcome
+**Priority:** Deferred | **Contribution:** Community Welcome | **Depends on:** Evolution (M2)
 
-Run Haytham's four-phase pipeline on Haytham itself. Publish the full session outputs, annotate what the system got right and wrong, and convert the generated stories into a community backlog. This is the most direct way to prove the system works and to generate ready-made contribution opportunities.
+Run Haytham on itself to generate improvement stories, publish results, and create a community backlog. See [Proposal 001](../proposals/001-docs-review-and-dogfooding-plan.md) for the full plan.
 
-See [Proposal 001](../proposals/001-docs-review-and-dogfooding-plan.md) for the full plan. Published outputs will live in `docs/dogfood/`.
+**Why deferred:** Genesis produces greenfield specifications. Running it on Haytham would generate stories for building the system from scratch, not for improving what exists. Meaningful dogfooding requires Evolution's codebase-aware story generation, so the output is targeted changes rather than a full rewrite. Scaffolding (`docs/dogfood/`) is in place and ready for when Evolution lands.
 
 ---
 
 ## Sequencing
 
 ```
-Item 7 (Dogfooding) ── runs independently, produces community backlog
-
 Item 1 (Execution Contract)
   ├── Item 2 (Coding Agent Integration) ── Item 3 (Capability Validation)
   ├── Item 4 (Stitch Integration)
   └── Item 5 (Spec-Driven Export)
 
 Item 6: Deferred until Items 2 + 4 are complete
+Item 7: Deferred until Evolution (M2) is operational
 ```
 
-Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Item 6 is deliberately deferred. Item 7 (dogfooding) can start immediately and runs independently of the technical roadmap.
+Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Items 6 and 7 are deliberately deferred.
