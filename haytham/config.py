@@ -215,19 +215,17 @@ def _tools_risk_classification() -> list:
 
 def _tools_recommendation() -> list:
     from haytham.agents.tools.recommendation import (
-        compute_verdict,
         record_counter_signal,
         record_dimension_score,
         record_knockout,
-        set_evidence_quality,
     )
 
+    # Verdict is computed deterministically by build_scorer_output() after
+    # the agent finishes -- not exposed as a tool.
     return [
         record_knockout,
         record_dimension_score,
         record_counter_signal,
-        set_evidence_quality,
-        compute_verdict,
     ]
 
 
@@ -382,7 +380,8 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         max_tokens=TOKENS_SCORECARD,
         tool_profile=ToolProfile.RECOMMENDATION,
         model_tier=ModelTier.REASONING,
-        structured_output_model_path="haytham.agents.worker_validation_summary.validation_summary_models:ScorerOutput",
+        # No structured_output_model — ScorerOutput is built from the scorecard
+        # accumulator by build_scorer_output() after the agent finishes.
     ),
     "validation_narrator": AgentConfig(
         name="validation_narrator_agent",

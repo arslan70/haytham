@@ -69,8 +69,26 @@ _MAX_RETRIES = 2
 _RETRY_DELAY_SECONDS = 5
 
 
+def _is_structured_output_error(error: Exception) -> bool:
+    """Check if error is a StructuredOutputException from Strands SDK.
+
+    Reasoning models sometimes fail to invoke the structured output tool
+    after a long chain of tool calls. This is transient and worth retrying.
+    """
+    current: BaseException | None = error
+    while current:
+        if type(current).__name__ == "StructuredOutputException":
+            return True
+        current = current.__cause__
+    return False
+
+
 def _is_transient_error(error: Exception) -> bool:
-    """Check if an error is a transient network error worth retrying.
+    """Check if an error is a transient error worth retrying.
+
+    Covers both network errors (connection resets, timeouts) and
+    structured output failures (reasoning models sometimes fail to
+    invoke the structured output tool after long tool-calling chains).
 
     Walks the full exception chain (__cause__) to catch errors wrapped
     by the Strands SDK's EventLoopException.
@@ -79,8 +97,10 @@ def _is_transient_error(error: Exception) -> bool:
         error: The exception to check.
 
     Returns:
-        True if this looks like a transient network/server error.
+        True if this looks like a transient error worth retrying.
     """
+    if _is_structured_output_error(error):
+        return True
     parts = [str(error).lower()]
     cause = error.__cause__
     while cause:
@@ -180,8 +200,9 @@ def run_agent(
         logger.info(f"Running agent {agent_name} with query length: {len(full_query)}")
 
         try:
-            # Retry loop for transient network errors (e.g. Bedrock stream drops).
-            # Boto3 retries don't cover mid-stream failures when streaming=True.
+            # Retry loop for transient errors: network drops (boto3 doesn't
+            # retry mid-stream failures) and structured output failures
+            # (reasoning models sometimes skip the structured output tool).
             for attempt in range(_MAX_RETRIES + 1):
                 try:
                     result = agent(full_query)

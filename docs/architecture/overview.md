@@ -39,6 +39,43 @@ flowchart TD
     phases --> state
 ```
 
+## Component Architecture
+
+How the internal components connect. The pipeline flowchart in [How It Works](../how-it-works.md) shows what happens at each phase; this diagram shows the machinery that makes it run.
+
+```mermaid
+flowchart TD
+    UI["Streamlit UI\n(frontend_streamlit/)"]
+    Runner["Workflow Runner"]
+    Burr["Burr Workflow Engine\n(state machine)"]
+    Registry["Stage Registry\n(metadata, ordering)"]
+    Executor["Stage Executor\n(template method)"]
+    Factory["Agent Factory\n(config-driven)"]
+    Agent["Strands Agent\n(prompt + model + schema)"]
+    Session["Session Manager\n(disk persistence)"]
+    VectorDB["LanceDB\n(capabilities, decisions)"]
+    Backlog["Backlog.md\n(stories, tasks)"]
+
+    UI --> Runner
+    Runner --> Burr
+    Burr -->|"looks up stage metadata"| Registry
+    Burr -->|"executes each stage"| Executor
+    Executor -->|"creates agent for stage"| Factory
+    Factory --> Agent
+    Executor -->|"saves output"| Session
+    Agent -->|"reads/writes context"| VectorDB
+    Agent -->|"reads/writes stories"| Backlog
+
+    style UI fill:#e1f5fe
+    style Burr fill:#fff3e0
+    style Agent fill:#e8f5e9
+    style Session fill:#f3e5f5
+```
+
+**Data flows:** User input enters through the Streamlit UI, which hands off to the Workflow Runner. Burr drives the state machine, consulting the Stage Registry for ordering and conditional transitions. For each stage, the Stage Executor creates an agent via the Agent Factory, runs it, and saves the output through the Session Manager. Agents read upstream context from LanceDB (capabilities, architecture decisions, domain entities) and write stories to Backlog.md.
+
+---
+
 ## Core Components
 
 ### Workflow Engine

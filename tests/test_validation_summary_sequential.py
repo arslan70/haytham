@@ -35,9 +35,7 @@ def _scorer_dict(**overrides) -> dict:
                 "signal": "Limited external validation",
                 "source": "risk_assessment",
                 "affected_dimensions": ["Market Opportunity"],
-                "evidence_cited": "3 funded competitors validate market",
-                "why_score_holds": "Score already conservative at 3",
-                "what_would_change_score": "If TAM < $10M, drops to 2",
+                "reconciliation": "Score already conservative at 3; if TAM < $10M, drops to 2",
             },
         ],
         "scorecard": [
@@ -53,7 +51,6 @@ def _scorer_dict(**overrides) -> dict:
         "composite_score": 3.4,
         "verdict": "CONDITIONAL GO",
         "recommendation": "GO",
-        "confidence_hint": "MEDIUM",
         "floor_capped": False,
         "risk_capped": False,
         "critical_gaps": [],
@@ -115,12 +112,10 @@ class TestScorerOutputModel:
     def test_defaults(self):
         """Defaults for optional fields."""
         data = _scorer_dict()
-        del data["confidence_hint"]
         del data["floor_capped"]
         del data["risk_capped"]
         del data["risk_level"]
         model = ScorerOutput.model_validate(data)
-        assert model.confidence_hint == ""
         assert not model.floor_capped
         assert not model.risk_capped
         assert model.risk_level == "MEDIUM"
@@ -167,18 +162,6 @@ class TestMergeScorerNarrator:
         assert "Custom" in merged["executive_summary"]
         assert "GO" in merged["executive_summary"]
         assert merged["lean_canvas"]["revenue_model"] == narrator["lean_canvas"]["revenue_model"]
-
-    def test_default_confidence(self):
-        """Missing confidence_hint defaults to MEDIUM."""
-        scorer = _scorer_dict(confidence_hint="")
-        merged = merge_scorer_narrator(scorer, _narrator_dict())
-        assert merged["confidence"] == "MEDIUM"
-
-    def test_confidence_from_hint(self):
-        """confidence_hint propagates to confidence field."""
-        scorer = _scorer_dict(confidence_hint="HIGH")
-        merged = merge_scorer_narrator(scorer, _narrator_dict())
-        assert merged["confidence"] == "HIGH"
 
     def test_counter_signals_default_empty(self):
         """Missing counter_signals defaults to empty list."""
@@ -269,20 +252,21 @@ def _mock_state(**overrides):
 
 class TestRunValidationSummarySequential:
     @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.build_scorer_output")
     @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
-    def test_happy_path(self, mock_run_agent, mock_save):
+    def test_happy_path(self, mock_run_agent, mock_build, mock_save):
         """Both agents succeed → returns valid merged JSON with 'completed'."""
         from haytham.workflow.stages.idea_validation import (
             run_validation_summary_sequential,
         )
 
-        scorer_json = json.dumps(_scorer_dict())
         narrator_json = json.dumps(_narrator_dict())
 
         mock_run_agent.side_effect = [
-            {"output": scorer_json, "status": "completed"},
+            {"output": "Scorer analysis complete.", "status": "completed"},
             {"output": narrator_json, "status": "completed"},
         ]
+        mock_build.return_value = _scorer_dict()
 
         output, status = run_validation_summary_sequential(_mock_state())
 
@@ -295,8 +279,9 @@ class TestRunValidationSummarySequential:
         assert "scheduling" in model.executive_summary.lower()
 
     @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.build_scorer_output")
     @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
-    def test_scorer_failure(self, mock_run_agent, mock_save):
+    def test_scorer_failure(self, mock_run_agent, mock_build, mock_save):
         """Scorer fails → returns early with 'failed'."""
         from haytham.workflow.stages.idea_validation import (
             run_validation_summary_sequential,
@@ -307,6 +292,7 @@ class TestRunValidationSummarySequential:
             "status": "failed",
             "error": "token_limit",
         }
+        mock_build.return_value = None
 
         output, status = run_validation_summary_sequential(_mock_state())
 
@@ -315,55 +301,40 @@ class TestRunValidationSummarySequential:
         assert mock_run_agent.call_count == 1
 
     @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.build_scorer_output")
     @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
-    def test_narrator_failure(self, mock_run_agent, mock_save):
+    def test_narrator_failure(self, mock_run_agent, mock_build, mock_save):
         """Narrator fails → returns scorer output with 'partial'."""
         from haytham.workflow.stages.idea_validation import (
             run_validation_summary_sequential,
         )
 
-        scorer_json = json.dumps(_scorer_dict())
         mock_run_agent.side_effect = [
-            {"output": scorer_json, "status": "completed"},
+            {"output": "Scorer analysis complete.", "status": "completed"},
             {"output": "Error: narrator failed", "status": "failed", "error": "unknown"},
         ]
+        mock_build.return_value = _scorer_dict()
 
         output, status = run_validation_summary_sequential(_mock_state())
 
         assert status == "partial"
         # Output should be the scorer output (fallback)
-        assert output == scorer_json
+        assert json.loads(output)["recommendation"] == "GO"
 
     @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
+    @mock.patch("haytham.workflow.stages.idea_validation.build_scorer_output")
     @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
-    def test_scorer_invalid_json(self, mock_run_agent, mock_save):
-        """Scorer returns non-JSON → returns 'failed'."""
+    def test_scorecard_incomplete(self, mock_run_agent, mock_build, mock_save):
+        """Agent succeeds but scorecard incomplete → returns 'failed'."""
         from haytham.workflow.stages.idea_validation import (
             run_validation_summary_sequential,
         )
 
         mock_run_agent.return_value = {
-            "output": "This is not JSON",
+            "output": "Agent ran but tools did not complete.",
             "status": "completed",
         }
-
-        output, status = run_validation_summary_sequential(_mock_state())
-
-        assert status == "failed"
-
-    @mock.patch("haytham.workflow.stages.idea_validation.save_stage_output")
-    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
-    def test_scorer_missing_fields(self, mock_run_agent, mock_save):
-        """Scorer output missing critical fields → returns 'failed'."""
-        from haytham.workflow.stages.idea_validation import (
-            run_validation_summary_sequential,
-        )
-
-        incomplete = {"knockout_criteria": [], "scorecard": []}
-        mock_run_agent.return_value = {
-            "output": json.dumps(incomplete),
-            "status": "completed",
-        }
+        mock_build.return_value = None
 
         output, status = run_validation_summary_sequential(_mock_state())
 

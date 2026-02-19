@@ -407,21 +407,7 @@ def _format_validation_summary_output(data: dict) -> str:
                 lines.append(
                     f"- **{cs.get('signal', '')}** (source: {cs.get('source', '?')}, affects: {dims})"
                 )
-                # Prefer structured fields; fall back to legacy reconciliation
-                if (
-                    cs.get("evidence_cited")
-                    or cs.get("why_score_holds")
-                    or cs.get("what_would_change_score")
-                ):
-                    if cs.get("evidence_cited"):
-                        lines.append(f"  - *Evidence cited:* {cs['evidence_cited']}")
-                    if cs.get("why_score_holds"):
-                        lines.append(f"  - *Why score holds:* {cs['why_score_holds']}")
-                    if cs.get("what_would_change_score"):
-                        lines.append(
-                            f"  - *What would change score:* {cs['what_would_change_score']}"
-                        )
-                elif cs.get("reconciliation"):
+                if cs.get("reconciliation"):
                     lines.append(f"  - *Reconciliation:* {cs['reconciliation']}")
             lines.append("")
 

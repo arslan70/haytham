@@ -1,14 +1,16 @@
 # Roadmap
 
-This document tracks the concrete work items that follow from Haytham's positioning as a specification-driven control plane for software systems. See [VISION.md](../VISION.md) for the full narrative.
+Here's where Haytham is headed and where you can help.
 
-**Genesis** (idea to validated specification) is complete. The items below advance **Milestone 2: Evolution** — extending the system from specification into execution, so the loop closes end-to-end: idea in, working validated MVP out.
+Haytham's first milestone, **Genesis** (idea to validated specification), is complete. The items below advance **Milestone 2: Evolution**, extending the system from specification into execution so the loop closes end-to-end: idea in, working validated MVP out. See [VISION.md](../VISION.md) for the full narrative.
+
+**Contribution key:** Items marked **Community Welcome** are good candidates for external contributors. Items marked **Core Team** require deep familiarity with the pipeline internals. If you're unsure, open a discussion or look at the [Contributing Guide](../CONTRIBUTING.md) for starter ideas.
 
 ---
 
 ## 1. Formalize the Execution Contract
 
-**Priority:** High — foundational for everything below
+**Priority:** High | **Contribution:** Core Team
 
 The docs describe the Phase 4 story output as an "execution contract" and a "universal interface." Today it is markdown files in `session/{stage-slug}/`. For the control plane claim to be real, the output needs a machine-readable format with traceability tags parseable by external agents — not just readable by humans.
 
@@ -28,7 +30,7 @@ The docs describe the Phase 4 story output as an "execution contract" and a "uni
 
 ## 2. First Coding Agent Integration (Phase 5)
 
-**Priority:** High — closes the Genesis loop
+**Priority:** High | **Contribution:** Core Team
 **Depends on:** Item 1 (execution contract)
 
 Build the dispatch path from Phase 4 output to a single coding agent. The agent receives a traced story with full specification context and produces an implementation.
@@ -57,7 +59,7 @@ Build the dispatch path from Phase 4 output to a single coding agent. The agent 
 
 ## 3. Capability Validation (Phase 6)
 
-**Priority:** High — without this, Genesis is incomplete
+**Priority:** High | **Contribution:** Core Team
 **Depends on:** Item 2 (coding agent integration)
 
 After a coding agent implements stories, validate the result against the capability model and acceptance criteria. This is what separates a control plane from a task dispatcher.
@@ -78,7 +80,7 @@ After a coding agent implements stories, validate the result against the capabil
 
 ## 4. Google Stitch Integration
 
-**Priority:** Medium — proof point for MCP-native service pattern
+**Priority:** Medium | **Contribution:** Community Welcome
 **Depends on:** Item 1 (execution contract)
 **Reference:** [ADR-021](adr/ADR-021-design-ux-workflow-stage.md)
 
@@ -100,7 +102,7 @@ Already planned and referenced in VISION.md, how-it-works.md, and architecture/o
 
 ## 5. Spec-Driven Export (OpenSpec + Spec Kit)
 
-**Priority:** Medium — strengthens the "specification layer" positioning before GTM launch
+**Priority:** Medium | **Contribution:** Community Welcome
 **Depends on:** Item 1 (execution contract)
 
 Haytham's GTM narrative is "the specification layer for the AI coding agent ecosystem." Two open formats already exist for feeding specifications to coding agents: [OpenSpec](https://github.com/Fission-AI/OpenSpec) (Fission AI) and [Spec Kit](https://github.com/github/spec-kit) (GitHub). Rather than invent a proprietary format, export to both — letting any AI coding agent (Claude Code, Cursor, Copilot, Devin) consume Haytham's output natively.
@@ -155,6 +157,16 @@ This item exists to prevent scope creep. Revisit after Items 2 and 4 are complet
 
 ---
 
+## 7. Dogfooding: Haytham Specs Itself
+
+**Priority:** Deferred | **Contribution:** Community Welcome | **Depends on:** Evolution (M2)
+
+Run Haytham on itself to generate improvement stories, publish results, and create a community backlog. See [Proposal 001](../proposals/001-docs-review-and-dogfooding-plan.md) for the full plan.
+
+**Why deferred:** Genesis produces greenfield specifications. Running it on Haytham would generate stories for building the system from scratch, not for improving what exists. Meaningful dogfooding requires Evolution's codebase-aware story generation, so the output is targeted changes rather than a full rewrite. Scaffolding (`docs/dogfood/`) is in place and ready for when Evolution lands.
+
+---
+
 ## Sequencing
 
 ```
@@ -164,6 +176,7 @@ Item 1 (Execution Contract)
   └── Item 5 (Spec-Driven Export)
 
 Item 6: Deferred until Items 2 + 4 are complete
+Item 7: Deferred until Evolution (M2) is operational
 ```
 
-Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Item 6 is deliberately deferred — build two concrete integrations first, then extract the abstraction from real code.
+Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Items 6 and 7 are deliberately deferred.

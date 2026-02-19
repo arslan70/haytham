@@ -3,7 +3,7 @@
 Covers:
 - CounterSignal model validation
 - GoNoGoScorecard with counter_signals (backward compat + rendering)
-- evaluate_recommendation tool: backward compat, reconciliation, inconsistency detection, penalty
+- evaluate_recommendation tool: backward compat, verdict logic
 - Legacy formatter in burr_actions
 """
 
@@ -145,7 +145,6 @@ class TestToMarkdownCounterSignals:
         return ValidationSummaryOutput(
             executive_summary="Test summary",
             recommendation="GO",
-            confidence="HIGH",
             lean_canvas={
                 "problems": ["Problem 1"],
                 "customer_segments": ["Segment 1"],
@@ -217,35 +216,31 @@ def _dimensions_high():
 
 
 class TestEvaluateRecommendationCounterSignals:
-    """Test the evaluate_recommendation tool with counter_signals parameter."""
+    """Test the evaluate_recommendation tool with counter_signals parameter.
+
+    Counter-signals are now ignored by the verdict logic (displayed for
+    transparency only). These tests verify backward compatibility.
+    """
 
     def test_backward_compat_no_counter_signals(self):
-        """Tool works without counter_signals parameter (existing callers).
-
-        With 0 counter-signals, the low-signal-count warning fires but
-        no inconsistency penalty is applied (threshold is 2).
-        """
+        """Tool works without counter_signals parameter (existing callers)."""
         result = _call_evaluate_recommendation(
             knockout_results=_knockouts_pass(),
             dimension_scores=_dimensions_high(),
         )
         assert result["recommendation"] == "GO"
         assert result["composite_score"] == 4.0
-        assert any("counter-signal(s) recorded" in w for w in result["warnings"])
         assert not result["adjusted"]
 
-    def test_reconciled_signals_no_penalty(self):
-        """Properly reconciled counter-signals produce no inconsistency warnings.
-
-        Low-signal-count warning still fires (only 1 signal) but no penalty applied.
-        """
+    def test_counter_signals_ignored_by_verdict(self):
+        """Counter-signals param is accepted but does not affect the verdict."""
         signals = json.dumps(
             [
                 {
-                    "signal": "Market size claim unsupported",
+                    "signal": "No evidence users want this",
                     "source": "risk_assessment",
-                    "affected_dimensions": ["Market Opportunity"],
-                    "reconciliation": "Score was lowered from 5 to 4 because the TAM figure lacks independent verification but adjacency data supports moderate opportunity",
+                    "affected_dimensions": ["Problem Severity"],
+                    "reconciliation": "Score lowered from 5 to 4",
                 },
             ]
         )
@@ -254,50 +249,26 @@ class TestEvaluateRecommendationCounterSignals:
             dimension_scores=_dimensions_high(),
             counter_signals=signals,
         )
-        # Only the low-signal-count warning, no inconsistency warning
-        assert all("scored" not in w for w in result["warnings"])
-        assert not result["adjusted"]
+        # Counter-signals do not affect scoring
+        assert result["recommendation"] == "GO"
         assert result["composite_score"] == 4.0
+        assert not result["adjusted"]
 
-    def test_one_inconsistency_warns_but_no_penalty(self):
-        """Single inconsistency + low-signal-count warning, but penalty triggers
-        because total warnings (2) hit the inconsistency threshold."""
+    def test_multiple_counter_signals_no_penalty(self):
+        """Multiple counter-signals produce no penalty (penalty logic removed)."""
         signals = json.dumps(
             [
                 {
                     "signal": "No evidence users want this",
                     "source": "risk_assessment",
                     "affected_dimensions": ["Problem Severity"],
-                    "reconciliation": "",  # Empty = not reconciled
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        assert len(result["warnings"]) == 2
-        assert any("Problem Severity" in w for w in result["warnings"])
-        assert any("counter-signal(s) recorded" in w for w in result["warnings"])
-        assert result["adjusted"]
-        assert result["composite_score"] == 3.5
-
-    def test_two_inconsistencies_trigger_penalty(self):
-        """Two or more inconsistencies apply -0.5 composite penalty."""
-        signals = json.dumps(
-            [
-                {
-                    "signal": "No evidence users want this",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "reconciliation": "noted",  # Too short
+                    "reconciliation": "Score reflects limited evidence",
                 },
                 {
                     "signal": "Market size unverified",
                     "source": "market_context",
                     "affected_dimensions": ["Market Opportunity"],
-                    "reconciliation": "",  # Empty
+                    "reconciliation": "Conservative scoring applied",
                 },
             ]
         )
@@ -306,66 +277,10 @@ class TestEvaluateRecommendationCounterSignals:
             dimension_scores=_dimensions_high(),
             counter_signals=signals,
         )
-        assert len(result["warnings"]) >= 2
-        assert result["adjusted"]
-        assert result["composite_score"] == 3.5  # 4.0 - 0.5
-
-    def test_penalty_can_shift_verdict_to_pivot(self):
-        """Penalty can push a GO composite into PIVOT range."""
-        signals = json.dumps(
-            [
-                {
-                    "signal": "Signal A",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "reconciliation": "ok",  # Too short
-                },
-                {
-                    "signal": "Signal B",
-                    "source": "market_context",
-                    "affected_dimensions": ["Market Opportunity"],
-                    "reconciliation": "",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        assert result["recommendation"] == "PIVOT"
-        assert result["verdict"] == "CONDITIONAL GO"
-
-    def test_penalty_clamped_to_zero(self):
-        """Penalty doesn't produce negative composite scores."""
-        low_dims = json.dumps(
-            [
-                {"dimension": "Problem Severity", "score": 1, "evidence": "..."},
-            ]
-        )
-        # These signals don't affect any high-scored dim, so no warnings expected
-        signals = json.dumps(
-            [
-                {
-                    "signal": "A",
-                    "source": "x",
-                    "affected_dimensions": [],
-                    "reconciliation": "",
-                },
-                {
-                    "signal": "B",
-                    "source": "x",
-                    "affected_dimensions": [],
-                    "reconciliation": "",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=low_dims,
-            counter_signals=signals,
-        )
-        assert result["composite_score"] >= 0.0
+        # No penalty applied, composite unchanged
+        assert result["composite_score"] == 4.0
+        assert not result["adjusted"]
+        assert result["recommendation"] == "GO"
 
     def test_knockout_fail_ignores_counter_signals(self):
         """Knockout FAIL returns NO-GO regardless of counter-signals."""
@@ -584,40 +499,6 @@ class TestEightDimensionScoring:
         assert result["recommendation"] == "GO"
 
 
-class TestCheckCounterSignalConsistency:
-    def test_empty_signals(self):
-        mod = _import_recommendation()
-        warnings = mod._check_counter_signal_consistency([], [])
-        assert warnings == []
-
-    def test_reconciled_signal_no_warning(self):
-        mod = _import_recommendation()
-        signals = [
-            {
-                "signal": "test",
-                "affected_dimensions": ["Problem Severity"],
-                "reconciliation": "This is a substantive explanation of why the score stands",
-            }
-        ]
-        dims = [{"dimension": "Problem Severity", "score": 4}]
-        warnings = mod._check_counter_signal_consistency(signals, dims)
-        assert warnings == []
-
-    def test_unreconciled_low_score_no_warning(self):
-        """Counter-signal on a low-scored dimension doesn't warn (already consistent)."""
-        mod = _import_recommendation()
-        signals = [
-            {
-                "signal": "test",
-                "affected_dimensions": ["Problem Severity"],
-                "reconciliation": "",
-            }
-        ]
-        dims = [{"dimension": "Problem Severity", "score": 2}]
-        warnings = mod._check_counter_signal_consistency(signals, dims)
-        assert warnings == []
-
-
 # =============================================================================
 # Legacy formatter tests
 # =============================================================================
@@ -629,7 +510,6 @@ class TestLegacyFormatterCounterSignals:
         data = {
             "executive_summary": "Test",
             "recommendation": "GO",
-            "confidence": "HIGH",
             "go_no_go_assessment": {
                 "counter_signals": [
                     {
@@ -675,8 +555,8 @@ class TestLegacyFormatterCounterSignals:
         md = formatter(data)
         assert "Counter-Signals Reconciliation" not in md
 
-    def test_structured_reconciliation_in_legacy_output(self):
-        """Legacy formatter renders structured reconciliation fields."""
+    def test_reconciliation_in_legacy_output(self):
+        """Legacy formatter renders reconciliation field."""
         formatter = _import_burr_actions_formatter()
         data = {
             "executive_summary": "Test",
@@ -687,9 +567,7 @@ class TestLegacyFormatterCounterSignals:
                         "signal": "Market size unverified",
                         "source": "risk_assessment",
                         "affected_dimensions": ["Market Opportunity"],
-                        "evidence_cited": "Competitor analysis shows 3 funded players",
-                        "why_score_holds": "Score is 3 not 4",
-                        "what_would_change_score": "If market data showed < $10M TAM",
+                        "reconciliation": "Score is 3 not 4, already conservative",
                     },
                 ],
                 "guidance": "Proceed",
@@ -697,10 +575,9 @@ class TestLegacyFormatterCounterSignals:
             "next_steps": ["Step 1"],
         }
         md = formatter(data)
-        assert "Evidence cited:" in md
-        assert "Why score holds:" in md
-        assert "What would change score:" in md
-        assert "Reconciliation:" not in md  # Should NOT fall back
+        assert "Market size unverified" in md
+        assert "Reconciliation:" in md
+        assert "Score is 3 not 4" in md
 
 
 # =============================================================================
@@ -760,8 +637,8 @@ class TestFloorRule:
         assert not result["floor_capped"]
         assert len(result["floor_violations"]) == 2  # Still lists violations
 
-    def test_floor_and_counter_signal_penalty_interact(self):
-        """Floor caps to 3.0, then counter-signal penalty brings it lower."""
+    def test_floor_with_counter_signals_no_penalty(self):
+        """Floor caps to 3.0; counter-signals do not apply additional penalty."""
         dims = json.dumps(
             [
                 {"dimension": "Problem Severity", "score": 4, "evidence": "..."},
@@ -775,13 +652,13 @@ class TestFloorRule:
                     "signal": "Signal A",
                     "source": "risk_assessment",
                     "affected_dimensions": ["Problem Severity"],
-                    "reconciliation": "ok",  # Too short
+                    "reconciliation": "Score reflects limited data",
                 },
                 {
                     "signal": "Signal B",
                     "source": "market_context",
                     "affected_dimensions": ["Market Opportunity"],
-                    "reconciliation": "",
+                    "reconciliation": "Conservative scoring applied",
                 },
             ]
         )
@@ -790,10 +667,10 @@ class TestFloorRule:
             dimension_scores=dims,
             counter_signals=signals,
         )
-        # Floor caps to 3.0, then -0.5 penalty → 2.5 → PIVOT
+        # Floor caps to 3.0, no additional penalty from counter-signals
         assert result["floor_capped"]
-        assert result["adjusted"]
-        assert result["composite_score"] == 2.5
+        assert not result["adjusted"]
+        assert result["composite_score"] == 3.0
         assert result["recommendation"] == "PIVOT"
 
     def test_dimension_at_one_triggers_floor(self):
@@ -831,37 +708,6 @@ class TestRiskLevelVeto:
         assert result["recommendation"] == "PIVOT"
         assert result["risk_capped"]
 
-    def test_high_risk_with_good_reconciliation_preserves_go(self):
-        """HIGH risk with 2+ well-reconciled signals → GO preserved."""
-        signals = json.dumps(
-            [
-                {
-                    "signal": "Signal A",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "evidence_cited": "Competitor analysis shows 3 funded players in this space with $10M+ ARR",
-                    "why_score_holds": "Score is justified because...",
-                    "what_would_change_score": "If market dropped below $5M",
-                },
-                {
-                    "signal": "Signal B",
-                    "source": "market_context",
-                    "affected_dimensions": ["Market Opportunity"],
-                    "evidence_cited": "TAM validated by Gartner report showing $2B market size",
-                    "why_score_holds": "Growth trajectory confirmed",
-                    "what_would_change_score": "If growth stalls",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-            risk_level="HIGH",
-        )
-        assert result["recommendation"] == "GO"
-        assert not result["risk_capped"]
-
     def test_medium_risk_no_veto(self):
         """MEDIUM risk does not trigger veto."""
         result = _call_evaluate_recommendation(
@@ -898,303 +744,3 @@ class TestRiskLevelVeto:
         assert result["recommendation"] == "PIVOT"
         assert not result["risk_capped"]  # Was already PIVOT
 
-    def test_high_risk_with_legacy_long_reconciliation(self):
-        """Legacy reconciliation ≥ 50 chars counts as well-reconciled for veto override."""
-        signals = json.dumps(
-            [
-                {
-                    "signal": "Signal A",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "reconciliation": "A" * 50,  # Exactly 50 chars — meets threshold
-                },
-                {
-                    "signal": "Signal B",
-                    "source": "market_context",
-                    "affected_dimensions": ["Market Opportunity"],
-                    "reconciliation": "B" * 50,
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-            risk_level="HIGH",
-        )
-        assert result["recommendation"] == "GO"
-        assert not result["risk_capped"]
-
-
-# =============================================================================
-# Structured Reconciliation tests (Item 4)
-# =============================================================================
-
-
-class TestStructuredReconciliation:
-    """Test structured reconciliation fields on counter-signals."""
-
-    def test_all_three_fields_no_warning(self):
-        """All 3 structured fields populated with substantive evidence → reconciled.
-
-        Only the low-signal-count warning fires (1 signal < 2 minimum).
-        """
-        signals = json.dumps(
-            [
-                {
-                    "signal": "No evidence users want this",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "evidence_cited": "3 competitors funded in 2024 validates market demand",
-                    "why_score_holds": "Score is 4 based on competitor validation",
-                    "what_would_change_score": "If all competitors pivoted away",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        # No inconsistency warnings, only the low-signal-count warning
-        assert all("scored" not in w for w in result["warnings"])
-        assert not result["adjusted"]
-
-    def test_partial_fields_warning(self):
-        """Only 2 of 3 structured fields → not reconciled, warning on high-scored dim.
-
-        Plus low-signal-count warning (1 signal < 2 minimum) → penalty triggers.
-        """
-        signals = json.dumps(
-            [
-                {
-                    "signal": "No evidence",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "evidence_cited": "Some evidence",
-                    "why_score_holds": "Score justified",
-                    # Missing what_would_change_score
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        assert len(result["warnings"]) == 2
-        assert any("Problem Severity" in w for w in result["warnings"])
-        assert any("counter-signal(s) recorded" in w for w in result["warnings"])
-
-    def test_legacy_reconciliation_still_works(self):
-        """Legacy reconciliation text ≥ 20 chars still counts as reconciled.
-
-        Only the low-signal-count warning fires (1 signal < 2 minimum).
-        """
-        signals = json.dumps(
-            [
-                {
-                    "signal": "Market size unverified",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "reconciliation": "Score was lowered from 5 to 4 because market data is limited but adjacency supports it",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        # No inconsistency warnings, only the low-signal-count warning
-        assert all("scored" not in w for w in result["warnings"])
-
-    def test_model_backward_compat(self):
-        """CounterSignal model accepts old format (reconciliation only)."""
-        cs = CounterSignal(
-            signal="Test signal",
-            source="risk_assessment",
-            affected_dimensions=["Market Opportunity"],
-            reconciliation="This is the old-style reconciliation text",
-        )
-        assert cs.evidence_cited == ""
-        assert cs.why_score_holds == ""
-        assert cs.what_would_change_score == ""
-
-    def test_structured_fields_in_to_markdown(self):
-        """Structured fields render in markdown output."""
-        cs = CounterSignal(
-            signal="Market size unverified",
-            source="risk_assessment",
-            affected_dimensions=["Market Opportunity"],
-            evidence_cited="Competitor analysis shows 3 funded players",
-            why_score_holds="Score is 3 not 4, already conservative",
-            what_would_change_score="If market data showed < $10M TAM",
-        )
-        scorecard = GoNoGoScorecard(
-            knockout_criteria=[
-                KnockoutCriterion(
-                    criterion="Problem Reality",
-                    result=KnockoutResult.PASS,
-                    evidence="Confirmed",
-                ),
-            ],
-            counter_signals=[cs],
-            scorecard=[
-                ScorecardDimension(dimension="Problem Severity", score=4, evidence="Users pay"),
-            ],
-            composite_score=4.0,
-            verdict="GO",
-            critical_gaps=[],
-            guidance="Proceed",
-        )
-        output = ValidationSummaryOutput(
-            executive_summary="Test",
-            recommendation="GO",
-            confidence="HIGH",
-            lean_canvas={
-                "problems": ["P1"],
-                "customer_segments": ["S1"],
-                "unique_value_proposition": "UVP",
-                "solution": ["S1"],
-                "revenue_model": "SaaS",
-            },
-            validation_findings={
-                "market_opportunity": "Large",
-                "competition": "Low",
-                "critical_risks": ["R1"],
-            },
-            go_no_go_assessment=scorecard,
-            next_steps=["Step 1"],
-        )
-        md = output.to_markdown()
-        assert "Evidence cited:" in md
-        assert "Why score holds:" in md
-        assert "What would change score:" in md
-        assert "Reconciliation:" not in md
-
-
-# =============================================================================
-# Reconciliation quality gate tests (Fix 3)
-# =============================================================================
-
-
-class TestReconciliationQualityGate:
-    """Test that circular/vacuous evidence is rejected by _is_signal_reconciled."""
-
-    def test_circular_evidence_not_reconciled(self):
-        """Circular phrase in evidence_cited → not reconciled.
-
-        Plus low-signal-count warning (1 signal < 2 minimum) → penalty triggers.
-        """
-        signals = json.dumps(
-            [
-                {
-                    "signal": "No evidence users want this",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "evidence_cited": "Score is conservative based on potential benefits of the concept",
-                    "why_score_holds": "Score reflects current understanding",
-                    "what_would_change_score": "Direct user feedback",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        assert len(result["warnings"]) == 2
-        assert any("Problem Severity" in w for w in result["warnings"])
-        assert any("counter-signal(s) recorded" in w for w in result["warnings"])
-
-    def test_short_evidence_not_reconciled(self):
-        """evidence_cited < 30 chars → not reconciled.
-
-        Plus low-signal-count warning (1 signal < 2 minimum) → penalty triggers.
-        """
-        signals = json.dumps(
-            [
-                {
-                    "signal": "Market size unverified",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Market Opportunity"],
-                    "evidence_cited": "Some data exists",
-                    "why_score_holds": "Score is reasonable",
-                    "what_would_change_score": "More data",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        assert len(result["warnings"]) == 2
-        assert any("Market Opportunity" in w for w in result["warnings"])
-        assert any("counter-signal(s) recorded" in w for w in result["warnings"])
-
-    def test_substantive_evidence_reconciled(self):
-        """Substantive evidence (>= 30 chars, no circular phrases) → reconciled.
-
-        Only the low-signal-count warning fires (1 signal < 2 minimum).
-        """
-        signals = json.dumps(
-            [
-                {
-                    "signal": "High regulatory risk",
-                    "source": "risk_assessment",
-                    "affected_dimensions": ["Problem Severity"],
-                    "evidence_cited": "Competitor analysis confirms 3 funded startups operating in this regulated space with FDA approval",
-                    "why_score_holds": "Market exists despite regulation",
-                    "what_would_change_score": "If FDA changes rules to block new entrants",
-                },
-            ]
-        )
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=signals,
-        )
-        # No inconsistency warnings, only the low-signal-count warning
-        assert all("scored" not in w for w in result["warnings"])
-        assert not result["adjusted"]
-
-    def test_circular_evidence_blocks_risk_veto_override(self):
-        """Circular evidence should not count as well-reconciled for risk veto override.
-
-        With circular evidence on 2 high-scored dims, unreconciled counter-signals
-        trigger the -0.5 penalty (4.0 → 3.5 → PIVOT). The risk veto doesn't fire
-        because the verdict is already PIVOT. We verify the well-reconciled count
-        directly to confirm circular evidence is rejected.
-        """
-        mod = _import_recommendation()
-        signals = [
-            {
-                "signal": "Signal A",
-                "source": "risk_assessment",
-                "affected_dimensions": ["Problem Severity"],
-                "evidence_cited": "Score is conservative based on potential market opportunity",
-                "why_score_holds": "Score reflects reality",
-                "what_would_change_score": "Direct feedback",
-            },
-            {
-                "signal": "Signal B",
-                "source": "market_context",
-                "affected_dimensions": ["Market Opportunity"],
-                "evidence_cited": "Already accounted for in the scoring methodology",
-                "why_score_holds": "Score is appropriate",
-                "what_would_change_score": "New data",
-            },
-        ]
-        # Circular evidence → 0 well-reconciled signals (below the 2 threshold)
-        assert mod._count_well_reconciled_signals(signals) == 0
-
-        # And the overall result is PIVOT (due to penalty from unreconciled signals)
-        result = _call_evaluate_recommendation(
-            knockout_results=_knockouts_pass(),
-            dimension_scores=_dimensions_high(),
-            counter_signals=json.dumps(signals),
-            risk_level="HIGH",
-        )
-        assert result["recommendation"] == "PIVOT"

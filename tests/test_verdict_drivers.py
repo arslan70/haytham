@@ -36,7 +36,6 @@ def _make_summary(scorecard: GoNoGoScorecard) -> ValidationSummaryOutput:
     return ValidationSummaryOutput(
         executive_summary="Test summary.",
         recommendation="PIVOT",
-        confidence="MEDIUM",
         lean_canvas=LeanCanvas(
             problems=["p1"],
             customer_segments=["s1"],
