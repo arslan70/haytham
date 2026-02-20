@@ -62,6 +62,7 @@ Once you understand the workflow and the fidelity mechanism, the other ADRs fill
 |-----|-------|--------|
 | [ADR-020](ADR-020-project-rename.md) | Project Rename (kickstarter to haytham) | Completed |
 | [ADR-024](ADR-024-split-oversized-modules.md) | Split Oversized Modules | Accepted |
+| [ADR-025](ADR-025-resolved-project-specification.md) | Resolved Project Specification | Proposed |
 
 ### Genesis Foundation (Early ADRs)
 
