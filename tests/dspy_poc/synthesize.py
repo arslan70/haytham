@@ -7,7 +7,7 @@ from pathlib import Path
 
 import dspy
 
-from tests.dspy_poc.signatures import REPORT_INSTRUCTIONS, ReportSynthesis
+from tests.dspy_poc.signatures import ReportSynthesis
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 OUTPUTS_DIR = Path(__file__).parent / "outputs"
@@ -37,13 +37,11 @@ def load_fixture(idea_id: str, stage: str) -> str:
 
 def synthesize_report(idea_id: str) -> str:
     """Generate a validation report for the given idea using DSPy."""
-    model_id = os.environ.get("BEDROCK_REASONING_MODEL_ID")
-    if not model_id:
-        model_id = os.environ.get("BEDROCK_HEAVY_MODEL_ID")
+    model_id = os.environ.get("BEDROCK_HEAVY_MODEL_ID")
     region = os.environ.get("AWS_REGION", "us-east-1")
 
     if not model_id:
-        print("Set BEDROCK_REASONING_MODEL_ID or BEDROCK_HEAVY_MODEL_ID in .env")
+        print("Set BEDROCK_HEAVY_MODEL_ID in .env")
         sys.exit(1)
 
     lm = dspy.LM(
@@ -55,9 +53,16 @@ def synthesize_report(idea_id: str) -> str:
 
     idea = load_idea(idea_id)
     idea_analysis = load_fixture(idea_id, "idea-analysis")
-    market_research = load_fixture(idea_id, "market-context")
+    market_intelligence = load_fixture(idea_id, "market-intelligence")
+    competitor_analysis = load_fixture(idea_id, "competitor-analysis")
+    market_research = (
+        "## Market Intelligence\n\n"
+        + market_intelligence
+        + "\n\n## Competitor Analysis\n\n"
+        + competitor_analysis
+    )
 
-    predict = dspy.Predict(ReportSynthesis, instructions=REPORT_INSTRUCTIONS)
+    predict = dspy.Predict(ReportSynthesis)
     result = predict(
         idea=idea,
         idea_analysis=idea_analysis,
