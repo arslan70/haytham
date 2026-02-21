@@ -113,8 +113,12 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Claude Code (machine-local)
-.claude/
+# Claude Code (machine-local, except shared config)
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/session-start.sh
 
 # Serena IDE plugin (local dev-tool config)
 .serena/
