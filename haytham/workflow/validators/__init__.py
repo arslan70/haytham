@@ -1,10 +1,15 @@
-"""Validators for pipeline integrity (ADR-022).
+"""Validators for pipeline integrity (ADR-022, ADR-026).
 
 Provides programmatic validators that operate on stage outputs:
 - Story coherence: Appetite compliance, framework conflicts (Part 4)
 - Trait propagation: Constraint extraction and enforcement (Part 2b)
+- Report guardrails: SOM arithmetic and regulated domain safety (ADR-026)
 """
 
+from .report_guardrails import (
+    validate_regulated_domain_safety,
+    validate_som_arithmetic,
+)
 from .story_coherence import (
     FrameworkConflict,
     StoryCoherenceReport,
@@ -23,6 +28,9 @@ from .trait_propagation import (
 )
 
 __all__ = [
+    # Report guardrails (ADR-026) - post-synthesis quality checks
+    "validate_som_arithmetic",
+    "validate_regulated_domain_safety",
     # Story coherence (Part 4) - framework conflict detection only
     "FrameworkConflict",
     "StoryCoherenceReport",

@@ -17,6 +17,10 @@ from haytham.agents.worker_system_traits.system_traits_models import (
     SystemTraitsOutput as _SystemTraitsOutput,
 )
 from haytham.workflow.stage_executor import StageExecutionConfig
+from haytham.workflow.validators.report_guardrails import (
+    validate_regulated_domain_safety,
+    validate_som_arithmetic,
+)
 from haytham.workflow.validators.story_coherence import validate_story_coherence
 
 from .concept_anchor import extract_anchor_post_processor
@@ -89,6 +93,7 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
         stage_slug="report-synthesis",
         post_processor=extract_recommendation_processor,
         additional_save=save_final_output,
+        post_validators=[validate_som_arithmetic, validate_regulated_domain_safety],
     ),
     "mvp-scope": StageExecutionConfig(
         stage_slug="mvp-scope",
