@@ -17,7 +17,7 @@
 
 ## Decision Records
 
-- **[ADR Index](adr/README.md)** — All architecture decision records with status
+- **[ADR Index](adr/index.md)** — All architecture decision records with status
 
 ## Project
 
