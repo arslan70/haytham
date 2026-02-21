@@ -200,6 +200,26 @@ Full details with examples and rationale: [docs/contributing/architecture-patter
 
 **Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/output_utils.py`, `haytham/agents/hooks.py`, `haytham/config.py`
 
+### DSPy for Prompt Testing and Pipeline Validation
+
+Use [DSPy](https://dspy.ai/) (`dspy` optional dependency, install with `uv sync --extra dspy-poc`) to empirically test prompt and pipeline changes before committing to them.
+
+**When to use DSPy:**
+- Before adding a new agent or splitting an existing one: test whether a single agent with full context produces better output
+- Before major prompt rewrites: compare old vs new output across test ideas
+- When debating architectural approaches: generate outputs from both and compare with the quality checklist
+- When optimizing prompts systematically: use MIPROv2 or GEPA optimizers to find better instructions
+
+**How to use it:**
+1. Define a `dspy.Signature` with typed input/output fields. The class docstring becomes the system prompt.
+2. Load upstream fixtures from `tests/dspy_poc/fixtures/{idea_id}/`
+3. Run with `dspy.Predict(YourSignature)` and compare output against baselines
+4. Use `uv run --extra dspy-poc python -m tests.dspy_poc.synthesize T1` for the existing report synthesis PoC
+
+**Key constraint:** DSPy uses LiteLLM for Bedrock. Bedrock's Converse API does not support DSPy's `instructions` parameter. Put all instructions in the Signature docstring instead.
+
+**Key files:** `tests/dspy_poc/signatures.py`, `tests/dspy_poc/synthesize.py`, `tests/fixtures/test_ideas.json`
+
 ### CRITICAL: Strands SDK Structured Output
 
 Use `result.structured_output`, NOT `result.output`. Reference: `haytham/agents/output_utils.py:extract_text_from_result()`
@@ -224,9 +244,19 @@ Module-level imports and compiled patterns only. Exception: circular dependency 
 
 Never let LLM-generated text override deterministic safety rules. If the system needs a property enforced (e.g., HIGH risk always caps GO to PIVOT), make the rule unconditional. String-based quality gates (length checks, phrase blocklists) cannot reliably verify substance and will be bypassed. The LLM's job is qualitative judgment (scoring, evaluating evidence). The system's job is deterministic rules from those judgments. Keep this boundary sharp.
 
+### PITFALL: Splitting LLM Reasoning Across Multiple Agents
+
+Do not split a task that requires holistic reasoning across multiple agents connected by deterministic glue. When an LLM needs to cross-reference findings (e.g., risk findings should inform next steps, market gaps should inform pivot rationale), it does this naturally when it has full context in a single call. Splitting the same reasoning across a scorer agent, narrator agent, merge function, and post-validators fragments the context, creates information loss at boundaries, and requires validators to patch inconsistencies that wouldn't exist if one agent had the full picture.
+
+**The test**: If you're adding a validator to catch inconsistencies between two agents' outputs, ask whether a single agent with both agents' context would produce the inconsistency in the first place. If not, you have an architecture problem, not a validation problem.
+
+**Evidence**: A single LLM call with upstream context scored 8 PASS / 4 PARTIAL / 0 FAIL on report quality criteria, versus 1 PASS / 3 PARTIAL / 8 FAIL from a 4-agent + 6-validator pipeline processing the same inputs. See [ADR-026](docs/adr/ADR-026-simplified-validation-pipeline.md).
+
+**When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. Gathering information (web research, competitor analysis) is a valid reason to split. Synthesizing information is not.
+
 ### Scoring & Validation Pipeline
 
-The `validation-summary` stage runs scorer, narrator, then merge sequentially. See [docs/architecture/scoring-pipeline.md](docs/architecture/scoring-pipeline.md) for details.
+**NOTE**: The validation-summary pipeline (scorer + narrator + merge + 6 validators) is being simplified per ADR-026. See [docs/plans/2026-02-20-report-quality-redesign.md](docs/plans/2026-02-20-report-quality-redesign.md).
 
 **Key files**: `recommendation.py`, `validation_summary_models.py`, `idea_validation.py`, `worker_validation_scorer_prompt.txt`, `validators/`
 
