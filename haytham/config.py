@@ -421,6 +421,14 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         tool_profile=ToolProfile.NONE,
         structured_output_model_path="haytham.workflow.verifiers.schemas:PhaseVerification",
     ),
+    # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline
+    "report_synthesis": AgentConfig(
+        name="report_synthesis_agent",
+        prompt_key="worker_report_synthesis",
+        max_tokens=TOKENS_LARGE,
+        model_tier=ModelTier.REASONING,
+        structured_output_model_path="haytham.agents.worker_report_synthesis.report_synthesis_models:ValidationReport",
+    ),
 }
 
 
