@@ -116,7 +116,7 @@ Stage 3: VALIDATE (new single synthesis agent)
 ### Negative
 
 - Deterministic scoring formula is removed. The GO/PIVOT/NO-GO recommendation is now the LLM's judgment, not a formula output. Safety overrides (e.g., HIGH risk caps GO to PIVOT) need to be enforced differently (prompt-level or lightweight post-check).
-- Single point of failure: if the synthesis agent produces poor output, there's no downstream validator to catch it. Mitigation: the prompt is comprehensive and testable with DSPy.
+- No automated post-validation: there are no downstream validators to catch inconsistencies. Mitigation: the user reviews the report and can refine it by chatting with the system. Human-in-the-loop is a better quality gate than deterministic validators that check form over substance.
 - Longer single LLM call vs several shorter ones. May hit token limits for very complex ideas. Mitigation: upstream context is already bounded by Stage 1 and Stage 2 output sizes.
 
 ### Risks
