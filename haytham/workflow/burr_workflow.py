@@ -20,8 +20,6 @@ from typing import Any
 
 from burr.core import State
 
-from haytham.agents.tools.metric_patterns import RE_RECOMMENDATION_PLAIN
-
 from .stage_registry import WorkflowType, get_stage_registry
 from .workflow_factories import (
     WORKFLOW_TERMINAL_STAGES,
@@ -50,11 +48,10 @@ def _extract_recommendation(
     results: dict[str, Any],
     session_manager: Any,
 ) -> str | None:
-    """Extract GO/NO-GO/PIVOT recommendation via 3-tier fallback.
+    """Extract GO/NO-GO/PIVOT recommendation via 2-tier fallback.
 
     Tier 1: Burr state (written by extract_recommendation_processor).
     Tier 2: recommendation.json on disk (written by same processor).
-    Tier 3: Anchored regex on validation-summary output (backward compat).
 
     Args:
         final_state: Final Burr state after workflow execution.
@@ -82,22 +79,6 @@ def _extract_recommendation(
                     return rec
             except (json.JSONDecodeError, OSError):
                 pass
-
-    # Tier 3: Anchored regex on validation-summary output (correct hyphenated key)
-    vs_result = results.get("validation-summary")
-    if vs_result:
-        summary_text = ""
-        if isinstance(vs_result, dict):
-            outputs = vs_result.get("outputs", {})
-            summary_text = outputs.get("report_synthesis", "")
-        elif isinstance(vs_result, str):
-            summary_text = vs_result
-        if summary_text:
-            match = RE_RECOMMENDATION_PLAIN.search(summary_text.upper())
-            if match:
-                rec = match.group(1)
-                logger.info(f"Recommendation from regex fallback: {rec}")
-                return rec
 
     return None
 
@@ -320,9 +301,6 @@ class BurrWorkflowRunner:
                     )
                 },
             }
-            # Include risk_level for the risk-assessment stage
-            if stage.slug == "risk-assessment":
-                entry["risk_level"] = state.get("risk_level", "MEDIUM")
             results[stage.slug] = entry
         return results
 

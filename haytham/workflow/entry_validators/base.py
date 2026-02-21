@@ -46,9 +46,7 @@ class SessionStateAdapter:
         stage_mapping = {
             "idea_analysis": "idea-analysis",
             "market_context": "market-context",
-            "risk_assessment": "risk-assessment",
-            "validation_summary": "validation-summary",
-            "pivot_strategy": "pivot-strategy",
+            "report_synthesis": "report-synthesis",
             "mvp_scope": "mvp-scope",
             "capability_model": "capability-model",
             "system_traits": "system-traits",

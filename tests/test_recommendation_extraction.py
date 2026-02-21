@@ -1,9 +1,8 @@
-"""Tests for _extract_recommendation 3-tier fallback (C3 fix).
+"""Tests for _extract_recommendation 2-tier fallback (ADR-026).
 
 Covers:
 - Tier 1: Recommendation from Burr state
 - Tier 2: Recommendation from recommendation.json on disk
-- Tier 3: Anchored regex on validation-summary output
 - Fallback to None when no recommendation found
 """
 
@@ -72,44 +71,13 @@ class TestTier2DiskFile:
         assert _extract_recommendation(state, {}, sm) is None
 
 
-class TestTier3Regex:
-    """Tier 3: anchored regex on validation-summary output."""
+class TestNoRegexFallback:
+    """Tier 3 regex fallback was removed in ADR-026. Results dict is ignored."""
 
-    def test_extracts_from_dict_result(self):
-        """Extracts recommendation from the standard _extract_results dict format."""
+    def test_results_dict_ignored(self):
+        """Results dict with recommendation text does NOT match (no regex tier)."""
         results = {
-            "validation-summary": {
-                "status": "completed",
-                "outputs": {"report_synthesis": "## Summary\nRECOMMENDATION: GO\nSome other text."},
-            }
-        }
-        state = _make_state({})
-        assert _extract_recommendation(state, results, None) == "GO"
-
-    def test_extracts_nogo(self):
-        results = {
-            "validation-summary": {
-                "status": "completed",
-                "outputs": {"report_synthesis": "RECOMMENDATION: NO-GO"},
-            }
-        }
-        state = _make_state({})
-        assert _extract_recommendation(state, results, None) == "NO-GO"
-
-    def test_no_match_returns_none(self):
-        results = {
-            "validation-summary": {
-                "status": "completed",
-                "outputs": {"report_synthesis": "No recommendation here."},
-            }
-        }
-        state = _make_state({})
-        assert _extract_recommendation(state, results, None) is None
-
-    def test_underscore_key_does_not_match(self):
-        """The old underscore key 'validation_summary' should NOT work (bug was here)."""
-        results = {
-            "validation_summary": {
+            "report-synthesis": {
                 "status": "completed",
                 "outputs": {"report_synthesis": "RECOMMENDATION: GO"},
             }
@@ -117,9 +85,13 @@ class TestTier3Regex:
         state = _make_state({})
         assert _extract_recommendation(state, results, None) is None
 
+    def test_returns_none_without_state_or_disk(self):
+        state = _make_state({})
+        assert _extract_recommendation(state, {}, None) is None
+
 
 class TestTierPriority:
-    """Tier 1 takes precedence over tier 2 and 3."""
+    """Tier 1 takes precedence over tier 2."""
 
     def test_state_wins_over_disk(self, tmp_path):
         meta_path = tmp_path / "recommendation.json"
@@ -130,19 +102,3 @@ class TestTierPriority:
 
         state = _make_state({"recommendation": "GO"})
         assert _extract_recommendation(state, {}, sm) == "GO"
-
-    def test_disk_wins_over_regex(self, tmp_path):
-        meta_path = tmp_path / "recommendation.json"
-        meta_path.write_text(json.dumps({"recommendation": "NO-GO"}))
-
-        sm = MagicMock()
-        sm.session_dir = tmp_path
-
-        results = {
-            "validation-summary": {
-                "status": "completed",
-                "outputs": {"report_synthesis": "RECOMMENDATION: GO"},
-            }
-        }
-        state = _make_state({})
-        assert _extract_recommendation(state, results, sm) == "NO-GO"

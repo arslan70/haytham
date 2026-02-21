@@ -13,12 +13,7 @@ import yaml  # noqa: E402
 from components.anchor_review import render_anchor_condensed  # noqa: E402
 from components.decision_gate import render_decision_gate  # noqa: E402
 from components.feedback_conversation import (  # noqa: E402
-    clear_chat_history,
     render_feedback_conversation,
-)
-from components.idea_refinement import (  # noqa: E402
-    clear_refinement_state,
-    render_idea_refinement,
 )
 
 SESSION_DIR = get_session_dir()
@@ -115,31 +110,14 @@ STAGES = [
         "output_files": ["market_intelligence.md", "competitor_analysis.md"],
     },
     {
-        "id": "risk-assessment",
-        "name": "Risk Assessment",
+        "id": "report-synthesis",
+        "name": "Validation Report",
         "icon": "[3]",
         "description": (
-            "Every claim from earlier stages tested against evidence."
-            " Shows what holds up, what's partial, and where the real risks are."
+            "The final GO / NO-GO / PIVOT verdict with a comprehensive analysis"
+            " of risks, market opportunity, feasibility, and next steps."
         ),
-        "output_file": "startup_validator.md",
-    },
-    {
-        "id": "pivot-strategy",
-        "name": "Pivot Strategy",
-        "icon": "[P]",
-        "description": "Alternative directions to consider if the current approach carries high risk.",
-        "output_file": "pivot_strategy.md",
-    },
-    {
-        "id": "validation-summary",
-        "name": "Validation Summary",
-        "icon": "[S]",
-        "description": (
-            "The final GO / NO-GO verdict with a scored breakdown across problem severity,"
-            " market opportunity, feasibility, and revenue viability."
-        ),
-        "output_file": "validation_scorer.md",
+        "output_file": "report_synthesis.md",
     },
 ]
 
@@ -182,18 +160,6 @@ def get_stage_status(stage_id: str) -> bool:
     return stage_dir.exists() and any(stage_dir.glob("*.md"))
 
 
-def has_pivot_strategy() -> bool:
-    """Check if pivot strategy exists (indicates HIGH risk was detected)."""
-    pivot_dir = SESSION_DIR / "pivot-strategy"
-    if not pivot_dir.exists():
-        return False
-    # Check if there are any output files (not just metadata)
-    for f in pivot_dir.glob("*.md"):
-        if f.name not in ("checkpoint.md", "user_feedback.md"):
-            return True
-    return False
-
-
 def is_workflow_locked() -> bool:
     """Check if the idea-validation workflow is locked."""
     lock_file = SESSION_DIR / f".{WORKFLOW_TYPE}.locked"
@@ -204,53 +170,11 @@ def is_workflow_locked() -> bool:
 # Metrics & Section Helpers
 # -----------------------------------------------------------------------------
 
-# Pre-compiled patterns for metric extraction (shared module — DRY)
-from haytham.agents.tools.metric_patterns import (  # noqa: E402
-    RE_CLAIMS as _RE_CLAIMS,
-)
-from haytham.agents.tools.metric_patterns import (
-    RE_COMPOSITE as _RE_COMPOSITE,
-)
-from haytham.agents.tools.metric_patterns import (
-    RE_RECOMMENDATION as _RE_RECOMMENDATION,
-)
-from haytham.agents.tools.metric_patterns import (
-    RE_RISK_LEVEL as _RE_RISK_LEVEL,
-)
-
-
-def _read_file_text(stage_id: str, filename: str) -> str | None:
-    """Read raw text from a stage output file (no stripping)."""
-    path = SESSION_DIR / stage_id / filename
-    if path.exists():
-        return path.read_text()
-    return None
-
-
-def _extract_section(text: str, heading: str) -> str | None:
-    """Extract the body of a markdown section by ## heading."""
-    pattern = rf"^## {re.escape(heading)}\s*\n(.*?)(?=\n## |\Z)"
-    m = re.search(pattern, text, re.MULTILINE | re.DOTALL)
-    return m.group(1).strip() if m else None
-
 
 def extract_metrics() -> dict:
-    """Extract key validation signals and rationale from saved session files."""
-    metrics: dict = {
-        "verdict": None,
-        "composite_score": None,
-        "risk_level": None,
-        "claims_supported": None,
-        "claims_partial": None,
-        "claims_total": None,
-        # Rationale sections
-        "verdict_rationale": None,
-        "score_rationale": None,
-        "risk_rationale": None,
-        "claims_rationale": None,
-    }
+    """Extract the verdict from recommendation.json."""
+    metrics: dict = {"verdict": None}
 
-    # Verdict: try recommendation.json first, fallback to markdown
     meta_path = SESSION_DIR / "recommendation.json"
     if meta_path.exists():
         try:
@@ -260,68 +184,6 @@ def extract_metrics() -> dict:
                 metrics["verdict"] = rec
         except (json.JSONDecodeError, OSError):
             pass
-
-    # Parse validation-summary stage output for verdict fallback, confidence, composite
-    summary_text = _read_file_text("validation-summary", "validation_scorer.md")
-    if summary_text:
-        if metrics["verdict"] is None:
-            m = _RE_RECOMMENDATION.search(summary_text)
-            if m:
-                metrics["verdict"] = m.group(1).upper()
-        m = _RE_COMPOSITE.search(summary_text)
-        if m:
-            metrics["composite_score"] = m.group(1)
-
-        # Rationale from Go/No-Go Scorecard subsections
-        scorecard = _extract_section(summary_text, "Go/No-Go Scorecard")
-        if scorecard:
-            # Verdict: knockout criteria + guidance
-            verdict_parts = []
-            for sub in ("Knockout Criteria", "Guidance"):
-                m = re.search(
-                    rf"### {sub}\s*\n(.*?)(?=\n### |\Z)",
-                    scorecard,
-                    re.DOTALL,
-                )
-                if m:
-                    verdict_parts.append(f"**{sub}**\n\n{m.group(1).strip()}")
-            if verdict_parts:
-                metrics["verdict_rationale"] = "\n\n".join(verdict_parts)
-
-            # Score: scored dimensions + critical gaps
-            score_parts = []
-            for sub in ("Scored Dimensions", "Critical Gaps"):
-                m = re.search(
-                    rf"### {sub}\s*\n(.*?)(?=\n### |\Z)",
-                    scorecard,
-                    re.DOTALL,
-                )
-                if m:
-                    score_parts.append(f"**{sub}**\n\n{m.group(1).strip()}")
-            if score_parts:
-                metrics["score_rationale"] = "\n\n".join(score_parts)
-
-    # Parse startup_validator.md for risk level and claims
-    validator_text = _read_file_text("risk-assessment", "startup_validator.md")
-    if validator_text:
-        m = _RE_RISK_LEVEL.search(validator_text)
-        if m:
-            metrics["risk_level"] = m.group(1).upper()
-        m = _RE_CLAIMS.search(validator_text)
-        if m:
-            metrics["claims_total"] = m.group(1)
-            metrics["claims_supported"] = m.group(2)
-            metrics["claims_partial"] = m.group(3)
-
-        # Risk rationale: identified risks section
-        risks = _extract_section(validator_text, "Identified Risks")
-        if risks:
-            metrics["risk_rationale"] = risks
-
-        # Claims rationale: claims analysis section
-        claims = _extract_section(validator_text, "Claims Analysis")
-        if claims:
-            metrics["claims_rationale"] = claims
 
     return metrics
 
@@ -339,99 +201,18 @@ _METRIC_DIV_STYLE = (
 )
 
 
-def _metric_html(label: str, value: str, color: str) -> str:
-    """Return centered HTML for a single dashboard metric."""
-    return (
-        f'<div style="{_METRIC_DIV_STYLE}">'
-        f'<span style="font-size:0.95rem;color:#888;">{label}</span>'
-        f'<span style="color:{color};font-weight:700;font-size:1.8rem;">'
-        f"{value}</span></div>"
-    )
-
-
-def _render_metric_with_rationale(
-    label: str,
-    value: str,
-    color: str,
-    rationale: str | None,
-    expander_label: str,
-    *,
-    badge: bool = False,
-) -> None:
-    """Render a single metric with an optional rationale expander below it."""
-    if badge:
-        st.markdown(
-            f'<div style="{_METRIC_DIV_STYLE}">'
-            f'<span style="font-size:0.95rem;color:#888;">{label}</span>'
-            f'<span style="background:{color};color:#fff;padding:0.3rem 1.2rem;'
-            f'border-radius:0.4rem;font-weight:700;font-size:1.8rem;">'
-            f"{value}</span></div>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(_metric_html(label, value, color), unsafe_allow_html=True)
-    if rationale:
-        with st.expander(expander_label):
-            st.markdown(rationale)
-
-
 def render_metrics_dashboard(metrics: dict) -> None:
-    """Render metrics in a 2x2 grid with inline rationale expanders."""
-    # Row 1: Verdict + Score
-    left, right = st.columns(2)
-    with left:
-        verdict = metrics.get("verdict")
-        color = _VERDICT_COLORS.get(verdict, "#9E9E9E") if verdict else "#9E9E9E"
-        _render_metric_with_rationale(
-            "Verdict",
-            verdict or "---",
-            color,
-            metrics.get("verdict_rationale"),
-            "Knockout Criteria & Guidance",
-            badge=bool(verdict),
-        )
-    with right:
-        score = metrics.get("composite_score")
-        # Score color follows the verdict so the two markers stay visually consistent
-        color = _VERDICT_COLORS.get(verdict, "#9E9E9E") if verdict else "#9E9E9E"
-        _render_metric_with_rationale(
-            "Score",
-            f"{score} / 5.0" if score else "---",
-            color,
-            metrics.get("score_rationale"),
-            "Dimension Breakdown",
-        )
-
-    # Row 2: Risk Level + Claims Validated
-    left, right = st.columns(2)
-    with left:
-        risk = metrics.get("risk_level")
-        risk_colors = {"LOW": "#4CAF50", "MEDIUM": "#FF9800", "HIGH": "#F44336"}
-        color = risk_colors.get(risk, "#9E9E9E") if risk else "#9E9E9E"
-        _render_metric_with_rationale(
-            "Risk Level",
-            risk or "---",
-            color,
-            metrics.get("risk_rationale"),
-            "Identified Risks",
-        )
-    with right:
-        total = metrics.get("claims_total")
-        supported = metrics.get("claims_supported")
-        if total and supported:
-            ratio = int(supported) / int(total)
-            color = "#4CAF50" if ratio >= 0.7 else "#FF9800" if ratio >= 0.4 else "#F44336"
-            value = f"{supported}/{total}"
-        else:
-            color = "#9E9E9E"
-            value = "---"
-        _render_metric_with_rationale(
-            "Claims Validated",
-            value,
-            color,
-            metrics.get("claims_rationale"),
-            "Full Claims Analysis",
-        )
+    """Render the recommendation verdict badge."""
+    verdict = metrics.get("verdict")
+    color = _VERDICT_COLORS.get(verdict, "#9E9E9E") if verdict else "#9E9E9E"
+    st.markdown(
+        f'<div style="{_METRIC_DIV_STYLE}">'
+        f'<span style="font-size:0.95rem;color:#888;">Verdict</span>'
+        f'<span style="background:{color};color:#fff;padding:0.3rem 1.2rem;'
+        f'border-radius:0.4rem;font-weight:700;font-size:1.8rem;">'
+        f"{verdict or '---'}</span></div>",
+        unsafe_allow_html=True,
+    )
 
 
 def split_markdown_sections(content: str) -> list[tuple[str, str]]:
@@ -601,13 +382,13 @@ if not any_completed:
 # Metrics Dashboard & Tabbed Stage Views
 # -----------------------------------------------------------------------------
 
-# Metrics dashboard (only when validation-summary is complete)
-if get_stage_status("validation-summary"):
+# Metrics dashboard (only when report-synthesis is complete)
+if get_stage_status("report-synthesis"):
     metrics = extract_metrics()
     render_metrics_dashboard(metrics)
     st.divider()
 
-# Tabbed view for completed stages (includes pivot-strategy when present)
+# Tabbed view for completed stages
 completed_stages = [s for s in STAGES if get_stage_status(s["id"])]
 if completed_stages:
     # Add Concept Anchor tab when anchor file exists
@@ -638,112 +419,6 @@ if completed_stages:
             render_anchor_condensed(SESSION_DIR)
 
 # -----------------------------------------------------------------------------
-# Pivot Decision Point (HIGH Risk Flow)
-# -----------------------------------------------------------------------------
-
-
-def handle_refined_idea_accept(refined_idea: str) -> None:
-    """Handle acceptance of refined idea."""
-    from haytham.session.session_manager import SessionManager
-
-    # Store diff for display in execution view
-    st.session_state.idea_diff = {
-        "original": idea_text,
-        "refined": refined_idea,
-    }
-
-    # Update system goal with refined idea
-    session_manager = SessionManager(str(SESSION_DIR.parent))
-    session_manager.set_system_goal(refined_idea)
-
-    # Clear validation stages for re-run
-    session_manager.clear_workflow_stages("idea-validation")
-
-    # Cleanup refinement state
-    clear_refinement_state()
-    if "refinement_mode" in st.session_state:
-        del st.session_state.refinement_mode
-
-    # Store validated idea and trigger workflow
-    st.session_state.validated_idea = refined_idea
-    st.session_state.new_idea = refined_idea
-    st.rerun()
-
-
-def handle_refinement_cancel() -> None:
-    """Handle refinement cancellation."""
-    clear_refinement_state()
-    if "refinement_mode" in st.session_state:
-        del st.session_state.refinement_mode
-    st.rerun()
-
-
-# Check if we're in refinement mode (HIGH risk detected and user chose to refine)
-if has_pivot_strategy() and not is_workflow_locked():
-    # Check if user is in refinement mode
-    if st.session_state.get("refinement_mode"):
-        # Render the refinement conversation
-        render_idea_refinement(
-            original_idea=idea_text or "",
-            session_dir=SESSION_DIR,
-            on_accept=handle_refined_idea_accept,
-            on_cancel=handle_refinement_cancel,
-        )
-        st.stop()
-
-    # Show decision UI
-    st.divider()
-    st.warning("### High Risk Detected")
-    st.markdown(
-        "The validation identified significant risks with your idea. "
-        "Review the **Pivot Strategy** tab above for alternative approaches."
-    )
-
-    st.markdown("**What would you like to do?**")
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Continue Anyway", use_container_width=True):
-            # Lock workflow and proceed to MVP spec
-            from lib.workflow_runner import lock_workflow as _lock_wf
-
-            _lock_wf(WORKFLOW_TYPE, SESSION_DIR)
-            clear_chat_history(WORKFLOW_TYPE)
-            st.session_state.run_mvp_workflow = True
-            st.rerun()
-    with col2:
-        if st.button("Refine Idea", type="primary", use_container_width=True):
-            st.session_state.refinement_mode = True
-            st.rerun()
-    with col3:
-        if st.button("Start Over", use_container_width=True):
-            from lib.session_utils import clear_session
-
-            clear_session()
-            st.rerun()
-
-    # Offer report download even on HIGH risk
-    if get_stage_status("validation-summary"):
-        try:
-            from haytham.agents.tools.pdf_report import generate_pdf
-            from haytham.agents.tools.report_configs import build_idea_validation_config
-
-            _report_config = build_idea_validation_config(SESSION_DIR)
-            _pdf_bytes = generate_pdf(_report_config)
-            st.download_button(
-                "Download Report",
-                data=_pdf_bytes,
-                file_name="haytham-idea-validation-report.pdf",
-                mime="application/pdf",
-                type="primary",
-                use_container_width=True,
-            )
-        except (ImportError, OSError, ValueError):
-            pass  # Silently skip if PDF generation fails
-
-    st.stop()
-
-# -----------------------------------------------------------------------------
 # Feedback / Next Step Section
 # -----------------------------------------------------------------------------
 
@@ -764,9 +439,7 @@ if is_workflow_locked():
     accomplishments = ["Idea analyzed and structured"]
     if (SESSION_DIR / "market-context").exists():
         accomplishments.append("Market intelligence gathered")
-    if (SESSION_DIR / "risk-assessment").exists():
-        accomplishments.append("Risk assessment completed")
-    if (SESSION_DIR / "validation-summary").exists():
+    if (SESSION_DIR / "report-synthesis").exists():
         accomplishments.append("GO/NO-GO recommendation issued")
 
     result = render_decision_gate(
@@ -787,11 +460,11 @@ if is_workflow_locked():
         st.rerun()
 else:
     # Workflow not locked - show chat-based feedback with intelligent agent
-    stage_slugs = [s["id"] for s in STAGES if s["id"] != "pivot-strategy"]
+    stage_slugs = [s["id"] for s in STAGES]
 
-    # Generate PDF download data when validation-summary is complete
+    # Generate PDF download data when report-synthesis is complete
     _pdf_download_data = None
-    if get_stage_status("validation-summary"):
+    if get_stage_status("report-synthesis"):
         try:
             from haytham.agents.tools.pdf_report import generate_pdf
             from haytham.agents.tools.report_configs import build_idea_validation_config

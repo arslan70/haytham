@@ -13,11 +13,6 @@ from pathlib import Path
 
 import yaml
 
-from .metric_patterns import (
-    RE_COMPOSITE,
-    RE_RECOMMENDATION,
-    RE_RISK_LEVEL,
-)
 from .pdf_report import (
     CoverConfig,
     ReportConfig,
@@ -35,9 +30,6 @@ _MI_OVERLAP_KEYWORDS = re.compile(
 
 # Keywords for Concept Expansion sections already rendered elsewhere
 _CE_STRIP_KEYWORDS = re.compile(r"Lean Canvas|Concept Health", re.IGNORECASE)
-
-# Sections to strip from Risk Assessment (redundant with scorecard)
-_RA_STRIP_KEYWORDS = re.compile(r"Human Summary", re.IGNORECASE)
 
 # Confirmation Bias Check / Pre-Submission Validation (metadata, not insight)
 _BIAS_CHECK_KEYWORDS = re.compile(r"Confirmation Bias|Pre-Submission", re.IGNORECASE)
@@ -97,9 +89,8 @@ def _load_system_goal(session_dir: Path) -> str:
     return ""
 
 
-def _extract_verdict(summary_text: str | None, session_dir: Path) -> str | None:
-    """Extract recommendation verdict (GO / NO-GO / PIVOT)."""
-    # Try recommendation.json first
+def _extract_verdict(session_dir: Path) -> str | None:
+    """Extract recommendation verdict (GO / NO-GO / PIVOT) from recommendation.json."""
     meta_path = session_dir / "recommendation.json"
     if meta_path.exists():
         try:
@@ -109,37 +100,12 @@ def _extract_verdict(summary_text: str | None, session_dir: Path) -> str | None:
                 return rec
         except (json.JSONDecodeError, OSError):
             pass
-    # Fallback to regex
-    if summary_text:
-        m = RE_RECOMMENDATION.search(summary_text)
-        if m:
-            return m.group(1).upper()
     return None
-
-
-def _extract_section(text: str, heading: str) -> str | None:
-    """Extract the body of a markdown section by ## heading."""
-    pattern = rf"^## {re.escape(heading)}\s*\n(.*?)(?=\n## |\Z)"
-    m = re.search(pattern, text, re.MULTILINE | re.DOTALL)
-    return m.group(1).strip() if m else None
 
 
 # ---------------------------------------------------------------------------
 # Section builders
 # ---------------------------------------------------------------------------
-
-
-def _build_executive_summary(summary_text: str, verdict: str | None) -> list[ReportSection]:
-    """Build Executive Summary + metric badges."""
-
-    sections: list[ReportSection] = []
-
-    # Executive summary text (metric badges moved to cover page)
-    exec_text = _extract_section(summary_text, "Executive Summary")
-    if exec_text:
-        sections.append(ReportSection("Executive Summary", SectionType.MARKDOWN, exec_text))
-
-    return sections
 
 
 def _build_problem_analysis(session_dir: Path) -> ReportSection | None:
@@ -181,43 +147,38 @@ def _build_competitive_landscape(session_dir: Path) -> ReportSection | None:
     return ReportSection("Competitive Landscape", SectionType.MARKDOWN, text)
 
 
-def _build_risk_assessment(session_dir: Path) -> ReportSection | None:
-    """Build Risk Assessment section."""
+def _build_report_synthesis(session_dir: Path) -> list[ReportSection]:
+    """Build sections from the report synthesis markdown.
 
-    text = _load_markdown(session_dir, "risk-assessment", "startup_validator.md")
+    The report-synthesis stage produces a single markdown document covering
+    all validation findings. This function parses it into sections by H2
+    heading so each becomes a separate report section in the PDF.
+    """
+    text = _load_markdown(session_dir, "report-synthesis", "report_synthesis.md")
     if not text:
-        return None
-    text = _strip_sections(text, _RA_STRIP_KEYWORDS)
-    if not text:
-        return None
-    return ReportSection("Risk Assessment", SectionType.MARKDOWN, text)
+        return []
 
+    # Split by ## headings into separate ReportSections
+    sections: list[ReportSection] = []
+    parts = re.split(r"(?=^## )", text, flags=re.MULTILINE)
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        if part.startswith("## "):
+            first_line, _, body = part.partition("\n")
+            heading = first_line.lstrip("#").strip()
+            if body.strip():
+                sections.append(ReportSection(heading, SectionType.MARKDOWN, body.strip()))
+        elif not sections:
+            # Leading content before first heading (e.g. executive summary)
+            sections.append(ReportSection("Overview", SectionType.MARKDOWN, part))
 
-def _build_scorecard(summary_text: str) -> ReportSection | None:
-    """Build Go/No-Go Scorecard section."""
+    # If no sections parsed, return the whole text as one section
+    if not sections:
+        sections.append(ReportSection("Validation Report", SectionType.MARKDOWN, text))
 
-    scorecard = _extract_section(summary_text, "Go/No-Go Scorecard")
-    if not scorecard:
-        return None
-    return ReportSection("Go/No-Go Scorecard", SectionType.SCORECARD, scorecard)
-
-
-def _build_next_steps(summary_text: str) -> ReportSection | None:
-    """Build Next Steps section."""
-
-    steps = _extract_section(summary_text, "Next Steps")
-    if not steps:
-        return None
-    return ReportSection("Next Steps", SectionType.MARKDOWN, steps)
-
-
-def _build_pivot_strategy(session_dir: Path) -> ReportSection | None:
-    """Build Pivot Strategy section (only present if HIGH risk)."""
-
-    text = _load_markdown(session_dir, "pivot-strategy", "pivot_strategy.md")
-    if not text:
-        return None
-    return ReportSection("Pivot Strategy", SectionType.MARKDOWN, text)
+    return sections
 
 
 # ---------------------------------------------------------------------------
@@ -228,45 +189,27 @@ def _build_pivot_strategy(session_dir: Path) -> ReportSection | None:
 def build_idea_validation_config(session_dir: Path) -> ReportConfig:
     """Build a complete ReportConfig for the Idea Validation report.
 
+    The report is assembled from the upstream analysis stages (idea-analysis,
+    market-context) and the report-synthesis stage which produces a single
+    markdown document covering risk assessment, scorecard, and next steps.
+
     Args:
         session_dir: Path to the session directory containing stage outputs.
 
     Returns:
         ReportConfig ready to pass to generate_pdf().
     """
-
     idea_text = _load_system_goal(session_dir)
-    summary_text = _load_markdown(session_dir, "validation-summary", "validation_scorer.md")
-    validator_text = _load_markdown(session_dir, "risk-assessment", "startup_validator.md")
-
-    # Extract cover-page data
-    verdict = _extract_verdict(summary_text, session_dir)
-    composite_score = None
-    risk_level = None
-
-    if summary_text:
-        m = RE_COMPOSITE.search(summary_text)
-        if m:
-            composite_score = m.group(1)
-
-    if validator_text:
-        m = RE_RISK_LEVEL.search(validator_text)
-        if m:
-            risk_level = m.group(1).upper()
+    verdict = _extract_verdict(session_dir)
 
     cover = CoverConfig(
         title="Idea Validation Report",
         idea_text=idea_text,
         verdict=verdict,
-        composite_score=composite_score,
-        risk_level=risk_level,
     )
 
     # Build sections in order
     sections: list[ReportSection] = []
-
-    if summary_text:
-        sections.extend(_build_executive_summary(summary_text, verdict))
 
     problem = _build_problem_analysis(session_dir)
     if problem:
@@ -280,24 +223,8 @@ def build_idea_validation_config(session_dir: Path) -> ReportConfig:
     if competitive:
         sections.append(competitive)
 
-    risk = _build_risk_assessment(session_dir)
-    if risk:
-        sections.append(risk)
-
-    if summary_text:
-        scorecard = _build_scorecard(summary_text)
-        if scorecard:
-            sections.append(scorecard)
-
-    pivot = _build_pivot_strategy(session_dir)
-
-    # Next Steps is redundant when Pivot Strategy exists (it has its own next steps)
-    if not pivot and summary_text:
-        steps = _build_next_steps(summary_text)
-        if steps:
-            sections.append(steps)
-
-    if pivot:
-        sections.append(pivot)
+    # Report synthesis: the single-agent report covering all validation
+    # findings, risk assessment, scorecard, and next steps
+    sections.extend(_build_report_synthesis(session_dir))
 
     return ReportConfig(cover=cover, sections=sections)

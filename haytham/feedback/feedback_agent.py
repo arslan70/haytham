@@ -408,17 +408,6 @@ def _extract_and_format_output(result, agent_name: str) -> str:
 
 def _format_structured_output(data, agent_name: str) -> str:
     """Format structured output based on agent type."""
-    # Handle validation_summary specifically
-    if agent_name in ("validation_scorer", "validation_narrator"):
-        try:
-            from haytham.agents.worker_validation_summary.validation_summary_models import (
-                format_validation_summary,
-            )
-
-            return format_validation_summary(data)
-        except Exception as e:
-            logger.warning(f"Failed to format validation summary: {e}")
-
     # Generic fallback: convert to readable format
     if hasattr(data, "model_dump"):
         data = data.model_dump()

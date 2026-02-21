@@ -7,9 +7,10 @@ Uses callbacks for progress updates instead of Chainlit messages.
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from lib.session_utils import load_environment, setup_paths
 
