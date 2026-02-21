@@ -37,7 +37,7 @@ dependencies = [
 Homepage = "https://github.com/arslan70/haytham"
 Repository = "https://github.com/arslan70/haytham.git"
 Issues = "https://github.com/arslan70/haytham/issues"
-Documentation = "https://github.com/arslan70/haytham/tree/main/docs"
+Documentation = "https://arslan70.github.io/haytham/"
 
 [project.optional-dependencies]
 observability = ["langfuse>=2.0.0"]
@@ -47,6 +47,7 @@ anthropic = ["anthropic>=0.45.0"]
 openai = ["openai>=1.10.0"]
 ollama = ["ollama>=0.4.0"]
 providers = ["haytham[anthropic,openai,ollama]"]
+docs = ["mkdocs-material>=9.0.0"]
 full = ["haytham[observability,vectordb,reports,providers]"]
 
 [build-system]
