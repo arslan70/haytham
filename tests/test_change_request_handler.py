@@ -26,9 +26,7 @@ def temp_session_dir(tmp_path):
     stage_slugs = [
         "idea-analysis",
         "market-context",
-        "risk-assessment",
-        "pivot-strategy",
-        "validation-summary",
+        "report-synthesis",
         "mvp-scope",
         "capability-model",
         "system-traits",
@@ -186,7 +184,7 @@ class TestChangeRequestHandler:
         change_request = ChangeRequest(change_type="retry_with_same")
 
         modified_query, should_retry = change_request_handler.handle_change_request(
-            stage_slug="risk-assessment",
+            stage_slug="report-synthesis",
             change_request=change_request,
             default_query="Identify profitable niches",
             retry_count=0,
@@ -196,7 +194,7 @@ class TestChangeRequestHandler:
         assert should_retry
 
         # Verify feedback was saved
-        feedback_file = temp_session_dir / "session" / "risk-assessment" / "user_feedback.md"
+        feedback_file = temp_session_dir / "session" / "report-synthesis" / "user_feedback.md"
         assert feedback_file.exists()
 
         content = feedback_file.read_text()

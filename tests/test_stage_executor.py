@@ -32,8 +32,8 @@ def _make_state(**overrides) -> State:
         "idea_analysis_status": "pending",
         "market_context": "",
         "market_context_status": "pending",
-        "risk_assessment": "",
-        "risk_assessment_status": "pending",
+        "report_synthesis": "",
+        "report_synthesis_status": "pending",
         "concept_anchor_str": "",
         "current_stage": "",
     }
@@ -138,24 +138,24 @@ class TestSingleAgentExecution:
     @mock.patch("haytham.workflow.stage_executor.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
     def test_single_agent_happy_path(self, mock_save, mock_run):
-        mock_run.return_value = {"output": "Risk assessment complete.", "status": "completed"}
+        mock_run.return_value = {"output": "Report synthesis complete.", "status": "completed"}
         state = _make_state(
             idea_analysis="Idea content",
             market_context="Market content",
-            risk_assessment="",
-            risk_assessment_status="pending",
+            report_synthesis="",
+            report_synthesis_status="pending",
         )
 
-        executor = get_stage_executor("risk-assessment")
+        executor = get_stage_executor("report-synthesis")
         result = executor.execute(state)
 
-        assert result["risk_assessment"] == "Risk assessment complete."
-        assert result["risk_assessment_status"] == "completed"
-        assert result["current_stage"] == "risk-assessment"
+        assert result["report_synthesis"] == "Report synthesis complete."
+        assert result["report_synthesis_status"] == "completed"
+        assert result["current_stage"] == "report-synthesis"
 
         # Verify run_agent was called with the correct agent name
         call_args = mock_run.call_args
-        assert call_args[0][0] == "startup_validator"  # First positional arg is agent_name
+        assert call_args[0][0] == "report_synthesis"  # First positional arg is agent_name
 
     @mock.patch("haytham.workflow.stage_executor.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
@@ -164,14 +164,14 @@ class TestSingleAgentExecution:
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
-            risk_assessment="",
-            risk_assessment_status="pending",
+            report_synthesis="",
+            report_synthesis_status="pending",
         )
 
-        executor = get_stage_executor("risk-assessment")
+        executor = get_stage_executor("report-synthesis")
         result = executor.execute(state)
 
-        assert result["risk_assessment_status"] == "failed"
+        assert result["report_synthesis_status"] == "failed"
         # Failed stages should not save output
         mock_save.assert_not_called()
 
@@ -331,28 +331,28 @@ class TestPostProcessors:
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
     def test_post_processor_updates_state(self, mock_save, mock_run):
         """Post-processor return dict is merged into state."""
-        mock_run.return_value = {"output": "Risk output.", "status": "completed"}
+        mock_run.return_value = {"output": "Report output.", "status": "completed"}
 
-        def extract_risk(output, state):
-            return {"risk_level": "HIGH"}
+        def extract_recommendation(output, state):
+            return {"recommendation": "GO"}
 
         config = StageExecutionConfig(
-            stage_slug="risk-assessment",
-            post_processor=extract_risk,
+            stage_slug="report-synthesis",
+            post_processor=extract_recommendation,
         )
 
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
-            risk_assessment="",
-            risk_assessment_status="pending",
+            report_synthesis="",
+            report_synthesis_status="pending",
         )
 
         executor = StageExecutor(config)
         result = executor.execute(state)
 
-        assert result["risk_level"] == "HIGH"
-        assert result["risk_assessment_status"] == "completed"
+        assert result["recommendation"] == "GO"
+        assert result["report_synthesis_status"] == "completed"
 
     @mock.patch("haytham.workflow.stage_executor.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
@@ -362,15 +362,15 @@ class TestPostProcessors:
         post_proc = mock.Mock(return_value={})
 
         config = StageExecutionConfig(
-            stage_slug="risk-assessment",
+            stage_slug="report-synthesis",
             post_processor=post_proc,
         )
 
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
-            risk_assessment="",
-            risk_assessment_status="pending",
+            report_synthesis="",
+            report_synthesis_status="pending",
         )
 
         executor = StageExecutor(config)
@@ -392,33 +392,32 @@ class TestPostValidators:
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
     def test_validators_warnings_stored_in_state(self, mock_save, mock_run):
         """Post-validator warnings are stored in state for gate surfacing."""
-        mock_run.return_value = {"output": "Summary output.", "status": "completed"}
+        mock_run.return_value = {"output": "Report output.", "status": "completed"}
 
         def validator_a(output, state):
-            return ["Revenue evidence missing"]
+            return ["SOM arithmetic mismatch"]
 
         def validator_b(output, state):
             return []
 
         config = StageExecutionConfig(
-            stage_slug="validation-summary",
+            stage_slug="report-synthesis",
             post_validators=[validator_a, validator_b],
         )
 
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
-            risk_assessment="Risk",
-            validation_summary="",
-            validation_summary_status="pending",
+            report_synthesis="",
+            report_synthesis_status="pending",
         )
 
         executor = StageExecutor(config)
         result = executor.execute(state)
 
-        warnings = result.get("validation-summary_validation_warnings")
+        warnings = result.get("report-synthesis_validation_warnings")
         assert warnings is not None
-        assert "Revenue evidence missing" in warnings
+        assert "SOM arithmetic mismatch" in warnings
 
     @mock.patch("haytham.workflow.stage_executor.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
@@ -430,23 +429,22 @@ class TestPostValidators:
             raise ValueError("Validator bug")
 
         config = StageExecutionConfig(
-            stage_slug="validation-summary",
+            stage_slug="report-synthesis",
             post_validators=[crashing_validator],
         )
 
         state = _make_state(
             idea_analysis="I",
             market_context="M",
-            risk_assessment="R",
-            validation_summary="",
-            validation_summary_status="pending",
+            report_synthesis="",
+            report_synthesis_status="pending",
         )
 
         executor = StageExecutor(config)
         result = executor.execute(state)
 
         # Stage still completes despite validator crash
-        assert result["validation_summary_status"] == "completed"
+        assert result["report_synthesis_status"] == "completed"
 
     @mock.patch("haytham.workflow.stage_executor.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
@@ -481,7 +479,7 @@ class TestContextBuilding:
 
     def test_context_includes_required_context_stages(self):
         """Context includes outputs from required_context stages."""
-        config = StageExecutionConfig(stage_slug="risk-assessment")
+        config = StageExecutionConfig(stage_slug="report-synthesis")
         executor = StageExecutor(config)
 
         state = _make_state(
@@ -491,13 +489,13 @@ class TestContextBuilding:
 
         context = executor._build_context(state, "Goal")
 
-        # risk-assessment requires idea-analysis and market-context
+        # report-synthesis requires idea-analysis and market-context
         assert context.get("idea_analysis") == "Idea output"
         assert context.get("market_context") == "Market output"
 
     def test_context_includes_concept_anchor_for_non_idea_analysis(self):
         """Concept anchor is included for all stages after idea-analysis."""
-        config = StageExecutionConfig(stage_slug="risk-assessment")
+        config = StageExecutionConfig(stage_slug="report-synthesis")
         executor = StageExecutor(config)
 
         state = _make_state(
@@ -518,28 +516,6 @@ class TestContextBuilding:
 
         context = executor._build_context(state, "Goal")
         assert "concept_anchor" not in context
-
-    def test_context_does_not_inject_pivot_strategy_as_special_case(self):
-        """Pivot strategy is only available via required_context, not hardcoded injection.
-
-        The validation-summary stage uses a programmatic_executor that reads
-        pivot_strategy directly from State, so _build_context does not need to
-        inject it as a special case.
-        """
-        config = StageExecutionConfig(stage_slug="validation-summary")
-        executor = StageExecutor(config)
-
-        state = _make_state(
-            idea_analysis="I",
-            market_context="M",
-            risk_assessment="R",
-            pivot_strategy="Pivot to B2B.",
-        )
-
-        context = executor._build_context(state, "Goal")
-        # pivot_strategy is NOT in validation-summary's required_context,
-        # so it should not appear in the context dict
-        assert "pivot_strategy" not in context
 
     def test_custom_context_builder_used(self):
         """Custom context builder overrides default logic."""
@@ -596,23 +572,22 @@ class TestOutputModelRendering:
         mock_model_class.model_validate_json.return_value = mock_model_instance
 
         config = StageExecutionConfig(
-            stage_slug="validation-summary",
+            stage_slug="system-traits",
             output_model=mock_model_class,
         )
 
         state = _make_state(
             idea_analysis="I",
             market_context="M",
-            risk_assessment="R",
-            validation_summary="",
-            validation_summary_status="pending",
+            system_traits="",
+            system_traits_status="pending",
         )
 
         executor = StageExecutor(config)
         result = executor.execute(state)
 
         # JSON stays in Burr state
-        assert result["validation_summary"] == json_output
+        assert result["system_traits"] == json_output
         # Markdown saved to disk
         mock_save.assert_called_once()
         saved_output = mock_save.call_args[1].get("output") or mock_save.call_args[0][3]
@@ -628,16 +603,15 @@ class TestOutputModelRendering:
         mock_model_class.model_validate_json.side_effect = ValueError("Invalid JSON")
 
         config = StageExecutionConfig(
-            stage_slug="validation-summary",
+            stage_slug="system-traits",
             output_model=mock_model_class,
         )
 
         state = _make_state(
             idea_analysis="I",
             market_context="M",
-            risk_assessment="R",
-            validation_summary="",
-            validation_summary_status="pending",
+            system_traits="",
+            system_traits_status="pending",
         )
 
         executor = StageExecutor(config)
@@ -645,7 +619,7 @@ class TestOutputModelRendering:
 
         # Raw output saved to disk as fallback
         mock_save.assert_called_once()
-        assert result["validation_summary"] == "not valid json"
+        assert result["system_traits"] == "not valid json"
 
 
 # =============================================================================

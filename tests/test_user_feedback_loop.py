@@ -23,8 +23,7 @@ def temp_session_dir(tmp_path):
     stage_dirs = [
         "idea-analysis",
         "market-context",
-        "risk-assessment",
-        "validation-summary",
+        "report-synthesis",
     ]
 
     for stage_dir_name in stage_dirs:
@@ -126,13 +125,13 @@ class TestUserFeedbackLoop:
         )
 
         action = feedback_loop.record_change_request(
-            stage_slug="risk-assessment", change_request=change_request, retry_count=0
+            stage_slug="report-synthesis", change_request=change_request, retry_count=0
         )
 
         assert action == FeedbackAction.REQUEST_CHANGES
 
         # Verify feedback was saved
-        feedback_path = temp_session_dir / "session" / "risk-assessment" / "user_feedback.md"
+        feedback_path = temp_session_dir / "session" / "report-synthesis" / "user_feedback.md"
         assert feedback_path.exists()
 
         content = feedback_path.read_text()
@@ -146,12 +145,12 @@ class TestUserFeedbackLoop:
         )
 
         action = feedback_loop.record_change_request(
-            stage_slug="risk-assessment", change_request=change_request, retry_count=1
+            stage_slug="report-synthesis", change_request=change_request, retry_count=1
         )
 
         assert action == FeedbackAction.REQUEST_CHANGES
 
-        feedback_path = temp_session_dir / "session" / "risk-assessment" / "user_feedback.md"
+        feedback_path = temp_session_dir / "session" / "report-synthesis" / "user_feedback.md"
         content = feedback_path.read_text()
         assert "provide_guidance" in content
 
@@ -160,7 +159,7 @@ class TestUserFeedbackLoop:
         change_request = ChangeRequest(change_type="retry_with_same")
 
         action = feedback_loop.record_change_request(
-            stage_slug="validation-summary", change_request=change_request, retry_count=0
+            stage_slug="report-synthesis", change_request=change_request, retry_count=0
         )
 
         assert action == FeedbackAction.REQUEST_CHANGES

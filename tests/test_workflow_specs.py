@@ -36,9 +36,20 @@ class TestBuildDefaultState:
 
     def test_extra_state_keys_default_to_empty_string(self):
         """extra_state_keys get '' as default."""
-        state = IDEA_VALIDATION_SPEC.build_default_state()
-        assert "risk_level" in state
-        assert state["risk_level"] == ""
+        # IDEA_VALIDATION no longer has extra_state_keys (risk_level removed in ADR-026).
+        # Use MVP_SPECIFICATION which has null_state_keys to test the mechanism.
+        spec = WorkflowSpec(
+            workflow_type=WorkflowType.IDEA_VALIDATION,
+            actions={},
+            transitions=[],
+            entrypoint="idea_analysis",
+            tracking_project="test",
+            stages=["idea_analysis"],
+            extra_state_keys=["some_key"],
+        )
+        state = spec.build_default_state()
+        assert "some_key" in state
+        assert state["some_key"] == ""
 
     def test_null_state_keys_default_to_none(self):
         """null_state_keys get None as default."""
@@ -142,52 +153,28 @@ class TestSpecStructure:
 
 
 # =============================================================================
-# Idea Validation: Conditional Branching
+# Idea Validation: Linear Pipeline (ADR-026)
 # =============================================================================
 
 
 class TestIdeaValidationTransitions:
-    """Tests specific to the idea-validation workflow's conditional branching."""
+    """Tests for the idea-validation workflow's linear pipeline (ADR-026)."""
 
-    def test_risk_assessment_has_conditional_and_default(self):
-        """risk_assessment has both a conditional (HIGH) and default transition."""
-        transitions_from_risk = [
-            t for t in IDEA_VALIDATION_SPEC.transitions if t[0] == "risk_assessment"
+    def test_idea_validation_has_three_stages(self):
+        """ADR-026: idea-validation is now 3 stages (no risk-assessment/pivot-strategy)."""
+        assert len(IDEA_VALIDATION_SPEC.stages) == 3
+
+    def test_linear_transitions(self):
+        """ADR-026: idea_analysis -> market_context -> report_synthesis (no branching)."""
+        assert IDEA_VALIDATION_SPEC.transitions == [
+            ("idea_analysis", "market_context"),
+            ("market_context", "report_synthesis"),
         ]
-        assert len(transitions_from_risk) == 2, (
-            f"Expected 2 transitions from risk_assessment, got {len(transitions_from_risk)}"
-        )
 
-    def test_conditional_transition_precedes_default(self):
-        """when(risk_level='HIGH') comes BEFORE default in transition list.
-
-        Burr evaluates transitions in order. If default came first, it would
-        always match and the conditional branch would never fire.
-        """
-        transitions_from_risk = [
-            t for t in IDEA_VALIDATION_SPEC.transitions if t[0] == "risk_assessment"
-        ]
-        # First transition should go to pivot_strategy (conditional)
-        assert transitions_from_risk[0][1] == "pivot_strategy"
-        # Second transition should go to validation_summary (default)
-        assert transitions_from_risk[1][1] == "validation_summary"
-
-    def test_pivot_strategy_always_goes_to_validation_summary(self):
-        """pivot_strategy unconditionally transitions to validation_summary."""
-        transitions_from_pivot = [
-            t for t in IDEA_VALIDATION_SPEC.transitions if t[0] == "pivot_strategy"
-        ]
-        assert len(transitions_from_pivot) == 1
-        assert transitions_from_pivot[0][1] == "validation_summary"
-
-    def test_idea_validation_has_five_stages(self):
-        assert len(IDEA_VALIDATION_SPEC.stages) == 5
-
-    def test_pivot_strategy_is_optional_in_registry(self):
-        """pivot-strategy is marked as optional in the stage registry."""
-        registry = get_stage_registry()
-        stage = registry.get_by_slug("pivot-strategy")
-        assert stage.is_optional
+    def test_no_conditional_branching(self):
+        """ADR-026: No when() conditions in transitions (all are 2-tuples)."""
+        for t in IDEA_VALIDATION_SPEC.transitions:
+            assert len(t) == 2, f"Expected 2-tuple transition, got {len(t)}-tuple: {t}"
 
 
 # =============================================================================
@@ -213,7 +200,7 @@ class TestTerminalStages:
     def test_get_terminal_stage(self):
         from haytham.workflow.workflow_factories import get_terminal_stage
 
-        assert get_terminal_stage(WorkflowType.IDEA_VALIDATION) == "validation_summary"
+        assert get_terminal_stage(WorkflowType.IDEA_VALIDATION) == "report_synthesis"
         assert get_terminal_stage(WorkflowType.STORY_GENERATION) == "dependency_ordering"
 
     def test_get_terminal_stage_unknown_raises(self):
@@ -271,7 +258,7 @@ class TestContextStages:
     def test_mvp_specification_loads_from_idea_validation(self):
         """MVP Spec loads context from idea validation stages."""
         ctx = MVP_SPECIFICATION_SPEC.context_stages
-        assert "validation-summary" in ctx
+        assert "report-synthesis" in ctx
         assert "idea-analysis" in ctx
 
     def test_story_generation_loads_from_all_prior(self):
