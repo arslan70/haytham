@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" font-family="'xkcd Script', 'Comic Sans MS', 'Chalkboard SE', cursive" font-size="14">
+  <style>
+    text { fill: #333; }
+    .title { font-size: 18px; font-weight: bold; }
+    .label { font-size: 13px; }
+    .small { font-size: 11px; }
+    .tiny { font-size: 10px; fill: #666; }
+    .thought { font-size: 12px; font-style: italic; fill: #555; }
+    .stage-box { fill: #fff; stroke: #333; stroke-width: 1.5; rx: 6; }
+    .bubble { fill: #fff; stroke: #333; stroke-width: 1.2; }
+    .arrow { stroke: #333; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    .wiggly { stroke: #333; stroke-width: 1.5; fill: none; }
+    .ghost { fill: #ddd; stroke: #999; stroke-width: 1; stroke-dasharray: 4 3; }
+    .cross { stroke: #c0392b; stroke-width: 2.5; }
+    .check { stroke: #27ae60; stroke-width: 2.5; fill: none; }
+    .anchor-box { fill: #e8f5e9; stroke: #27ae60; stroke-width: 1.5; rx: 6; }
+    .anchor-label { font-size: 11px; fill: #27ae60; font-weight: bold; }
+    .red { fill: #c0392b; }
+    .green { fill: #27ae60; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" class="title">YOUR AGENTS ARE PLAYING TELEPHONE</text>
+
+  <!-- ==================== TOP ROW: THE PROBLEM ==================== -->
+  <text x="30" y="62" class="small" style="font-weight:bold; fill:#c0392b;">THE PROBLEM:</text>
+
+  <!-- Stage 1: Idea Analysis -->
+  <rect x="30" y="75" width="175" height="100" class="stage-box"/>
+  <text x="118" y="93" text-anchor="middle" class="label" style="font-weight:bold;">Stage 1: Idea Analysis</text>
+  <!-- Stick figure -->
+  <circle cx="70" cy="120" r="9" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="70" y1="129" x2="70" y2="152" stroke="#333" stroke-width="1.5"/>
+  <line x1="56" y1="138" x2="84" y2="138" stroke="#333" stroke-width="1.5"/>
+  <line x1="70" y1="152" x2="58" y2="168" stroke="#333" stroke-width="1.5"/>
+  <line x1="70" y1="152" x2="82" y2="168" stroke="#333" stroke-width="1.5"/>
+  <!-- Speech bubble -->
+  <rect x="92" y="105" width="108" height="60" class="bubble" rx="8"/>
+  <path d="M96,140 L86,148 L96,145" fill="#fff" stroke="#333" stroke-width="1.2"/>
+  <text x="146" y="122" text-anchor="middle" class="small">"8 people gather:</text>
+  <text x="146" y="136" text-anchor="middle" class="small">1 receiver +</text>
+  <text x="146" y="150" text-anchor="middle" class="small">7 givers. Closed."</text>
+
+  <!-- Arrow 1→2 -->
+  <path d="M205,125 Q225,125 230,125" class="arrow"/>
+  <text x="218" y="118" text-anchor="middle" class="tiny">200 chars</text>
+  <!-- Ghost data falling off -->
+  <rect x="210" y="135" width="35" height="14" class="ghost"/>
+  <text x="228" y="146" text-anchor="middle" class="tiny">1:7</text>
+  <rect x="213" y="152" width="55" height="14" class="ghost"/>
+  <text x="240" y="162" text-anchor="middle" class="tiny">"closed"</text>
+
+  <!-- Stage 2: Market Context -->
+  <rect x="245" y="75" width="175" height="100" class="stage-box"/>
+  <text x="333" y="93" text-anchor="middle" class="label" style="font-weight:bold;">Stage 2: Market Context</text>
+  <circle cx="285" cy="120" r="9" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="285" y1="129" x2="285" y2="152" stroke="#333" stroke-width="1.5"/>
+  <line x1="271" y1="138" x2="299" y2="138" stroke="#333" stroke-width="1.5"/>
+  <line x1="285" y1="152" x2="273" y2="168" stroke="#333" stroke-width="1.5"/>
+  <line x1="285" y1="152" x2="297" y2="168" stroke="#333" stroke-width="1.5"/>
+  <rect x="307" y="105" width="108" height="60" class="bubble" rx="8"/>
+  <path d="M311,140 L301,148 L311,145" fill="#fff" stroke="#333" stroke-width="1.2"/>
+  <text x="361" y="122" text-anchor="middle" class="small">"A psychology</text>
+  <text x="361" y="136" text-anchor="middle" class="small">app for group</text>
+  <text x="361" y="150" text-anchor="middle" class="small">therapy sessions"</text>
+
+  <!-- Arrow 2→3 -->
+  <path d="M420,125 Q440,125 445,125" class="arrow"/>
+  <text x="432" y="118" text-anchor="middle" class="tiny">200 chars</text>
+  <rect x="425" y="135" width="50" height="14" class="ghost"/>
+  <text x="450" y="146" text-anchor="middle" class="tiny">"patients"</text>
+
+  <!-- Stage 3: MVP Scope -->
+  <rect x="460" y="75" width="175" height="100" class="stage-box"/>
+  <text x="548" y="93" text-anchor="middle" class="label" style="font-weight:bold;">Stage 5: MVP Scope</text>
+  <circle cx="500" cy="120" r="9" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="500" y1="129" x2="500" y2="152" stroke="#333" stroke-width="1.5"/>
+  <line x1="486" y1="138" x2="514" y2="138" stroke="#333" stroke-width="1.5"/>
+  <line x1="500" y1="152" x2="488" y2="168" stroke="#333" stroke-width="1.5"/>
+  <line x1="500" y1="152" x2="512" y2="168" stroke="#333" stroke-width="1.5"/>
+  <rect x="522" y="105" width="108" height="60" class="bubble" rx="8"/>
+  <path d="M526,140 L516,148 L526,145" fill="#fff" stroke="#333" stroke-width="1.2"/>
+  <text x="576" y="122" text-anchor="middle" class="small">"A B2B SaaS for</text>
+  <text x="576" y="136" text-anchor="middle" class="small">therapists seeking</text>
+  <text x="576" y="150" text-anchor="middle" class="small">async text tools"</text>
+
+  <!-- Output box -->
+  <rect x="660" y="90" width="220" height="75" rx="8" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="770" y="112" text-anchor="middle" class="small red" style="font-weight:bold;">WHAT CAME OUT:</text>
+  <text x="770" y="130" text-anchor="middle" class="small">Generic async encouragement</text>
+  <text x="770" y="146" text-anchor="middle" class="small">board. Open signup. No groups.</text>
+  <text x="770" y="160" text-anchor="middle" class="tiny red">( ...that's not what we said )</text>
+
+  <!-- ==================== BOTTOM ROW: THE FIX ==================== -->
+  <text x="30" y="222" class="small" style="font-weight:bold; fill:#27ae60;">THE FIX:</text>
+
+  <!-- Concept Anchor -->
+  <rect x="30" y="240" width="190" height="130" class="anchor-box"/>
+  <text x="125" y="260" text-anchor="middle" class="anchor-label" style="font-size:13px;">CONCEPT ANCHOR</text>
+  <text x="125" y="278" text-anchor="middle" class="tiny" style="fill:#333;">~500 tokens. Immutable. Always passed.</text>
+  <line x1="40" y1="286" x2="210" y2="286" stroke="#27ae60" stroke-width="0.8"/>
+  <text x="45" y="302" class="tiny" style="fill:#333;">goal: "group reflection app"</text>
+  <text x="45" y="318" class="tiny" style="fill:#333;">invariant: 1 receiver + 7 givers</text>
+  <text x="45" y="334" class="tiny" style="fill:#333;">invariant: closed, invite-only</text>
+  <text x="45" y="350" class="tiny" style="fill:#333;">invariant: synchronous sessions</text>
+  <text x="45" y="366" class="tiny" style="fill:#333;">non-goal: open marketplace</text>
+
+  <!-- Arrows from anchor to all stages -->
+  <path d="M220,290 L280,290" class="arrow" style="stroke:#27ae60;"/>
+  <path d="M220,310 L370,398" class="arrow" style="stroke:#27ae60;"/>
+  <path d="M220,330 L558,398" class="arrow" style="stroke:#27ae60;"/>
+
+  <!-- Stage boxes (bottom row) -->
+  <rect x="285" y="248" width="160" height="85" class="stage-box" style="stroke:#27ae60;"/>
+  <text x="365" y="268" text-anchor="middle" class="label" style="font-weight:bold;">Stage 2</text>
+  <text x="365" y="288" text-anchor="middle" class="small">"Group therapy for</text>
+  <text x="365" y="302" text-anchor="middle" class="small">closed patient</text>
+  <text x="365" y="316" text-anchor="middle" class="small">communities (1:7)"</text>
+  <polyline points="425,325 430,330 440,312" class="check"/>
+
+  <path d="M445,290 Q465,290 470,290" class="arrow" style="stroke:#27ae60;"/>
+
+  <rect x="475" y="248" width="160" height="85" class="stage-box" style="stroke:#27ae60;"/>
+  <text x="555" y="268" text-anchor="middle" class="label" style="font-weight:bold;">Stage 5</text>
+  <text x="555" y="288" text-anchor="middle" class="small">"Sync group sessions,</text>
+  <text x="555" y="302" text-anchor="middle" class="small">invite-only. 1 receiver</text>
+  <text x="555" y="316" text-anchor="middle" class="small">+ 7 givers per room."</text>
+  <polyline points="615,325 620,330 630,312" class="check"/>
+
+  <!-- Output box (good) -->
+  <rect x="660" y="255" width="220" height="75" rx="8" fill="#e8f5e9" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="770" y="278" text-anchor="middle" class="small green" style="font-weight:bold;">WHAT CAME OUT:</text>
+  <text x="770" y="296" text-anchor="middle" class="small">Closed patient group therapy.</text>
+  <text x="770" y="312" text-anchor="middle" class="small">1:7 structure. Sync sessions.</text>
+  <text x="770" y="325" text-anchor="middle" class="tiny green">( ...that's the actual idea! )</text>
+
+  <!-- ==================== BOTTOM PANEL ==================== -->
+  <line x1="30" y1="395" x2="870" y2="395" stroke="#ccc" stroke-width="0.8"/>
+
+  <!-- Three fix panels -->
+  <!-- Panel 1: Deterministic Rules -->
+  <rect x="30" y="410" width="260" height="150" rx="8" fill="#fff" stroke="#333" stroke-width="1"/>
+  <text x="160" y="432" text-anchor="middle" class="label" style="font-weight:bold;">Deterministic Rules</text>
+  <!-- Stick figure agent -->
+  <circle cx="70" cy="465" r="9" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="70" y1="474" x2="70" y2="497" stroke="#333" stroke-width="1.5"/>
+  <line x1="56" y1="483" x2="84" y2="483" stroke="#333" stroke-width="1.5"/>
+  <!-- speech bubble -->
+  <rect x="92" y="450" width="100" height="32" class="bubble" rx="8"/>
+  <path d="M96,470 L86,478 L96,475" fill="#fff" stroke="#333" stroke-width="1.2"/>
+  <text x="142" y="470" text-anchor="middle" class="small">"It's a GO!"</text>
+  <!-- System override -->
+  <line x1="90" y1="448" x2="194" y2="484" class="cross"/>
+  <rect x="100" y="495" width="175" height="50" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="188" y="513" text-anchor="middle" class="tiny" style="fill:#c0392b; font-weight:bold;">SYSTEM OVERRIDE:</text>
+  <text x="188" y="528" text-anchor="middle" class="tiny">risk=HIGH → capped to PIVOT</text>
+  <text x="188" y="540" text-anchor="middle" class="tiny">(numbers always win)</text>
+
+  <!-- Panel 2: Evidence Gates -->
+  <rect x="315" y="410" width="260" height="150" rx="8" fill="#fff" stroke="#333" stroke-width="1"/>
+  <text x="445" y="432" text-anchor="middle" class="label" style="font-weight:bold;">Evidence Gates</text>
+  <circle cx="355" cy="465" r="9" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="355" y1="474" x2="355" y2="497" stroke="#333" stroke-width="1.5"/>
+  <line x1="341" y1="483" x2="369" y2="483" stroke="#333" stroke-width="1.5"/>
+  <rect x="377" y="450" width="115" height="32" class="bubble" rx="8"/>
+  <path d="M381,470 L371,478 L381,475" fill="#fff" stroke="#333" stroke-width="1.2"/>
+  <text x="435" y="470" text-anchor="middle" class="small">"Score: 5/5"</text>
+  <rect x="377" y="495" width="185" height="50" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="470" y="513" text-anchor="middle" class="tiny" style="fill:#c0392b; font-weight:bold;">REJECTED:</text>
+  <text x="470" y="528" text-anchor="middle" class="tiny">No (source: stage_name) tag.</text>
+  <text x="470" y="540" text-anchor="middle" class="tiny">Cite evidence or lower score.</text>
+
+  <!-- Panel 3: Post-Validators -->
+  <rect x="600" y="410" width="275" height="150" rx="8" fill="#fff" stroke="#333" stroke-width="1"/>
+  <text x="738" y="432" text-anchor="middle" class="label" style="font-weight:bold;">Post-Validators (x6)</text>
+  <!-- Checklist -->
+  <polyline points="625,455 630,460 640,445" class="check"/>
+  <text x="648" y="458" class="tiny" style="fill:#333;">revenue_evidence</text>
+  <polyline points="625,475 630,480 640,465" class="check"/>
+  <text x="648" y="478" class="tiny" style="fill:#333;">claim_origin</text>
+  <polyline points="625,495 630,500 640,485" class="check"/>
+  <text x="648" y="498" class="tiny" style="fill:#333;">jtbd_match</text>
+  <polyline points="625,515 630,520 640,505" class="check"/>
+  <text x="648" y="518" class="tiny" style="fill:#333;">concept_health</text>
+  <line x1="770" y1="450" x2="770" y2="540" stroke="#ccc" stroke-width="0.5"/>
+  <text x="785" y="475" class="tiny" style="fill:#333;">Runs AFTER agent,</text>
+  <text x="785" y="492" class="tiny" style="fill:#333;">BEFORE output enters</text>
+  <text x="785" y="509" class="tiny" style="fill:#333;">the pipeline state.</text>
+  <text x="785" y="530" class="tiny" style="fill:#27ae60; font-weight:bold;">Catches drift early.</text>
+
+  <!-- Footer -->
+  <text x="450" y="575" text-anchor="middle" class="tiny">xkcd.com/telephone-but-for-agents  (not a real xkcd, but the problem sure is)</text>
+</svg>
