@@ -8,9 +8,13 @@
 
 ---
 
-Here's a fun experiment. Give a multi-agent pipeline a specific, nuanced input. Something like "build an invite-only marketplace for vintage furniture restorers, with escrow payments, max 500 sellers at launch." Run it through five or six agents. Look at what comes out.
+There are good reasons to split a complex task across multiple agents. A single agent trying to research a market, design an architecture, and write implementation stories all at once will hit context limits, lose focus, and give you no chance to review between phases. Decomposition gives you specialization (each agent does one thing well), decision gates (you review before the next phase runs), and cost control (change one phase without re-running everything).
 
-What you'll get is a generic two-sided marketplace with open signup, Stripe checkout, and infinite scalability. Every distinctive constraint, the things that made the input *yours*, got smoothed away by agents who each did their job perfectly in isolation.
+So you split the work. Research agent, planning agent, design agent, implementation agent. Each one focused. Each one manageable.
+
+And then something goes wrong.
+
+Give the pipeline a specific, nuanced input. Something like "build an invite-only marketplace for vintage furniture restorers, with escrow payments, max 500 sellers at launch." What comes out the other end is a generic two-sided marketplace with open signup, Stripe checkout, and infinite scalability. Every distinctive constraint, the things that made the input *yours*, got smoothed away by agents who each did their job perfectly in isolation.
 
 This is the telephone game, except the players are LLMs and the message is your system.
 
@@ -38,7 +42,7 @@ The root cause is deceptively simple: you're asking Agent N+1 to reconstruct mea
 
 Four things make it worse:
 
-**More agents, more telephone.** Every agent you add is another handoff, another lossy compression step. It's tempting to split a complex task into 12 specialized agents instead of 6. But each split doubles the surface area for drift. We've seen pipelines where merging two chatty agents into one, with a clearer prompt, produced better results than the "cleaner" decomposition. The right question isn't "can I split this?" It's "does this split justify the handoff cost?"
+**More agents, more telephone.** Every agent you add is another handoff, another lossy compression step. We've seen pipelines where merging two chatty agents into one, with a clearer prompt, produced better results than the "cleaner" decomposition. The right question isn't "can I split this?" It's "does this split justify the handoff cost?"
 
 **Truncation.** Token limits force you to summarize prior outputs. Summaries lose nuance. Nuance is where your requirements live.
 
