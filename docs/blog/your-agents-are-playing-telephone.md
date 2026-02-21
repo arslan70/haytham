@@ -20,7 +20,7 @@ This is the telephone game, except the players are LLMs and the message is your 
 
 ## The Failure Modes Are Predictable
 
-We've been building multi-agent pipelines and cataloguing the ways they corrupt information across handoffs. They're not exotic. They're almost boring in their predictability.
+Build enough multi-agent pipelines and the failure modes start repeating. They're predictable. Almost boring.
 
 **Genericization.** Agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. The agent isn't wrong from its perspective. It's filling gaps with the most probable completion.
 
