@@ -18,17 +18,17 @@ This is the telephone game, except the players are LLMs and the message is your 
 
 We've been building multi-agent pipelines and cataloguing the ways they corrupt information across handoffs. They're not exotic. They're almost boring in their predictability.
 
-**Genericization.** Agents default to whatever pattern dominates their training data. "Invite-only for restorers" becomes "open marketplace for buyers and sellers." "Max 500" disappears entirely. The agent doesn't know it's wrong. It's filling gaps with the most probable completion.
+**Genericization.** Agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. The agent isn't wrong from its perspective. It's filling gaps with the most probable completion.
 
-**Fabrication.** Agent 3 invents a market size figure, marks it `[validated]`, and Agent 4 trusts it completely. There's no grounding enforcement between stages, so hallucinations propagate with increasing confidence.
+**Fabrication.** Agent 3 invents a market size figure, marks it `[validated]`, and Agent 4 trusts it completely. No grounding enforcement between stages, so hallucinations propagate with increasing confidence.
 
-**Contradiction.** Agent 2 says `auth: invite-only`. Agent 4 designs an open registration flow. Each agent validates against its own inputs, not its siblings. Nobody notices until you read the final output and find both statements coexisting peacefully.
+**Contradiction.** Agent 2 says `auth: invite-only`. Agent 4 designs an open registration flow. Each agent validates against its own inputs, not its siblings. Both statements coexist peacefully in the final output.
 
-**Context loss.** This one's mechanical. If your context builder passes 200-character summaries between stages, anything not in the first line is gone. The "max 500 sellers" constraint was in paragraph three. By the time your planning agent runs, it's working from a truncated sketch of a nuanced spec.
+**Context loss.** If your context builder passes 200-character summaries between stages, anything not in the first line is gone. The "max 500 sellers" constraint was in paragraph three. By the planning agent, it's working from a truncated sketch.
 
-**Self-check failure.** We tried asking agents "did you preserve the original requirements?" They always say yes. LLMs asked to verify their own work are like students grading their own exams. The bias is structural.
+**Self-check failure.** We tried asking agents "did you preserve the original requirements?" They always say yes. LLMs verifying their own work are students grading their own exams.
 
-**Constraint drift.** A "build in 2 weeks" constraint somehow produces a 40-story backlog across 4 frameworks. The constraint was expressed in prose, not enforced by the system. So the agent ignored it, politely.
+**Constraint drift.** "Build in 2 weeks" produces a 40-story backlog across 4 frameworks. The constraint was expressed in prose, not enforced by the system.
 
 Research backs this up. Kim et al. (2025) found that multi-agent systems had only 34% context overlap after 10 interactions, with error amplification of 17.2x in independent agent architectures. This isn't a bug in any specific system. It's a property of the architecture.
 
@@ -36,7 +36,9 @@ Research backs this up. Kim et al. (2025) found that multi-agent systems had onl
 
 The root cause is deceptively simple: you're asking Agent N+1 to reconstruct meaning from Agent N's *output*, not from Agent N's *understanding*. Each handoff is a lossy compression. Stack enough of them and you get noise.
 
-Three things make it worse:
+Four things make it worse:
+
+**More agents, more telephone.** Every agent you add is another handoff, another lossy compression step. It's tempting to split a complex task into 12 specialized agents instead of 6. But each split doubles the surface area for drift. We've seen pipelines where merging two chatty agents into one, with a clearer prompt, produced better results than the "cleaner" decomposition. The right question isn't "can I split this?" It's "does this split justify the handoff cost?"
 
 **Truncation.** Token limits force you to summarize prior outputs. Summaries lose nuance. Nuance is where your requirements live.
 
@@ -101,37 +103,22 @@ Keep this boundary sharp. Every time you let LLM-generated text override a deter
 
 ### 4. Evidence Gates at Handoffs
 
-Don't let agents make unsourced claims. If an agent rates something highly, require it to say where that rating came from:
-
-```
-REJECTED: high-confidence claim requires a source reference.
-Cite a specific finding from a prior stage or lower the confidence.
-```
-
-Reject outputs that parrot the prompt's rubric back at you. Reject strong claims without citations. Do this at the handoff boundary, not as a self-check (remember: self-checks don't work).
+Don't let agents make unsourced claims. If an agent rates something highly, require it to cite where that came from. Reject outputs that parrot the prompt's rubric back at you. Do this at the handoff boundary, not as a self-check (remember: self-checks don't work).
 
 ### 5. Validators Before State Entry
 
-Run validators after an agent completes but *before* its output enters the pipeline state:
-
-```python
-for validator in config.post_validators:
-    warnings = validator(output, state)
-    if warnings:
-        flag_for_review(warnings)
-```
-
-This is the difference between catching drift at the source and discovering three stages later that your spec describes a completely different product.
+Run validators after an agent completes but *before* its output enters the pipeline state. This is the difference between catching drift at the source and discovering three stages later that your spec describes a completely different product.
 
 ## The Uncomfortable Truth
 
-You can't fix the telephone game by making agents smarter. Smarter agents are still playing telephone. The fix is structural:
+You can't fix the telephone game by making agents smarter. And you definitely can't fix it by adding *more* agents. The fix is structural:
 
-1. **Anchors** for things that must never change
-2. **Structured data** for things that must never be misinterpreted
-3. **Deterministic rules** for things that must never be overridden
-4. **Evidence gates** for things that must never be unsourced
-5. **Validators** for things that must never go unchecked
+1. **Fewer handoffs** where the split doesn't justify the cost
+2. **Anchors** for things that must never change
+3. **Structured data** for things that must never be misinterpreted
+4. **Deterministic rules** for things that must never be overridden
+5. **Evidence gates** for things that must never be unsourced
+6. **Validators** for things that must never go unchecked
 
 The common thread: stop trusting prose as protocol. Every time you pass information between agents as natural language and hope it survives, you're playing telephone. Sometimes you'll get lucky. Mostly you won't.
 
