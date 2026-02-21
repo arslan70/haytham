@@ -102,9 +102,9 @@ Always run the `/audit` skill before creating a pull request. Do not proceed wit
 
 ## Architecture
 
-### Four-Phase Workflow (ADR-016)
+### Four-Phase Workflow (ADR-016, simplified by ADR-026)
 
-- **WHY** (Idea Validation): idea_analysis → market_context → risk_assessment → [pivot_strategy] → validation_summary → GATE 1
+- **WHY** (Idea Validation): idea_analysis → market_context → report_synthesis → GATE 1
 - **WHAT** (MVP Spec): mvp_scope → capability_model → GATE 2
 - **HOW** (Technical Design): build_buy_analysis → architecture_decisions → GATE 3
 - **STORIES** (Implementation): story_generation → story_validation → dependency_ordering
@@ -112,23 +112,22 @@ Always run the `/audit` skill before creating a pull request. Do not proceed wit
 **Key transitions:**
 
 ```
-risk_level(HIGH) → pivot_strategy → validation_summary
-risk_level(MEDIUM|LOW) → validation_summary
-validation_complete(GO) + gate_approved → mvp_scope
-validation_complete(PIVOT) + gate_approved → idea_analysis (with pivot context)
-validation_complete(NO-GO) + gate_approved → END
+market_context → report_synthesis (linear, no conditional branching)
+recommendation(GO) + gate_approved → mvp_scope
+recommendation(PIVOT) + gate_approved → idea_analysis (with pivot context)
+recommendation(NO-GO) + gate_approved → END
 ```
 
 ### Key Components
 
-- **Burr Workflow** (`haytham/workflow/burr_workflow.py`): State machine with conditional branching. `when(risk_level="HIGH")` for pivot strategy.
+- **Burr Workflow** (`haytham/workflow/burr_workflow.py`): State machine with linear transitions per workflow.
 - **StageRegistry** (`haytham/workflow/stage_registry.py`): Single source of truth for stage metadata. O(1) lookups by slug or action name.
 - **StageExecutor** (`haytham/workflow/stage_executor.py`): Template Method Pattern. Stage configs in `haytham/workflow/stages/configs.py`.
 - **Agent Factory** (`haytham/agents/factory/agent_factory.py`): Creates agents with Strands SDK. Config-driven via `AGENT_CONFIGS` in `config.py`.
 - **SessionManager** (`haytham/session/session_manager.py`): State, checkpoints, stage outputs. Saves to `session/{stage-slug}/`.
 
 **Key files:**
-- `haytham/workflow/burr_workflow.py` — Workflow definition, transitions, conditional branching
+- `haytham/workflow/burr_workflow.py` — Workflow definition and transitions
 - `haytham/workflow/burr_actions.py` — Burr action wrappers that call the stage executor
 - `haytham/workflow/stage_registry.py` — Stage metadata (slugs, phases, ordering), `WorkflowType` enum
 - `haytham/workflow/stage_executor.py` — `StageExecutor` class
@@ -194,8 +193,8 @@ Full details with examples and rationale: [docs/contributing/architecture-patter
 
 - **Strands SDK**: Agents use `strands.Agent` with prompts from `worker_*_prompt.txt`
 - **AWS Bedrock**: LLM calls via `create_bedrock_model()` with configurable timeouts
-- **Parallel Execution**: Phase 1 runs market_intelligence and competitor_analysis concurrently
-- **Structured Output**: `startup_validator` uses `structured_output_model=ValidationOutput`
+- **Sequential Execution**: Phase 1 runs market_intelligence then competitor_analysis (JTBD handoff)
+- **Structured Output**: `report_synthesis` uses `structured_output_model=ValidationReport`
 - **Session Persistence**: Checkpoints saved as markdown in `session/{stage-slug}/`
 
 **Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/output_utils.py`, `haytham/agents/hooks.py`, `haytham/config.py`
@@ -234,7 +233,7 @@ Register in `_VALIDATORS` dict, not elif in `get_next_available_workflow()`. Key
 
 ### PITFALL: Agents Re-deriving Known Values
 
-Pass known values (e.g., `risk_level`) explicitly as structured inputs. Never embed them in prose for re-extraction. Treat agent inputs like function arguments. Key files: `haytham/agents/tools/recommendation.py`, `haytham/workflow/stages/idea_validation.py`
+Pass known values (e.g., `recommendation`) explicitly as structured inputs. Never embed them in prose for re-extraction. Treat agent inputs like function arguments. Key file: `haytham/workflow/stages/idea_validation.py`
 
 ### PITFALL: Imports Inside Function Bodies
 
@@ -242,7 +241,7 @@ Module-level imports and compiled patterns only. Exception: circular dependency 
 
 ### PITFALL: LLM Text Overriding Deterministic Rules
 
-Never let LLM-generated text override deterministic safety rules. If the system needs a property enforced (e.g., HIGH risk always caps GO to PIVOT), make the rule unconditional. String-based quality gates (length checks, phrase blocklists) cannot reliably verify substance and will be bypassed. The LLM's job is qualitative judgment (scoring, evaluating evidence). The system's job is deterministic rules from those judgments. Keep this boundary sharp.
+Never let LLM-generated text override deterministic safety rules. If the system needs a property enforced, make the rule unconditional. String-based quality gates (length checks, phrase blocklists) cannot reliably verify substance and will be bypassed. The LLM's job is qualitative judgment (scoring, evaluating evidence). The system's job is deterministic rules from those judgments. Keep this boundary sharp.
 
 ### PITFALL: Splitting LLM Reasoning Across Multiple Agents
 
@@ -254,11 +253,11 @@ Do not split a task that requires holistic reasoning across multiple agents conn
 
 **When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. Gathering information (web research, competitor analysis) is a valid reason to split. Synthesizing information is not.
 
-### Scoring & Validation Pipeline
+### Report Synthesis Pipeline (ADR-026)
 
-**NOTE**: The validation-summary pipeline (scorer + narrator + merge + 6 validators) is being simplified per ADR-026. See [docs/plans/2026-02-20-report-quality-redesign.md](docs/plans/2026-02-20-report-quality-redesign.md).
+The old validation-summary pipeline (4 agents + 6 validators) was replaced with a single `report_synthesis` agent per [ADR-026](docs/adr/ADR-026-simplified-validation-pipeline.md). Two lightweight post-validators remain: `validate_som_arithmetic` and `validate_regulated_domain_safety`.
 
-**Key files**: `recommendation.py`, `validation_summary_models.py`, `idea_validation.py`, `worker_validation_scorer_prompt.txt`, `validators/`
+**Key files**: `haytham/workflow/stages/idea_validation.py`, `haytham/agents/worker_report_synthesis/`, `haytham/workflow/validators/report_guardrails.py`
 
 ## Environment Variables
 
