@@ -9,8 +9,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from burr.core import default, when
-
 from haytham.workflow.stage_registry import WorkflowType
 
 from .burr_actions import (
@@ -21,12 +19,10 @@ from .burr_actions import (
     idea_analysis,
     market_context,
     mvp_scope,
-    pivot_strategy,
-    risk_assessment,
+    report_synthesis,
     story_generation,
     story_validation,
     system_traits,
-    validation_summary,
 )
 
 
@@ -90,28 +86,20 @@ IDEA_VALIDATION_SPEC = WorkflowSpec(
     actions={
         "idea_analysis": idea_analysis,
         "market_context": market_context,
-        "risk_assessment": risk_assessment,
-        "pivot_strategy": pivot_strategy,
-        "validation_summary": validation_summary,
+        "report_synthesis": report_synthesis,
     },
     transitions=[
         ("idea_analysis", "market_context"),
-        ("market_context", "risk_assessment"),
-        ("risk_assessment", "pivot_strategy", when(risk_level="HIGH")),
-        ("risk_assessment", "validation_summary", default),
-        ("pivot_strategy", "validation_summary"),
+        ("market_context", "report_synthesis"),
     ],
     entrypoint="idea_analysis",
     tracking_project="haytham-validation",
     stages=[
         "idea_analysis",
         "market_context",
-        "risk_assessment",
-        "pivot_strategy",
-        "validation_summary",
+        "report_synthesis",
     ],
     context_stages=[],
-    extra_state_keys=["risk_level"],
 )
 
 MVP_SPECIFICATION_SPEC = WorkflowSpec(
@@ -129,10 +117,9 @@ MVP_SPECIFICATION_SPEC = WorkflowSpec(
     tracking_project="haytham-mvp-spec",
     stages=["mvp_scope", "capability_model", "system_traits"],
     context_stages=[
-        "validation-summary",
+        "report-synthesis",
         "idea-analysis",
         "market-context",
-        "risk-assessment",
     ],
     null_state_keys=["system_traits_parsed", "system_traits_warnings"],
 )
@@ -147,7 +134,7 @@ BUILD_BUY_ANALYSIS_SPEC = WorkflowSpec(
     context_stages=[
         "capability-model",
         "mvp-scope",
-        "validation-summary",
+        "report-synthesis",
         "idea-analysis",
     ],
 )
@@ -163,7 +150,7 @@ ARCHITECTURE_DECISIONS_SPEC = WorkflowSpec(
         "capability-model",
         "mvp-scope",
         "build-buy-analysis",
-        "validation-summary",
+        "report-synthesis",
         "idea-analysis",
     ],
 )
@@ -187,7 +174,7 @@ STORY_GENERATION_SPEC = WorkflowSpec(
         "mvp-scope",
         "build-buy-analysis",
         "architecture-decisions",
-        "validation-summary",
+        "report-synthesis",
         "idea-analysis",
     ],
 )

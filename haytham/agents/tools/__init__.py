@@ -36,24 +36,12 @@ from .context_retrieval import (
     search_context,
     set_context_store,
 )
-from .recommendation import (
-    clear_scorecard,
-    evaluate_recommendation,
-    init_scorecard,
-    record_counter_signal,
-    record_dimension_score,
-    record_knockout,
-)
-from .risk_classification import classify_risk_level
 
 __all__ = [
-    "classify_risk_level",
     "clear_competitor_accumulator",
     "clear_context_store",
-    "clear_scorecard",
     "estimate_integration_effort",
     "evaluate_build_buy_decision",
-    "evaluate_recommendation",
     "get_competitor_data",
     "extract_key_metrics",
     "extract_list_items",
@@ -63,14 +51,10 @@ __all__ = [
     "identify_document_sections",
     "list_available_context",
     "record_competitor",
-    "record_counter_signal",
-    "record_dimension_score",
-    "record_knockout",
     "record_market_positioning",
     "record_sentiment",
     "search_context",
     "search_service_catalog",
     "set_context_store",
-    "init_scorecard",
     "summarize_for_stage",
 ]

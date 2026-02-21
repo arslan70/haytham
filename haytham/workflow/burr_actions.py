@@ -62,14 +62,14 @@ def market_context(state: State) -> State:
         "system_goal",
         "idea_analysis",
         "market_context",
-        "risk_assessment_status",
+        "report_synthesis_status",
         "session_manager",
     ],
-    writes=["risk_assessment", "risk_level", "risk_assessment_status", "current_stage"],
+    writes=["report_synthesis", "report_synthesis_status", "current_stage"],
 )
-def risk_assessment(state: State) -> State:
-    """Stage 3: Assess risks and determine risk level."""
-    return execute_stage("risk-assessment", state)
+def report_synthesis(state: State) -> State:
+    """Stage 3: Synthesize validation report from upstream findings."""
+    return execute_stage("report-synthesis", state)
 
 
 @action(
@@ -77,41 +77,7 @@ def risk_assessment(state: State) -> State:
         "system_goal",
         "idea_analysis",
         "market_context",
-        "risk_assessment",
-        "pivot_strategy_status",
-        "session_manager",
-    ],
-    writes=["pivot_strategy", "pivot_strategy_status", "current_stage"],
-)
-def pivot_strategy(state: State) -> State:
-    """Stage 3b: Develop pivot strategy (conditional, for HIGH risk)."""
-    return execute_stage("pivot-strategy", state)
-
-
-@action(
-    reads=[
-        "system_goal",
-        "idea_analysis",
-        "market_context",
-        "risk_assessment",
-        "pivot_strategy",
-        "validation_summary_status",
-        "session_manager",
-    ],
-    writes=["validation_summary", "validation_summary_status", "current_stage"],
-)
-def validation_summary(state: State) -> State:
-    """Stage 4: Generate validation summary."""
-    return execute_stage("validation-summary", state)
-
-
-@action(
-    reads=[
-        "system_goal",
-        "idea_analysis",
-        "market_context",
-        "risk_assessment",
-        "validation_summary",
+        "report_synthesis",
         "mvp_scope_status",
         "concept_anchor",  # ADR-022: For anchor compliance
         "concept_anchor_str",  # ADR-022: For agent context
@@ -120,9 +86,9 @@ def validation_summary(state: State) -> State:
     writes=["mvp_scope", "mvp_scope_status", "current_stage"],
 )
 def mvp_scope(state: State) -> State:
-    """Stage 5: Define MVP scope.
+    """Stage 4: Define MVP scope.
 
-    Defines a focused, achievable MVP scope based on the validation summary:
+    Defines a focused, achievable MVP scope based on the validation report:
     - The One Thing (core value proposition)
     - Primary user segment
     - MVP boundaries (in scope vs out of scope)
@@ -137,8 +103,7 @@ def mvp_scope(state: State) -> State:
         "system_goal",
         "idea_analysis",
         "market_context",
-        "risk_assessment",
-        "validation_summary",
+        "report_synthesis",
         "mvp_scope",
         "capability_model_status",
         "concept_anchor",  # ADR-022: For anchor compliance
@@ -148,7 +113,7 @@ def mvp_scope(state: State) -> State:
     writes=["capability_model", "capability_model_status", "current_stage"],
 )
 def capability_model(state: State) -> State:
-    """Stage 6: Generate capability model.
+    """Stage 5: Generate capability model.
 
     Transforms the MVP scope into a structured capability model that defines
     WHAT the system does: functional capabilities (what users can do) and
