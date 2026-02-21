@@ -22,15 +22,15 @@ This is the telephone game, except the players are LLMs and the message is your 
 
 Build enough multi-agent pipelines and the failure modes start repeating. They're predictable. Almost boring.
 
-**Genericization.** Agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. The agent isn't wrong from its perspective. It's filling gaps with the most probable completion.
+**Genericization.** Agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. This happens even when the constraints are right there in the prompt. Models don't just lose information through truncation; they actively drift toward training-data priors, treating your specific requirements as suggestions rather than hard constraints.
 
-**Fabrication.** Agent 3 invents a market size figure, marks it `[validated]`, and Agent 4 trusts it completely. No grounding enforcement between stages, so hallucinations propagate with increasing confidence.
+**Fabrication.** Agent 3 invents a market size figure, marks it `[validated]`, and Agent 4 trusts it completely. A single agent hallucinating is bad. A pipeline that treats hallucinations as upstream ground truth, then builds on them, is structurally worse. Each handoff adds confidence to claims that were never grounded.
 
 **Contradiction.** Agent 2 says `auth: invite-only`. Agent 4 designs an open registration flow. Each agent validates against its own inputs, not its siblings. Both statements coexist peacefully in the final output.
 
-**Context loss.** If your context builder passes 200-character summaries between stages, anything not in the first line is gone. The "max 500 sellers" constraint was in paragraph three. By the planning agent, it's working from a truncated sketch.
+**Context loss.** When an agent needs input from three prior stages, you can't dump all three full outputs into its context. Cost and token limits force summarization. That's a legitimate engineering tradeoff, not a mistake. But summaries are lossy. The "max 500 sellers" constraint was in paragraph three of one upstream output. By the planning agent, it's gone.
 
-**Self-check failure.** We tried asking agents "did you preserve the original requirements?" They always say yes. LLMs verifying their own work are students grading their own exams.
+**Self-check failure.** We tried asking agents "did you preserve the original requirements?" They always say yes. Subtle genericization doesn't register as an error to the model that produced it. "Open marketplace" and "invite-only marketplace" are both valid marketplaces. The model sees no contradiction because the drift is qualitative, not logical.
 
 **Constraint drift.** "Build in 2 weeks" produces a 40-story backlog across 4 frameworks. The constraint was expressed in prose, not enforced by the system.
 
@@ -44,7 +44,7 @@ Four things make it worse:
 
 **More agents, more telephone.** Every agent you add is another handoff, another lossy compression step. We've seen pipelines where merging two chatty agents into one, with a clearer prompt, produced better results than the "cleaner" decomposition. The right question isn't "can I split this?" It's "does this split justify the handoff cost?"
 
-**Truncation.** Token limits force you to summarize prior outputs. Summaries lose nuance. Nuance is where your requirements live.
+**Truncation.** A downstream agent rarely needs input from just one prior stage. It needs context from several. You can't concatenate five full outputs into a single prompt, both for cost and because context windows have limits. So you summarize. Summaries lose nuance. Nuance is where your requirements live.
 
 **Prose as protocol.** Most multi-agent systems pass information as natural language. Natural language is ambiguous by design. When Agent 2 reads "a marketplace for restorers," it doesn't know if "restorers" is a hard constraint or a rough suggestion. So it guesses. Usually wrong.
 
@@ -56,7 +56,7 @@ Here's what we found works in practice, after a lot of outputs got mangled.
 
 ### 1. Immutable Anchors
 
-The single most effective pattern: extract your input's key constraints once, early, into a small structured artifact. Pass it to every downstream agent, unchanged.
+The obvious question: why not just pass the original input to every agent? Because raw input is ambiguous prose. Each agent will interpret "invite-only marketplace for vintage furniture restorers" differently. An anchor is different: you extract the key constraints once, early, into a small structured artifact. Pass it to every downstream agent, unchanged.
 
 ```yaml
 anchor:
@@ -111,7 +111,7 @@ Don't let agents make unsourced claims. If an agent rates something highly, requ
 
 ### 5. Validators Before State Entry
 
-Run validators after an agent completes but *before* its output enters the pipeline state. This is the difference between catching drift at the source and discovering three stages later that your spec describes a completely different product.
+Run validators after an agent completes but *before* its output enters the pipeline state. This is where you catch contradictions: if Agent 2 decided `auth: invite-only` and Agent 4 outputs an open registration flow, a validator at the boundary flags the conflict before it cements. Without this, you discover three stages later that your spec describes a completely different product.
 
 ## The Uncomfortable Truth
 
