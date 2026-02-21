@@ -6,6 +6,8 @@
 
 ---
 
+## The Case for Decomposition
+
 There are good reasons to split a complex task across multiple agents. A single agent trying to research a market, design an architecture, and write stories all at once will hit context limits, lose focus, and give you no chance to review between phases.
 
 Decomposition buys you three things: specialization (each agent does one thing well), decision gates (you review before the next phase runs), and cost control (change one phase without re-running everything).
