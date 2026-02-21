@@ -98,11 +98,6 @@ TOKENS_THINKING = 2000
 # Token limit for medium-complexity outputs (~500 words target)
 TOKENS_MEDIUM = 1000
 
-# Token limit for scorecard-style structured outputs (validation summary).
-# ScorerOutput has 3 knockouts + N counter-signals + 6 dimensions + metadata;
-# the JSON easily exceeds 2000 tokens, causing Strands structured output failure.
-TOKENS_SCORECARD = 4000
-
 # Token limit for large structured outputs (build vs buy analysis, etc.)
 TOKENS_LARGE = 4000
 
@@ -158,8 +153,6 @@ class ToolProfile(Enum):
     NONE = "none"
     THINKING = "thinking"
     WEB_RESEARCH = "web_research"
-    RISK_CLASSIFICATION = "risk_classification"  # For startup_validator
-    RECOMMENDATION = "recommendation"  # For validation_summary
     BUILD_BUY = "build_buy"  # For build_buy_advisor (legacy)
     BUILD_BUY_WEB = "build_buy_web"  # For build_buy_analyzer with web search
     COMPETITOR_RESEARCH = "competitor_research"  # For competitor_analysis with recording tools
@@ -207,28 +200,6 @@ def _tools_competitor_research() -> list:
     ]
 
 
-def _tools_risk_classification() -> list:
-    from haytham.agents.tools.risk_classification import classify_risk_level
-
-    return [classify_risk_level]
-
-
-def _tools_recommendation() -> list:
-    from haytham.agents.tools.recommendation import (
-        record_counter_signal,
-        record_dimension_score,
-        record_knockout,
-    )
-
-    # Verdict is computed deterministically by build_scorer_output() after
-    # the agent finishes -- not exposed as a tool.
-    return [
-        record_knockout,
-        record_dimension_score,
-        record_counter_signal,
-    ]
-
-
 def _tools_build_buy() -> list:
     from haytham.agents.tools.build_buy import (
         estimate_integration_effort,
@@ -262,8 +233,6 @@ _TOOL_RESOLVERS: dict[ToolProfile, Callable[[], list]] = {
     ToolProfile.THINKING: _tools_thinking,
     ToolProfile.WEB_RESEARCH: _tools_web_research,
     ToolProfile.COMPETITOR_RESEARCH: _tools_competitor_research,
-    ToolProfile.RISK_CLASSIFICATION: _tools_risk_classification,
-    ToolProfile.RECOMMENDATION: _tools_recommendation,
     ToolProfile.BUILD_BUY: _tools_build_buy,
     ToolProfile.BUILD_BUY_WEB: _tools_build_buy_web,
     ToolProfile.STORY_GENERATION: _tools_story_generation,
@@ -369,27 +338,6 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         model_tier=ModelTier.HEAVY,
     ),
     # Standard agents (no special tools or timeouts)
-    "pivot_strategy": AgentConfig(
-        name="pivot_strategy_agent",
-        prompt_key="worker_pivot_strategy",
-        model_tier=ModelTier.REASONING,
-    ),
-    "validation_scorer": AgentConfig(
-        name="validation_scorer_agent",
-        prompt_key="worker_validation_scorer",
-        max_tokens=TOKENS_SCORECARD,
-        tool_profile=ToolProfile.RECOMMENDATION,
-        model_tier=ModelTier.REASONING,
-        # No structured_output_model — ScorerOutput is built from the scorecard
-        # accumulator by build_scorer_output() after the agent finishes.
-    ),
-    "validation_narrator": AgentConfig(
-        name="validation_narrator_agent",
-        prompt_key="worker_validation_narrator",
-        max_tokens=TOKENS_MEDIUM,
-        tool_profile=ToolProfile.NONE,
-        structured_output_model_path="haytham.agents.worker_validation_summary.validation_summary_models:NarrativeFields",
-    ),
     "mvp_scope": AgentConfig(
         name="mvp_scope_agent",
         prompt_key="worker_mvp_scope",
@@ -410,17 +358,6 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         name="mvp_scope_flows_agent",
         prompt_key="worker_mvp_scope_flows",
         max_tokens=TOKENS_DEFAULT,
-    ),
-    # Risk assessment agent - produces markdown output with risk classification
-    "startup_validator": AgentConfig(
-        name="startup_validator_agent",
-        prompt_key="worker_startup_validator",
-        max_tokens=2000,  # Increased for detailed validation output
-        timeout_config=TIMEOUT_EXTENDED,
-        tool_profile=ToolProfile.RISK_CLASSIFICATION,
-        model_tier=ModelTier.REASONING,
-        # Removed structured_output_model - markdown is more reliable
-        # Risk level is extracted by post-processor from text output
     ),
     # Input validation agent (lightweight, fast classification)
     "idea_gatekeeper": AgentConfig(
