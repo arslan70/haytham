@@ -1,14 +1,14 @@
 # Your Agents Are Playing Telephone
 
-*By someone who has stared at too many multi-agent pipelines and has opinions about it.*
-
----
+*By someone who has stared at too many multi-agent pipelines.*
 
 ![Agents Playing Telephone](telephone-comic.svg)
 
 ---
 
-There are good reasons to split a complex task across multiple agents. A single agent trying to research a market, design an architecture, and write implementation stories all at once will hit context limits, lose focus, and give you no chance to review between phases. Decomposition gives you specialization (each agent does one thing well), decision gates (you review before the next phase runs), and cost control (change one phase without re-running everything).
+There are good reasons to split a complex task across multiple agents. A single agent trying to research a market, design an architecture, and write stories all at once will hit context limits, lose focus, and give you no chance to review between phases.
+
+Decomposition buys you three things: specialization (each agent does one thing well), decision gates (you review before the next phase runs), and cost control (change one phase without re-running everything).
 
 So you split the work. Research agent, planning agent, design agent, implementation agent. Each one focused. Each one manageable.
 
@@ -20,7 +20,7 @@ This is the telephone game, except the players are LLMs and the message is your 
 
 ## The Failure Modes Are Predictable
 
-Build enough multi-agent pipelines and the failure modes start repeating. They're predictable. Almost boring.
+Build enough multi-agent pipelines and the same failure modes keep showing up.
 
 **Genericization.** Agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. This happens even when the constraints are right there in the prompt. Models don't just lose information through truncation; they actively drift toward training-data priors, treating your specific requirements as suggestions rather than hard constraints.
 
@@ -28,7 +28,7 @@ Build enough multi-agent pipelines and the failure modes start repeating. They'r
 
 **Contradiction.** Agent 2 says `auth: invite-only`. Agent 4 designs an open registration flow. Each agent validates against its own inputs, not its siblings. Both statements coexist peacefully in the final output.
 
-**Context loss.** When an agent needs input from three prior stages, you can't dump all three full outputs into its context. Cost and token limits force summarization. That's a legitimate engineering tradeoff, not a mistake. But summaries are lossy. The "max 500 sellers" constraint was in paragraph three of one upstream output. By the planning agent, it's gone.
+**Context loss.** The "max 500 sellers" constraint was in paragraph three of one upstream output. By the planning agent, it's gone. Specific requirements vanish as information passes through summarization layers, and nobody notices because the output still *looks* complete.
 
 **Self-check failure.** We tried asking agents "did you preserve the original requirements?" They always say yes. Subtle genericization doesn't register as an error to the model that produced it. "Open marketplace" and "invite-only marketplace" are both valid marketplaces. The model sees no contradiction because the drift is qualitative, not logical.
 
@@ -44,7 +44,7 @@ Four things make it worse:
 
 **More agents, more telephone.** Every agent you add is another handoff, another lossy compression step. We've seen pipelines where merging two chatty agents into one, with a clearer prompt, produced better results than the "cleaner" decomposition. The right question isn't "can I split this?" It's "does this split justify the handoff cost?"
 
-**Truncation.** A downstream agent rarely needs input from just one prior stage. It needs context from several. You can't concatenate five full outputs into a single prompt, both for cost and because context windows have limits. So you summarize. Summaries lose nuance. Nuance is where your requirements live.
+**Forced summarization.** A downstream agent rarely needs input from just one prior stage. It needs context from several. You can't concatenate five full outputs into a single prompt, both for cost and because context windows have limits. So you summarize. That's a legitimate engineering tradeoff, not a mistake. But summaries are lossy. Nuance is where your requirements live.
 
 **Prose as protocol.** Most multi-agent systems pass information as natural language. Natural language is ambiguous by design. When Agent 2 reads "a marketplace for restorers," it doesn't know if "restorers" is a hard constraint or a rough suggestion. So it guesses. Usually wrong.
 
@@ -52,7 +52,7 @@ Four things make it worse:
 
 ## What Actually Works
 
-Here's what we found works in practice, after a lot of outputs got mangled.
+Here's what we landed on, after watching a lot of outputs get mangled.
 
 ### 1. Immutable Anchors
 
@@ -70,7 +70,7 @@ anchor:
     - "general e-commerce"
 ```
 
-Small. Immutable. Every agent gets it. No downstream agent can modify it. Agents can *respond* to the anchor, but they can't rewrite it. This alone is the single biggest lever against genericization.
+Small. Immutable. Every agent gets it, none can modify it. Agents *respond* to the anchor; they don't rewrite it. This is the single biggest lever against genericization.
 
 ### 2. Structured Handoffs, Not Prose
 
@@ -107,7 +107,9 @@ Keep this boundary sharp. Every time you let LLM-generated text override a deter
 
 ### 4. Evidence Gates at Handoffs
 
-Don't let agents make unsourced claims. If an agent rates something highly, require it to cite where that came from. Reject outputs that parrot the prompt's rubric back at you. Do this at the handoff boundary, not as a self-check (remember: self-checks don't work).
+Don't let agents make unsourced claims. If an agent says the market is growing at 15% CAGR, require it to cite where that number came from. If it rates feasibility as "high," require the evidence behind the rating. Reject outputs that parrot the prompt's rubric back at you without grounding.
+
+Do this at the handoff boundary, not as a self-check (self-checks don't work, remember).
 
 ### 5. Validators Before State Entry
 
@@ -124,9 +126,7 @@ You can't fix the telephone game by making agents smarter. And you definitely ca
 5. **Evidence gates** for things that must never be unsourced
 6. **Validators** for things that must never go unchecked
 
-The common thread: stop trusting prose as protocol. Every time you pass information between agents as natural language and hope it survives, you're playing telephone. Sometimes you'll get lucky. Mostly you won't.
-
-The research quantifies this nicely: centralized verification drops error amplification from 17.2x to 4.4x. That's still not zero. But it's the difference between an output that resembles your input and one that doesn't.
+The common thread: stop trusting prose as protocol. Every time you pass information between agents as natural language and hope it survives, you're playing telephone. Kim et al.'s numbers bear this out: centralized verification drops error amplification from 17.2x to 4.4x. Still not zero. But it's the difference between an output that resembles your input and one that doesn't.
 
 Your agents are doing their best. They're just playing a game they can't win. Change the game.
 
