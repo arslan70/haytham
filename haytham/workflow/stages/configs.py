@@ -10,34 +10,28 @@ from typing import TYPE_CHECKING
 from haytham.agents.worker_build_buy_advisor.build_buy_models import (
     BuildBuyAnalysisOutput as _BuildBuyAnalysisOutput,
 )
+from haytham.agents.worker_report_synthesis.report_synthesis_models import (
+    ValidationReport as _ValidationReport,
+)
 from haytham.agents.worker_story_generator.story_generation_models import (
     StoryGenerationHybridOutput as _StoryGenerationHybridOutput,
 )
 from haytham.agents.worker_system_traits.system_traits_models import (
     SystemTraitsOutput as _SystemTraitsOutput,
 )
-from haytham.agents.worker_validation_summary.validation_summary_models import (
-    ValidationSummaryOutput as _ValidationSummaryOutput,
-)
-from haytham.workflow.anchor_schema import FounderPersona
 from haytham.workflow.stage_executor import StageExecutionConfig
-from haytham.workflow.validators.claim_origin import validate_claim_origin
-from haytham.workflow.validators.concept_health import (
-    validate_concept_health_bindings,
+from haytham.workflow.validators.report_guardrails import (
+    validate_regulated_domain_safety,
+    validate_som_arithmetic,
 )
-from haytham.workflow.validators.dim8_inputs import validate_dim8_inputs
-from haytham.workflow.validators.jtbd_match import validate_jtbd_match
-from haytham.workflow.validators.revenue_evidence import validate_revenue_evidence
-from haytham.workflow.validators.som_sanity import validate_som_sanity
 from haytham.workflow.validators.story_coherence import validate_story_coherence
 
 from .concept_anchor import extract_anchor_post_processor
 from .idea_validation import (
     extract_competitor_data_processor,
     extract_recommendation_processor,
-    extract_risk_level_processor,
     run_market_context_sequential,
-    run_validation_summary_sequential,
+    run_report_synthesis,
     save_final_output,
 )
 from .mvp_scope_swarm import run_mvp_scope_swarm
@@ -99,37 +93,13 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
         programmatic_executor=run_market_context_sequential,
         post_processor=extract_competitor_data_processor,
     ),
-    "risk-assessment": StageExecutionConfig(
-        stage_slug="risk-assessment",
-        query_template=(
-            "Identify and assess risks for this startup concept. Validate key assumptions "
-            "and flag potential issues. Categorize the overall risk level as HIGH, MEDIUM, or LOW.\n\n"
-            + FounderPersona().to_context()
-        ),
-        post_processor=extract_risk_level_processor,
-    ),
-    "pivot-strategy": StageExecutionConfig(
-        stage_slug="pivot-strategy",
-        query_template=(
-            "Given the high risk assessment, suggest strategic pivot options. "
-            "Analyze alternative approaches that could reduce risk while preserving "
-            "the core value proposition. Recommend the best pivot strategy."
-        ),
-    ),
-    "validation-summary": StageExecutionConfig(
-        stage_slug="validation-summary",
-        programmatic_executor=run_validation_summary_sequential,
-        additional_save=save_final_output,
-        output_model=_ValidationSummaryOutput,
+    "report-synthesis": StageExecutionConfig(
+        stage_slug="report-synthesis",
+        programmatic_executor=run_report_synthesis,
         post_processor=extract_recommendation_processor,
-        post_validators=[
-            validate_revenue_evidence,
-            validate_claim_origin,
-            validate_jtbd_match,
-            validate_concept_health_bindings,
-            validate_dim8_inputs,
-            validate_som_sanity,
-        ],
+        additional_save=save_final_output,
+        post_validators=[validate_som_arithmetic, validate_regulated_domain_safety],
+        output_model=_ValidationReport,
     ),
     "mvp-scope": StageExecutionConfig(
         stage_slug="mvp-scope",

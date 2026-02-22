@@ -90,7 +90,7 @@ counts = load_artifact_counts()
 stories = load_stories_count()
 
 # Determine completion based on actual OUTPUT FILES
-idea_validation_complete = (SESSION_DIR / "validation-summary" / "validation_scorer.md").exists()
+idea_validation_complete = (SESSION_DIR / "report-synthesis" / "report_synthesis.md").exists()
 mvp_specification_complete = (
     SESSION_DIR / "capability-model" / "capability_model.md"
 ).exists() and counts["capabilities"] > 0

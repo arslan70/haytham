@@ -35,8 +35,7 @@ class ContextLoader:
     Stage Context Requirements (from StageConfig.required_context):
         idea-analysis: [] (no previous context)
         market-context: ["idea-analysis"]
-        risk-assessment: ["idea-analysis", "market-context"]
-        validation-summary: ["all"] (load ALL previous stages)
+        report-synthesis: ["idea-analysis", "market-context"]
     """
 
     # Agent to stage mapping (for loading agent outputs from stage directories)
@@ -44,8 +43,7 @@ class ContextLoader:
         "concept_expansion": "idea-analysis",
         "market_intelligence": "market-context",
         "competitor_analysis": "market-context",
-        "startup_validator": "risk-assessment",
-        "report_synthesis": "validation-summary",
+        "report_synthesis": "report-synthesis",
         # Legacy mappings (for backwards compatibility with old sessions)
         "niche_identification": "opportunity-discovery",
         "decision_agent": "opportunity-discovery",
@@ -257,21 +255,6 @@ class ContextLoader:
 
             stage_dir = self.session_dir / agent_stage_slug
 
-            # Special handling for validation stage: load JSON file for startup_validator
-            if agent_name == "startup_validator" and agent_stage_slug == "validation":
-                json_file = stage_dir / "validation_report.json"
-                if json_file.exists():
-                    try:
-                        content = json_file.read_text()
-                        agent_outputs[agent_name] = content
-                        logger.debug(
-                            f"Loaded validation JSON for {agent_name}: {len(content)} chars"
-                        )
-                        continue
-                    except Exception as e:
-                        logger.warning(f"Failed to read validation_report.json: {e}")
-                        # Fall through to try markdown file
-
             output_file = stage_dir / f"{agent_name}.md"
 
             if output_file.exists():
@@ -419,8 +402,8 @@ class ContextLoader:
         Raises:
             ValueError: If stage before validation-summary attempts to load risk artifacts
         """
-        # validation-summary can access everything
-        if stage_slug == "validation-summary":
+        # report-synthesis can access everything
+        if stage_slug == "report-synthesis":
             return
 
         # Check for risk assessment stage artifacts
@@ -435,7 +418,7 @@ class ContextLoader:
                     raise ValueError(
                         f"Temporal guardrail violation: Stage {stage_slug} cannot access "
                         f"risk artifact: {forbidden}. "
-                        f"Only validation-summary stage may access risk artifacts."
+                        f"Only report-synthesis stage may access risk artifacts."
                     )
 
         logger.debug(f"Temporal guardrail check passed for stage {stage_slug}")

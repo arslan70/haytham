@@ -6,7 +6,7 @@ workflow_builder.py for the shared builder.
 
 Workflow types (ADR-016, Four-Phase Architecture):
 
-1. Idea Validation (WHY): idea_analysis -> market_context -> risk_assessment -> validation_summary
+1. Idea Validation (WHY): idea_analysis -> market_context -> report_synthesis
 2. MVP Specification (WHAT): mvp_scope -> capability_model -> system_traits
 3. Build vs Buy Analysis (HOW 3a): build_buy_analysis
 4. Architecture Decisions (HOW 3b): architecture_decisions

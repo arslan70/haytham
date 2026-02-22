@@ -12,7 +12,7 @@ Extraction functions:
 Formatting functions (used by extraction and by workflow layer):
 - _format_pydantic_model_as_markdown(model) -> str
 - _format_tool_use_output(tool_use) -> str
-- _format_validation_summary_output(data) -> str
+- _format_validation_report(data) -> str
 - _format_validation_output(data) -> str
 - _format_dict_as_markdown(data) -> str
 """
@@ -350,80 +350,11 @@ def _format_tool_use_output(tool_use: dict) -> str:
     return _format_dict_as_markdown(tool_input)
 
 
-def _format_validation_summary_output(data: dict) -> str:
-    """Format ValidationSummaryOutput tool response as markdown."""
-    lines = ["# Validation Summary\n"]
-
-    # Executive Summary
-    if "executive_summary" in data:
-        lines.append("## Executive Summary\n")
-        lines.append(data["executive_summary"])
-        lines.append("")
-
-    # Validation Findings
-    if "validation_findings" in data:
-        findings = data["validation_findings"]
-        lines.append("---\n")
-        lines.append("## Validation Findings\n")
-
-        if "market_opportunity" in findings:
-            lines.append("### Market Opportunity\n")
-            lines.append(findings["market_opportunity"])
-            lines.append("")
-
-        if "competition" in findings:
-            lines.append("### Competition\n")
-            lines.append(findings["competition"])
-            lines.append("")
-
-        if "critical_risks" in findings:
-            lines.append("### Critical Risks\n")
-            for risk in findings["critical_risks"]:
-                lines.append(f"- {risk}")
-            lines.append("")
-
-    # Go/No-Go Assessment
-    if "go_no_go_assessment" in data:
-        assessment = data["go_no_go_assessment"]
-        lines.append("---\n")
-        lines.append("## Go/No-Go Assessment\n")
-
-        if "strengths" in assessment:
-            lines.append("### Strengths\n")
-            for s in assessment["strengths"]:
-                lines.append(f"- {s}")
-            lines.append("")
-
-        if "weaknesses" in assessment:
-            lines.append("### Weaknesses\n")
-            for w in assessment["weaknesses"]:
-                lines.append(f"- {w}")
-            lines.append("")
-
-        if "counter_signals" in assessment and assessment["counter_signals"]:
-            lines.append("### Counter-Signals Reconciliation\n")
-            for cs in assessment["counter_signals"]:
-                dims = ", ".join(cs.get("affected_dimensions", []))
-                lines.append(
-                    f"- **{cs.get('signal', '')}** (source: {cs.get('source', '?')}, affects: {dims})"
-                )
-                if cs.get("reconciliation"):
-                    lines.append(f"  - *Reconciliation:* {cs['reconciliation']}")
-            lines.append("")
-
-        if "guidance" in assessment:
-            lines.append("### Guidance\n")
-            lines.append(assessment["guidance"])
-            lines.append("")
-
-    # Next Steps
-    if "next_steps" in data:
-        lines.append("---\n")
-        lines.append("## Next Steps\n")
-        for i, step in enumerate(data["next_steps"], 1):
-            lines.append(f"{i}. {step}")
-
-    return "\n".join(lines)
+def _format_validation_report(data: dict) -> str:
+    """Format ValidationReport tool response as markdown."""
+    recommendation = data.get("recommendation", "")
+    report = data.get("report", "")
+    return f"## Recommendation: {recommendation}\n\n{report}"
 
 
 def _format_validation_output(data: dict) -> str:
@@ -473,7 +404,7 @@ def _format_validation_output(data: dict) -> str:
 
 _TOOL_OUTPUT_FORMATTERS: dict[str, Callable[[dict], str]] = {
     "ValidationOutput": _format_validation_output,
-    "ValidationSummaryOutput": _format_validation_summary_output,
+    "ValidationReport": _format_validation_report,
 }
 
 

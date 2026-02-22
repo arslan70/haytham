@@ -44,8 +44,7 @@ def sample_session(temp_base_dir):
     for slug in [
         "idea-analysis",
         "market-context",
-        "risk-assessment",
-        "validation-summary",
+        "report-synthesis",
         "mvp-scope",
         "capability-model",
     ]:
@@ -115,11 +114,11 @@ This is the competitor analysis output.
 It contains competitive landscape analysis.
 """
 
-    validator_output = """# Agent Output: startup_validator
+    report_output = """# Agent Output: report_synthesis
 
 ## Metadata
-- Agent: startup_validator
-- Stage: risk-assessment - Risk Assessment
+- Agent: report_synthesis
+- Stage: report-synthesis - Validation Report
 - Executed: 2024-01-15T10:15:00Z
 - Duration: 150s
 - Status: completed
@@ -132,15 +131,15 @@ It contains competitive landscape analysis.
 
 ## Output
 
-This is the startup validator output.
-It contains risk assessment findings.
+This is the report synthesis output.
+It contains the full validation report.
 """
 
     # Write agent outputs to stage directories
     (session_dir / "idea-analysis" / "concept_expansion.md").write_text(concept_output)
     (session_dir / "market-context" / "market_intelligence.md").write_text(market_output)
     (session_dir / "market-context" / "competitor_analysis.md").write_text(competitor_output)
-    (session_dir / "risk-assessment" / "startup_validator.md").write_text(validator_output)
+    (session_dir / "report-synthesis" / "report_synthesis.md").write_text(report_output)
 
     # Create preferences.json in session directory
     preferences = {
@@ -220,13 +219,13 @@ class TestContextLoader:
         assert context["_missing_agents"] == []
         assert context["_context_size_tokens"] > 0
 
-    def test_load_context_risk_assessment(self, sample_session):
-        """Test loading context for risk-assessment stage."""
+    def test_load_context_report_synthesis(self, sample_session):
+        """Test loading context for report-synthesis stage."""
         loader = ContextLoader(base_dir=sample_session["base_dir"])
 
-        context = loader.load_context(stage_slug="risk-assessment")
+        context = loader.load_context(stage_slug="report-synthesis")
 
-        # risk-assessment requires ["idea-analysis", "market-context"]
+        # report-synthesis requires ["idea-analysis", "market-context"]
         assert "concept_expansion" in context["agent_outputs"]
         assert "market_intelligence" in context["agent_outputs"]
         assert "competitor_analysis" in context["agent_outputs"]
@@ -272,9 +271,9 @@ class TestContextLoader:
                 requested_files=["validation_report.json"],
             )
 
-        # validation-summary should be able to access validation_report.json
+        # report-synthesis should be able to access validation_report.json
         loader.enforce_temporal_guardrail(
-            stage_slug="validation-summary",
+            stage_slug="report-synthesis",
             requested_files=["validation_report.json"],
         )
 
@@ -310,7 +309,7 @@ class TestContextLoader:
             target_summary_tokens=5,
         )
 
-        context = loader.load_context(stage_slug="risk-assessment")
+        context = loader.load_context(stage_slug="report-synthesis")
 
         assert context["_summarized"]
         assert context["_context_size_tokens"] < 100
@@ -324,7 +323,7 @@ class TestContextLoader:
         )
 
         context = loader.load_context(
-            stage_slug="risk-assessment",
+            stage_slug="report-synthesis",
             disable_summarization=True,
         )
 
@@ -372,7 +371,7 @@ It should be extracted.
         """Test that system_goal is always included in context."""
         loader = ContextLoader(base_dir=sample_session["base_dir"])
 
-        for stage_slug in ["idea-analysis", "market-context", "risk-assessment"]:
+        for stage_slug in ["idea-analysis", "market-context", "report-synthesis"]:
             loader.clear_cache()
             context = loader.load_context(stage_slug=stage_slug)
             assert "system_goal" in context
@@ -382,7 +381,7 @@ It should be extracted.
         """Test that preferences are loaded from session/preferences.json."""
         loader = ContextLoader(base_dir=sample_session["base_dir"])
 
-        context = loader.load_context(stage_slug="risk-assessment")
+        context = loader.load_context(stage_slug="report-synthesis")
 
         # Preferences are loaded for all stages when preferences.json exists
         assert context["preferences"] is not None

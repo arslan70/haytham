@@ -63,18 +63,16 @@ class TestStageRegistry:
     """Test StageRegistry class with all stages."""
 
     def test_all_stages_present(self):
-        """Test all 13 stages are defined."""
+        """Test all 11 stages are defined (ADR-026: removed risk-assessment, pivot-strategy, validation-summary)."""
         registry = get_stage_registry()
-        assert len(registry) == 13
+        assert len(registry) == 11
 
     def test_stage_order(self):
-        """Test stages are in correct order."""
+        """Test stages are in correct order (ADR-026: simplified idea-validation)."""
         expected_slugs = [
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "pivot-strategy",
-            "validation-summary",
+            "report-synthesis",
             "mvp-scope",
             "capability-model",
             "system-traits",
@@ -88,10 +86,11 @@ class TestStageRegistry:
         assert actual_slugs == expected_slugs
 
     def test_stage_order_without_optional(self):
-        """Test stages order excludes optional stages."""
+        """Test stages order excludes optional stages (none are optional after ADR-026)."""
         slugs = get_all_stage_slugs(include_optional=False)
-        assert "pivot-strategy" not in slugs
-        assert len(slugs) == 12
+        # No optional stages remain after ADR-026 removed pivot-strategy
+        assert len(slugs) == 11
+        assert slugs == get_all_stage_slugs(include_optional=True)
 
     def test_get_by_slug(self):
         """Test get_by_slug returns correct stage."""
@@ -116,7 +115,7 @@ class TestStageRegistry:
         registry = get_stage_registry()
 
         idea_stages = registry.get_stages_for_workflow(WorkflowType.IDEA_VALIDATION)
-        assert len(idea_stages) == 5  # Including optional pivot-strategy
+        assert len(idea_stages) == 3  # ADR-026: idea-analysis, market-context, report-synthesis
 
         mvp_stages = registry.get_stages_for_workflow(WorkflowType.MVP_SPECIFICATION)
         assert len(mvp_stages) == 3
@@ -154,11 +153,14 @@ class TestStageConfigs:
         assert stage.execution_mode == "sequential"
         assert stage.required_context == ["idea-analysis"]
 
-    def test_pivot_strategy_is_optional(self):
-        """Test pivot-strategy stage is marked as optional."""
-        stage = get_stage_by_slug("pivot-strategy")
-        assert stage.is_optional
-        assert stage.display_index == "3b"
+    def test_report_synthesis_stage(self):
+        """Test report-synthesis stage configuration (ADR-026)."""
+        stage = get_stage_by_slug("report-synthesis")
+        assert stage.display_name == "Validation Report"
+        assert stage.display_index == 3
+        assert stage.agent_names == ["report_synthesis"]
+        assert stage.required_context == ["idea-analysis", "market-context"]
+        assert not stage.is_optional
 
     def test_build_buy_analysis_stage(self):
         """Test build-buy-analysis stage configuration."""
@@ -184,9 +186,9 @@ class TestQueryFormatting:
 
     def test_format_query_without_variables(self):
         """Test format_query works for stages without template variables."""
-        # risk-assessment doesn't have {system_goal} in template
-        query = format_query("risk-assessment")
-        assert "Identify and assess risks" in query
+        # report-synthesis doesn't have {system_goal} in template
+        query = format_query("report-synthesis")
+        assert "validation report" in query.lower()
 
 
 class TestStageConsistency:
@@ -255,7 +257,7 @@ class TestBackwardCompatibility:
             get_stage_by_slug as gsbs,
         )
 
-        assert len(STAGES) == 13
+        assert len(STAGES) == 11
         assert StageConfig.__name__ == "StageMetadata"
         assert WF == WorkflowType
 

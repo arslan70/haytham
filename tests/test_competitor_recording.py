@@ -252,63 +252,6 @@ class TestExtractCompetitorDataProcessor:
         assert result["revenue_evidence_tag"] == ""
         assert result["competitor_jtbd_matches"] == ["Unrelated"]
 
-
-# ── Validator state-field fallback ───────────────────────────────────────
-
-
-class TestValidatorStateFallback:
-    """Verify validators prefer state fields over regex extraction."""
-
-    def test_revenue_evidence_uses_state_field(self):
-        from haytham.workflow.validators.revenue_evidence import validate_revenue_evidence
-
-        state = MagicMock()
-        state.get = lambda key, default="": {
-            "market_context": "",
-            "concept_anchor_str": "",
-            "revenue_evidence_tag": "No-Pricing-Found",
-        }.get(key, default)
-
-        output = '{"go_no_go_assessment": {"scorecard": [{"dimension": "Revenue Viability", "score": 4}]}}'
-        warnings = validate_revenue_evidence(output, state)
-        assert any("not found" in w.lower() or "not found" in w for w in warnings)
-
-    def test_revenue_evidence_regex_fallback(self):
-        from haytham.workflow.validators.revenue_evidence import validate_revenue_evidence
-
-        state = MagicMock()
-        state.get = lambda key, default="": {
-            "market_context": "**Revenue Evidence Tag:** [No-Pricing-Found]",
-            "concept_anchor_str": "",
-            "revenue_evidence_tag": "",
-        }.get(key, default)
-
-        output = '{"go_no_go_assessment": {"scorecard": [{"dimension": "Revenue Viability", "score": 4}]}}'
-        warnings = validate_revenue_evidence(output, state)
-        assert any("not found" in w.lower() or "pricing" in w.lower() for w in warnings)
-
-    def test_jtbd_match_uses_state_field(self):
-        from haytham.workflow.validators.jtbd_match import validate_jtbd_match
-
-        state = MagicMock()
-        state.get = lambda key, default="": {
-            "market_context": "",
-            "competitor_jtbd_matches": ["Adjacent", "Unrelated", "Adjacent"],
-        }.get(key, default)
-
-        output = '{"go_no_go_assessment": {"scorecard": [{"dimension": "Market Opportunity", "score": 4}]}}'
-        warnings = validate_jtbd_match(output, state)
-        assert any("JTBD" in w or "jtbd" in w.lower() for w in warnings)
-
-    def test_dim8_uses_state_field(self):
-        from haytham.workflow.validators.dim8_inputs import validate_dim8_inputs
-
-        state = MagicMock()
-        state.get = lambda key, default="": {
-            "market_context": "",
-            "switching_cost": "High",
-        }.get(key, default)
-
-        output = '{"go_no_go_assessment": {"scorecard": [{"dimension": "Adoption & Engagement Risk", "score": 4}]}}'
-        warnings = validate_dim8_inputs(output, state)
-        assert any("switching" in w.lower() for w in warnings)
+    # Note: TestValidatorStateFallback class was removed in ADR-026.
+    # The old validators (revenue_evidence, jtbd_match, dim8_inputs) have been
+    # replaced with report_guardrails (validate_som_arithmetic, validate_regulated_domain_safety).

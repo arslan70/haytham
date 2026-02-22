@@ -1,7 +1,7 @@
 # Haytham Development Makefile
 # Quick iteration commands for development workflow
 
-.PHONY: help run burr stage resume reset test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages
+.PHONY: help run burr stage resume reset test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages report
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "Application:"
 	@echo "  make run              - Start the Streamlit application"
 	@echo "  make burr             - Start Burr tracking UI"
+	@echo "  make report           - Generate PDF report from session data"
 	@echo ""
 	@echo "Observability:"
 	@echo "  make jaeger-up        - Start Jaeger for trace visualization"
@@ -52,6 +53,9 @@ run:
 
 burr:
 	uv run burr
+
+report:
+	uv run python scripts/generate_report.py
 
 # =============================================================================
 # Observability

@@ -526,8 +526,8 @@ def build_concept_fidelity_cases(
 
 ## Final Pipeline Outputs
 
-### Validation Summary
-{fixtures.get("validation_summary", "Not available")[:2000]}
+### Validation Report
+{fixtures.get("report_synthesis", "Not available")[:2000]}
 
 ### MVP Scope
 {fixtures.get("mvp_scope", "Not available")[:2000]}

@@ -295,8 +295,8 @@ def summarize_for_stage(content: str, stage_type: str) -> str:
 
     Args:
         content: The content to summarize
-        stage_type: One of: "idea_analysis", "market_research", "risk_assessment",
-                    "validation", "mvp_spec", "business_plan"
+        stage_type: One of: "idea_analysis", "market_research", "report_synthesis",
+                    "mvp_spec", "business_plan"
 
     Returns:
         JSON with structured highlights appropriate for the stage type
@@ -312,22 +312,14 @@ def summarize_for_stage(content: str, stage_type: str) -> str:
             "sections": ["market size,tam,sam", "segment,customer", "trend,growth", "opportunity"],
             "labels": ["Market Size", "Segments", "Trends", "Opportunities"],
         },
-        "risk_assessment": {
+        "report_synthesis": {
             "sections": [
-                "risk level,overall risk",
-                "risk,threat,challenge",
-                "mitigation,recommendation",
-            ],
-            "labels": ["Risk Level", "Key Risks", "Mitigations"],
-        },
-        "validation": {
-            "sections": [
-                "summary,overview",
-                "supported,validated",
-                "unsupported,failed",
                 "recommendation",
+                "risk,threat,challenge",
+                "market,opportunity",
+                "summary,overview",
             ],
-            "labels": ["Summary", "Validated", "Concerns", "Recommendation"],
+            "labels": ["Recommendation", "Key Risks", "Market Opportunity", "Summary"],
         },
         "mvp_spec": {
             "sections": ["feature,capability", "scope,boundary", "success,criteria,metric"],

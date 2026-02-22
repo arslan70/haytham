@@ -73,7 +73,7 @@ def _has_stage_output(stage_slug: str) -> bool:
 
 def has_idea_validation() -> bool:
     """Check if idea validation has run."""
-    return _has_stage_output("validation-summary") or _has_stage_output("risk-assessment")
+    return _has_stage_output("report-synthesis")
 
 
 def has_mvp_specification() -> bool:

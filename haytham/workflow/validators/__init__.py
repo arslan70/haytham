@@ -1,19 +1,15 @@
-"""Validators for pipeline integrity (ADR-022).
+"""Validators for pipeline integrity (ADR-022, ADR-026).
 
 Provides programmatic validators that operate on stage outputs:
 - Story coherence: Appetite compliance, framework conflicts (Part 4)
 - Trait propagation: Constraint extraction and enforcement (Part 2b)
-- Revenue evidence: Score consistency with upstream pricing signals
-- Claim origin: Score consistency with external claim support ratio
+- Report guardrails: SOM arithmetic and regulated domain safety (ADR-026)
 """
 
-from ._scorecard_utils import extract_dimension_score
-from .claim_origin import validate_claim_origin
-from .concept_health import validate_concept_health_bindings
-from .dim8_inputs import validate_dim8_inputs
-from .jtbd_match import validate_jtbd_match
-from .revenue_evidence import validate_revenue_evidence
-from .som_sanity import validate_som_sanity
+from .report_guardrails import (
+    validate_regulated_domain_safety,
+    validate_som_arithmetic,
+)
 from .story_coherence import (
     FrameworkConflict,
     StoryCoherenceReport,
@@ -32,6 +28,9 @@ from .trait_propagation import (
 )
 
 __all__ = [
+    # Report guardrails (ADR-026) - post-synthesis quality checks
+    "validate_som_arithmetic",
+    "validate_regulated_domain_safety",
     # Story coherence (Part 4) - framework conflict detection only
     "FrameworkConflict",
     "StoryCoherenceReport",
@@ -46,18 +45,4 @@ __all__ = [
     "constraints_post_processor",
     "validate_against_constraints",
     "create_constraints_validator",
-    # Revenue evidence consistency
-    "validate_revenue_evidence",
-    # Claim origin consistency
-    "validate_claim_origin",
-    # JTBD match consistency
-    "validate_jtbd_match",
-    # Concept health binding constraints
-    "validate_concept_health_bindings",
-    # Dim 8 input consistency
-    "validate_dim8_inputs",
-    # SOM sanity check
-    "validate_som_sanity",
-    # Shared scorecard utilities
-    "extract_dimension_score",
 ]

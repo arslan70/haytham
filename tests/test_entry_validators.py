@@ -118,9 +118,7 @@ class TestMVPSpecificationValidator:
             side_effect=lambda slug: slug == "idea-validation"
         )
         sm.load_stage_output = mock.Mock(
-            side_effect=lambda slug: _substantive_output()
-            if slug in ("validation-summary", "risk-assessment")
-            else None
+            side_effect=lambda slug: _substantive_output() if slug == "report-synthesis" else None
         )
 
         # Create recommendation.json

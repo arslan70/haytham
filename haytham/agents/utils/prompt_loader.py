@@ -206,9 +206,6 @@ AVAILABLE_AGENTS = [
     "worker_market_intelligence",
     "worker_mvp_scope",
     "worker_mvp_specification",
-    "worker_pivot_strategy",
-    "worker_startup_validator",
+    "worker_report_synthesis",
     "worker_story_generator",
-    "worker_validation_scorer",
-    "worker_validation_narrator",
 ]

@@ -347,8 +347,9 @@ def polish_idea(original_idea: str) -> PolishResult:
     Returns:
         PolishResult with polished text and summary of changes
     """
-    from haytham.agents.utils._bedrock_config import create_bedrock_model
     from strands import Agent
+
+    from haytham.agents.utils._bedrock_config import create_bedrock_model
 
     # Conservative prompt that emphasizes preserving meaning
     system_prompt = """You are a copy editor preparing startup idea descriptions for AI analysis.

@@ -72,6 +72,7 @@ class CoverConfig:
     verdict: str | None = None
     composite_score: str | None = None
     risk_level: str | None = None
+    summary_fields: list[tuple[str, str]] | None = None
     date: str = field(default_factory=lambda: datetime.now().strftime("%B %d, %Y"))
 
 
@@ -167,6 +168,23 @@ def _build_styles() -> dict[str, ParagraphStyle]:
         leading=15,
         textColor=colors.HexColor("#333333"),
         spaceAfter=0,
+    )
+    custom["cover_summary"] = ParagraphStyle(
+        "HaythamCoverSummary",
+        parent=base["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=14,
+        textColor=colors.HexColor("#444444"),
+        spaceAfter=0,
+    )
+    custom["cover_label"] = ParagraphStyle(
+        "HaythamCoverLabel",
+        parent=base["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        textColor=PURPLE,
+        spaceAfter=4,
     )
     custom["footer"] = ParagraphStyle(
         "HaythamFooter",
@@ -537,36 +555,17 @@ def _header_footer(canvas, doc):
 def _build_cover(cover: CoverConfig, styles: dict, page_width: float) -> list:
     """Build flowables for the cover page."""
     elems: list = []
-
-    # Accent bar
     usable = page_width - 1.5 * inch
+
+    # --- Header area ---
+    # Accent bar
     elems.append(_AccentBar(usable, 8))
     elems.append(Spacer(1, 24))
 
     # Title
     elems.append(Paragraph(cover.title, styles["cover_title"]))
 
-    # Idea text (full, in a styled box)
-    if cover.idea_text:
-        idea_para = Paragraph(_md_inline(cover.idea_text), styles["cover_idea"])
-        idea_table = Table([[idea_para]], colWidths=[usable - 24])
-        idea_table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F3EDF8")),
-                    ("ROUNDEDCORNERS", [6, 6, 6, 6]),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 12),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-                    ("TOPPADDING", (0, 0), (-1, -1), 10),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
-                    ("BOX", (0, 0), (-1, -1), 0.5, LIGHT_PURPLE),
-                ]
-            )
-        )
-        elems.append(idea_table)
-        elems.append(Spacer(1, 12))
-
-    # Badges row: verdict, score, risk, confidence
+    # Badges row: verdict, score, risk (centered, immediately after title)
     badge_items = []
     if cover.verdict:
         c = VERDICT_COLORS.get(cover.verdict, colors.gray)
@@ -580,7 +579,6 @@ def _build_cover(cover: CoverConfig, styles: dict, page_width: float) -> list:
         badge_items.append(_Badge(f"Risk: {cover.risk_level}", c, width=120, height=32))
 
     if badge_items:
-        # Compute column widths proportional to badge sizes, scaling if needed
         gap = 10
         total_desired = sum(b.width + gap for b in badge_items)
         if total_desired > usable:
@@ -592,25 +590,91 @@ def _build_cover(cover: CoverConfig, styles: dict, page_width: float) -> list:
         t.setStyle(
             TableStyle(
                 [
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 0),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ]
             )
         )
-        elems.append(Spacer(1, 12))
         elems.append(t)
 
     # Date + footer
-    elems.append(Spacer(1, 24))
+    elems.append(Spacer(1, 16))
     elems.append(
         Paragraph(
             f"{cover.date}&nbsp;&nbsp;&bull;&nbsp;&nbsp;Powered by Haytham",
             styles["footer"],
         )
     )
-    # Visual separator before body content (no forced page break)
+
+    # --- Thin divider between header and content ---
+    elems.append(Spacer(1, 16))
+    divider = Table([[""]], colWidths=[usable], rowHeights=[1])
+    divider.setStyle(
+        TableStyle(
+            [
+                ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#D0D0D0")),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+    elems.append(divider)
+    elems.append(Spacer(1, 16))
+
+    # --- Content area ---
+    # "THE IDEA" section
+    if cover.idea_text:
+        elems.append(Paragraph("THE IDEA", styles["cover_label"]))
+        idea_para = Paragraph(_md_inline(cover.idea_text), styles["cover_idea"])
+        idea_table = Table([[idea_para]], colWidths=[usable - 24])
+        idea_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F3EDF8")),
+                    ("ROUNDEDCORNERS", [6, 6, 6, 6]),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ("BOX", (0, 0), (-1, -1), 0.5, LIGHT_PURPLE),
+                ]
+            )
+        )
+        elems.append(idea_table)
+        elems.append(Spacer(1, 14))
+
+    # "AT A GLANCE" structured summary
+    if cover.summary_fields:
+        elems.append(Paragraph("AT A GLANCE", styles["cover_label"]))
+        field_paras = []
+        for label, value in cover.summary_fields:
+            field_paras.append(
+                Paragraph(
+                    f"<b>{_md_inline(label)}:</b> {_md_inline(value)}",
+                    styles["cover_summary"],
+                )
+            )
+        summary_table = Table([[p] for p in field_paras], colWidths=[usable - 24])
+        summary_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FAFAFA")),
+                    ("ROUNDEDCORNERS", [6, 6, 6, 6]),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                    ("TOPPADDING", (0, 0), (0, 0), 10),
+                    ("BOTTOMPADDING", (-1, -1), (-1, -1), 10),
+                    ("TOPPADDING", (0, 1), (-1, -1), 2),
+                    ("BOTTOMPADDING", (0, 0), (-1, -2), 2),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#E0E0E0")),
+                ]
+            )
+        )
+        elems.append(summary_table)
+
+    # Visual separator before body content
     elems.append(Spacer(1, 36))
     return elems
 

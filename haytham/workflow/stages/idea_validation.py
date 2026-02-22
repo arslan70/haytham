@@ -1,7 +1,6 @@
 """Idea-validation phase orchestration (WHY).
 
-Functions used by the risk-assessment, validation-summary, and market-context
-stage configs.
+Functions used by the report-synthesis and market-context stage configs.
 """
 
 import json
@@ -11,29 +10,30 @@ from datetime import UTC, datetime
 from typing import Any
 
 from burr.core import State
-from pydantic import ValidationError
 
 from haytham.agents.tools.competitor_recording import (
     clear_competitor_accumulator,
     get_competitor_data,
 )
-from haytham.agents.tools.recommendation import (
-    build_scorer_output,
-    clear_scorecard,
-    init_scorecard,
-)
-from haytham.agents.worker_validation_summary.validation_summary_models import (
-    ValidationSummaryOutput,
-    merge_scorer_narrator,
-)
 from haytham.workflow.agent_runner import run_agent, save_stage_output
-from haytham.workflow.anchor_schema import FounderPersona
 from haytham.workflow.stages.concept_anchor import get_anchor_context_string
-from haytham.workflow.validators.dim8_inputs import _SWITCHING_COST_RE
-from haytham.workflow.validators.jtbd_match import _JTBD_MATCH_RE
-from haytham.workflow.validators.revenue_evidence import _REVENUE_TAG_RE as _REVENUE_EVIDENCE_RE
 
 logger = logging.getLogger(__name__)
+
+# Regex patterns for observability logging in market-context sequential pipeline.
+# Formerly imported from validators that were removed in ADR-026.
+_REVENUE_EVIDENCE_RE = re.compile(
+    r"\*\*Revenue Evidence Tag:\*\*\s*\[?(Priced|Freemium-Dominant|No-Pricing-Found)\]?",
+    re.IGNORECASE,
+)
+_JTBD_MATCH_RE = re.compile(
+    r"\*\*JTBD Match:\*\*\s*\[?(Direct|Adjacent|Unrelated)\]?",
+    re.IGNORECASE,
+)
+_SWITCHING_COST_RE = re.compile(
+    r"\*\*Switching [Cc]ost:\*\*\s*\[?(Low|Medium|High)\]?",
+    re.IGNORECASE,
+)
 
 # Regex to extract the JTBD section from market intelligence output.
 # Matches "### 2. Jobs-to-be-Done Analysis" through the next "###" heading or end.
@@ -43,78 +43,38 @@ _JTBD_SECTION_RE = re.compile(
 )
 
 
-def extract_risk_level_processor(output: str, state: State) -> dict[str, Any]:
-    """Post-processor to extract risk level from agent's structured output.
-
-    The startup_validator agent now includes an explicit overall_risk_level field
-    in its ValidationOutput model. This processor extracts that value from the
-    formatted markdown output.
-
-    This is an agentic approach: instead of inferring risk from keyword counting,
-    we trust the agent's direct assessment based on its analysis.
-    """
-    output_upper = output.upper()
-
-    # Look for the explicit "Overall Risk Level:" line from ValidationOutput
-    # This is set directly by the agent in its structured output
-    match = re.search(r"OVERALL RISK LEVEL:\s*(HIGH|MEDIUM|LOW)", output_upper)
-    if match:
-        risk_level = match.group(1)
-        logger.info(f"Risk level from agent assessment: {risk_level}")
-        return {"risk_level": risk_level}
-
-    # Fallback: Check for legacy format (for backward compatibility with existing sessions)
-    if "RISK LEVEL: HIGH" in output_upper or "OVERALL RISK: HIGH" in output_upper:
-        risk_level = "HIGH"
-    elif "RISK LEVEL: LOW" in output_upper or "OVERALL RISK: LOW" in output_upper:
-        risk_level = "LOW"
-    elif "RISK LEVEL: MEDIUM" in output_upper or "OVERALL RISK: MEDIUM" in output_upper:
-        risk_level = "MEDIUM"
-    else:
-        # Default to MEDIUM if no explicit assessment found
-        risk_level = "MEDIUM"
-        logger.warning("No explicit risk level found in output, defaulting to MEDIUM")
-
-    logger.info(f"Risk level determined: {risk_level}")
-    return {"risk_level": risk_level}
-
-
 def extract_recommendation_processor(output: str, state: State) -> dict[str, Any]:
-    """Post-processor to extract recommendation from validation summary JSON.
+    """Post-processor to extract recommendation from report-synthesis output.
 
-    The validation-summary stage has output_model=ValidationSummaryOutput,
-    so the output stored in state is JSON. This processor extracts the
-    recommendation directly from JSON, avoiding the regex-from-markdown
-    round-trip in entry_conditions.py.
-
-    Also extracts composite_score from the Stage-Gate scorecard if present.
+    The report-synthesis agent uses a structured output model (ValidationReport)
+    with a typed ``recommendation`` field (GO/PIVOT/NO-GO). The stage executor
+    stores JSON in state when structured output is configured. This processor
+    extracts the recommendation and persists ``recommendation.json`` for fast
+    retrieval by the UI and entry validators.
 
     Returns:
-        Dict with ``recommendation`` key (e.g. ``{"recommendation": "GO"}``),
-        and optionally ``composite_score``.
+        Dict with ``recommendation`` key (e.g. ``{"recommendation": "GO"}``).
     """
     result: dict[str, Any] = {}
 
-    # Primary path: parse JSON (output_model stages store JSON in state)
+    # Primary path: parse JSON (structured output stages store JSON in state)
     try:
         data = json.loads(output)
         rec = data.get("recommendation", "").upper().strip()
         if rec in ("GO", "NO-GO", "PIVOT"):
-            logger.info(f"Recommendation from structured output: {rec}")
+            logger.info("Recommendation from structured output: %s", rec)
             result["recommendation"] = rec
 
-        # Extract composite_score from Stage-Gate scorecard
-        assessment = data.get("go_no_go_assessment", {})
-        if isinstance(assessment, dict) and "composite_score" in assessment:
-            result["composite_score"] = assessment["composite_score"]
-
-        if "recommendation" in result:
             # Persist recommendation.json for fast retrieval by views
             session_manager = state.get("session_manager")
             if session_manager and hasattr(session_manager, "session_dir"):
                 try:
                     meta_path = session_manager.session_dir / "recommendation.json"
-                    meta_path.write_text(json.dumps({"recommendation": rec}))
+                    meta = {"recommendation": rec}
+                    exec_summary = data.get("executive_summary", "")
+                    if exec_summary:
+                        meta["executive_summary"] = exec_summary
+                    meta_path.write_text(json.dumps(meta))
                 except OSError:
                     pass  # Non-critical
 
@@ -127,17 +87,17 @@ def extract_recommendation_processor(output: str, state: State) -> dict[str, Any
     match = re.search(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)", output_upper)
     if match:
         rec = match.group(1)
-        logger.info(f"Recommendation from markdown regex: {rec}")
+        logger.info("Recommendation from markdown regex: %s", rec)
         return {"recommendation": rec}
 
-    logger.warning("Could not extract recommendation from validation summary output")
+    logger.warning("Could not extract recommendation from report synthesis output")
     return {}
 
 
 def save_final_output(session_manager: Any, output: str) -> None:
-    """Additional save operation for validation summary.
+    """Additional save operation for report synthesis.
 
-    Saves the rendered markdown as the latest requirements document.
+    Saves the rendered output as the latest requirements document.
     Note: recommendation.json is written by extract_recommendation_processor
     which has access to the raw JSON output.
     """
@@ -326,171 +286,60 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
 
 
 # =============================================================================
-# Validation Summary — Scorer + Narrator sequential execution
+# Report Synthesis — Programmatic executor with full upstream context
 # =============================================================================
 
 
-def run_validation_summary_sequential(state: State) -> tuple[str, str]:
-    """Run validation-summary as sequential: scorer → narrator → merge.
+def run_report_synthesis(state: State) -> tuple[str, str]:
+    """Run report-synthesis with full upstream context embedded in the query.
 
-    The scorer handles all analytical work (knockouts, scores, counter-signals,
-    recommendation tool call). The narrator generates prose (executive summary,
-    lean canvas, findings, next steps). A deterministic merge function combines
-    both into the unchanged ValidationSummaryOutput schema.
+    The default execution path truncates stage outputs to ~200 chars via
+    ``build_context_summary()``.  The synthesis agent needs the FULL
+    idea-analysis and market-context research (~15k+ chars) to produce
+    quality reports that cross-reference findings, cite evidence, and
+    avoid hallucinating market data.
+
+    This programmatic executor embeds upstream outputs directly in the
+    query and passes an empty context dict so nothing gets truncated.
 
     Returns:
-        Tuple of (merged_json, status) for stage_executor compatibility.
+        Tuple of (output, status) for stage_executor compatibility.
     """
     system_goal = state.get("system_goal", "")
     idea_analysis = state.get("idea_analysis", "")
     market_context = state.get("market_context", "")
-    risk_assessment = state.get("risk_assessment", "")
-    pivot_strategy = state.get("pivot_strategy", "")
     session_manager = state.get("session_manager")
 
-    # Build shared context
-    context: dict[str, Any] = {"system_goal": system_goal}
-    if idea_analysis:
-        context["idea_analysis"] = idea_analysis
-    if market_context:
-        context["market_context"] = market_context
-    if risk_assessment:
-        context["risk_assessment"] = risk_assessment
-    if pivot_strategy:
-        context["pivot_strategy"] = pivot_strategy
-
     anchor_str = get_anchor_context_string(state)
-    if anchor_str:
-        context["concept_anchor"] = anchor_str
 
-    # --- 1. Run validation_scorer ---
-    # Build scorer query with FULL upstream context inline.
-    # The scorer's job is cross-referencing specific evidence (market sizes,
-    # competitor traction, claim validation results). The generic
-    # build_context_summary() truncates each stage to ~200 chars, which
-    # strips all the data the scorer needs to cite. Pass full text instead.
-    founder_persona = FounderPersona()
-    scorer_sections = [
-        "Evaluate all upstream findings using the Stage-Gate scorecard. "
-        "Record knockouts, counter-signals, dimension scores, and evidence quality "
-        "using the provided tools.",
-        "\n## Context from Previous Stages:",
-        f"\n**ORIGINAL IDEA (Source of Truth - read carefully for explicit constraints):**\n{system_goal}",
+    # Build query with full upstream data inline
+    query_parts = [
+        "Produce a comprehensive validation report based on the research below.",
     ]
+
+    if system_goal:
+        query_parts.append(f"\n## Original Idea (system_goal)\n\n{system_goal}")
+
     if anchor_str:
-        scorer_sections.append(f"\n**Concept Anchor (source: concept_anchor):**\n{anchor_str}")
-    scorer_sections.append(f"\n{founder_persona.to_context()}")
+        query_parts.append(f"\n## Concept Anchor\n\n{anchor_str}")
+
     if idea_analysis:
-        scorer_sections.append(f"\n**Idea Analysis (source: idea_analysis):**\n{idea_analysis}")
+        query_parts.append(f"\n## Idea Analysis\n\n{idea_analysis}")
+
     if market_context:
-        scorer_sections.append(f"\n**Market Context (source: market_context):**\n{market_context}")
-    if risk_assessment:
-        scorer_sections.append(
-            f"\n**Risk Assessment (source: risk_assessment):**\n{risk_assessment}"
-        )
-    if pivot_strategy:
-        scorer_sections.append(f"\n**Pivot Strategy (source: pivot_strategy):**\n{pivot_strategy}")
+        query_parts.append(f"\n## Market Context\n\n{market_context}")
 
-    scorer_query = "\n".join(scorer_sections)
-
-    # Pre-set authoritative upstream values in the scorecard.
-    # risk_level was extracted by extract_risk_level_processor after
-    # risk_assessment. Pass it as a structured input, not prose.
-    risk_level = state.get("risk_level", "")
-    if not risk_level:
-        logger.error("risk_level missing from state — risk_assessment must run first")
-        return "Error: risk_level not found in state", "failed"
-    init_scorecard(risk_level=risk_level)
-    try:
-        # Pass empty context — full text is already in scorer_query
-        scorer_result = run_agent(
-            "validation_scorer",
-            scorer_query,
-            {},
-            session_manager,
-        )
-        # Build ScorerOutput from the scorecard accumulator (tools already
-        # collected all structured data). No structured_output_model needed.
-        scorer_data = build_scorer_output()
-    finally:
-        clear_scorecard()
-
-    scorer_status = scorer_result.get("status", "failed")
-
-    # Save agent text output for observability
-    scorer_text = scorer_result.get("output", "")
-    if session_manager and scorer_text:
-        save_stage_output(
-            session_manager,
-            "validation-summary",
-            "validation_scorer",
-            scorer_text,
-            status="in_progress",
-        )
-
-    if scorer_status != "completed":
-        logger.error(f"Validation scorer failed: {scorer_result.get('error', 'unknown')}")
-        return scorer_text or "Error: Scorer agent failed", "failed"
-
-    if not scorer_data:
-        logger.error("Scorecard incomplete — agent may not have called all tools")
-        return scorer_text or "Error: Scorer tools did not complete", "failed"
-
-    scorer_output = json.dumps(scorer_data)
-
-    # --- 2. Run validation_narrator with scorer output as context ---
-    narrator_context = dict(context)
-    narrator_context["scorer_output"] = scorer_output
-
-    narrator_query = (
-        "Generate the human-readable validation summary from the scorer's "
-        "analytical output. Include executive summary, lean canvas, "
-        "validation findings, and next steps."
-    )
-    narrator_result = run_agent(
-        "validation_narrator",
-        narrator_query,
-        narrator_context,
-        session_manager,
-        output_as_json=True,
-    )
-    narrator_output = narrator_result.get("output", "")
-    narrator_status = narrator_result.get("status", "failed")
-
-    # Save narrator output for observability
-    if session_manager and narrator_output:
-        save_stage_output(
-            session_manager,
-            "validation-summary",
-            "validation_narrator",
-            narrator_output,
-            status="in_progress",
-        )
-
-    if narrator_status != "completed":
-        logger.warning(f"Validation narrator failed: {narrator_result.get('error', 'unknown')}")
-        return scorer_output, "partial"
-
-    # Parse narrator JSON
-    try:
-        narrator_data = json.loads(narrator_output)
-    except json.JSONDecodeError:
-        logger.error("Validation narrator output is not valid JSON")
-        return scorer_output, "partial"
-
-    # --- 3. Merge scorer + narrator into ValidationSummaryOutput ---
-    try:
-        merged = merge_scorer_narrator(scorer_data, narrator_data)
-        # Validate the merged dict parses as ValidationSummaryOutput
-        ValidationSummaryOutput.model_validate(merged)
-        merged_json = json.dumps(merged)
-    except (ValidationError, KeyError, TypeError, ValueError) as e:
-        logger.error(f"Failed to merge scorer+narrator outputs: {e}")
-        return scorer_output, "partial"
+    query = "\n".join(query_parts)
 
     logger.info(
-        f"Validation summary sequential completed: "
-        f"scorer={scorer_status}, narrator={narrator_status}, "
-        f"merged={len(merged_json)} chars"
+        f"Report synthesis query built: {len(query)} chars "
+        f"(idea_analysis={len(idea_analysis)}, market_context={len(market_context)})"
     )
-    return merged_json, "completed"
+
+    # Pass empty context dict — all data is already in the query
+    result = run_agent("report_synthesis", query, {}, session_manager, output_as_json=True)
+
+    output = result.get("output", "")
+    status = result.get("status", "failed")
+
+    return output, status

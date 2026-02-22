@@ -74,9 +74,7 @@ class TestCreateSession:
         expected_dirs = [
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "pivot-strategy",
-            "validation-summary",
+            "report-synthesis",
             "mvp-scope",
             "capability-model",
             "system-traits",
@@ -172,8 +170,7 @@ class TestLoadSession:
         for slug in [
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "validation-summary",
+            "report-synthesis",
             "mvp-scope",
         ]:
             assert session["stage_statuses"].get(slug) == "pending"
@@ -274,9 +271,9 @@ class TestGetApprovedStages:
         """get_approved_stages returns stages in workflow order."""
         session_manager.create_session()
 
-        # Approve stages (risk-assessment first, then idea-analysis)
+        # Approve stages (report-synthesis first, then idea-analysis)
         session_manager.save_user_feedback(
-            stage_slug="risk-assessment",
+            stage_slug="report-synthesis",
             feedback={"reviewed": True, "approved": True},
         )
         session_manager.save_user_feedback(
@@ -286,7 +283,7 @@ class TestGetApprovedStages:
 
         approved = session_manager.get_approved_stages()
         # Should be in workflow order, not approval order
-        assert approved == ["idea-analysis", "risk-assessment"]
+        assert approved == ["idea-analysis", "report-synthesis"]
 
 
 class TestGetNextStage:
@@ -314,7 +311,7 @@ class TestGetNextStage:
         session_manager.create_session()
 
         # Approve all stages
-        from haytham.phases.stage_config import STAGES
+        from haytham.workflow.stage_registry import STAGES
 
         for stage in STAGES:
             session_manager.save_user_feedback(
@@ -539,7 +536,7 @@ class TestConcurrentSessionOperations:
         """Concurrent saves to disjoint stage directories should not crash or corrupt."""
 
         session_manager.create_session()
-        stages = ["idea-analysis", "market-context", "risk-assessment"]
+        stages = ["idea-analysis", "market-context", "report-synthesis"]
 
         def save(slug):
             session_manager.save_checkpoint(

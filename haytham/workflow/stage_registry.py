@@ -9,7 +9,7 @@ Design Principles:
 - DRY: Centralizes all stage-related mappings in one place
 
 Workflow Types (ADR-016: Four-Phase Architecture):
-- IDEA_VALIDATION: Phase 1 (WHY) - Stages 1-4 (+ optional pivot) - Business validation
+- IDEA_VALIDATION: Phase 1 (WHY) - Stages 1-3 - Business validation
 - MVP_SPECIFICATION: Phase 2 (WHAT) - Stages 5-6 - Define what to build first
 - BUILD_BUY_ANALYSIS: Phase 3a (HOW) - Stage 7 - Build vs Buy decisions
 - ARCHITECTURE_DECISIONS: Phase 3b (HOW) - Stage 8 - Architecture decisions
@@ -88,7 +88,7 @@ class StageMetadata:
 
 _STAGES: list[StageMetadata] = [
     # =========================================================================
-    # WORKFLOW 1: IDEA VALIDATION (Stages 1-4 + optional pivot)
+    # WORKFLOW 1: IDEA VALIDATION (Stages 1-3)
     # =========================================================================
     StageMetadata(
         slug="idea-analysis",
@@ -135,67 +135,25 @@ _STAGES: list[StageMetadata] = [
         required_context=["idea-analysis"],
     ),
     StageMetadata(
-        slug="risk-assessment",
-        action_name="risk_assessment",
-        display_name="Risk Assessment",
+        slug="report-synthesis",
+        action_name="report_synthesis",
+        display_name="Validation Report",
         display_index=3,
         description=(
-            "Using all findings from Idea Analysis and Market Context, we extract 10-15 key claims "
-            "and validate each against research evidence. Claims are classified as supported, partial, "
-            "unsupported, or contradicted. Risks are prioritized (high/medium/low) with mitigation strategies. "
-            "This determines whether to proceed, pivot, or reconsider."
+            "Synthesizes a comprehensive validation report from idea analysis and market research. "
+            "A single reasoning agent cross-references all upstream findings to produce an "
+            "executive summary, risk analysis, competitive positioning, and a GO/PIVOT/NO-GO "
+            "recommendation. This becomes the foundation for MVP scoping."
         ),
-        state_key="risk_assessment",
-        status_key="risk_assessment_status",
+        state_key="report_synthesis",
+        status_key="report_synthesis_status",
         workflow_type=WorkflowType.IDEA_VALIDATION,
         query_template=(
-            "Identify and assess risks for this startup concept. "
-            "Validate key assumptions and flag potential issues."
+            "Produce a comprehensive validation report for this startup idea. "
+            "Synthesize all upstream findings into a decision-ready assessment."
         ),
-        agent_names=["startup_validator"],
+        agent_names=["report_synthesis"],
         required_context=["idea-analysis", "market-context"],
-    ),
-    StageMetadata(
-        slug="pivot-strategy",
-        action_name="pivot_strategy",
-        display_name="Pivot Strategy",
-        display_index="3b",
-        description=(
-            "Only triggered when Risk Assessment identifies high-risk scenarios. "
-            "We analyze what's causing the risk and propose alternative approaches, "
-            "market pivots, or scope adjustments that could reduce risk while preserving core value."
-        ),
-        state_key="pivot_strategy",
-        status_key="pivot_strategy_status",
-        workflow_type=WorkflowType.IDEA_VALIDATION,
-        query_template=(
-            "Given the high risk assessment, suggest strategic pivot options that could "
-            "reduce risk while preserving the core value proposition."
-        ),
-        agent_names=["pivot_strategy"],
-        is_optional=True,
-        required_context=["idea-analysis", "market-context", "risk-assessment"],
-    ),
-    StageMetadata(
-        slug="validation-summary",
-        action_name="validation_summary",
-        display_name="Validation Summary",
-        display_index=4,
-        description=(
-            "We synthesize all prior findings into a decision-ready report. "
-            "Includes an executive summary with Go/No-Go verdict, condensed Lean Canvas, "
-            "key validation findings, and concrete next steps. "
-            "This becomes the foundation for MVP scoping."
-        ),
-        state_key="validation_summary",
-        status_key="validation_summary_status",
-        workflow_type=WorkflowType.IDEA_VALIDATION,
-        query_template=(
-            "Synthesize all findings into a concise validation report. "
-            "Include a clear recommendation on whether to proceed with system definition."
-        ),
-        agent_names=["validation_scorer", "validation_narrator"],
-        required_context=["idea-analysis", "market-context", "risk-assessment"],
     ),
     # =========================================================================
     # WORKFLOW 2: MVP SPECIFICATION (Stages 5-6)
@@ -224,8 +182,7 @@ _STAGES: list[StageMetadata] = [
         required_context=[
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "validation-summary",
+            "report-synthesis",
         ],
     ),
     StageMetadata(
@@ -251,8 +208,7 @@ _STAGES: list[StageMetadata] = [
         required_context=[
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "validation-summary",
+            "report-synthesis",
             "mvp-scope",
         ],
     ),

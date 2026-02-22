@@ -588,8 +588,7 @@ if new_idea:
     STAGES = [
         ("idea-analysis", "Idea Analysis", "Expanding and structuring your concept"),
         ("market-context", "Market Context", "Researching market and competitors"),
-        ("risk-assessment", "Risk Assessment", "Analyzing viability and risks"),
-        ("validation-summary", "Validation Summary", "Generating GO/NO-GO recommendation"),
+        ("report-synthesis", "Validation Report", "Generating GO/NO-GO recommendation"),
     ]
 
     progress_bar = st.progress(0, text="Preparing workflow...")

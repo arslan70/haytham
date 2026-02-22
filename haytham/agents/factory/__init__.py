@@ -19,9 +19,7 @@ result = agent("Analyze this startup idea...")
 - concept_expansion: Analyzes and expands startup ideas
 - market_intelligence: Conducts market research
 - competitor_analysis: Analyzes competitive landscape
-- startup_validator: Assesses risks and validates assumptions
-- pivot_strategy: Suggests pivot strategies for high-risk ideas
-- validation_summary: Synthesizes validation findings
+- report_synthesis: Synthesizes validation report from upstream findings (ADR-026)
 - mvp_scope: Defines MVP boundaries
 - capability_model: Creates capability models
 - build_buy_analyzer: Analyzes build vs buy decisions
