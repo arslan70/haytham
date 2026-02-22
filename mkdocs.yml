@@ -6,6 +6,7 @@ repo_name: arslan70/haytham
 
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -45,9 +46,6 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/arslan70/haytham
   generator: false
-  announcement: >
-    Haytham is in active development.
-    <a href="https://github.com/arslan70/haytham">Star us on GitHub</a> to follow along.
 
 plugins:
   - search
