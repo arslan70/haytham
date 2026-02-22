@@ -1,0 +1,103 @@
+site_name: Haytham
+site_description: The control plane for building software systems, from idea to implementation-ready specification
+site_url: https://arslan70.github.io/haytham/
+repo_url: https://github.com/arslan70/haytham
+repo_name: arslan70/haytham
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - How It Works: how-it-works.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Scoring Pipeline: architecture/scoring-pipeline.md
+    - Technology Stack: technology.md
+  - Decision Records:
+    - adr/index.md
+    - Core Architecture:
+      - "ADR-004: Multi-Phase Workflow": adr/ADR-004-multi-phase-workflow-architecture.md
+      - "ADR-016: Four-Phase Workflow": adr/ADR-016-four-phase-workflow.md
+      - "ADR-003: System State Evolution": adr/ADR-003-system-state-evolution.md
+      - "ADR-009: Workflow Separation": adr/ADR-009-workflow-separation.md
+    - Agents and Quality:
+      - "ADR-018: LLM-as-Judge Testing": adr/ADR-018-llm-as-judge-agent-testing.md
+      - "ADR-022: Concept Fidelity": adr/ADR-022-concept-fidelity-pipeline-integrity.md
+      - "ADR-023: Scorer Dimension Reduction": adr/ADR-023-scorer-dimension-reduction.md
+      - "ADR-005: Quality Evaluation Pattern": adr/ADR-005-quality-evaluation-pattern.md
+      - "ADR-006: Story Generation Quality": adr/ADR-006-story-generation-quality-evaluation.md
+      - "ADR-019: System Trait Detection": adr/ADR-019-system-trait-detection.md
+    - Features:
+      - "ADR-002: Backlog.md Integration": adr/ADR-002-backlog-md-integration.md
+      - "ADR-013: Build vs Buy": adr/ADR-013-build-vs-buy-recommendations.md
+      - "ADR-014: Web Search Fallback Chain": adr/ADR-014-web-search-fallback-chain.md
+      - "ADR-010: Stories Export": adr/ADR-010-stories-export.md
+      - "ADR-011: Story Effort Estimation": adr/ADR-011-story-effort-estimation.md
+      - "ADR-012: Visual Roadmap": adr/ADR-012-visual-roadmap.md
+      - "ADR-015: Google Stitch MCP": adr/ADR-015-google-stitch-mcp-integration.md
+    - UX:
+      - "ADR-008: UX Improvements": adr/ADR-008-ux-improvements.md
+      - "ADR-017: UX Design Four-Phase": adr/ADR-017-ux-design-four-phase-workflow.md
+      - "ADR-021: Design UX Workflow Stage": adr/ADR-021-design-ux-workflow-stage.md
+    - Infrastructure:
+      - "ADR-020: Project Rename": adr/ADR-020-project-rename.md
+      - "ADR-024: Split Oversized Modules": adr/ADR-024-split-oversized-modules.md
+      - "ADR-025: Resolved Project Specification": adr/ADR-025-resolved-project-specification.md
+    - Genesis Foundation:
+      - "ADR-001: Story-to-Implementation Pipeline": adr/ADR-001-story-to-implementation-pipeline.md
+      - "ADR-001a: MVP Spec Enhancement": adr/ADR-001a-mvp-spec-enhancement.md
+      - "ADR-001b: Platform Stack Proposal": adr/ADR-001b-platform-stack-proposal.md
+      - "ADR-001c: System State Model": adr/ADR-001c-system-state-model.md
+      - "ADR-001d: Story Interpretation Engine": adr/ADR-001d-story-interpretation-engine.md
+      - "ADR-001e: System Design Evolution": adr/ADR-001e-system-design-evolution.md
+      - "ADR-001f: Task Generation Refinement": adr/ADR-001f-task-generation-refinement.md
+      - "ADR-001g: Implementation Execution": adr/ADR-001g-implementation-execution.md
+      - "ADR-001h: Orchestration Feedback Loops": adr/ADR-001h-orchestration-feedback-loops.md
+  - Contributing:
+    - Architecture Patterns: contributing/architecture-patterns.md
+  - Operations:
+    - Troubleshooting: troubleshooting.md
+  - Roadmap: roadmap.md
+  - Blog:
+    - "Your Agents Are Playing Telephone": blog/your-agents-are-playing-telephone/index.md
+  - Example Session: example-session/index.md

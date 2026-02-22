@@ -107,7 +107,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide.
 - [How It Works](docs/how-it-works.md) — the four phases in detail
 - [Architecture](docs/architecture/overview.md) — system design and components
 - [Technology](docs/technology.md) — stack choices and rationale
-- [ADR Index](docs/adr/README.md) — architecture decision records
+- [ADR Index](docs/adr/index.md) — architecture decision records
 - [Roadmap](docs/roadmap.md) — what's next
 - [Troubleshooting](docs/troubleshooting.md) — common issues and debugging
 
