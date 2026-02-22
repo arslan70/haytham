@@ -135,7 +135,7 @@ class TestIdempotency:
 class TestSingleAgentExecution:
     """Tests for the default single-agent execution path."""
 
-    @mock.patch("haytham.workflow.stage_executor.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
     def test_single_agent_happy_path(self, mock_save, mock_run):
         mock_run.return_value = {"output": "Report synthesis complete.", "status": "completed"}
@@ -157,7 +157,7 @@ class TestSingleAgentExecution:
         call_args = mock_run.call_args
         assert call_args[0][0] == "report_synthesis"  # First positional arg is agent_name
 
-    @mock.patch("haytham.workflow.stage_executor.run_agent")
+    @mock.patch("haytham.workflow.stages.idea_validation.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
     def test_single_agent_failure(self, mock_save, mock_run):
         mock_run.return_value = {"output": "Error: Token limit.", "status": "failed"}

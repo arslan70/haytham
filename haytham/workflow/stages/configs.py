@@ -10,6 +10,9 @@ from typing import TYPE_CHECKING
 from haytham.agents.worker_build_buy_advisor.build_buy_models import (
     BuildBuyAnalysisOutput as _BuildBuyAnalysisOutput,
 )
+from haytham.agents.worker_report_synthesis.report_synthesis_models import (
+    ValidationReport as _ValidationReport,
+)
 from haytham.agents.worker_story_generator.story_generation_models import (
     StoryGenerationHybridOutput as _StoryGenerationHybridOutput,
 )
@@ -28,6 +31,7 @@ from .idea_validation import (
     extract_competitor_data_processor,
     extract_recommendation_processor,
     run_market_context_sequential,
+    run_report_synthesis,
     save_final_output,
 )
 from .mvp_scope_swarm import run_mvp_scope_swarm
@@ -91,9 +95,11 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     ),
     "report-synthesis": StageExecutionConfig(
         stage_slug="report-synthesis",
+        programmatic_executor=run_report_synthesis,
         post_processor=extract_recommendation_processor,
         additional_save=save_final_output,
         post_validators=[validate_som_arithmetic, validate_regulated_domain_safety],
+        output_model=_ValidationReport,
     ),
     "mvp-scope": StageExecutionConfig(
         stage_slug="mvp-scope",

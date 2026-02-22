@@ -380,7 +380,7 @@ def get_workflow_status(session_dir: Path) -> dict[str, Any]:
         Dict with workflow completion status
     """
     return {
-        "idea_validation_complete": (session_dir / "validation-summary").exists(),
+        "idea_validation_complete": (session_dir / "report-synthesis").exists(),
         "mvp_specification_complete": (session_dir / "system-traits").exists()
         or (session_dir / "capability-model").exists(),
         "build_buy_analysis_complete": (session_dir / "build-buy-analysis").exists(),
@@ -424,8 +424,7 @@ def process_workflow_feedback(
         "idea-validation": [
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "validation-summary",
+            "report-synthesis",
         ],
         "mvp-specification": [
             "mvp-scope",

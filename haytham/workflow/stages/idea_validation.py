@@ -70,7 +70,11 @@ def extract_recommendation_processor(output: str, state: State) -> dict[str, Any
             if session_manager and hasattr(session_manager, "session_dir"):
                 try:
                     meta_path = session_manager.session_dir / "recommendation.json"
-                    meta_path.write_text(json.dumps({"recommendation": rec}))
+                    meta = {"recommendation": rec}
+                    exec_summary = data.get("executive_summary", "")
+                    if exec_summary:
+                        meta["executive_summary"] = exec_summary
+                    meta_path.write_text(json.dumps(meta))
                 except OSError:
                     pass  # Non-critical
 
@@ -279,3 +283,63 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
         f"jtbd={'yes' if jtbd_section else 'no'}, combined={len(combined.strip())} chars"
     )
     return combined.strip(), status
+
+
+# =============================================================================
+# Report Synthesis — Programmatic executor with full upstream context
+# =============================================================================
+
+
+def run_report_synthesis(state: State) -> tuple[str, str]:
+    """Run report-synthesis with full upstream context embedded in the query.
+
+    The default execution path truncates stage outputs to ~200 chars via
+    ``build_context_summary()``.  The synthesis agent needs the FULL
+    idea-analysis and market-context research (~15k+ chars) to produce
+    quality reports that cross-reference findings, cite evidence, and
+    avoid hallucinating market data.
+
+    This programmatic executor embeds upstream outputs directly in the
+    query and passes an empty context dict so nothing gets truncated.
+
+    Returns:
+        Tuple of (output, status) for stage_executor compatibility.
+    """
+    system_goal = state.get("system_goal", "")
+    idea_analysis = state.get("idea_analysis", "")
+    market_context = state.get("market_context", "")
+    session_manager = state.get("session_manager")
+
+    anchor_str = get_anchor_context_string(state)
+
+    # Build query with full upstream data inline
+    query_parts = [
+        "Produce a comprehensive validation report based on the research below.",
+    ]
+
+    if system_goal:
+        query_parts.append(f"\n## Original Idea (system_goal)\n\n{system_goal}")
+
+    if anchor_str:
+        query_parts.append(f"\n## Concept Anchor\n\n{anchor_str}")
+
+    if idea_analysis:
+        query_parts.append(f"\n## Idea Analysis\n\n{idea_analysis}")
+
+    if market_context:
+        query_parts.append(f"\n## Market Context\n\n{market_context}")
+
+    query = "\n".join(query_parts)
+
+    logger.info(
+        f"Report synthesis query built: {len(query)} chars "
+        f"(idea_analysis={len(idea_analysis)}, market_context={len(market_context)})"
+    )
+
+    # Pass empty context dict — all data is already in the query
+    result = run_agent("report_synthesis", query, {}, session_manager, output_as_json=True)
+
+    output = result.get("output", "")
+    status = result.get("status", "failed")
+
+    return output, status

@@ -140,8 +140,7 @@ def get_stage_outputs_for_workflow(
         "idea-validation": [
             "idea-analysis",
             "market-context",
-            "risk-assessment",
-            "validation-summary",
+            "report-synthesis",
         ],
         "mvp-specification": [
             "mvp-scope",

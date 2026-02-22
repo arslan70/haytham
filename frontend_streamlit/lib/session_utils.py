@@ -83,11 +83,11 @@ def get_validation_recommendation() -> str | None:
     Returns:
         "GO", "NO-GO", "PIVOT", or None if not found
     """
-    summary_dir = SESSION_DIR / "validation-summary"
+    summary_dir = SESSION_DIR / "report-synthesis"
     if not summary_dir.exists():
         return None
 
-    # Look for markdown files in validation-summary
+    # Look for markdown files in report-synthesis
     for f in summary_dir.glob("*.md"):
         try:
             content = f.read_text().upper()
@@ -111,7 +111,7 @@ def get_workflow_status() -> dict[str, bool]:
         Dict with workflow completion flags
     """
     return {
-        "idea_validation_complete": (SESSION_DIR / "validation-summary").exists(),
+        "idea_validation_complete": (SESSION_DIR / "report-synthesis").exists(),
         "mvp_specification_complete": (SESSION_DIR / "capability-model").exists(),
         "story_generation_complete": (SESSION_DIR / "generated_stories.json").exists()
         and _has_stories(),

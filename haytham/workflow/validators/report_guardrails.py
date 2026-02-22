@@ -30,6 +30,48 @@ _REGULATORY_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Domain signals in the idea description that imply regulatory requirements.
+# Maps regex pattern (applied to system_goal) -> expected compliance keyword in report.
+_DOMAIN_COMPLIANCE_MAP: list[tuple[re.Pattern[str], str, str]] = [
+    (
+        re.compile(
+            # Word stems: "therap" matches therapy/therapist, "psycholog" matches psychologist, etc.
+            r"\b(health|wellness|therap\w*|patient|medical|clinic|doctor|mental.health|"
+            r"diagnos\w*|treatment|symptom|psycholog\w*|psychiatr\w*|counseling|pharma\w*)\b",
+            re.IGNORECASE,
+        ),
+        "HIPAA",
+        "health/wellness/therapy",
+    ),
+    (
+        re.compile(
+            r"\b(payment\w*|fintech|banking|financial|credit.card|transaction\w*|lending|"
+            r"insurance|invest\w*|trading|crypto\w*|wallet)\b",
+            re.IGNORECASE,
+        ),
+        "PCI-DSS",
+        "fintech/payments",
+    ),
+    (
+        re.compile(
+            r"\b(child\w*|kids|minor\w*|under.13|youth|elementary|middle.school|"
+            r"parental.consent|young.learner\w*)\b",
+            re.IGNORECASE,
+        ),
+        "COPPA",
+        "children/minors",
+    ),
+    (
+        re.compile(
+            r"\b(student.record\w*|education.record\w*|school.data|transcript\w*|"
+            r"student.information.system)\b",
+            re.IGNORECASE,
+        ),
+        "FERPA",
+        "education records",
+    ),
+]
+
 
 def _normalize_dollar_amount(digits_str: str, suffix: str | None) -> float:
     """Convert a captured dollar string like '3.2' + 'M' to a float (3_200_000)."""
@@ -94,34 +136,47 @@ def _format_amount(value: float) -> str:
 
 
 def validate_regulated_domain_safety(output: str, state: "State") -> list[str]:
-    """Flag GO recommendations for ideas involving regulated domains.
+    """Flag missing compliance frameworks for ideas in regulated domains.
 
-    Scans the report for regulatory keywords (HIPAA, PCI-DSS, etc.).
-    If found AND recommendation is GO, returns a warning to review the
-    risk assessment section.
+    Two checks:
+    1. If the idea description (system_goal) contains domain signals
+       (health, fintech, children, etc.) but the report does NOT mention
+       the expected compliance framework (HIPAA, PCI-DSS, COPPA, etc.),
+       warn that the risk assessment is incomplete.
+    2. If the report mentions compliance frameworks AND recommendation is
+       GO, warn to review the risk assessment carefully.
     """
-    # Extract recommendation from JSON output
-    recommendation = ""
     try:
         data = json.loads(output)
         recommendation = data.get("recommendation", "").upper().strip()
         text = data.get("report", output)
     except (json.JSONDecodeError, TypeError, AttributeError):
+        recommendation = ""
         text = output
 
-    # Only warn on GO recommendations
-    if recommendation != "GO":
-        return []
+    raw_goal = state.get("system_goal", "") if state else ""
+    system_goal = raw_goal if isinstance(raw_goal, str) else ""
 
-    found_keywords = set(_REGULATORY_RE.findall(text))
-    # Normalize to uppercase for display
-    found_keywords = {kw.upper() for kw in found_keywords}
+    warnings: list[str] = []
 
-    if not found_keywords:
-        return []
+    # Check 1: Missing compliance frameworks for regulated domains
+    for domain_re, expected_keyword, domain_label in _DOMAIN_COMPLIANCE_MAP:
+        if domain_re.search(system_goal) and not re.search(
+            rf"\b{re.escape(expected_keyword)}\b", text, re.IGNORECASE
+        ):
+            warnings.append(
+                f"Idea involves {domain_label} but report does not mention "
+                f"{expected_keyword}. Risk Assessment may be incomplete."
+            )
 
-    sorted_kw = ", ".join(sorted(found_keywords))
-    return [
-        f"This idea involves regulatory compliance ({sorted_kw}). "
-        "Review the Risk Assessment section before proceeding."
-    ]
+    # Check 2: GO recommendation with regulatory complexity
+    if recommendation == "GO":
+        found_keywords = {kw.upper() for kw in _REGULATORY_RE.findall(text)}
+        if found_keywords:
+            sorted_kw = ", ".join(sorted(found_keywords))
+            warnings.append(
+                f"GO recommendation with regulatory compliance ({sorted_kw}). "
+                "Review the Risk Assessment section before proceeding."
+            )
+
+    return warnings

@@ -19,7 +19,7 @@ PHASES = [
         "label": "WHY",
         "subtitle": "Validate",
         "lock_workflow": "idea-validation",
-        "output_stages": ["validation-summary", "risk-assessment"],
+        "output_stages": ["report-synthesis"],
     },
     {
         "key": "what",

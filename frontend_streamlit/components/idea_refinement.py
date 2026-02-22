@@ -50,34 +50,22 @@ def clear_refinement_state() -> None:
 
 
 def _load_context_for_refinement(session_dir: Path) -> dict:
-    """Load risk assessment and pivot strategy context for refinement.
+    """Load validation report context for refinement.
 
     Args:
         session_dir: Path to the session directory
 
     Returns:
-        Dict with risk_assessment and pivot_strategy content
+        Dict with validation_report content
     """
-    context = {"risk_assessment": None, "pivot_strategy": None}
+    context: dict[str, str | None] = {"validation_report": None}
 
-    # Load risk assessment
-    risk_dir = session_dir / "risk-assessment"
-    if risk_dir.exists():
-        for f in risk_dir.glob("*.md"):
+    report_dir = session_dir / "report-synthesis"
+    if report_dir.exists():
+        for f in report_dir.glob("*.md"):
             if f.name not in ["checkpoint.md", "user_feedback.md"]:
                 try:
-                    context["risk_assessment"] = f.read_text()
-                    break
-                except Exception:
-                    pass
-
-    # Load pivot strategy
-    pivot_dir = session_dir / "pivot-strategy"
-    if pivot_dir.exists():
-        for f in pivot_dir.glob("*.md"):
-            if f.name not in ["checkpoint.md", "user_feedback.md"]:
-                try:
-                    context["pivot_strategy"] = f.read_text()
+                    context["validation_report"] = f.read_text()
                     break
                 except Exception:
                     pass

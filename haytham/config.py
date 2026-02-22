@@ -421,11 +421,13 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         tool_profile=ToolProfile.NONE,
         structured_output_model_path="haytham.workflow.verifiers.schemas:PhaseVerification",
     ),
-    # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline
+    # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline.
+    # 8000 tokens: Sonnet-class models produce ~3000-4000 word reports with step-by-step arithmetic,
+    # evidence tags, and cross-references. TOKENS_LARGE (4000) truncates on capable models.
     "report_synthesis": AgentConfig(
         name="report_synthesis_agent",
         prompt_key="worker_report_synthesis",
-        max_tokens=TOKENS_LARGE,
+        max_tokens=8000,
         model_tier=ModelTier.REASONING,
         structured_output_model_path="haytham.agents.worker_report_synthesis.report_synthesis_models:ValidationReport",
     ),

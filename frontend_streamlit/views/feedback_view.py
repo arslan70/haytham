@@ -30,8 +30,7 @@ WORKFLOW_CONFIGS = {
         "stages": [
             ("idea-analysis", "Idea Analysis"),
             ("market-context", "Market Context"),
-            ("risk-assessment", "Risk Assessment"),
-            ("validation-summary", "Validation Summary"),
+            ("report-synthesis", "Validation Report"),
         ],
         "next_page": "views/discovery.py",
     },
