@@ -48,7 +48,7 @@ openai = ["openai>=1.10.0"]
 ollama = ["ollama>=0.4.0"]
 dspy-poc = ["dspy>=2.6"]
 providers = ["haytham[anthropic,openai,ollama]"]
-docs = ["mkdocs-material>=9.0.0"]
+docs = ["mkdocs-material>=9.0.0", "mkdocs-rss-plugin"]
 full = ["haytham[observability,vectordb,reports,providers]"]
 
 [build-system]

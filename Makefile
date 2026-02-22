@@ -1,7 +1,7 @@
 # Haytham Development Makefile
 # Quick iteration commands for development workflow
 
-.PHONY: help run burr stage resume reset test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages report
+.PHONY: help run burr stage resume reset test test-unit test-e2e lint format clean jaeger-up jaeger-down test-agents test-agents-quick test-agents-verbose record-fixtures clear-from clear-from-preview stages-list view-stage stages report docs
 
 # Default target
 help:
@@ -34,6 +34,9 @@ help:
 	@echo "  make test-agents-quick    - Quick: concept_expansion x T1 only"
 	@echo "  make test-agents-verbose  - Full evaluation with judge reasoning"
 	@echo "  make record-fixtures IDEA_ID=T1 - Record session outputs as test fixtures"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  make docs             - Serve docs locally at http://localhost:8000"
 	@echo ""
 	@echo "Development:"
 	@echo "  make lint             - Run linter (ruff check)"
@@ -203,6 +206,14 @@ endif
 # =============================================================================
 # Development
 # =============================================================================
+
+# =============================================================================
+# Documentation
+# =============================================================================
+
+docs:
+	@echo "Serving docs at http://localhost:8000 (Ctrl+C to stop)"
+	uv run --extra docs mkdocs serve
 
 lint:
 	uv run ruff check haytham/ --fix
