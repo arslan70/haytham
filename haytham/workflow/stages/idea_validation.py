@@ -62,7 +62,7 @@ def extract_recommendation_processor(output: str, state: State) -> dict[str, Any
         data = json.loads(output)
         rec = data.get("recommendation", "").upper().strip()
         if rec in ("GO", "NO-GO", "PIVOT"):
-            logger.info(f"Recommendation from structured output: {rec}")
+            logger.info("Recommendation from structured output: %s", rec)
             result["recommendation"] = rec
 
             # Persist recommendation.json for fast retrieval by views
@@ -87,7 +87,7 @@ def extract_recommendation_processor(output: str, state: State) -> dict[str, Any
     match = re.search(r"RECOMMENDATION:\s*(GO|NO-GO|PIVOT)", output_upper)
     if match:
         rec = match.group(1)
-        logger.info(f"Recommendation from markdown regex: {rec}")
+        logger.info("Recommendation from markdown regex: %s", rec)
         return {"recommendation": rec}
 
     logger.warning("Could not extract recommendation from report synthesis output")

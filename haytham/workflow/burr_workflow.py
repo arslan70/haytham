@@ -171,7 +171,7 @@ class BurrWorkflowRunner:
         session_id = str(uuid.uuid4())
 
         # Terminal stage for the idea-validation workflow
-        terminal = WORKFLOW_TERMINAL_STAGES.get(WorkflowType.IDEA_VALIDATION, "validation_summary")
+        terminal = WORKFLOW_TERMINAL_STAGES.get(WorkflowType.IDEA_VALIDATION, "report_synthesis")
 
         # Execute workflow within a workflow span
         with workflow_span(
@@ -204,8 +204,8 @@ class BurrWorkflowRunner:
                 if hasattr(span, "set_attribute"):
                     span.set_attribute("workflow.duration_seconds", execution_time)
                     span.set_attribute("workflow.final_stage", final_action.name)
-                    risk_level = final_state.get("risk_level", "UNKNOWN")
-                    span.set_attribute("workflow.risk_level", risk_level)
+                    recommendation = final_state.get("recommendation", "UNKNOWN")
+                    span.set_attribute("workflow.recommendation_at_completion", recommendation)
 
                 # Check for failures and identify which stage failed
                 registry = get_stage_registry()
@@ -243,7 +243,7 @@ class BurrWorkflowRunner:
                         execution_time=execution_time,
                     )
 
-                # Extract recommendation via 3-tier fallback
+                # Extract recommendation via 2-tier fallback
                 recommendation = _extract_recommendation(final_state, results, self.session_manager)
 
                 logger.info("=" * 60)

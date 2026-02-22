@@ -42,7 +42,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
 
     system_goal = state.get("system_goal", "")
     idea_analysis = state.get("idea_analysis", "")
-    raw_vs = state.get("validation_summary", "")
+    raw_vs = state.get("report_synthesis", "")
 
     # Parse validation_summary — may be JSON (from output_model) or markdown (legacy)
     try:
@@ -172,7 +172,7 @@ def build_mvp_scope_context(state: State) -> dict[str, Any]:
     """
     system_goal = state["system_goal"]
     idea_analysis = state.get("idea_analysis", "")
-    raw_vs = state.get("validation_summary", "")
+    raw_vs = state.get("report_synthesis", "")
 
     context_str = f"## Startup Idea\n{system_goal}\n\n"
     context_str += f"## Concept Analysis\n{idea_analysis[:2000]}\n\n"

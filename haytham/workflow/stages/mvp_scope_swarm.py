@@ -40,9 +40,9 @@ def run_mvp_scope_swarm(state: State) -> tuple[str, str]:
 
     system_goal = state.get("system_goal", "")
     idea_analysis = state.get("idea_analysis", "")
-    raw_vs = state.get("validation_summary", "")
+    raw_vs = state.get("report_synthesis", "")
 
-    # Parse validation_summary — may be JSON (from output_model) or markdown (legacy)
+    # Parse report_synthesis — may be JSON (from output_model) or markdown (legacy)
     try:
         validation_summary = render_validation_summary_from_json(json.loads(raw_vs))
     except (json.JSONDecodeError, TypeError):

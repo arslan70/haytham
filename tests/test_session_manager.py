@@ -311,7 +311,7 @@ class TestGetNextStage:
         session_manager.create_session()
 
         # Approve all stages
-        from haytham.phases.stage_config import STAGES
+        from haytham.workflow.stage_registry import STAGES
 
         for stage in STAGES:
             session_manager.save_user_feedback(

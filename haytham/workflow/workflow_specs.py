@@ -99,6 +99,7 @@ IDEA_VALIDATION_SPEC = WorkflowSpec(
         "market_context",
         "report_synthesis",
     ],
+    extra_state_keys=["recommendation"],
     context_stages=[],
 )
 

@@ -65,7 +65,7 @@ def market_context(state: State) -> State:
         "report_synthesis_status",
         "session_manager",
     ],
-    writes=["report_synthesis", "report_synthesis_status", "current_stage"],
+    writes=["report_synthesis", "report_synthesis_status", "current_stage", "recommendation"],
 )
 def report_synthesis(state: State) -> State:
     """Stage 3: Synthesize validation report from upstream findings."""

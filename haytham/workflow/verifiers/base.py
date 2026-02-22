@@ -293,17 +293,12 @@ class WhyPhaseVerifier(PhaseVerifier):
 """
 
     def get_phase_outputs(self, state: State) -> dict[str, str]:
-        """Get WHY phase outputs: idea_analysis, market_context, risk_assessment, validation_summary."""
+        """Get WHY phase outputs: idea_analysis, market_context, report_synthesis."""
         outputs = {}
-        for key in ["idea_analysis", "market_context", "risk_assessment", "validation_summary"]:
+        for key in ["idea_analysis", "market_context", "report_synthesis"]:
             value = state.get(key, "")
             if value:
                 outputs[key] = value
-
-        # Include pivot_strategy if present
-        pivot = state.get("pivot_strategy", "")
-        if pivot:
-            outputs["pivot_strategy"] = pivot
 
         return outputs
 

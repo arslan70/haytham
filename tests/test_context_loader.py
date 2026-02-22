@@ -271,9 +271,9 @@ class TestContextLoader:
                 requested_files=["validation_report.json"],
             )
 
-        # validation-summary should be able to access validation_report.json
+        # report-synthesis should be able to access validation_report.json
         loader.enforce_temporal_guardrail(
-            stage_slug="validation-summary",
+            stage_slug="report-synthesis",
             requested_files=["validation_report.json"],
         )
 

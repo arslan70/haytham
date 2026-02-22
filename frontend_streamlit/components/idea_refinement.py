@@ -122,11 +122,8 @@ def _create_refinement_system_prompt(original_idea: str, session_dir: Path) -> s
 ## Original Idea
 {original_idea}
 
-## Risk Assessment Context
-{context_data.get("risk_assessment", "No risk assessment available.")}
-
-## Pivot Strategy Suggestions
-{context_data.get("pivot_strategy", "No pivot strategy available.")}
+## Validation Report
+{context_data.get("validation_report", "No validation report available.")}
 
 ## Your Role
 1. Help the user understand the identified risks

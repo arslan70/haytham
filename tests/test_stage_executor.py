@@ -356,7 +356,7 @@ class TestPostProcessors:
 
     @mock.patch("haytham.workflow.stage_executor.run_agent")
     @mock.patch("haytham.workflow.stage_executor.save_stage_output")
-    def test_post_processor_not_called_on_failure(self, mock_save, mock_run):
+    def test_post_processor_called_even_on_failure(self, mock_save, mock_run):
         """Post-processor is still called even on failure (it runs before save check)."""
         mock_run.return_value = {"output": "Error: failed.", "status": "failed"}
         post_proc = mock.Mock(return_value={})

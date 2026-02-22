@@ -65,41 +65,40 @@ def _extract_first_paragraph(content: str, max_chars: int = 200) -> str:
     return ""
 
 
-def _render_risk_assessment_context(data: dict) -> str:
-    """Render risk_assessment JSON into concise context for downstream agents."""
-    summary = data.get("summary", {})
-    lines = [f"Risk Level: {data.get('overall_risk_level', 'UNKNOWN').upper()}"]
-    if summary:
-        lines.append(
-            f"Claims: {summary.get('supported', 0)} supported, "
-            f"{summary.get('partial', 0)} partial, "
-            f"{summary.get('unsupported', 0)} unsupported"
-        )
-    risks = data.get("risks", [])
-    high_risks = [r for r in risks if r.get("level", "").lower() == "high"]
-    medium_risks = [r for r in risks if r.get("level", "").lower() == "medium"]
-    if high_risks:
-        descs = [r.get("description", "")[:80] for r in high_risks]
-        lines.append(f"High Risks: {'; '.join(descs)}")
-    if medium_risks:
-        descs = [r.get("description", "")[:80] for r in medium_risks]
-        lines.append(f"Medium Risks: {'; '.join(descs)}")
-    return "\n".join(lines)
-
-
 def render_validation_summary_from_json(data: dict) -> str:
-    """Render validation_summary JSON into context for downstream agents.
+    """Render report_synthesis / validation_summary JSON into context for downstream agents.
+
+    Handles both the new ValidationReport schema (ADR-026: recommendation, executive_summary
+    dict, report) and the legacy schema (confidence, go_no_go_assessment).
 
     Shared renderer used by build_context_summary(), run_mvp_scope_chain(),
     and build_mvp_scope_context() to avoid triplicated parsing logic.
     """
-    lines = [
-        f"Recommendation: {data.get('recommendation', 'UNKNOWN').upper()} "
-        f"(Confidence: {data.get('confidence', 'UNKNOWN').upper()})"
-    ]
-    summary = data.get("executive_summary", "")
-    if summary:
-        lines.append(summary)
+    rec = data.get("recommendation", "UNKNOWN")
+    lines = [f"Recommendation: {rec.upper() if isinstance(rec, str) else rec}"]
+
+    exec_summary = data.get("executive_summary", "")
+
+    # New schema (ADR-026): executive_summary is a dict with structured fields
+    if isinstance(exec_summary, dict):
+        if exec_summary.get("one_liner"):
+            lines.append(exec_summary["one_liner"])
+        if exec_summary.get("strengths"):
+            lines.append(f"Strengths: {', '.join(exec_summary['strengths'])}")
+        if exec_summary.get("weaknesses"):
+            lines.append(f"Weaknesses: {', '.join(exec_summary['weaknesses'])}")
+        if exec_summary.get("next_steps"):
+            lines.append(f"Next Steps: {', '.join(exec_summary['next_steps'])}")
+    elif isinstance(exec_summary, str) and exec_summary:
+        # Legacy schema: executive_summary is a plain string
+        lines.append(exec_summary)
+
+    # Legacy schema fields
+    confidence = data.get("confidence")
+    if confidence:
+        lines[0] += (
+            f" (Confidence: {confidence.upper() if isinstance(confidence, str) else confidence})"
+        )
     assessment = data.get("go_no_go_assessment", {})
     if assessment.get("strengths"):
         lines.append(f"Strengths: {', '.join(assessment['strengths'])}")
@@ -107,11 +106,12 @@ def render_validation_summary_from_json(data: dict) -> str:
         lines.append(f"Weaknesses: {', '.join(assessment['weaknesses'])}")
     if assessment.get("guidance"):
         lines.append(f"Guidance: {assessment['guidance']}")
+
     return "\n".join(lines)
 
 
-def _render_validation_summary_context(data: dict) -> str:
-    """Render validation_summary JSON for build_context_summary()."""
+def _render_report_synthesis_context(data: dict) -> str:
+    """Render report_synthesis JSON for build_context_summary()."""
     return render_validation_summary_from_json(data)
 
 
@@ -146,8 +146,7 @@ def _render_story_generation_context(data: dict) -> str:
 
 
 _JSON_CONTEXT_RENDERERS: dict[str, Any] = {
-    "risk_assessment": _render_risk_assessment_context,
-    "validation_summary": _render_validation_summary_context,
+    "report_synthesis": _render_report_synthesis_context,
     "build_buy_analysis": _render_build_buy_context,
     "story_generation": _render_story_generation_context,
 }
