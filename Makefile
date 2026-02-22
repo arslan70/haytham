@@ -213,7 +213,7 @@ endif
 
 docs:
 	@echo "Serving docs at http://localhost:8000 (Ctrl+C to stop)"
-	pip install "mkdocs-material>=9.0.0" mkdocs-rss-plugin -q && mkdocs serve
+	uv run --extra docs mkdocs serve
 
 lint:
 	uv run ruff check haytham/ --fix

@@ -13,15 +13,6 @@
   color: var(--md-primary-fg-color);
 }
 
-.md-typeset .hero .hero-subtitle {
-  font-size: 1.15rem;
-  color: var(--md-typeset-color);
-  opacity: 0.8;
-  max-width: 640px;
-  margin: 0 auto 1.5rem;
-  line-height: 1.6;
-}
-
 .md-typeset .hero .hero-buttons {
   display: flex;
   gap: 0.75rem;
