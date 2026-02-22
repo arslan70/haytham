@@ -52,12 +52,12 @@ def _safe_int_env(name: str, default: int) -> int:
 
 def _get_session_limit() -> int:
     """Get configured session limit from environment."""
-    return _safe_int_env("WEB_SEARCH_SESSION_LIMIT", 20)
+    return _safe_int_env("WEB_SEARCH_SESSION_LIMIT", 30)
 
 
 def _get_warning_threshold() -> int:
     """Get warning threshold from environment."""
-    return _safe_int_env("WEB_SEARCH_WARNING_THRESHOLD", 15)
+    return _safe_int_env("WEB_SEARCH_WARNING_THRESHOLD", 25)
 
 
 def _check_session_limit() -> tuple[bool, str]:

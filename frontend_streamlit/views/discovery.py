@@ -6,7 +6,10 @@ setup_paths()
 load_environment()
 
 import json  # noqa: E402
+import logging  # noqa: E402
 import re  # noqa: E402
+
+logger = logging.getLogger("haytham")  # noqa: E402
 
 import streamlit as st  # noqa: E402
 import yaml  # noqa: E402
@@ -476,8 +479,12 @@ else:
                 "haytham-idea-validation-report.pdf",
                 "application/pdf",
             )
-        except (ImportError, OSError, ValueError):
-            pass  # Silently skip if PDF generation fails
+        except ImportError:
+            logger.warning(
+                "PDF report generation unavailable: missing 'reportlab' package. Run: uv sync"
+            )
+        except (OSError, ValueError) as e:
+            logger.warning("PDF report generation failed: %s", e)
 
     render_feedback_conversation(
         workflow_type=WORKFLOW_TYPE,

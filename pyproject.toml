@@ -31,6 +31,7 @@ dependencies = [
     "burr[start]>=0.40.2",
     "pyyaml>=6.0.0",
     "ddgs>=6.1.0",
+    "reportlab>=4.0.0",
 ]
 
 [project.urls]
@@ -42,7 +43,7 @@ Documentation = "https://arslan70.github.io/haytham/"
 [project.optional-dependencies]
 observability = ["langfuse>=2.0.0"]
 vectordb = ["lancedb>=0.26.1", "pyarrow>=22.0.0"]
-reports = ["reportlab>=4.0.0"]
+reports = []  # reportlab is now a core dependency
 anthropic = ["anthropic>=0.45.0"]
 openai = ["openai>=1.10.0"]
 ollama = ["ollama>=0.4.0"]
