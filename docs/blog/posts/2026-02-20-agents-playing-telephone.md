@@ -1,3 +1,18 @@
+---
+date: 2026-02-20
+authors:
+  - haytham
+categories:
+  - Multi-Agent Systems
+  - Architecture
+tags:
+  - agents
+  - pipeline
+  - concept-drift
+  - error-amplification
+description: "Multi-agent pipelines lose your intent one handoff at a time. Here's how to stop playing telephone."
+---
+
 # Your Agents Are Playing Telephone
 
 *By someone who has stared at too many multi-agent pipelines.*
@@ -19,6 +34,8 @@ And then something goes wrong.
 Give the pipeline a specific, nuanced input. Something like "build an invite-only marketplace for vintage furniture restorers, with escrow payments, max 500 sellers at launch." What comes out the other end is a generic two-sided marketplace with open signup, Stripe checkout, and infinite scalability. Every distinctive constraint, the things that made the input *yours*, got smoothed away by agents who each did their job perfectly in isolation.
 
 This is the telephone game, except the players are LLMs and the message is your system.
+
+<!-- more -->
 
 ## The Failure Modes Are Predictable
 
