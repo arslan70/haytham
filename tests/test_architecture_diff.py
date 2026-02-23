@@ -4,7 +4,11 @@ These tests verify the core algorithm from ADR-005 that determines
 what architect agents need to address.
 """
 
-from haytham.phases.workflow_2.diff import (
+import pytest
+
+pytest.importorskip("lancedb", reason="lancedb required for workflow_2 import chain")
+
+from haytham.phases.workflow_2.diff import (  # noqa: E402
     ArchitectureDiff,
     compute_architecture_diff,
     get_diff_context_for_prompt,

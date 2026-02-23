@@ -1,11 +1,4 @@
-"""MVP Specification Agent module.
+"""MVP Specification Agent package.
 
-This agent transforms concept expansion output into detailed,
-actionable MVP specifications that can be used by implementation teams.
+Agents are created via the factory (create_agent_by_name).
 """
-
-from haytham.agents.worker_mvp_specification.worker_mvp_specification import (
-    MVPSpecificationAgent,
-)
-
-__all__ = ["MVPSpecificationAgent"]

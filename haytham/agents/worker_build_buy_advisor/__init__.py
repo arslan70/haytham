@@ -1,4 +1,7 @@
-"""Build vs Buy Advisor agent module."""
+"""Build vs Buy Advisor agent module.
+
+Agents are created via the factory (create_agent_by_name).
+"""
 
 from haytham.agents.worker_build_buy_advisor.build_buy_models import (
     AlternativeService,
@@ -7,7 +10,6 @@ from haytham.agents.worker_build_buy_advisor.build_buy_models import (
     InfrastructureRequirement,
     RecommendationType,
     ServiceRecommendation,
-    format_build_buy_analysis,
 )
 
 __all__ = [
@@ -17,5 +19,4 @@ __all__ = [
     "AlternativeService",
     "AlternativesSection",
     "RecommendationType",
-    "format_build_buy_analysis",
 ]

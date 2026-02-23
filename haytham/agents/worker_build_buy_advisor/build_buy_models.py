@@ -6,10 +6,9 @@ ensuring type-safe, validated responses with clear structure for UI display.
 
 from __future__ import annotations
 
-import json
 from enum import Enum
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 
 
 class RecommendationType(str, Enum):
@@ -201,24 +200,3 @@ class BuildBuyAnalysisOutput(BaseModel):
         )
 
         return "\n".join(lines)
-
-
-def format_build_buy_analysis(data: dict | BuildBuyAnalysisOutput) -> str:
-    """Format build buy analysis data as markdown.
-
-    Args:
-        data: Either a BuildBuyAnalysisOutput instance or a dict with the same structure
-
-    Returns:
-        Formatted markdown string
-    """
-    if isinstance(data, BuildBuyAnalysisOutput):
-        return data.to_markdown()
-
-    # Handle dict input (e.g., from JSON parsing)
-    try:
-        model = BuildBuyAnalysisOutput.model_validate(data)
-        return model.to_markdown()
-    except (ValidationError, TypeError, ValueError):
-        # Fallback: return raw dict as formatted string
-        return f"```json\n{json.dumps(data, indent=2)}\n```"

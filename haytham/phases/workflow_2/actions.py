@@ -22,7 +22,10 @@ from pathlib import Path
 from typing import Any
 
 from burr.core import State, action
+from strands import Agent
 
+from haytham.agents.hooks import HaythamAgentHooks
+from haytham.agents.utils.model_provider import create_model
 from haytham.phases.workflow_2.diff import ArchitectureDiff
 from haytham.state.schema import create_decision, create_entity
 
@@ -70,8 +73,6 @@ def run_architect_agent(
     Returns:
         Dict with output and metadata
     """
-    from strands import Agent
-
     start_time = time.time()
 
     try:
@@ -87,9 +88,6 @@ def run_architect_agent(
                 else:
                     full_prompt = full_prompt.replace(placeholder, str(value))
 
-        # Use the Bedrock model with strands Agent
-        from haytham.agents.utils.model_provider import create_model
-
         # Create model with higher max_tokens to avoid MaxTokensReachedException
         model = create_model(max_tokens=8000)
 
@@ -97,6 +95,8 @@ def run_architect_agent(
         agent = Agent(
             model=model,
             system_prompt="You are an expert software architect. Follow the instructions precisely and output valid JSON when requested.",
+            name=agent_name,
+            hooks=[HaythamAgentHooks()],
         )
 
         # Call the agent
