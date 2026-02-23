@@ -288,7 +288,7 @@ def measure_embedding_similarity(
             key_terms_preserved=list(original_terms & output_terms)[:20],
             key_terms_lost=list(original_terms - output_terms)[:20],
         )
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: Bedrock embedding can fail in many ways
         logger.warning(f"Embedding similarity failed: {e}, falling back to keywords")
         return measure_keyword_similarity(original, output, stage)
 
@@ -325,7 +325,7 @@ def detect_contradiction_bertscore(text1: str, text2: str, threshold: float = 0.
         bertscore = float(F1[0])
 
         return bertscore < threshold
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: optional metric, must not crash
         logger.warning(f"BERTScore calculation failed: {e}")
         return False
 

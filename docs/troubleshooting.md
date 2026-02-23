@@ -2,17 +2,17 @@
 
 ## Common Issues
 
-**"Module not found" errors** — Make sure you ran `uv sync` with the correct `--extra` flag for your provider. See [Getting Started](getting-started.md#installation).
+**"Module not found" errors.** Make sure you ran `uv sync` with the correct `--extra` flag for your provider. See [Getting Started](getting-started.md#installation).
 
-**Ollama connection refused** — Ensure Ollama is running (`ollama serve`) and the model is pulled (`ollama list`).
+**Ollama connection refused.** Ensure Ollama is running (`ollama serve`) and the model is pulled (`ollama list`).
 
-**AWS credential errors** — Verify your AWS credentials are configured (`aws sts get-caller-identity`). Check that your IAM role has Bedrock model access in the configured region.
+**AWS credential errors.** Verify your AWS credentials are configured (`aws sts get-caller-identity`). Check that your IAM role has Bedrock model access in the configured region.
 
-**Incomplete or low-quality outputs** — Try a more capable model. The REASONING tier has the most impact on output quality. See [Three-Tier Model Configuration](getting-started.md#three-tier-model-configuration).
+**Incomplete or low-quality outputs.** Try a more capable model. The REASONING tier has the most impact on output quality. See [Three-Tier Model Configuration](getting-started.md#three-tier-model-configuration).
 
-**Stage seems stuck** — Some stages (especially validation scoring) involve long LLM reasoning chains. Check the console logs for activity. If truly stuck, increase `DEFAULT_MAX_TOKENS` in `.env`.
+**Stage seems stuck.** Some stages (especially validation scoring) involve long LLM reasoning chains. Check the console logs for activity. If truly stuck, increase `DEFAULT_MAX_TOKENS` in `.env`.
 
-**Token limit errors** — If a stage fails with a Bedrock throttling or token limit error, either increase `DEFAULT_MAX_TOKENS` or switch to a model with a larger context window.
+**Token limit errors.** If a stage fails with a Bedrock throttling or token limit error, either increase `DEFAULT_MAX_TOKENS` or switch to a model with a larger context window.
 
 ## Logs
 
@@ -23,8 +23,8 @@ Haytham logs to the console (stdout) by default. No file logging is configured o
 Set `LOG_LEVEL` in `.env` to control verbosity:
 
 ```bash
-LOG_LEVEL=DEBUG    # Everything — LLM calls, tool invocations, state transitions
-LOG_LEVEL=INFO     # Default — stage starts/completions, key decisions
+LOG_LEVEL=DEBUG    # Everything: LLM calls, tool invocations, state transitions
+LOG_LEVEL=INFO     # Default: stage starts/completions, key decisions
 LOG_LEVEL=WARNING  # Problems only
 LOG_LEVEL=ERROR    # Failures only
 ```
@@ -51,7 +51,7 @@ At `INFO` and above, `urllib3`, `botocore`, and `boto3` are automatically suppre
 
 ## Tracing with Jaeger
 
-Haytham includes OpenTelemetry tracing for visualizing the full execution pipeline — workflow, stages, agents, LLM calls, and tool invocations. **Disabled by default.**
+Haytham includes OpenTelemetry tracing for visualizing the full execution pipeline: workflow, stages, agents, LLM calls, and tool invocations. **Disabled by default.**
 
 ### Quick Start
 
@@ -100,9 +100,9 @@ workflow (root)
 ```
 
 Each span includes:
-- **Duration** — how long the operation took
-- **Attributes** — stage slug, agent name, model ID, token counts
-- **Errors** — flagged with `error=true`, including whether it was a token limit error
+- **Duration**: how long the operation took
+- **Attributes**: stage slug, agent name, model ID, token counts
+- **Errors**: flagged with `error=true`, including whether it was a token limit error
 
 ### Tracing Configuration
 
@@ -110,7 +110,7 @@ All configuration is via environment variables in `.env`:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OTEL_SDK_DISABLED` | `true` | Master switch — set to `false` to enable |
+| `OTEL_SDK_DISABLED` | `true` | Master switch. Set to `false` to enable |
 | `OTEL_TRACES_EXPORTER` | `otlp` | Exporter: `otlp`, `console`, or `none` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | OTLP collector endpoint |
 | `OTEL_SERVICE_NAME` | `haytham-ai` | Service name in traces |
@@ -136,7 +136,7 @@ make jaeger-down
 
 ## Burr Tracking UI
 
-[Burr](https://github.com/dagworks-inc/burr) provides a visual UI for workflow state machine execution — which stages ran, what state was passed between them, and where branching occurred.
+[Burr](https://github.com/dagworks-inc/burr) provides a visual UI for workflow state machine execution: which stages ran, what state was passed between them, and where branching occurred.
 
 ```bash
 burr
@@ -169,18 +169,18 @@ LANGFUSE_HOST=https://cloud.langfuse.com   # or self-hosted URL
 - **User feedback** scores and comments from the Streamlit UI
 - **Errors** with agent and phase context
 
-Langfuse can run alongside Jaeger — they serve different purposes (infrastructure tracing vs. LLM analytics).
+Langfuse can run alongside Jaeger. They serve different purposes (infrastructure tracing vs. LLM analytics).
 
 ## Structured Output Errors
 
 Agents that use Pydantic structured output can fail if the LLM returns malformed JSON or missing fields.
 
-**"ValidationError: N validation errors for ModelName"** — The LLM returned JSON that doesn't match the Pydantic model. Common causes:
-- Model too small (LIGHT tier used where HEAVY is needed) — check `AGENT_CONFIGS` in `haytham/config.py`
-- Prompt doesn't clearly specify the expected schema — check the agent's prompt file
-- Token limit hit mid-response — increase `DEFAULT_MAX_TOKENS`
+**"ValidationError: N validation errors for ModelName".** The LLM returned JSON that doesn't match the Pydantic model. Common causes:
+- Model too small (LIGHT tier used where HEAVY is needed). Check `AGENT_CONFIGS` in `haytham/config.py`
+- Prompt doesn't clearly specify the expected schema. Check the agent's prompt file
+- Token limit hit mid-response. Increase `DEFAULT_MAX_TOKENS`
 
-**"structured_output is None"** — The agent completed but didn't produce structured output. Check that:
+**"structured_output is None".** The agent completed but didn't produce structured output. Check that:
 1. The agent's config has `structured_output_model` set in `AGENT_CONFIGS`
 2. The extraction code uses `result.structured_output`, not `result.output` (Strands SDK convention)
 3. The model supports structured output (some Ollama models may not)
@@ -189,9 +189,9 @@ Agents that use Pydantic structured output can fail if the LLM returns malformed
 
 ## Web Search Failures
 
-**"Search rate limit reached"** — The session-wide search limit (`WEB_SEARCH_SESSION_LIMIT`, default 20) has been exceeded. This is a cost protection measure. To increase it, set `WEB_SEARCH_SESSION_LIMIT=50` in `.env`.
+**"Search rate limit reached".** The session-wide search limit (`WEB_SEARCH_SESSION_LIMIT`, default 20) has been exceeded. This is a cost protection measure. To increase it, set `WEB_SEARCH_SESSION_LIMIT=50` in `.env`.
 
-**"No search results"** — The DuckDuckGo provider may be rate-limited. Add a Brave or Tavily API key for more reliable results:
+**"No search results".** The DuckDuckGo provider may be rate-limited. Add a Brave or Tavily API key for more reliable results:
 
 ```bash
 BRAVE_API_KEY=BSA...    # Brave Search

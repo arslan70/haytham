@@ -34,10 +34,10 @@ The problem involves managing multiple types of uncertainty simultaneously:
 
 #### 1. Semantic Uncertainty (Local)
 Each user story is incomplete, ambiguous, and user-centric. For example:
-- "Integrates with external systems" — which systems? what APIs? what data formats?
-- "Real-time updates" — what latency is acceptable? WebSocket or polling?
-- "Personalized recommendations" — what algorithm? what inputs? what data?
-- "User can share content" — share where? with whom? what permissions?
+- "Integrates with external systems": which systems? what APIs? what data formats?
+- "Real-time updates": what latency is acceptable? WebSocket or polling?
+- "Personalized recommendations": what algorithm? what inputs? what data?
+- "User can share content": share where? with whom? what permissions?
 
 These ambiguities cannot be eliminated upfront and must be surfaced and managed.
 
@@ -48,7 +48,7 @@ User stories describe desired behavior, not system architecture. The system may 
 Some decisions are low-cost and reversible (variable naming, file organization). Others have high, irreversible impact (database schema, authentication model, API contracts). Without a human team, the system must identify and escalate high-impact decisions rather than making them implicitly.
 
 #### 4. Temporal Evolution
-The system is not static. Stories arrive incrementally. Earlier interpretations affect context for later ones. The system must distinguish between introducing something new versus extending/modifying what exists. Retroactive coherence is required — later stories may reveal that earlier interpretations need revision.
+The system is not static. Stories arrive incrementally. Earlier interpretations affect context for later ones. The system must distinguish between introducing something new versus extending/modifying what exists. Retroactive coherence is required. Later stories may reveal that earlier interpretations need revision.
 
 #### 5. Dual-Source Story Generation
 Stories come from two sources:
@@ -285,10 +285,10 @@ Each chunk will be detailed in a separate mini-ADR:
 
 ### Recommended Order
 
-1. **ADR-001a** (MVP Spec Enhancement) — Defines input format for all downstream chunks
-2. **ADR-001c** (System State Model) — Defines the ground truth all chunks reference
-3. **ADR-001b** (Platform & Stack) — First runtime decision point
-4. **ADR-001d** through **ADR-001h** — Sequential based on data flow
+1. **ADR-001a** (MVP Spec Enhancement): Defines input format for all downstream chunks
+2. **ADR-001c** (System State Model): Defines the ground truth all chunks reference
+3. **ADR-001b** (Platform & Stack): First runtime decision point
+4. **ADR-001d** through **ADR-001h**: Sequential based on data flow
 
 ---
 
@@ -320,18 +320,18 @@ Each chunk will be detailed in a separate mini-ADR:
 
 The following features are explicitly excluded from POC to minimize complexity:
 
-- **User authentication / authorization** — Apps are single-user or no auth
-- **Multi-tenancy** — Single tenant only
-- **Mobile apps** — Web only (single platform)
-- **Cloud hosting / deployment** — Local development only
-- **Real-time features** — No WebSockets, polling acceptable
-- **File uploads / media handling** — Text data only
-- **Email / notifications** — No external messaging
-- **Payment processing** — No financial transactions
-- **Analytics / telemetry** — No tracking infrastructure
-- **Third-party API integrations** — No external service dependencies
-- **Background jobs / queues** — Synchronous processing only
-- **Full-text search** — Basic filtering only, no FTS infrastructure
+- **User authentication / authorization**: Apps are single-user or no auth
+- **Multi-tenancy**: Single tenant only
+- **Mobile apps**: Web only (single platform)
+- **Cloud hosting / deployment**: Local development only
+- **Real-time features**: No WebSockets, polling acceptable
+- **File uploads / media handling**: Text data only
+- **Email / notifications**: No external messaging
+- **Payment processing**: No financial transactions
+- **Analytics / telemetry**: No tracking infrastructure
+- **Third-party API integrations**: No external service dependencies
+- **Background jobs / queues**: Synchronous processing only
+- **Full-text search**: Basic filtering only, no FTS infrastructure
 
 If a startup idea requires any of these, the system should:
 1. Flag it as an uncertainty during interpretation

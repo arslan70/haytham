@@ -406,7 +406,7 @@ Replace the `content: str` blob with structured fields for acceptance criteria, 
 Steps are ordered by risk, not alphabetically. Each step is validated before the next begins. Do not parallelize 1a/1b/1c: ship the lowest-risk change first and prove the pattern.
 
 ```
-Part 1 — Structure upstream outputs (risk-ordered, validate each before proceeding)
+Part 1 - Structure upstream outputs (risk-ordered, validate each before proceeding)
 
   1a. capability-model [NEAR-ZERO RISK]
       - Define CapabilityModelOutput (model matches what agent already produces)
@@ -433,7 +433,7 @@ Part 1 — Structure upstream outputs (risk-ordered, validate each before procee
       Gate: Part 2 does not begin until all three models pass validation
       against at least 2 different idea inputs (e.g., T1 gym leaderboard + one other)
 
-Part 2 — Assembly and wiring (changes pipeline input paths)
+Part 2 - Assembly and wiring (changes pipeline input paths)
   2a. Define ProjectContext, ResolvedProjectSpec, assembly functions
   2b. Wire into story generation (replace 5 raw strings with ProjectContext)
   2c. Update story validation to use ProjectContext (eliminate ~100 lines of parsing)

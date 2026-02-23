@@ -1,10 +1,10 @@
-# VISION.md — The Haytham Roadmap
+# VISION.md - The Haytham Roadmap
 
 ## Executive Summary
 
 Haytham is a specification-driven control plane for software systems.
 
-It turns a business intent into a validated specification — traced capabilities, architecture decisions, ordered stories — and then orchestrates execution agents to build and maintain the result. The specification is the differentiator: it gives every downstream agent (a hosted coding agent, a cloud provider's service agent, an MCP-native tool) the context to act with purpose rather than guess.
+It turns a business intent into a validated specification (traced capabilities, architecture decisions, ordered stories) and then orchestrates execution agents to build and maintain the result. The specification is the differentiator: it gives every downstream agent (a hosted coding agent, a cloud provider's service agent, an MCP-native tool) the context to act with purpose rather than guess.
 
 The journey has three milestones:
 
@@ -20,22 +20,22 @@ Each milestone builds on the last. Without Genesis, Evolution has nothing to evo
 
 ## Milestone 1: Genesis
 
-**From idea to implementation-ready specification — then to a working system.**
+**From idea to implementation-ready specification, then to a working system.**
 
 Going from "I have an idea" to "I have a plan worth executing" traditionally requires weeks of planning, a team of specialists, significant capital, and a high risk of building the wrong thing.
 
 Haytham compresses this into a structured, evidence-based process:
 
-1. **Validate** — Is this idea worth building?
-2. **Specify** — What exactly should the MVP include?
-3. **Design** — How should each capability be built?
-4. **Plan** — What are the implementation tasks?
-5. **Execute** — Hand stories to coding agents for implementation
-6. **Verify** — Validate implemented capabilities against the specification
+1. **Validate**: Is this idea worth building?
+2. **Specify**: What exactly should the MVP include?
+3. **Design**: How should each capability be built?
+4. **Plan**: What are the implementation tasks?
+5. **Execute**: Hand stories to coding agents for implementation
+6. **Verify**: Validate implemented capabilities against the specification
 
 Each phase is staffed by specialist AI agents. Each phase produces reviewable, structured output. Each phase ends with a human approval gate.
 
-The output of Phases 1–4 is a complete specification: validated assumptions, scoped MVP, architecture decisions, and ordered user stories. This specification is not just documentation — it is the execution context that Phases 5–6 feed to coding agents, design agents, and service agents to produce a working system.
+The output of Phases 1–4 is a complete specification: validated assumptions, scoped MVP, architecture decisions, and ordered user stories. This specification is not just documentation; it is the execution context that Phases 5-6 feed to coding agents, design agents, and service agents to produce a working system.
 
 ### Current State
 
@@ -56,7 +56,7 @@ Genesis is complete when: idea in, working validated MVP out.
 
 Software is never "done." After launch, users request features, bugs surface, requirements shift, and technical debt accumulates. Traditional development requires returning to an expensive, manual process for every change.
 
-Haytham's traceability makes this tractable. Because every story traces to a capability, every capability to a need, and every decision to a rationale, the system can understand what exists and why — then generate targeted changes without a full rewrite.
+Haytham's traceability makes this tractable. Because every story traces to a capability, every capability to a need, and every decision to a rationale, the system can understand what exists and why, then generate targeted changes without a full rewrite.
 
 When a change is needed, Haytham:
 
@@ -69,11 +69,11 @@ When a change is needed, Haytham:
 
 ### Examples
 
-**"Add PDF export to reports"** — Haytham identifies the affected capability, analyzes the current architecture, recommends build-vs-buy for PDF generation, generates implementation stories, and validates that existing report functionality is unchanged.
+**"Add PDF export to reports"**: Haytham identifies the affected capability, analyzes the current architecture, recommends build-vs-buy for PDF generation, generates implementation stories, and validates that existing report functionality is unchanged.
 
-**"Login fails on Safari"** — Haytham traces the issue to the authentication capability, retrieves the implementation context, diagnoses the root cause, generates a fix story, and validates the fix across browsers.
+**"Login fails on Safari"**: Haytham traces the issue to the authentication capability, retrieves the implementation context, diagnoses the root cause, generates a fix story, and validates the fix across browsers.
 
-**"Payment code is getting complex, refactor it"** — Haytham identifies the affected capabilities, proposes a refactoring approach, generates stories with clear before/after expectations, and validates that all payment functionality still works.
+**"Payment code is getting complex, refactor it"**: Haytham identifies the affected capabilities, proposes a refactoring approach, generates stories with clear before/after expectations, and validates that all payment functionality still works.
 
 ### Success Criteria
 
@@ -93,11 +93,11 @@ Even with Evolution, humans must notice that something needs to change, articula
 
 Sentience closes the final loop. The system monitors its own production behavior and autonomously proposes improvements:
 
-- **Detect** — Monitor error rates, usage patterns, performance metrics, and business KPIs
-- **Analyze** — Correlate signals with capabilities, code paths, and recent changes
-- **Propose** — Generate improvement stories with evidence and expected impact
-- **Execute** — Implement changes within approved policy bounds
-- **Validate** — Confirm the improvement achieved its goal
+- **Detect**: Monitor error rates, usage patterns, performance metrics, and business KPIs
+- **Analyze**: Correlate signals with capabilities, code paths, and recent changes
+- **Propose**: Generate improvement stories with evidence and expected impact
+- **Execute**: Implement changes within approved policy bounds
+- **Validate**: Confirm the improvement achieved its goal
 
 ### Approval Policies
 
@@ -117,7 +117,7 @@ Policies are configurable. The system earns autonomy through demonstrated reliab
 
 ## The Control Plane: Orchestrating Execution Agents
 
-Software is entering an era where the unit of execution is no longer just code — it's an agent. Hosted coding agents (Devin, Amazon Q Developer Agent, Google Jules, Claude Code), design agents (Google Stitch), and cloud-native service agents (AWS Bedrock Agents, Google Vertex AI Agents, Azure AI Agent Service) are proliferating. MCP is establishing common ground for tool-use across providers.
+Software is entering an era where the unit of execution is no longer just code. It's an agent. Hosted coding agents (Devin, Amazon Q Developer Agent, Google Jules, Claude Code), design agents (Google Stitch), and cloud-native service agents (AWS Bedrock Agents, Google Vertex AI Agents, Azure AI Agent Service) are proliferating. MCP is establishing common ground for tool-use across providers.
 
 The missing layer is the one above them: something that knows *what* should be built and *why*, and can dispatch traced, contextualized work to whichever agent is best suited to execute it.
 
@@ -125,11 +125,11 @@ That is Haytham's role. Not a generic agent router, but a **specification-driven
 
 ### The Pattern in Practice
 
-A planned example illustrates this. [Google Stitch](https://stitch.withgoogle.com/) exposes UI generation capabilities through an official MCP endpoint (`stitch.googleapis.com/mcp`). The planned `ux_designer` agent (see [ADR-021](docs/adr/ADR-021-design-ux-workflow-stage.md)) will connect to Stitch via the Strands `mcp_client` tool, discover its available operations, generate UI screens for each capability, and extract code in the architecture's chosen framework — all within a single agent turn.
+A planned example illustrates this. [Google Stitch](https://stitch.withgoogle.com/) exposes UI generation capabilities through an official MCP endpoint (`stitch.googleapis.com/mcp`). The planned `ux_designer` agent (see [ADR-021](docs/adr/ADR-021-design-ux-workflow-stage.md)) will connect to Stitch via the Strands `mcp_client` tool, discover its available operations, generate UI screens for each capability, and extract code in the architecture's chosen framework, all within a single agent turn.
 
 The agent won't call a fixed API. It will connect to a service that exposes tools, reason about which tools to call and in what order, and adapt its approach based on the results. This is what "service as agent" looks like in practice: not a chatbot wrapper around an API, but an MCP-native service whose capabilities are discoverable and composable by any agent that speaks the protocol.
 
-The same pattern extends to every execution boundary. The specification is the common interface — whether the executor is an agent or a human, they receive the same traced context:
+The same pattern extends to every execution boundary. The specification is the common interface. Whether the executor is an agent or a human, they receive the same traced context:
 
 ```mermaid
 flowchart LR
@@ -153,15 +153,15 @@ flowchart LR
 
 Generic orchestrators (LangGraph, CrewAI, AutoGen) route messages between agents. They solve the *plumbing* problem. Haytham solves a different problem: **what should the agents be doing, and how do we know they did it right?**
 
-- **Specification first.** Agents receive validated, scoped work items — not open-ended instructions. A coding agent implementing a story knows the capability it serves, the architecture decisions that constrain it, and the acceptance criteria it must satisfy.
+- **Specification first.** Agents receive validated, scoped work items, not open-ended instructions. A coding agent implementing a story knows the capability it serves, the architecture decisions that constrain it, and the acceptance criteria it must satisfy.
 - **Traceability throughout.** Whether a capability is implemented by generated code, a hosted coding agent, or a cloud service agent, the traceability chain (story → capability → decision → rationale) is preserved. This is what makes Evolution and Sentience possible.
 - **Human gates at phase boundaries.** Agents execute within human-approved scope. The founder approves the business case. The product owner approves the MVP scope. The architect approves the technical decisions. Only then do execution agents receive work.
 
 ### Why APIs Aren't Enough
 
-APIs enforce rigid contracts. When you call `POST /provision`, the interface is fixed: structured input, predictable output, predetermined error codes. This works well for defined operations — and it should stay that way. Financial transactions, authentication, data integrity — these *must* be deterministic. Non-determinism in these domains is a bug.
+APIs enforce rigid contracts. When you call `POST /provision`, the interface is fixed: structured input, predictable output, predetermined error codes. This works well for defined operations, and it should stay that way. Financial transactions, authentication, data integrity: these *must* be deterministic. Non-determinism in these domains is a bug.
 
-But APIs struggle at integration boundaries where the real world leaks in. "Provision infrastructure that handles our expected load at minimum cost" involves trade-offs that no fixed endpoint can capture. "Generate a UI that matches our brand for this capability" requires interpretation, not a schema. "Refactor the payment module to support subscriptions" requires understanding the existing system, the business intent, and the downstream impact — context that a REST call cannot carry.
+But APIs struggle at integration boundaries where the real world leaks in. "Provision infrastructure that handles our expected load at minimum cost" involves trade-offs that no fixed endpoint can capture. "Generate a UI that matches our brand for this capability" requires interpretation, not a schema. "Refactor the payment module to support subscriptions" requires understanding the existing system, the business intent, and the downstream impact, context that a REST call cannot carry.
 
 Today, we bridge this gap with orchestration glue: complex workflows built on top of deterministic APIs to approximate the reasoning that an agent does naturally. The glue is brittle, expensive to maintain, and breaks every time the world changes in a way the contract didn't anticipate.
 
@@ -175,13 +175,13 @@ The shift isn't *from* APIs *to* agents. It's recognizing that the world has two
 | **Best served by** | APIs | Agents |
 | **Examples** | Insert a row, send an email, charge a card | Choose infrastructure, generate UI, plan a refactor |
 
-Software systems involve both kinds of operations. The mistake is forcing reasoning operations into deterministic contracts. The agents proliferating today — coding agents, design agents, cloud service agents — exist precisely because the industry is recognizing where reasoning is needed.
+Software systems involve both kinds of operations. The mistake is forcing reasoning operations into deterministic contracts. The agents proliferating today (coding agents, design agents, cloud service agents) exist precisely because the industry is recognizing where reasoning is needed.
 
-Haytham operates at the layer where this distinction matters most: the boundary between business intent and technical execution. The specification it produces converts reasoning operations (what should we build, why, how) into a form that downstream agents — whether they reason or execute deterministically — can act on with full context.
+Haytham operates at the layer where this distinction matters most: the boundary between business intent and technical execution. The specification it produces converts reasoning operations (what should we build, why, how) into a form that downstream agents, whether they reason or execute deterministically, can act on with full context.
 
 ### Implications per Milestone
 
-- **Genesis** already benefits. Phase 5 dispatches stories to coding agents with full specification context. Phase 6 validates the result against the capability model. The spec isn't just documentation — it's the execution contract.
+- **Genesis** already benefits. Phase 5 dispatches stories to coding agents with full specification context. Phase 6 validates the result against the capability model. The spec isn't just documentation; it's the execution contract.
 - **Evolution** benefits most immediately. Instead of generating integration code for every change, Haytham can delegate to service agents that already understand their domain. A "switch from email to SMS notifications" change request becomes a delegation from one communication service agent to another, with Haytham maintaining the traceability.
 - **Sentience** becomes tractable. A self-improving system that can negotiate directly with infrastructure agents to optimize costs, scale resources, or rotate failing dependencies is more plausible than one that must generate, test, and deploy code for every operational adjustment.
 

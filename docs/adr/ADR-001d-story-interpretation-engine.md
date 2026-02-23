@@ -545,7 +545,7 @@ I'm interpreting your story about searching notes and need a decision from you.
 
 ### Question: What fields should the search include?
 
-Your story says users can "search my notes" — I need to know the search scope.
+Your story says users can "search my notes", and I need to know the search scope.
 
 **Option A: Title only**
 - Fastest performance

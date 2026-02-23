@@ -13,7 +13,7 @@
 - **Single JSON File**: All state in one `state.json` file (not multi-file YAML)
 - **No Snapshots/Versioning**: State is saved after each operation; no rollback mechanism
 - **No Checksums**: Trust the file system
-- **Retroactive Coherence**: Deferred — if state is wrong, user manually triggers re-interpretation
+- **Retroactive Coherence**: Deferred. If state is wrong, user manually triggers re-interpretation
 - **Simplified IDs**: Only S-XXX, E-XXX, T-XXX, D-XXX
 
 ---
@@ -22,9 +22,9 @@
 
 The Story-to-Implementation Pipeline requires a shared understanding of "what exists" at any point in time. Without this:
 
-1. **Story interpretation drifts** — Each story is interpreted in isolation
-2. **Conflicts go undetected** — New stories may contradict earlier decisions
-3. **Implementation has no reference** — Coding agents don't know what's already built
+1. **Story interpretation drifts**: Each story is interpreted in isolation
+2. **Conflicts go undetected**: New stories may contradict earlier decisions
+3. **Implementation has no reference**: Coding agents don't know what's already built
 
 ### What System State Must Capture
 

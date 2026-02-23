@@ -4,11 +4,7 @@ These tests verify the core algorithm from ADR-005 that determines
 what architect agents need to address.
 """
 
-import pytest
-
-pytest.importorskip("lancedb", reason="lancedb required for workflow_2 import chain")
-
-from haytham.phases.workflow_2.diff import (  # noqa: E402
+from haytham.workflow.architecture_diff import (
     ArchitectureDiff,
     compute_architecture_diff,
     get_diff_context_for_prompt,
@@ -67,7 +63,7 @@ class TestComputeArchitectureDiff:
         assert diff.is_empty()
 
     def test_all_capabilities_covered(self):
-        """When all capabilities are covered, no uncovered list."""
+        """When all capabilities have decisions, no uncovered list."""
         capabilities = [
             {"id": "CAP-F-001"},
             {"id": "CAP-F-002"},
@@ -79,7 +75,8 @@ class TestComputeArchitectureDiff:
         diff = compute_architecture_diff(capabilities, decisions, [], [])
 
         assert diff.uncovered_capabilities == []
-        assert diff.is_empty()
+        # Not fully empty: capabilities have decisions but no stories yet
+        assert diff.capabilities_without_stories == ["CAP-F-001", "CAP-F-002"]
 
     def test_uncovered_capabilities(self):
         """Capabilities not served by any decision should be uncovered."""

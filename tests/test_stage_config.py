@@ -2,12 +2,9 @@
 
 Tests cover:
 - StageMetadata dataclass
-- StageRegistry class with all 12 stages
+- StageRegistry class with all 11 stages
 - Helper functions for retrieving and formatting configurations
-- Backward compatibility with stage_config.py
 """
-
-import warnings
 
 import pytest
 
@@ -225,51 +222,3 @@ class TestStageConsistency:
             assert "_" in stage.action_name or stage.action_name.islower()
             assert "-" not in stage.action_name
             assert " " not in stage.action_name
-
-
-class TestBackwardCompatibility:
-    """Test backward compatibility with stage_config.py."""
-
-    def test_import_from_stage_config(self):
-        """Test importing from stage_config.py still works."""
-        import importlib
-
-        import haytham.phases.stage_config as sc_module
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            # Force re-import to trigger deprecation warning even if already cached
-            importlib.reload(sc_module)
-
-            # Should have deprecation warning
-            assert len(w) >= 1
-            assert "deprecated" in str(w[0].message).lower()
-
-        # Backward compat aliases should work
-        from haytham.phases.stage_config import (
-            STAGES,
-            StageConfig,
-        )
-        from haytham.phases.stage_config import (
-            WorkflowType as WF,
-        )
-        from haytham.phases.stage_config import (
-            get_stage_by_slug as gsbs,
-        )
-
-        assert len(STAGES) == 11
-        assert StageConfig.__name__ == "StageMetadata"
-        assert WF == WorkflowType
-
-        stage = gsbs("idea-analysis")
-        assert stage.slug == "idea-analysis"
-
-    def test_stage_config_has_query_template(self):
-        """Test StageConfig alias has query_template field."""
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            from haytham.phases.stage_config import STAGES
-
-            for stage in STAGES:
-                assert hasattr(stage, "query_template")
-                assert stage.query_template

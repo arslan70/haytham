@@ -1,7 +1,7 @@
 # ADR-013: Build vs. Buy Recommendations for Technical Components
 
 ## Status
-**Proposed** — 2026-01-19
+**Proposed**, 2026-01-19
 
 ## Context
 
@@ -36,9 +36,9 @@ The MVP specification and story generation workflows produce technical recommend
 ### Dogfood Evidence
 
 The Haytham stories included:
-- "Authentication Foundation" — 4-8 hours of custom auth
-- "Data Anonymization Service" — 4-8 hours of custom encryption
-- "AI Agent Performance Monitoring" — Custom observability
+- "Authentication Foundation": 4-8 hours of custom auth
+- "Data Anonymization Service": 4-8 hours of custom encryption
+- "AI Agent Performance Monitoring": Custom observability
 
 A solo founder following these literally would spend weeks on solved problems instead of using:
 - **Auth:** Clerk (15 minutes to integrate)
@@ -649,27 +649,27 @@ def generate_stories(capabilities):
 
 ### Positive
 
-1. **Faster MVPs** — Solo founders ship in weeks, not months
-2. **Lower risk** — Security-critical components handled by experts
-3. **Reduced maintenance** — Less custom code to maintain
-4. **Better cost visibility** — Monthly costs estimated upfront
-5. **Actionable guidance** — Not just "what to build" but "how to build"
+1. **Faster MVPs**: Solo founders ship in weeks, not months
+2. **Lower risk**: Security-critical components handled by experts
+3. **Reduced maintenance**: Less custom code to maintain
+4. **Better cost visibility**: Monthly costs estimated upfront
+5. **Actionable guidance**: Not just "what to build" but "how to build"
 
 ### Negative
 
-1. **Catalog maintenance** — Services change, pricing updates
-2. **Opinionated** — May not match all preferences
-3. **Vendor dependency** — Recommendations create lock-in
+1. **Catalog maintenance**: Services change, pricing updates
+2. **Opinionated**: May not match all preferences
+3. **Vendor dependency**: Recommendations create lock-in
 
 ### Risks
 
-1. **Stale recommendations** — Services change rapidly
+1. **Stale recommendations**: Services change rapidly
    - **Mitigation:** Quarterly catalog review, user feedback loop
 
-2. **Over-reliance** — Users may not evaluate alternatives
+2. **Over-reliance**: Users may not evaluate alternatives
    - **Mitigation:** Always show alternatives, explain tradeoffs
 
-3. **Context blindness** — AI doesn't know user's existing stack
+3. **Context blindness**: AI doesn't know user's existing stack
    - **Mitigation:** Add "existing tech stack" input field
 
 ---

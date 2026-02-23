@@ -1,0 +1,76 @@
+Haytham
+Copyright 2024-2025 Haytham Contributors
+
+This product is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+See the LICENSE file for the full license text.
+
+This product includes software developed by third parties. Below is a list of those
+third-party components and their licenses.
+
+==============================================================================
+Core Dependencies
+==============================================================================
+
+strands-agents (https://github.com/strands-agents/sdk-python)
+  License: Apache-2.0
+
+strands-agents-tools (https://github.com/strands-agents/tools-python)
+  License: Apache-2.0
+
+bedrock-agentcore (https://github.com/awslabs/bedrock-agentcore)
+  License: Apache-2.0
+
+boto3, botocore (https://github.com/boto/boto3)
+  License: Apache-2.0
+
+streamlit (https://github.com/streamlit/streamlit)
+  License: Apache-2.0
+
+burr (https://github.com/dagworks-inc/burr)
+  License: BSD-3-Clause
+
+pydantic (https://github.com/pydantic/pydantic)
+  License: MIT
+
+pyyaml (https://github.com/yaml/pyyaml)
+  License: MIT
+
+python-dotenv (https://github.com/theskumar/python-dotenv)
+  License: BSD-3-Clause
+
+tenacity (https://github.com/jd/tenacity)
+  License: Apache-2.0
+
+ddgs (https://github.com/deedy5/duckduckgo_search)
+  License: MIT
+
+reportlab (https://www.reportlab.com/)
+  License: BSD
+
+==============================================================================
+Optional Dependencies
+==============================================================================
+
+lancedb (https://github.com/lancedb/lancedb)
+  License: Apache-2.0
+
+pyarrow (https://github.com/apache/arrow)
+  License: Apache-2.0
+
+langfuse (https://github.com/langfuse/langfuse-python)
+  License: MIT
+
+anthropic (https://github.com/anthropics/anthropic-sdk-python)
+  License: MIT
+
+openai (https://github.com/openai/openai-python)
+  License: Apache-2.0
+
+ollama (https://github.com/ollama/ollama-python)
+  License: MIT
+
+dspy (https://github.com/stanfordnlp/dspy)
+  License: MIT
+
+mkdocs-material (https://github.com/squidfunk/mkdocs-material)
+  License: MIT

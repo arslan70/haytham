@@ -53,7 +53,7 @@ def run_what_phase_swarm_verification(
             system_prompt=_get_single_agent_system_prompt(),
             model=model,
         )
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: fail-open verifier
         logger.error(f"Failed to create verification agent: {e}")
         return _fail_open_result(f"Agent creation failed: {e}")
 
@@ -79,7 +79,7 @@ def run_what_phase_swarm_verification(
             warnings=["Verification completed but output parsing failed"],
         )
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: fail-open verifier
         logger.error(f"WHAT phase verification failed: {e}")
         return _fail_open_result(str(e))
 
@@ -206,7 +206,7 @@ def _dict_to_phase_verification(data: dict) -> PhaseVerification:
         if isinstance(v, dict):
             try:
                 violations.append(InvariantViolation(**v))
-            except Exception as e:
+            except (TypeError, KeyError, ValueError) as e:
                 logger.warning(f"Failed to parse violation: {e}")
         elif isinstance(v, InvariantViolation):
             violations.append(v)
@@ -217,7 +217,7 @@ def _dict_to_phase_verification(data: dict) -> PhaseVerification:
         if isinstance(g, dict):
             try:
                 genericized.append(GenericizationFlag(**g))
-            except Exception as e:
+            except (TypeError, KeyError, ValueError) as e:
                 logger.warning(f"Failed to parse genericization: {e}")
         elif isinstance(g, GenericizationFlag):
             genericized.append(g)

@@ -43,7 +43,7 @@ def write_agent_output_to_file(agent_name: str, output: str) -> None:
         output_file = context_manager.write_agent_output(agent_name, output)
 
         logger.info(f"Agent {agent_name} wrote {len(output)} chars to {output_file}")
-    except Exception as e:
+    except OSError as e:
         # Don't fail the agent if file writing fails
         logger.error(f"Failed to write output for agent {agent_name}: {e}", exc_info=True)
 

@@ -197,7 +197,7 @@ class FeedbackProcessor:
                 status=status,
             )
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: top-level processing boundary
             logger.error(f"Error processing feedback: {e}")
             return FeedbackResult(
                 affected_stages=[],

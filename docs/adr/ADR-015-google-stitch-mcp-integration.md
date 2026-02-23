@@ -1,7 +1,7 @@
 # ADR-015: Google Stitch MCP Integration for UI Generation
 
 ## Status
-**Proposed** — 2026-01-21
+**Proposed**, 2026-01-21
 
 ## Context
 
@@ -9,9 +9,9 @@
 
 [Google Stitch](https://stitch.withgoogle.com/) is an AI-powered UI design tool from Google Labs that uses **Gemini 2.5 Pro** to generate production-ready UI designs and code from:
 
-- **Text prompts** — "Create a dashboard for tracking fitness goals"
-- **Sketches/wireframes** — Upload hand-drawn mockups
-- **Screenshots** — Reference existing apps for style inspiration
+- **Text prompts**: "Create a dashboard for tracking fitness goals"
+- **Sketches/wireframes**: Upload hand-drawn mockups
+- **Screenshots**: Reference existing apps for style inspiration
 
 It outputs code in multiple frameworks: **Flutter, Jetpack Compose, SwiftUI, CSS, React, Angular, and Vue**.
 
@@ -270,10 +270,10 @@ Stitch integration will be a **user-triggered action from the Streamlit UI**, no
 
 #### Why Not a New Stage?
 
-1. **Latency** — Each Stitch generation takes 5-10 seconds; multiplied by many capabilities would significantly slow the workflow
-2. **Selective generation** — Users typically want mockups for 2-3 key screens, not every capability
-3. **Failure isolation** — If Stitch is down or rate-limited, it shouldn't block the core validation workflow
-4. **Cost control** — Shared quota (350/month); users should control when to spend generations
+1. **Latency**: Each Stitch generation takes 5-10 seconds; multiplied by many capabilities would significantly slow the workflow
+2. **Selective generation**: Users typically want mockups for 2-3 key screens, not every capability
+3. **Failure isolation**: If Stitch is down or rate-limited, it shouldn't block the core validation workflow
+4. **Cost control**: Shared quota (350/month); users should control when to spend generations
 
 #### Session Storage
 
@@ -295,10 +295,10 @@ This allows mockups to persist across page refreshes without re-generation.
 
 We will use the **Strands Agents MCP Client** tool directly - no wrapper class needed. This tool is part of the [strands-agents/tools](https://github.com/strands-agents/tools) package and provides:
 
-- **Dynamic connections** — Connect to MCP servers on-the-fly
-- **Tool discovery** — Automatically load available tools from connected servers
-- **Multiple transports** — Supports stdio, SSE, and streamable HTTP
-- **Connection management** — Thread-safe with proper cleanup
+- **Dynamic connections**: Connect to MCP servers on-the-fly
+- **Tool discovery**: Automatically load available tools from connected servers
+- **Multiple transports**: Supports stdio, SSE, and streamable HTTP
+- **Connection management**: Thread-safe with proper cleanup
 
 ```python
 # Install strands-tools
@@ -709,31 +709,31 @@ def get_stitch_limits() -> dict:
 
 ### Positive
 
-1. **Visual deliverables** — MVP specs include actual UI mockups
-2. **Faster prototyping** — Solo founders get starter code in their preferred framework
-3. **Reduced design burden** — AI-generated UI as starting point
-4. **Framework flexibility** — Support for React, Vue, Flutter, SwiftUI, and more
-5. **Free tier** — 350+ generations/month at no cost
-6. **Official API** — Backed by Google, stable endpoint
+1. **Visual deliverables**: MVP specs include actual UI mockups
+2. **Faster prototyping**: Solo founders get starter code in their preferred framework
+3. **Reduced design burden**: AI-generated UI as starting point
+4. **Framework flexibility**: Support for React, Vue, Flutter, SwiftUI, and more
+5. **Free tier**: 350+ generations/month at no cost
+6. **Official API**: Backed by Google, stable endpoint
 
 ### Negative
 
-1. **Shared quota** — All users share 350 generations/month limit
-2. **Platform cost** — GCP project costs (minimal, but non-zero)
-3. **Service account security** — Must securely store and rotate credentials
+1. **Shared quota**: All users share 350 generations/month limit
+2. **Platform cost**: GCP project costs (minimal, but non-zero)
+3. **Service account security**: Must securely store and rotate credentials
 
 ### Risks
 
-1. **API changes** — Stitch is still in Labs/experimental phase
+1. **API changes**: Stitch is still in Labs/experimental phase
    - **Mitigation:** Feature flag allows graceful degradation
 
-2. **Quota exhaustion** — Heavy usage could exhaust monthly quota
+2. **Quota exhaustion**: Heavy usage could exhaust monthly quota
    - **Mitigation:** Per-session limits (10/session), usage monitoring, upgrade to paid tier if needed
 
-3. **Generation quality** — AI mockups may not match user expectations
+3. **Generation quality**: AI mockups may not match user expectations
    - **Mitigation:** Position as "starting point" not final design
 
-4. **Service account compromise** — Leaked credentials could exhaust quota
+4. **Service account compromise**: Leaked credentials could exhaust quota
    - **Mitigation:** Store in secrets manager, rotate regularly, monitor usage
 
 ---

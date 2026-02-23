@@ -1,7 +1,7 @@
-# ADR-004: Multi-Phase Workflow Architecture — Workflow Boundaries and State Handoff
+# ADR-004: Multi-Phase Workflow Architecture - Workflow Boundaries and State Handoff
 
 ## Status
-**Proposed** — 2026-01-10 (Revised 2026-01-11, v4)
+**Proposed**, 2026-01-10 (Revised 2026-01-11, v4)
 
 ## Context
 
@@ -25,10 +25,10 @@ With [ADR-003](./ADR-003-system-state-evolution.md), the `capability_model` stag
 ### The Challenge
 The concept paper ([concept-paper.md](../concept-paper.md)) envisions Haytham as covering the full software development lifecycle:
 
-1. **Discovery & Validation** — Problem framing, market analysis, risk assessment *(Product Owner role)*
-2. **Technical Translation** — Architecture decisions, story generation *(Software Architect role)*
-3. **Implementation** — Story execution with coding agents *(Developer/AI Agent role)*
-4. **Operation & Feedback** — Deployment, monitoring, production signals *(Future)*
+1. **Discovery & Validation**: Problem framing, market analysis, risk assessment *(Product Owner role)*
+2. **Technical Translation**: Architecture decisions, story generation *(Software Architect role)*
+3. **Implementation**: Story execution with coding agents *(Developer/AI Agent role)*
+4. **Operation & Feedback**: Deployment, monitoring, production signals *(Future)*
 
 #### Key Questions
 1. Should all phases be a single Burr workflow or separate workflows per phase?
@@ -120,10 +120,10 @@ We will implement **separate Burr workflows for each major phase**, connected by
 
 The vector database acts as the **durable shared memory** between workflows:
 
-1. **Semantic queryability** — Agents in Workflow 2 can query: "Find all capabilities related to authentication"
-2. **Temporal traceability** — Each entry tracks its source stage and supersede chain
-3. **Decoupled lifecycles** — Workflows don't need to know each other's internal state
-4. **Immutable definitions** — Capabilities are definitions, not work items
+1. **Semantic queryability**: Agents in Workflow 2 can query: "Find all capabilities related to authentication"
+2. **Temporal traceability**: Each entry tracks its source stage and supersede chain
+3. **Decoupled lifecycles**: Workflows don't need to know each other's internal state
+4. **Immutable definitions**: Capabilities are definitions, not work items
 
 ---
 
@@ -175,12 +175,12 @@ The vector database acts as the **durable shared memory** between workflows:
 **Stage Input Context:**
 
 The `architecture_decisions` stage receives full upstream context:
-- **Capabilities** (functional + non-functional) — What must be built
-- **MVP Scope** — Constraints, appetite, core user flows
-- **Validation Summary** — Risk context to inform technology choices
-- **System Goal** — Original idea for grounding
-- **Existing Decisions** (DEC-*) — Previously made architecture decisions from VectorDB
-- **Existing Entities** (ENT-*) — Previously defined domain entities from VectorDB
+- **Capabilities** (functional + non-functional): What must be built
+- **MVP Scope**: Constraints, appetite, core user flows
+- **Validation Summary**: Risk context to inform technology choices
+- **System Goal**: Original idea for grounding
+- **Existing Decisions** (DEC-*): Previously made architecture decisions from VectorDB
+- **Existing Entities** (ENT-*): Previously defined domain entities from VectorDB
 
 This ensures architecture decisions align with MVP constraints, mitigate identified risks, and respect existing architecture.
 
@@ -308,7 +308,7 @@ Computation:
   served_cap_ids = {CAP-F-001, CAP-F-002, CAP-NF-001}
   uncovered = active_cap_ids - served_cap_ids = {CAP-F-003-v2}
 
-Result: CAP-F-003-v2 is uncovered — needs new decisions.
+Result: CAP-F-003-v2 is uncovered, needs new decisions.
 ```
 
 #### Why Diff-Based Is Better Than Modes
@@ -327,7 +327,7 @@ The "mode" becomes emergent:
 - Has affected decisions → behaves like "revision"
 - Empty diff → nothing to do
 
-But we don't label it — the agent just processes the diff.
+But we don't label it; the agent just processes the diff.
 
 #### Workflow Run Registry (For Audit)
 
@@ -376,7 +376,7 @@ Entities        →     story_validation
 
 **Exit Artifact:** Ordered stories in Backlog.md with capability traceability labels
 
-**Why no sprint planning?** Sprints are a human time-boxing concept. AI coding agents don't need time constraints—they need:
+**Why no sprint planning?** Sprints are a human time-boxing concept. AI coding agents don't need time constraints. They need:
 - Dependency ordering (what must be built first)
 - Rational sequencing (foundation before features)
 - Clear handoff context
@@ -385,7 +385,7 @@ Entities        →     story_validation
 
 ---
 
-#### Workflow 3: Implementation (Future — ADR-004b)
+#### Workflow 3: Implementation (Future, ADR-004b)
 
 **Role:** Coding Agents (Claude Code, Cursor, etc.)
 
@@ -463,7 +463,7 @@ status: To Do
 - Keeps story title clean and human-readable
 - Supports multiple capabilities per story without title clutter
 
-This format makes stories **effective prompts for coding agents** — they contain all the technical context needed.
+This format makes stories **effective prompts for coding agents**. They contain all the technical context needed.
 
 #### Capability Coverage Query
 
@@ -513,12 +513,12 @@ def get_capability_coverage(db: SystemStateDB, backlog: BacklogClient) -> dict:
 │  ✅ CAP-F-001  Quick Capture      [IMPLEMENTED]  STORY-001 (Done)           │
 │  🔄 CAP-F-002  Note Retrieval     [IN PROGRESS]  STORY-002 (In Progress)    │
 │  ⏳ CAP-F-003  Note Organization  [PENDING]      STORY-003 (To Do)          │
-│  ❌ CAP-F-004  Note Sharing       [NO STORIES]   —                          │
+│  ❌ CAP-F-004  Note Sharing       [NO STORIES]   (none)                     │
 │                                                                             │
 │  NON-FUNCTIONAL CAPABILITIES                                                │
 │  ──────────────────────────                                                 │
 │  ⏳ CAP-NF-001 Response Time      [PENDING]      STORY-007 (To Do)          │
-│  ❌ CAP-NF-002 Data Security      [NO STORIES]   —                          │
+│  ❌ CAP-NF-002 Data Security      [NO STORIES]   (none)                     │
 │                                                                             │
 │  SUMMARY: 6 capabilities | 1 implemented | 1 in progress | 2 pending | 2 gaps│
 │                                                                             │
@@ -588,10 +588,10 @@ Without a feedback mechanism, coding agents either:
 
 The system's value proposition is **end-to-end automation**. A one-way pipeline that breaks at implementation defeats this purpose. The feedback loop ensures:
 
-1. **Self-correction** — System can recover from design gaps
-2. **Traceability maintained** — Changes flow through proper channels
-3. **User visibility** — User is notified of significant design changes
-4. **Learning** — Patterns in feedback improve future Workflow 2 outputs
+1. **Self-correction**: System can recover from design gaps
+2. **Traceability maintained**: Changes flow through proper channels
+3. **User visibility**: User is notified of significant design changes
+4. **Learning**: Patterns in feedback improve future Workflow 2 outputs
 
 #### Proposed Mechanism (High-Level)
 
@@ -622,9 +622,9 @@ Each workflow runs once for a given project phase. Re-running Workflow 1 does no
 | Stakeholder adds requirement | Change Workflow: `requirement_addition` → new capability |
 
 This preserves:
-- **Audit trail** — Original workflow outputs remain intact
-- **Traceability** — Changes are explicit, not silent overwrites
-- **Simplicity** — No complex "resume and replay" logic
+- **Audit trail**: Original workflow outputs remain intact
+- **Traceability**: Changes are explicit, not silent overwrites
+- **Simplicity**: No complex "resume and replay" logic
 
 #### Change Workflow (Future)
 
@@ -838,11 +838,11 @@ app = create_architect_workflow(session_manager, project_id, trigger)
 #### Between Workflow 2 → Workflow 3
 
 Stories in Backlog.md are the handoff artifact. Each story contains labels for traceability:
-- `implements:CAP-F-001` — What capability this addresses
-- `uses:DEC-001` — Technical decisions used
-- `touches:ENT-001` — Domain entities touched
-- Acceptance criteria — Testable requirements
-- Build order — Dependency-aware sequence
+- `implements:CAP-F-001`: What capability this addresses
+- `uses:DEC-001`: Technical decisions used
+- `touches:ENT-001`: Domain entities touched
+- Acceptance criteria: Testable requirements
+- Build order: Dependency-aware sequence
 
 This matches the label format defined in the Story → Capability Link section above.
 
@@ -864,7 +864,7 @@ This format is directly usable as a coding agent prompt.
 │                         PHASE TRANSITION UI                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ✅ Phase 1: Discovery & Validation — Complete                              │
+│  ✅ Phase 1: Discovery & Validation - Complete                              │
 │                                                                             │
 │  Summary:                                                                   │
 │  • Recommendation: PROCEED                                                  │
@@ -934,7 +934,7 @@ This format is directly usable as a coding agent prompt.
 - [ ] Add user notification for superseded capabilities
 - [ ] Design Change Workflow (separate ADR)
 
-#### Phase 3: Workflow 3 (Future — ADR-004b)
+#### Phase 3: Workflow 3 (Future, ADR-004b)
 - [ ] Create ADR-004b: Implementation Workflow and Coding Agent Handoff
 - [ ] Define story-to-prompt translation
 - [ ] Define feedback loop mechanism (feedback tasks in Backlog.md)
@@ -945,29 +945,29 @@ This format is directly usable as a coding agent prompt.
 ## Consequences
 
 ### Positive
-1. **Role alignment** — Each phase maps to a recognizable role (PO, Architect, Dev)
-2. **Clear phase boundaries** — Natural pause points for review
-3. **Focused state per phase** — Easier to debug and maintain
-4. **Traceable coverage** — Always know which capabilities have stories/implementation
-5. **Agent-ready output** — Stories structured as effective coding prompts
-6. **No artificial time constraints** — Dependency ordering, not sprints
-7. **Immutable audit trail** — Changes through Change Workflow preserve history
-8. **Label-based traceability** — Uses existing Backlog.md infrastructure
+1. **Role alignment**: Each phase maps to a recognizable role (PO, Architect, Dev)
+2. **Clear phase boundaries**: Natural pause points for review
+3. **Focused state per phase**: Easier to debug and maintain
+4. **Traceable coverage**: Always know which capabilities have stories/implementation
+5. **Agent-ready output**: Stories structured as effective coding prompts
+6. **No artificial time constraints**: Dependency ordering, not sprints
+7. **Immutable audit trail**: Changes through Change Workflow preserve history
+8. **Label-based traceability**: Uses existing Backlog.md infrastructure
 
 ### Negative
-1. **State loading overhead** — Must load from VectorDB at phase start
-2. **Multiple app IDs** — Need to track which workflow is current
-3. **Cross-system queries** — Coverage requires VectorDB + Backlog.md
-4. **Deferred complexity** — Feedback loop and Change Workflow add future implementation burden
+1. **State loading overhead**: Must load from VectorDB at phase start
+2. **Multiple app IDs**: Need to track which workflow is current
+3. **Cross-system queries**: Coverage requires VectorDB + Backlog.md
+4. **Deferred complexity**: Feedback loop and Change Workflow add future implementation burden
 
 ### Risks
-1. **Superseded capabilities** — Change Workflow creates new capabilities that supersede old ones
+1. **Superseded capabilities**: Change Workflow creates new capabilities that supersede old ones
    - **Mitigation:** Supersede detection flags affected stories with `needs-review:superseded` label; user notified for resolution
-2. **Story drift** — Stories edited manually may lose `implements:` label
+2. **Story drift**: Stories edited manually may lose `implements:` label
    - **Mitigation:** Quality evaluation (ADR-006) flags stories without proper labels
-3. **Implementation feedback ignored** — Coding agents discover issues but no feedback path exists
+3. **Implementation feedback ignored**: Coding agents discover issues but no feedback path exists
    - **Mitigation:** ADR-004b will define feedback mechanism; until then, manual intervention required
-4. **Entry condition failure** — Workflow 2 started without proper Workflow 1 completion
+4. **Entry condition failure**: Workflow 2 started without proper Workflow 1 completion
    - **Mitigation:** Explicit entry condition validation before workflow creation
 
 ---
@@ -997,7 +997,7 @@ Include `sprint_planning` stage in Workflow 2.
 **Rejected because:**
 - Sprints are a human time-boxing concept
 - AI agents need dependency ordering, not time constraints
-- Simpler model: ordered backlog IS the delivery plan
+- Simpler model: ordered backlog is the delivery plan
 
 ---
 

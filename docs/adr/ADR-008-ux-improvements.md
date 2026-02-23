@@ -1,7 +1,7 @@
 # ADR-008: User Experience Improvements
 
 ## Status
-**Proposed** — 2026-01-15
+**Proposed**, 2026-01-15
 
 ## Context
 
@@ -48,30 +48,30 @@ Replace the static "What Was Created" table with expandable artifact previews.
 | Capabilities | 9     | Business requirements...       |
 | Decisions    | 9     | Architecture decisions (DEC-*) |
 | Entities     | 9     | Domain model entities (ENT-*)  |
-| Stories      | —     | Draft tasks in Backlog.md      |
+| Stories      | -     | Draft tasks in Backlog.md      |
 ```
 
 **Proposed:**
 ```
 ### What Was Created
 
-▸ Capabilities (9) — Click to expand
+▸ Capabilities (9) - Click to expand
   ├─ CAP-F-001: Challenge Management System
   ├─ CAP-F-002: Progress Tracking
   ├─ CAP-F-003: Leaderboard Engine
   └─ ... +6 more
 
-▸ Decisions (9) — Click to expand
+▸ Decisions (9) - Click to expand
   ├─ DEC-001: FastAPI + PostgreSQL stack
   ├─ DEC-002: JWT authentication
   └─ ... +7 more
 
-▸ Entities (9) — Click to expand
+▸ Entities (9) - Click to expand
   ├─ ENT-001: Member (id, name, email, gym_id)
   ├─ ENT-002: Challenge (id, name, type, points)
   └─ ... +7 more
 
-▸ Stories (21) — Click to expand
+▸ Stories (21) - Click to expand
   ├─ Layer 1: Bootstrap (3 stories)
   ├─ Layer 2: Entity Models (7 stories)
   ├─ Layer 3: Infrastructure (4 stories)
@@ -99,10 +99,10 @@ Show stories grouped by layer with counts, not just "Draft tasks in Backlog.md".
 **Proposed:**
 ```
 Stories Generated: 21 total
-├─ Layer 1: Bootstrap (3) — Project init, DB, Auth
-├─ Layer 2: Entities (7) — Database models
-├─ Layer 3: Infrastructure (4) — API, Security, Integrations
-└─ Layer 4: Features (7) — User-facing functionality
+├─ Layer 1: Bootstrap (3) - Project init, DB, Auth
+├─ Layer 2: Entities (7) - Database models
+├─ Layer 3: Infrastructure (4) - API, Security, Integrations
+└─ Layer 4: Features (7) - User-facing functionality
 
 [View in Task Browser] [Download as Markdown]
 ```
@@ -143,13 +143,13 @@ Previous Progress
 **Proposed:**
 ```
 Discovery Phase (Complete)
-  ✓ All 7 stages complete — View summary
+  ✓ All 7 stages complete - View summary
 
 Architect Phase (Current)
-  ✓ Architecture Decisions — 9 decisions
-  ✓ Component Boundaries — 9 entities
-  ✓ Story Generation — 21 stories
-  ○ Story Evaluation — Not run yet
+  ✓ Architecture Decisions - 9 decisions
+  ✓ Component Boundaries - 9 entities
+  ✓ Story Generation - 21 stories
+  ○ Story Evaluation - Not run yet
 ```
 
 ### 2.3 Clear "What's Next" Guidance
@@ -232,9 +232,9 @@ Add inline actions next to artifact groups:
 | 3 | Quick Actions in Preview | Low | Low |
 
 **Recommended implementation sequence:**
-1. Start with 1.1 (Inline Artifact Preview) — biggest visibility win
-2. Then 2.1 (Workflow Phase Indicator) — clarity win
-3. Then 1.2 (Remove bash dependency) — friction reduction
+1. Start with 1.1 (Inline Artifact Preview), biggest visibility win
+2. Then 2.1 (Workflow Phase Indicator), clarity win
+3. Then 1.2 (Remove bash dependency), friction reduction
 
 ---
 

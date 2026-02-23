@@ -146,6 +146,6 @@ def run_mvp_scope_swarm(state: State) -> tuple[str, str]:
         )
         return combined, "completed"
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         logger.error(f"MVP scope swarm failed: {e}", exc_info=True)
         return f"Error in MVP scope swarm: {e}", "failed"

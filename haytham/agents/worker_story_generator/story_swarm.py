@@ -204,7 +204,7 @@ Write the full markdown content for {skeleton.id}: {skeleton.title}.
             depends_on=skeleton.depends_on,
             content=content.strip(),
         )
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary with fallback
         logger.error(f"Detail agent failed for {skeleton.id}: {e}")
         # Fallback: use skeleton summary as content
         return StoryHybrid(
@@ -246,7 +246,9 @@ def _run_detail_pass(
                 story = future.result()
                 stories.append(story)
                 logger.info(f"Pass 2: Detailed {story.id} ({story.title})")
-            except Exception as e:
+            except (
+                Exception
+            ) as e:  # Intentional catch-all: future.result() can raise any worker exception
                 logger.error(f"Pass 2: Failed for {skeleton.id}: {e}")
                 # Fallback
                 stories.append(

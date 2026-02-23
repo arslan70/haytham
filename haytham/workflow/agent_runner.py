@@ -207,7 +207,9 @@ def run_agent(
                 try:
                     result = agent(full_query)
                     break
-                except Exception as e:
+                except (
+                    Exception
+                ) as e:  # Intentional catch-all: must inspect any error for retry eligibility
                     if (
                         attempt < _MAX_RETRIES
                         and _is_transient_error(e)
@@ -251,7 +253,7 @@ def run_agent(
             if use_context_tools:
                 clear_context_store()
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         execution_time = time.time() - start_time
         user_error = _get_user_friendly_error(e, agent_name)
         is_token_error = _is_token_limit_error(e)
@@ -325,7 +327,9 @@ def run_parallel_agents(
                 agent_name = futures[future]
                 try:
                     results[agent_name] = future.result()
-                except Exception as e:
+                except (
+                    Exception
+                ) as e:  # Intentional catch-all: future.result() can raise any worker exception
                     user_error = _get_user_friendly_error(e, agent_name)
                     is_token_error = _is_token_limit_error(e)
                     logger.error(
@@ -344,7 +348,9 @@ def run_parallel_agents(
                         "original_error": str(e),
                     }
 
-    except Exception as e:
+    except (
+        Exception
+    ) as e:  # Intentional catch-all: thread pool infrastructure failure, fallback to sequential
         logger.error(f"Parallel execution failed: {e}")
         # Fallback to sequential
         for config in agent_configs:

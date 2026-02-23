@@ -197,7 +197,7 @@ def get_capability_coverage(
             )
     except ImportError:
         logger.warning("BacklogCLI not available")
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: optional Backlog.md integration
         logger.warning(f"Could not load stories from Backlog.md: {e}")
 
     # 4. Compute coverage for each capability

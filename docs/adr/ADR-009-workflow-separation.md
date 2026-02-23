@@ -1,7 +1,7 @@
-# ADR-009: Workflow Separation — Validation, MVP Specification, and Story Generation
+# ADR-009: Workflow Separation - Validation, MVP Specification, and Story Generation
 
 ## Status
-**Proposed** — 2026-01-16
+**Proposed**, 2026-01-16
 
 ## Context
 
@@ -37,11 +37,11 @@ Workflow 1 is too large. It conflates two distinct user intents:
 
 **Issues with the current design:**
 
-1. **Forced commitment** — Users must complete MVP specification even if they just want to validate an idea
-2. **Long feedback loop** — ~15-20 minutes before getting a GO/NO-GO answer
-3. **Wrong decision point** — Users should decide whether to proceed BEFORE defining MVP scope
-4. **Mixed personas** — Entrepreneurs exploring ideas don't need capability models
-5. **Wasted computation** — Generating MVP specs for ideas that will be rejected
+1. **Forced commitment**: Users must complete MVP specification even if they just want to validate an idea
+2. **Long feedback loop**: ~15-20 minutes before getting a GO/NO-GO answer
+3. **Wrong decision point**: Users should decide whether to proceed BEFORE defining MVP scope
+4. **Mixed personas**: Entrepreneurs exploring ideas don't need capability models
+5. **Wasted computation**: Generating MVP specs for ideas that will be rejected
 
 ### User Personas and Their Needs
 
@@ -161,7 +161,7 @@ We will restructure the system into three separate, focused workflows with clear
 
 #### Workflow 2: MVP Specification
 
-**Purpose:** Define what to build first — boundaries, constraints, and capabilities.
+**Purpose:** Define what to build first: boundaries, constraints, and capabilities.
 
 **Role:** Product Manager / Business Analyst
 
@@ -448,25 +448,25 @@ def get_available_workflows(self) -> list[str]:
 
 ### Positive
 
-1. **Faster validation** — Users get GO/NO-GO in ~5 minutes
-2. **Natural decision points** — Users control when to proceed
-3. **Reduced waste** — No MVP specs for rejected ideas
-4. **Better persona fit** — Right depth for each user type
-5. **Product optionality** — Can offer workflows as separate products
-6. **Cleaner architecture** — Single responsibility per workflow
+1. **Faster validation**: Users get GO/NO-GO in ~5 minutes
+2. **Natural decision points**: Users control when to proceed
+3. **Reduced waste**: No MVP specs for rejected ideas
+4. **Better persona fit**: Right depth for each user type
+5. **Product optionality**: Can offer workflows as separate products
+6. **Cleaner architecture**: Single responsibility per workflow
 
 ### Negative
 
-1. **More transitions** — Users must explicitly proceed between workflows
-2. **State complexity** — Must track 3 workflow states instead of 1
-3. **UI changes** — Significant updates to decision gate UI
+1. **More transitions**: Users must explicitly proceed between workflows
+2. **State complexity**: Must track 3 workflow states instead of 1
+3. **UI changes**: Significant updates to decision gate UI
 
 ### Risks
 
-1. **User confusion** — Too many steps might confuse users
+1. **User confusion**: Too many steps might confuse users
    - **Mitigation:** Clear progress indicators, optional "run all" mode
 
-2. **Context loss** — Users may forget context between workflows
+2. **Context loss**: Users may forget context between workflows
    - **Mitigation:** Show summary of previous workflow outputs
 
 ---
@@ -487,7 +487,7 @@ Add a "validation only" early exit after Stage 4.
 Separate architecture_decisions from story_generation.
 
 **Rejected because:**
-- Too granular — architecture decisions naturally flow into stories
+- Too granular; architecture decisions naturally flow into stories
 - Adds unnecessary decision gate
 
 ---

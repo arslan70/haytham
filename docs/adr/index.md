@@ -1,13 +1,13 @@
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) for Haytham. Each ADR captures a significant design decision — the context, the decision, the rationale, and the implications.
+This directory contains Architecture Decision Records (ADRs) for Haytham. Each ADR captures a significant design decision: the context, the decision, the rationale, and the implications.
 
 ## Start Here
 
 New to the project? These two ADRs give you the mental model for everything else:
 
-1. **[ADR-016: Four-Phase Workflow](ADR-016-four-phase-workflow.md)** — How the pipeline is structured and why stages run in the order they do
-2. **[ADR-022: Concept Fidelity](ADR-022-concept-fidelity-pipeline-integrity.md)** — How the system prevents meaning drift across agents (the "telephone problem")
+1. **[ADR-016: Four-Phase Workflow](ADR-016-four-phase-workflow.md)**: How the pipeline is structured and why stages run in the order they do
+2. **[ADR-022: Concept Fidelity](ADR-022-concept-fidelity-pipeline-integrity.md)**: How the system prevents meaning drift across agents (the "telephone problem")
 
 Once you understand the workflow and the fidelity mechanism, the other ADRs fill in specific design choices within that framework.
 
@@ -33,7 +33,7 @@ Once you understand the workflow and the fidelity mechanism, the other ADRs fill
 | [ADR-023](ADR-023-scorer-dimension-reduction.md) | Scorer Dimension Reduction | Accepted |
 | [ADR-005](ADR-005-quality-evaluation-pattern.md) | Quality Evaluation Pattern | Accepted |
 | [ADR-006](ADR-006-story-generation-quality-evaluation.md) | Story Generation Quality Evaluation | Accepted |
-| ADR-007 | *(number reserved — not used)* | — |
+| ADR-007 | *(number reserved, not used)* | - |
 | [ADR-019](ADR-019-system-trait-detection.md) | System Trait Detection | Accepted |
 
 ### Features

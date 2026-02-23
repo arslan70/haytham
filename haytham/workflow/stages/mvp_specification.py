@@ -80,7 +80,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
         core_output = extract_text_from_result(core_result)
         outputs.append(core_output)
         logger.info(f"mvp_scope_core completed ({len(core_output)} chars)")
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         logger.error(f"mvp_scope_core failed: {e}", exc_info=True)
         return f"Error in mvp_scope_core: {e}", "failed"
 
@@ -99,7 +99,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
         boundaries_output = extract_text_from_result(boundaries_result)
         outputs.append(boundaries_output)
         logger.info(f"mvp_scope_boundaries completed ({len(boundaries_output)} chars)")
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         logger.error(f"mvp_scope_boundaries failed: {e}", exc_info=True)
         # Return partial output from core + error
         partial = core_output + f"\n\nError in mvp_scope_boundaries: {e}"
@@ -121,7 +121,7 @@ def run_mvp_scope_chain(state: State) -> tuple[str, str]:
         flows_output = extract_text_from_result(flows_result)
         outputs.append(flows_output)
         logger.info(f"mvp_scope_flows completed ({len(flows_output)} chars)")
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         logger.error(f"mvp_scope_flows failed: {e}", exc_info=True)
         # Return partial output from core + boundaries + error
         partial = "\n\n".join(outputs) + f"\n\nError in mvp_scope_flows: {e}"

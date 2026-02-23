@@ -1,14 +1,14 @@
 # ADR-010: Stories Export to External Tools
 
 ## Status
-**Proposed** — 2026-01-19
+**Proposed**, 2026-01-19
 
 ## Context
 
 ### Current State
 
 After completing Workflow 3 (Story Generation), the system produces:
-- `session/generated_stories.json` — 20-30 implementation-ready stories
+- `session/generated_stories.json`: 20-30 implementation-ready stories
 - Each story includes title, description, acceptance criteria, labels, dependencies, priority, and execution order
 
 ```json
@@ -28,7 +28,7 @@ After completing Workflow 3 (Story Generation), the system produces:
 
 ### The Problem
 
-**The generated stories are stranded.** A semi-technical solo founder — our primary persona — cannot easily use them:
+**The generated stories are stranded.** A semi-technical solo founder (our primary persona) cannot easily use them:
 
 | Current State | User Impact |
 |---------------|-------------|
@@ -40,7 +40,7 @@ After completing Workflow 3 (Story Generation), the system produces:
 ### Dogfood Evidence
 
 Running Haytham through itself revealed:
-- The **stories are the most valuable output** — 27 implementation-ready tasks
+- The **stories are the most valuable output**, 27 implementation-ready tasks
 - But a solo founder **cannot use them without technical effort**
 - This is a critical gap in the value chain
 
@@ -551,23 +551,23 @@ def render_export_button():
 
 ### Positive
 
-1. **Immediate usability** — Stories become actionable without technical effort
-2. **Tool flexibility** — Users can use their preferred project management tool
-3. **Handoff ready** — Solo founders can share with contractors/agencies
-4. **Reduced friction** — One-click from validation to project backlog
+1. **Immediate usability**: Stories become actionable without technical effort
+2. **Tool flexibility**: Users can use their preferred project management tool
+3. **Handoff ready**: Solo founders can share with contractors/agencies
+4. **Reduced friction**: One-click from validation to project backlog
 
 ### Negative
 
-1. **Format maintenance** — Must track changes to Linear/Jira import formats
-2. **Lossy transformation** — Some metadata may not map to all tools
-3. **No round-trip** — Changes in external tools don't sync back
+1. **Format maintenance**: Must track changes to Linear/Jira import formats
+2. **Lossy transformation**: Some metadata may not map to all tools
+3. **No round-trip**: Changes in external tools don't sync back
 
 ### Risks
 
-1. **Format drift** — External tools may change import formats
+1. **Format drift**: External tools may change import formats
    - **Mitigation:** Version exporters, monitor tool changelogs
 
-2. **Dependency mapping** — Complex dependencies may not import correctly
+2. **Dependency mapping**: Complex dependencies may not import correctly
    - **Mitigation:** Document limitations, provide manual linking instructions
 
 ---
@@ -589,7 +589,7 @@ Build direct API integrations with Linear, Jira, Notion from the start.
 Export only to a universal format (like CSV) and let users transform.
 
 **Rejected because:**
-- Poor UX — users must learn each tool's import quirks
+- Poor UX; users must learn each tool's import quirks
 - Acceptance criteria formatting differs per tool
 - Dependencies handled differently everywhere
 - Our value is removing this friction

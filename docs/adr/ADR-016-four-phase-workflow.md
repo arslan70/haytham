@@ -1,9 +1,9 @@
-# ADR-016: Four-Phase Workflow Architecture — WHY, WHAT, HOW, Stories
+# ADR-016: Four-Phase Workflow Architecture - WHY, WHAT, HOW, Stories
 
 ## Status
-**Proposed** — 2026-01-24
+**Proposed**, 2026-01-24
 
-**Milestone**: Genesis (M1) — Phases 1-4 of 6
+**Milestone**: Genesis (M1), Phases 1-4 of 6
 
 ## Context
 
@@ -13,7 +13,7 @@ The current system has **misaligned layers** that create confusion and bugs:
 
 1. **Dual Workflow Systems**: Workflows 1 & 2 use new `workflow_factories.py`, but Workflow 3 (Story Generation) uses legacy `phases/workflow_2/factory.py`
 
-2. **Incorrect Stage Ordering**: Build vs Buy was implemented as Stage 7 in `stage_registry.py` but the legacy factory ignores it — stories are generated BEFORE knowing what to build vs buy
+2. **Incorrect Stage Ordering**: Build vs Buy was implemented as Stage 7 in `stage_registry.py` but the legacy factory ignores it, so stories are generated BEFORE knowing what to build vs buy
 
 3. **Mixed Phase Boundaries**: ADR-009 proposed 3 workflows, but the logical separation should be 4 phases:
    - Current Workflow 3 combines HOW (architecture) with Stories (implementation tasks)
@@ -194,7 +194,7 @@ We restructure the system into **four distinct phases**, each answering a specif
 - HOW: "Use Stripe for payments, PostgreSQL for persistence"
 - Stories: "As a user, I can enter my credit card" (depends on Stripe decision)
 
-Generating stories BEFORE knowing build vs buy creates waste — implementation stories for bought capabilities, or integration stories for built capabilities.
+Generating stories BEFORE knowing build vs buy creates waste: implementation stories for bought capabilities, or integration stories for built capabilities.
 
 ---
 
@@ -281,7 +281,7 @@ StageMetadata(
 
 ### Part 2: Consolidate Workflow Factories
 
-**Goal**: Eliminate dual system — all workflows use `workflow_factories.py`
+**Goal**: Eliminate dual system. All workflows use `workflow_factories.py`
 
 **File**: `haytham/workflow/workflow_factories.py`
 
@@ -487,25 +487,25 @@ pytest tests/test_four_phase_workflow.py -v
 
 ### Positive
 
-1. **Single source of truth** — Stage registry defines all stages and their phases
-2. **Correct ordering** — Build vs Buy runs BEFORE stories
-3. **Clear decision gates** — 3 explicit pause points for user review
-4. **Role alignment** — Each phase maps to a recognizable role
-5. **Reduced waste** — No implementation stories for bought capabilities
-6. **Maintainable** — One workflow factory system instead of two
+1. **Single source of truth**: Stage registry defines all stages and their phases
+2. **Correct ordering**: Build vs Buy runs BEFORE stories
+3. **Clear decision gates**: 3 explicit pause points for user review
+4. **Role alignment**: Each phase maps to a recognizable role
+5. **Reduced waste**: No implementation stories for bought capabilities
+6. **Maintainable**: One workflow factory system instead of two
 
 ### Negative
 
-1. **More transitions** — Users must explicitly proceed between phases
-2. **Migration effort** — Must update all layers simultaneously
-3. **Breaking change** — Existing sessions may need migration
+1. **More transitions**: Users must explicitly proceed between phases
+2. **Migration effort**: Must update all layers simultaneously
+3. **Breaking change**: Existing sessions may need migration
 
 ### Risks
 
-1. **Incomplete migration** — Some layer not updated
+1. **Incomplete migration**: Some layer not updated
    - **Mitigation**: Checklist-based implementation, integration tests
 
-2. **User confusion** — Extra phase adds cognitive load
+2. **User confusion**: Extra phase adds cognitive load
    - **Mitigation**: Clear phase indicators in UI, progress bar
 
 ---
@@ -557,8 +557,8 @@ See [VISION.md](../../VISION.md) for full details on these future milestones.
 
 ## References
 
-- [VISION.md](../../VISION.md) — Complete roadmap (Genesis → Evolution → Sentience)
-- [ADR-017: UX Design for Four-Phase Workflow](./ADR-017-ux-design-four-phase-workflow.md) — User experience design
-- [ADR-009: Workflow Separation](./ADR-009-workflow-separation.md) — Previous 3-workflow proposal
-- [ADR-004: Multi-Phase Workflow Architecture](./ADR-004-multi-phase-workflow-architecture.md) — Original architecture
-- [ADR-013: Build vs Buy Recommendations](./ADR-013-build-vs-buy-recommendations.md) — Build vs Buy feature
+- [VISION.md](../../VISION.md) - Complete roadmap (Genesis, Evolution, Sentience)
+- [ADR-017: UX Design for Four-Phase Workflow](./ADR-017-ux-design-four-phase-workflow.md) - User experience design
+- [ADR-009: Workflow Separation](./ADR-009-workflow-separation.md) - Previous 3-workflow proposal
+- [ADR-004: Multi-Phase Workflow Architecture](./ADR-004-multi-phase-workflow-architecture.md) - Original architecture
+- [ADR-013: Build vs Buy Recommendations](./ADR-013-build-vs-buy-recommendations.md) - Build vs Buy feature

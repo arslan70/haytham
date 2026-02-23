@@ -130,7 +130,7 @@ class SystemStateDB:
                 self.id_generator.set_counter(prefix, max_num + 1)
                 logger.debug(f"Set counter for {prefix} to {max_num + 1}")
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.warning(f"Failed to sync ID counters: {e}")
 
     @property
@@ -236,7 +236,7 @@ class SystemStateDB:
             if results:
                 return self._record_to_dict(results[0])
             return None
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.error(f"Failed to find entry by name '{name}': {e}")
             return None
 
@@ -386,7 +386,7 @@ class SystemStateDB:
             self._table.delete(f"id = '{entry_id}'")
             logger.info(f"Deleted entry: {entry_id}")
             return True
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.error(f"Failed to delete {entry_id}: {e}")
             return False
 
@@ -411,7 +411,7 @@ class SystemStateDB:
             if results:
                 return self._record_to_dict(results[0])
             return None
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.error(f"Failed to get entry {entry_id}: {e}")
             return None
 
@@ -459,7 +459,7 @@ class SystemStateDB:
 
             results = search.to_list()
             return [self._record_to_dict(r) for r in results]
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.error(f"Similarity search failed: {e}")
             return []
 
@@ -491,7 +491,7 @@ class SystemStateDB:
         try:
             results = self._table.search().where(where_clause).limit(10000).to_list()
             return [self._record_to_dict(r) for r in results]
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.error(f"Failed to get current state: {e}")
             return []
 
@@ -584,6 +584,6 @@ class SystemStateDB:
             else:
                 results = self._table.search().where("superseded_by = ''").limit(100000).to_list()
             return len(results)
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: LanceDB errors are not well-typed
             logger.error(f"Failed to count entries: {e}")
             return 0

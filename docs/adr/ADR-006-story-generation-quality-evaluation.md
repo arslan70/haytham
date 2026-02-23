@@ -1,7 +1,7 @@
 # ADR-006: Story Generation Quality Evaluation
 
 ## Status
-**Accepted** — 2026-01-14
+**Accepted**, 2026-01-14
 
 ## Context
 

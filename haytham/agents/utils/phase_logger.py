@@ -100,7 +100,7 @@ class StageLogger:
             with open(file_path, "a", encoding="utf-8") as f:
                 json.dump(entry.to_dict(), f)
                 f.write("\n")
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to write log entry to {file_path}: {e}")
 
     def _write_json(self, file_path: Path, data: dict[str, Any]) -> None:
@@ -114,7 +114,7 @@ class StageLogger:
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to write JSON to {file_path}: {e}")
 
     def log_stage_start(
@@ -406,7 +406,7 @@ class StageLogger:
         try:
             with open(metrics_file, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
+        except (OSError, json.JSONDecodeError) as e:
             logger.error(f"Failed to read metrics from {metrics_file}: {e}")
             return None
 
@@ -425,7 +425,7 @@ class StageLogger:
         try:
             with open(summary_file, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
+        except (OSError, json.JSONDecodeError) as e:
             logger.error(f"Failed to read summary from {summary_file}: {e}")
             return None
 

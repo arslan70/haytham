@@ -10,7 +10,7 @@
 
 ## POC Simplifications
 
-- **Task ID Scheme**: Simple T-XXX (e.g., T-001, T-002) — no HL/LL distinction
+- **Task ID Scheme**: Simple T-XXX (e.g., T-001, T-002), no HL/LL distinction
 - **Task Storage**: Tasks stored in state.json, not separate files
 - **Test Case**: Notes App with simple task breakdown
 - **Task Format**: Simplified schema focused on essential fields only
@@ -34,11 +34,11 @@ The challenge is bridging the gap between:
 - **Implementation level**: "Create file `src/models/share_link.py` with SQLAlchemy model..."
 
 This bridge must be:
-1. **Decomposed appropriately** — Not too coarse (vague), not too fine (micromanagement)
-2. **Ordered correctly** — Dependencies respected
-3. **Traceable** — Every task links back to stories and design decisions
-4. **Verifiable** — Clear criteria for task completion
-5. **Executable** — Contains enough detail for implementation
+1. **Decomposed appropriately**: Not too coarse (vague), not too fine (micromanagement)
+2. **Ordered correctly**: Dependencies respected
+3. **Traceable**: Every task links back to stories and design decisions
+4. **Verifiable**: Clear criteria for task completion
+5. **Executable**: Contains enough detail for implementation
 
 ### Approach
 

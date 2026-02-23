@@ -177,7 +177,7 @@ class PipelineOrchestrator:
             self._save()
             self._update_progress()
             return True
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: initialization boundary
             logger.error("Failed to initialize from MVP spec: %s", e)
             return False
 

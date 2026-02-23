@@ -264,7 +264,7 @@ class ContextLoader:
                     output_content = extract_output_content(content)
                     agent_outputs[agent_name] = output_content
                     logger.debug(f"Loaded output for {agent_name}: {len(output_content)} chars")
-                except Exception as e:
+                except (OSError, ValueError) as e:
                     logger.error(f"Failed to read output for {agent_name}: {e}")
                     missing_agents.append(agent_name)
             else:
@@ -294,7 +294,7 @@ class ContextLoader:
                 if preferences and any(preferences.values()):
                     logger.info("Loaded preferences from session/preferences.json")
                     return preferences
-            except Exception as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger.warning(f"Failed to load preferences.json: {e}")
 
         logger.debug(f"No preferences available for stage {stage_slug}")
@@ -388,7 +388,7 @@ class ContextLoader:
             logger.info(f"Stage {stage_slug} context validation passed")
             return True, []
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: validation boundary
             logger.error(f"Stage {stage_slug} context validation error: {e}")
             return False, [str(e)]
 
