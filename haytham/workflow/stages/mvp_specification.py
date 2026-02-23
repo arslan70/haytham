@@ -288,7 +288,7 @@ def extract_json_from_output(output: str) -> str:
     return output
 
 
-def store_capabilities_in_vector_db(session_manager: Any, output: str) -> None:
+def store_capabilities_in_state(session_manager: Any, output: str) -> None:
     """Store capability model output in the system state store.
 
     This function parses the JSON capability model output and stores

@@ -41,7 +41,7 @@ from .mvp_specification import (
     create_capability_model_agent,
     create_system_traits_agent,
     extract_system_traits_processor,
-    store_capabilities_in_vector_db,
+    store_capabilities_in_state,
 )
 from .story_pipeline import (
     create_backlog_drafts_after_ordering,
@@ -116,7 +116,7 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
         ),
         custom_agent_factory=create_capability_model_agent,
         custom_context_builder=build_capability_model_context,
-        additional_save=store_capabilities_in_vector_db,
+        additional_save=store_capabilities_in_state,
         # ADR-022: Enable context retrieval tools for deep context access
         use_context_tools=True,
     ),
