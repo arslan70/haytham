@@ -1,8 +1,7 @@
 """System State Management Module.
 
 Provides storage for system state (capabilities, decisions, entities,
-constraints). The JSON-backed SystemStateStore (ADR-027) is the primary
-store. Legacy vector DB classes are re-exported when lancedb is installed.
+constraints) via the JSON-backed SystemStateStore (ADR-027).
 """
 
 from .schema import (
@@ -35,13 +34,3 @@ __all__ = [
     "CapabilitySubtype",
     "CAPABILITY_SUBTYPES",
 ]
-
-# Legacy vector DB support (requires optional lancedb dependency)
-try:
-    from .embedder import TitanEmbedder, get_embedder
-    from .vector_db import SystemStateDB
-
-    # Keep old DuplicateEntryError import path working
-    __all__ += ["SystemStateDB", "TitanEmbedder", "get_embedder"]
-except ImportError:
-    pass
