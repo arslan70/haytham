@@ -21,7 +21,8 @@ Once you understand the workflow and the fidelity mechanism, the other ADRs fill
 |-----|-------|--------|
 | [ADR-004](ADR-004-multi-phase-workflow-architecture.md) | Multi-Phase Workflow Architecture | Accepted |
 | [ADR-016](ADR-016-four-phase-workflow.md) | Four-Phase Workflow (replaces three-phase) | Accepted |
-| [ADR-003](ADR-003-system-state-evolution.md) | System State Evolution (VectorDB design) | Accepted |
+| [ADR-003](ADR-003-system-state-evolution.md) | System State Evolution (VectorDB design) | Superseded by ADR-027 |
+| [ADR-027](ADR-027-replace-vectordb-with-json-store.md) | Replace VectorDB with JSON Store | Accepted |
 | [ADR-009](ADR-009-workflow-separation.md) | Workflow Separation | Superseded by ADR-016 |
 
 ### Agents and Quality

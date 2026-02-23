@@ -124,16 +124,16 @@ def get_capability_coverage(
     session_manager,
     include_superseded: bool = True,
 ) -> CoverageReport:
-    """Compute capability coverage from VectorDB and Backlog.md.
+    """Compute capability coverage from system state store and Backlog.md.
 
     This function:
-    1. Loads all capabilities from VectorDB
+    1. Loads all capabilities from the system state store
     2. Loads all decisions to find which capabilities they serve
     3. Loads all stories to find which capabilities they implement
     4. Computes coverage status for each capability
 
     Args:
-        session_manager: SessionManager instance for accessing VectorDB
+        session_manager: SessionManager instance for accessing system state
         include_superseded: Whether to include superseded capabilities in report
 
     Returns:
@@ -141,18 +141,18 @@ def get_capability_coverage(
     """
     logger.info("Computing capability coverage...")
 
-    # 1. Load capabilities from VectorDB
-    from haytham.state.vector_db import SystemStateDB
+    # 1. Load capabilities from system state store
+    from haytham.state.store import SystemStateStore
 
-    db_path = session_manager.session_dir / "vector_db"
-    if not db_path.exists():
-        logger.warning("VectorDB not found, returning empty coverage report")
+    store_path = session_manager.session_dir / "system_state.json"
+    if not store_path.exists():
+        logger.warning("System state file not found, returning empty coverage report")
         return CoverageReport()
 
-    db = SystemStateDB(str(db_path))
+    store = SystemStateStore(store_path)
 
-    capabilities = db.get_capabilities()
-    decisions = db.get_decisions()
+    capabilities = store.get_capabilities()
+    decisions = store.get_decisions()
 
     logger.info(f"Loaded {len(capabilities)} capabilities, {len(decisions)} decisions")
 

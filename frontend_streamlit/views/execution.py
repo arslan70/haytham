@@ -457,8 +457,9 @@ if new_idea:
             with st.form("discovery_form"):
                 answers = {}
                 for i, question in enumerate(discovery_result.questions):
+                    label = question.question or f"Question {i + 1}"
                     answer = st.text_input(
-                        question.question,
+                        label,
                         key=f"discovery_q{i}",
                         value=question.placeholder,
                     )

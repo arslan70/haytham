@@ -99,7 +99,7 @@ class ChangeImpactReport:
 
 
 def find_superseded_capabilities(session_manager) -> list[SupersededCapability]:
-    """Find all superseded capabilities in VectorDB.
+    """Find all superseded capabilities in system state store.
 
     Args:
         session_manager: SessionManager instance
@@ -107,14 +107,14 @@ def find_superseded_capabilities(session_manager) -> list[SupersededCapability]:
     Returns:
         List of SupersededCapability objects
     """
-    from haytham.state.vector_db import SystemStateDB
+    from haytham.state.store import SystemStateStore
 
-    db_path = session_manager.session_dir / "vector_db"
-    if not db_path.exists():
+    store_path = session_manager.session_dir / "system_state.json"
+    if not store_path.exists():
         return []
 
-    db = SystemStateDB(str(db_path))
-    capabilities = db.get_capabilities()
+    store = SystemStateStore(store_path)
+    capabilities = store.get_capabilities(include_superseded=True)
 
     superseded = []
     for cap in capabilities:
@@ -124,7 +124,7 @@ def find_superseded_capabilities(session_manager) -> list[SupersededCapability]:
                     id=cap.get("id", ""),
                     name=cap.get("name", "Unknown"),
                     superseded_by=cap.get("superseded_by"),
-                    superseded_at=cap.get("updated_at"),
+                    superseded_at=cap.get("created_at"),
                 )
             )
 
@@ -208,14 +208,14 @@ def find_affected_decisions(
     if not superseded_cap_ids:
         return []
 
-    from haytham.state.vector_db import SystemStateDB
+    from haytham.state.store import SystemStateStore
 
-    db_path = session_manager.session_dir / "vector_db"
-    if not db_path.exists():
+    store_path = session_manager.session_dir / "system_state.json"
+    if not store_path.exists():
         return []
 
-    db = SystemStateDB(str(db_path))
-    decisions = db.get_decisions()
+    store = SystemStateStore(store_path)
+    decisions = store.get_decisions()
 
     superseded_set = set(superseded_cap_ids)
     affected = []
@@ -258,14 +258,14 @@ def find_affected_entities(
     if not affected_decision_ids:
         return []
 
-    from haytham.state.vector_db import SystemStateDB
+    from haytham.state.store import SystemStateStore
 
-    db_path = session_manager.session_dir / "vector_db"
-    if not db_path.exists():
+    store_path = session_manager.session_dir / "system_state.json"
+    if not store_path.exists():
         return []
 
-    db = SystemStateDB(str(db_path))
-    entities = db.get_entities()
+    store = SystemStateStore(store_path)
+    entities = store.get_entities()
 
     decision_set = set(affected_decision_ids)
     affected = []

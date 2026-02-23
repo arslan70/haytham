@@ -1,7 +1,7 @@
 # ADR-003: System State Evolution - From Document to Queryable Model
 
 ## Status
-**Accepted.** 2026-01-09 (Implemented 2026-01-11)
+**Superseded** by [ADR-027](ADR-027-replace-vectordb-with-json-store.md) - 2026-02-23
 
 ## Context
 

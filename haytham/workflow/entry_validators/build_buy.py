@@ -14,7 +14,7 @@ class BuildBuyAnalysisEntryValidator(WorkflowEntryValidator):
 
     Entry conditions:
     - MVP Specification workflow completed
-    - At least 1 functional capability exists in VectorDB
+    - At least 1 functional capability exists in system state
     - Capability Model document exists
     - ADR-022: WHAT phase verification passes (scope fidelity, capability alignment)
     """
@@ -70,28 +70,25 @@ class BuildBuyAnalysisEntryValidator(WorkflowEntryValidator):
     def _check_functional_capabilities(self) -> int:
         """Check that at least 1 functional capability exists."""
         try:
-            from haytham.state.vector_db import SystemStateDB
+            from haytham.state.store import SystemStateStore
 
-            db_path = self.session_manager.session_dir / "vector_db"
-            if not db_path.exists():
-                self.errors.append("VectorDB directory not found")
+            store_path = self.session_manager.session_dir / "system_state.json"
+            if not store_path.exists():
+                self.errors.append("System state file not found")
                 return 0
 
-            db = SystemStateDB(str(db_path))
-            capabilities = db.get_capabilities()
+            store = SystemStateStore(store_path)
+            capabilities = store.get_capabilities()
 
             # Filter for functional capabilities
             functional_caps = [c for c in capabilities if c.get("subtype") == "functional"]
 
             if not functional_caps:
-                self.errors.append("No functional capabilities found in VectorDB")
+                self.errors.append("No functional capabilities found in system state")
                 return 0
 
             return len(functional_caps)
 
-        except ImportError:
-            self.warnings.append("VectorDB module not available - skipping capability check")
-            return 0
         except (OSError, KeyError, TypeError, AttributeError) as e:
             self.errors.append(f"Failed to load capabilities: {e!s}")
             return 0
