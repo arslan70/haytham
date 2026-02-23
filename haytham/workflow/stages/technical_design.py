@@ -8,6 +8,9 @@ import logging
 
 from burr.core import State
 
+from haytham.agents.factory.agent_factory import create_agent_by_name
+from haytham.agents.output_utils import extract_text_from_result
+
 logger = logging.getLogger(__name__)
 
 
@@ -133,9 +136,6 @@ def analyze_capabilities_for_build_buy(state: State) -> tuple[str, str]:
     2. Recommended stack - services with rationale
     3. Alternatives - other options with pros/cons
     """
-    from haytham.agents.factory.agent_factory import create_agent_by_name
-    from haytham.agents.output_utils import extract_text_from_result
-
     # Get capability model and system goal from state
     capability_model = state.get("capability_model", "")
     mvp_scope = state.get("mvp_scope", "")
