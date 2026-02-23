@@ -43,7 +43,7 @@ Without a shared resolution layer, each consumer independently parses the same r
 
 ### The Export Pipeline Is Already Broken
 
-The existing `ExportableStory` model in `haytham/exporters/transformer.py` was built for the old story format (from the deprecated `haytham/phases/` module). It expects `labels`, `dependencies` (title-based), `description`, `acceptance_criteria` as separate dict keys. `StoryHybrid` has none of these. The transformer silently degrades: priority defaults to "medium", acceptance criteria returns `[]`, description returns `""`.
+The existing `ExportableStory` model in `haytham/exporters/transformer.py` was built for the old story format (from the deleted `haytham/phases/` module). It expects `labels`, `dependencies` (title-based), `description`, `acceptance_criteria` as separate dict keys. `StoryHybrid` has none of these. The transformer silently degrades: priority defaults to "medium", acceptance criteria returns `[]`, description returns `""`.
 
 The `LAYER_NAMES` dict in `exporters/models.py` maps layers 1-4, while the actual pipeline produces layers 0-5. The transformer looks for `generated_stories.json`, a filename from the old format; the current pipeline writes `stories.json`.
 
@@ -477,7 +477,7 @@ Steps 2a-2b are the critical path. Step 2c is a cleanup that can happen in the s
 - `haytham/agents/worker_system_traits/system_traits_models.py` (SystemTraitsOutput, pattern to follow)
 - `haytham/exporters/transformer.py` (broken ExportableStory mapping)
 - `haytham/workflow/stages/configs.py` (stage configs, `output_model` usage)
-- `haytham/phases/workflow_2/actions.py` (ARCHITECTURE_DECISIONS_PROMPT, existing JSON output format)
+- `haytham/workflow/stages/technical_design.py` (ARCHITECTURE_DECISIONS_PROMPT, existing JSON output format)
 
 ## Appendix A: Sample JSON Outputs
 

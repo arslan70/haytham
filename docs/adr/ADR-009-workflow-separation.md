@@ -344,7 +344,7 @@ This separation enables standalone products:
 #### Stage Configuration Updates
 
 ```python
-# haytham/phases/stage_config.py
+# haytham/workflow/stage_registry.py
 
 # Workflow 1: Idea Validation (Stages 1-4)
 VALIDATION_STAGES = [

@@ -289,10 +289,9 @@ StageMetadata(
 2. Update `create_story_generation_workflow()` for Phase 4
 3. Migrate architecture diff logic from `phases/workflow_2/factory.py`
 
-**File**: `haytham/phases/workflow_2/factory.py`
+**File**: `haytham/workflow/stages/technical_design.py`
 
-- Mark as deprecated
-- Redirect to `workflow_factories.py`
+- Contains architecture decisions prompt and agent helpers
 
 **File**: `frontend_streamlit/lib/workflow_runner.py`
 

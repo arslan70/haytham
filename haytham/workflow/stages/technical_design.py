@@ -10,12 +10,9 @@ import time
 from typing import Any
 
 from burr.core import State
-from strands import Agent
 
 from haytham.agents.factory.agent_factory import create_agent_by_name
-from haytham.agents.hooks import HaythamAgentHooks
 from haytham.agents.output_utils import extract_text_from_result
-from haytham.agents.utils.model_provider import create_model
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +29,11 @@ def _run_architect_agent(
 ) -> dict[str, Any]:
     """Execute an architect agent with the given context.
 
+    Uses the agent factory to ensure hooks, OTEL tracing, and model tier
+    routing are applied consistently.
+
     Args:
-        agent_name: Name of the agent (for logging)
+        agent_name: Name of the agent (must be registered in AGENT_CONFIGS)
         prompt_template: The prompt template to use
         context: Context to inject into the prompt
 
@@ -55,21 +55,7 @@ def _run_architect_agent(
                 else:
                     full_prompt = full_prompt.replace(placeholder, str(value))
 
-        # Create model with higher max_tokens to avoid MaxTokensReachedException
-        model = create_model(max_tokens=8000)
-
-        # Create a simple agent and run the prompt through it
-        agent = Agent(
-            model=model,
-            system_prompt=(
-                "You are an expert software architect. "
-                "Follow the instructions precisely and output valid JSON when requested."
-            ),
-            name=agent_name,
-            hooks=[HaythamAgentHooks()],
-        )
-
-        # Call the agent
+        agent = create_agent_by_name(agent_name)
         result = agent(full_prompt)
         output_text = str(result)
 
