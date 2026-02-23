@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 from strands import Agent
 
+from haytham.agents.hooks import HaythamAgentHooks
 from haytham.agents.utils.model_provider import create_model
 from haytham.workflow.stage_registry import get_stage_registry
 
@@ -118,8 +119,10 @@ def route_feedback(
         # Create a simple agent for the routing task
         router_agent = Agent(
             system_prompt="You are a routing assistant. Analyze feedback and return JSON.",
+            name="feedback_router",
             model=model,
             tools=[],  # No tools needed for routing
+            hooks=[HaythamAgentHooks()],
         )
 
         # Get the routing decision

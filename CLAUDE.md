@@ -199,6 +199,20 @@ Full details with examples and rationale: [docs/contributing/architecture-patter
 
 **Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/output_utils.py`, `haytham/agents/hooks.py`, `haytham/config.py`
 
+### Strands SDK Best Practices
+
+**Agent creation:** Always use `create_agent_by_name()` from the factory. It ensures hooks, name, trace_attributes, and model tiering are applied consistently. Never create `Agent()` directly unless the agent has genuinely unique requirements (custom tools, conversation history) that the factory can't support.
+
+**Structured output:** When `structured_output_model` is configured on an agent, `result.structured_output` is always a validated Pydantic model on success. Don't add defensive `isinstance`/`hasattr` fallback chains. Use `extract_text_from_result()` from `output_utils.py` for all extraction.
+
+**Tools:** Tools decorated with `@tool` must never raise exceptions. Return error strings/dicts so the model can reason about failures. Use typed parameters and comprehensive docstrings (the model reads both for tool calling).
+
+**Hooks:** Every agent on an active execution path must have `hooks=[HaythamAgentHooks()]`. This provides timing, cache metrics, and OTEL span annotation. The factory injects this automatically.
+
+**Agent naming:** Always pass `name=` when creating `Agent()` directly. Without it, OTEL spans and logs show "unknown". The factory handles this via `AgentConfig.name`.
+
+**Model tiering:** Use `ModelTier.HEAVY` for synthesis/structured output, `LIGHT` for extraction/summarization, `REASONING` for cross-referencing. Don't call `create_model()` with no arguments (defaults to LIGHT tier without config routing).
+
 ### DSPy for Prompt Testing and Pipeline Validation
 
 Use [DSPy](https://dspy.ai/) (`dspy` optional dependency, install with `uv sync --extra dspy-poc`) to empirically test prompt and pipeline changes before committing to them.
@@ -252,6 +266,10 @@ Do not split a task that requires holistic reasoning across multiple agents conn
 **Evidence**: A single LLM call with upstream context scored 8 PASS / 4 PARTIAL / 0 FAIL on report quality criteria, versus 1 PASS / 3 PARTIAL / 8 FAIL from a 4-agent + 6-validator pipeline processing the same inputs. See [ADR-026](docs/adr/ADR-026-simplified-validation-pipeline.md).
 
 **When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. Gathering information (web research, competitor analysis) is a valid reason to split. Synthesizing information is not.
+
+### PITFALL: Bypassing the Agent Factory
+
+Do not create `Agent()` directly in stage modules or worker files. Direct instantiation skips hooks (no observability), name assignment (broken OTEL), trace_attributes (no distributed tracing), and model tier routing (wrong model). Use `create_agent_by_name()` for all standard agents. If an agent needs custom tools or conversation history, still add `hooks=[HaythamAgentHooks()]` and `name=`.
 
 ### Report Synthesis Pipeline (ADR-026)
 

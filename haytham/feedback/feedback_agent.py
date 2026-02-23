@@ -16,6 +16,7 @@ from pathlib import Path
 from strands import Agent, tool
 
 from haytham.agents.factory.agent_factory import get_bedrock_model_id
+from haytham.agents.hooks import HaythamAgentHooks
 from haytham.agents.utils.model_provider import create_model
 
 logger = logging.getLogger(__name__)
@@ -541,6 +542,7 @@ def create_feedback_agent(model_id: str | None = None) -> Agent:
             execute_approved_changes,
             generate_missing_stage,
         ],
+        hooks=[HaythamAgentHooks()],
     )
 
     logger.info("Created feedback_agent with conversation and revision tools")

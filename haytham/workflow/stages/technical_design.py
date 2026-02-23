@@ -134,10 +134,7 @@ def analyze_capabilities_for_build_buy(state: State) -> tuple[str, str]:
     3. Alternatives - other options with pros/cons
     """
     from haytham.agents.factory.agent_factory import create_agent_by_name
-    from haytham.agents.worker_build_buy_advisor.build_buy_models import (
-        BuildBuyAnalysisOutput,
-        format_build_buy_analysis,
-    )
+    from haytham.agents.output_utils import extract_text_from_result
 
     # Get capability model and system goal from state
     capability_model = state.get("capability_model", "")
@@ -173,24 +170,8 @@ Focus on MVP stage - favor services with generous free tiers and quick integrati
         # Run the agent
         result = agent(query)
 
-        from haytham.agents.output_utils import extract_text_from_result
-
-        # Check for structured_output attribute (Strands structured output)
         # Return JSON for Burr state; executor renders markdown for disk via output_model
-        if hasattr(result, "structured_output") and result.structured_output is not None:
-            if isinstance(result.structured_output, BuildBuyAnalysisOutput):
-                return result.structured_output.model_dump_json(), "completed"
-            # If it's a dict, try to validate and return as JSON
-            if isinstance(result.structured_output, dict):
-                try:
-                    validated = BuildBuyAnalysisOutput.model_validate(result.structured_output)
-                    return validated.model_dump_json(), "completed"
-                except (ValueError, TypeError):
-                    output = format_build_buy_analysis(result.structured_output)
-                    return output, "completed"
-
-        # Fallback: extract text from agent result
-        return extract_text_from_result(result), "completed"
+        return extract_text_from_result(result, output_as_json=True), "completed"
 
     except Exception as e:
         logger.error(f"Build/Buy analysis failed: {e}", exc_info=True)
