@@ -253,7 +253,7 @@ def execute_approved_changes() -> str:
                 ctx.stage_outputs[stage_slug] = result.output or ""
             else:
                 results.append(f"- {stage_slug}: Failed - {result.error}")
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: agent execution boundary
             results.append(f"- {stage_slug}: Error - {e}")
 
     # Clear pending changes
@@ -342,7 +342,7 @@ Generate comprehensive, well-structured output for this stage following your sta
 
         return f"Successfully generated output for '{stage_slug}'. The content has been saved."
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: @tool must not raise (Strands SDK)
         logger.error(f"Error generating stage '{stage_slug}': {e}")
         return f"Error generating stage: {e}"
 
@@ -639,7 +639,7 @@ class FeedbackConversation:
 
             return response
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: user-facing chat boundary
             logger.error(f"Error in feedback agent: {e}")
             error_response = (
                 f"I encountered an error processing your request: {e}. Could you try rephrasing?"
@@ -653,7 +653,7 @@ class FeedbackConversation:
 
         try:
             return extract_text_from_result(result)
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: extraction fallback to str()
             logger.warning(f"Failed to extract response text: {e}")
             return str(result)
 

@@ -1,7 +1,7 @@
 # ADR-020: Project Rename (kickstarter → haytham)
 
 ## Status
-**Accepted** — 2025-01-28 (proposed), 2026-02 (implemented as haytham)
+**Accepted**, 2025-01-28 (proposed), 2026-02 (implemented as haytham)
 
 **Milestone**: Consolidation (Pre-Evolution)
 
@@ -18,9 +18,9 @@ The codebase used "kickstarter" as the package name, but the product needed a un
 
 ### Why Rename
 
-1. **Before Evolution milestone** — Major changes are easier before adding new features
-2. **Open-source readiness** — Need a unique, non-trademarked project name
-3. **Brand identity** — "Haytham" (after Ibn al-Haytham, pioneer of the scientific method) reflects the project's empirical, evidence-driven approach
+1. **Before Evolution milestone**: Major changes are easier before adding new features
+2. **Open-source readiness**: Need a unique, non-trademarked project name
+3. **Brand identity**: "Haytham" (after Ibn al-Haytham, pioneer of the scientific method) reflects the project's empirical, evidence-driven approach
 
 ### Original vs Actual
 
@@ -59,7 +59,7 @@ The Python package was renamed from `kickstarter` to `haytham`.
 
 Single atomic commit:
 
-1. `git mv kickstarter haytham` — preserves git history
+1. `git mv kickstarter haytham` (preserves git history)
 2. Bulk `sed` across all `.py` files for import replacement
 3. Manual updates to `pyproject.toml`, `Makefile`, `.env.example`, `.gitignore`, `docker-compose.yml`, `LICENSE`
 4. Documentation updates across `CLAUDE.md`, `README.md`, and ADR files
@@ -70,16 +70,16 @@ Single atomic commit:
 
 ### Positive
 
-1. **Unique identity** — No trademark conflicts for open-source release
-2. **Professional appearance** — Consistent naming throughout codebase
-3. **Scientific alignment** — Named after the father of the scientific method
+1. **Unique identity**: No trademark conflicts for open-source release
+2. **Professional appearance**: Consistent naming throughout codebase
+3. **Scientific alignment**: Named after the father of the scientific method
 
 ### Negative
 
-1. **One-time disruption** — All developers need to pull changes
-2. **Documentation churn** — All docs needed review
+1. **One-time disruption**: All developers need to pull changes
+2. **Documentation churn**: All docs needed review
 
 ### Neutral
 
-1. **Git history preserved** — `git mv` maintains full history
-2. **No functional changes** — Pure rename, no behavior change
+1. **Git history preserved**: `git mv` maintains full history
+2. **No functional changes**: Pure rename, no behavior change

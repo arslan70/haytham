@@ -161,7 +161,7 @@ def find_affected_stories(
     except ImportError:
         logger.warning("BacklogCLI not available")
         return []
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: optional Backlog.md integration
         logger.warning(f"Could not load stories: {e}")
         return []
 
@@ -380,13 +380,13 @@ def add_review_labels_to_stories(
                     cli.add_label(story.story_id, "needs-review:superseded")
                     updated += 1
                     logger.info(f"Added needs-review:superseded to {story.story_id}")
-                except Exception as e:
+                except Exception as e:  # Intentional catch-all: per-story label operation
                     logger.error(f"Failed to add label to {story.story_id}: {e}")
             else:
                 logger.warning("BacklogCLI does not have add_label method")
                 break
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: optional Backlog.md integration
         logger.error(f"Failed to add review labels: {e}")
 
     return updated

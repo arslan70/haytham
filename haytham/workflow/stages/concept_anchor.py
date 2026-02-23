@@ -235,7 +235,7 @@ def extract_anchor_post_processor(output: str, state: "State") -> dict[str, Any]
             "concept_anchor": anchor,
             "concept_anchor_str": anchor_str,
         }
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent + parsing boundary
         logger.error(f"Failed to extract concept anchor: {e}")
         return {}
 

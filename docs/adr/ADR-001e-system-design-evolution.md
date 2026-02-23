@@ -16,7 +16,7 @@
 - **Conflict Detection**: Simple check against existing state; no elaborate revision plans
 - **Prerequisite Stories**: Generate and add to queue; require user approval (max 3 per story)
 - **ID Scheme**: Uses S-XXX (stories), E-XXX (entities), D-XXX (decisions)
-- **Test Case**: Notes App — simple stories with minimal conflicts
+- **Test Case**: Notes App, simple stories with minimal conflicts
 - **Entity Creation**: Entities are registered in state.json with status `"planned"` during Design Evolution. Task Generation then creates implementation tasks for planned entities.
 
 **Example for Notes App:**
@@ -49,7 +49,7 @@ This stage is where **global coherence** is maintained or recovered. Without it:
 
 Consider a system that has implemented "User Authentication" (email/password). A new story arrives: "As a user, I want to log in with my Google account."
 
-This story doesn't just add a feature — it potentially:
+This story doesn't just add a feature. It potentially:
 - Changes the User entity (needs `google_id` field)
 - Changes the auth capability (new OAuth flow)
 - May conflict with decisions made (e.g., "passwords are the only auth method")

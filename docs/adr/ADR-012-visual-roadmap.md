@@ -1,7 +1,7 @@
 # ADR-012: Visual Roadmap View
 
 ## Status
-**Proposed** — 2026-01-19
+**Proposed**, 2026-01-19
 
 ## Context
 
@@ -28,11 +28,11 @@ Generated stories are displayed as a flat list or JSON:
 
 | Question | Current Answer |
 |----------|----------------|
-| "What's the critical path?" | Unclear — dependencies are text references |
-| "What can I parallelize?" | Unknown — no visual grouping |
-| "Where are the milestones?" | Missing — no phase boundaries |
-| "What blocks what?" | Hidden — must read each story's dependencies |
-| "How does this become a product?" | Opaque — no narrative flow |
+| "What's the critical path?" | Unclear, dependencies are text references |
+| "What can I parallelize?" | Unknown, no visual grouping |
+| "Where are the milestones?" | Missing, no phase boundaries |
+| "What blocks what?" | Hidden, must read each story's dependencies |
+| "How does this become a product?" | Opaque, no narrative flow |
 
 ### Dogfood Evidence
 
@@ -481,24 +481,24 @@ Add roadmap as a new view in the Streamlit navigation:
 
 ### Positive
 
-1. **Clear execution order** — Founders know what to build first
-2. **Dependency visibility** — Blockers are obvious
-3. **Parallelization opportunities** — Side-by-side stories can be delegated
-4. **Milestone planning** — Natural checkpoints become visible
-5. **Communication tool** — Share roadmap with contractors/investors
+1. **Clear execution order**: Founders know what to build first
+2. **Dependency visibility**: Blockers are obvious
+3. **Parallelization opportunities**: Side-by-side stories can be delegated
+4. **Milestone planning**: Natural checkpoints become visible
+5. **Communication tool**: Share roadmap with contractors/investors
 
 ### Negative
 
-1. **Complexity** — Three views to build and maintain
-2. **Performance** — Graph rendering may be slow for large story sets
-3. **Mobile experience** — Complex visualizations don't work well on mobile
+1. **Complexity**: Three views to build and maintain
+2. **Performance**: Graph rendering may be slow for large story sets
+3. **Mobile experience**: Complex visualizations don't work well on mobile
 
 ### Risks
 
-1. **Over-engineering** — Users may only use one view
+1. **Over-engineering**: Users may only use one view
    - **Mitigation:** Launch layers view first, add others based on demand
 
-2. **Estimate dependency** — Timeline view requires ADR-011 estimates
+2. **Estimate dependency**: Timeline view requires ADR-011 estimates
    - **Mitigation:** Show timeline without hours if estimates unavailable
 
 ---

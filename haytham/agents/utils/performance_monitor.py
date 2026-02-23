@@ -339,7 +339,7 @@ class PerformanceMonitor:
             with open(filepath, "w") as f:
                 json.dump(self.current_metrics.to_dict(), f, indent=2)
             logger.info(f"Saved performance metrics to {filepath}")
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to save metrics to {filepath}: {e}")
 
     def _generate_performance_report(self) -> None:
@@ -446,7 +446,7 @@ class PerformanceMonitor:
             with open(filepath, "w") as f:
                 f.write("\n".join(report_lines))
             logger.info(f"Generated performance report: {filepath}")
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to write performance report to {filepath}: {e}")
 
     def _estimate_cost(self, total_tokens: int) -> float:

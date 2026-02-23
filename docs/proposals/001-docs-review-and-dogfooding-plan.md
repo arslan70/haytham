@@ -254,7 +254,7 @@ We run Haytham on its own idea to generate implementation stories for the
 next version. The full session outputs, team annotations, and generated
 backlog are published in [docs/dogfood/](docs/dogfood/).
 
-Current cycle: **v1** — [Session outputs](docs/dogfood/session-v1/) |
+Current cycle: **v1**. [Session outputs](docs/dogfood/session-v1/) |
 [Annotations](docs/dogfood/session-v1/annotations.md) |
 [Community backlog](https://github.com/arslan70/haytham/labels/dogfood-v1)
 

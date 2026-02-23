@@ -1,7 +1,7 @@
 # ADR-014: Web Search Fallback Chain
 
 ## Status
-**Accepted** — 2026-01-19
+**Accepted**, 2026-01-19
 
 ## Context
 
@@ -27,8 +27,8 @@ Client error '403 Forbidden' for url 'https://html.duckduckgo.com/html/'
 ```
 
 This breaks two critical agents in Stage 2 (market_context):
-- **market_intelligence** — researches market size, trends, industry data
-- **competitor_analysis** — researches competitive landscape
+- **market_intelligence**: researches market size, trends, industry data
+- **competitor_analysis**: researches competitive landscape
 
 ### Root Cause
 
@@ -200,9 +200,9 @@ def web_search(query: str, max_results: int = 5) -> str:
 #### Session Reset Points
 
 The counter resets at these points:
-1. **New workflow execution** — Each Burr workflow run starts fresh
-2. **Manual reset** — Exposed for testing via `reset_session_counter()`
-3. **Application restart** — Counter is in-memory, resets on restart
+1. **New workflow execution**: Each Burr workflow run starts fresh
+2. **Manual reset**: Exposed for testing via `reset_session_counter()`
+3. **Application restart**: Counter is in-memory, resets on restart
 
 #### Workflow Integration
 
@@ -592,35 +592,35 @@ Update `.env.example`:
 
 ### Positive
 
-1. **Resilience** — Multiple providers ensure search availability
-2. **No breaking changes** — Same tool interface for agents
-3. **Cost optimization** — Free DuckDuckGo used first, paid APIs only as fallback
-4. **Graceful degradation** — Works without any API keys (DuckDuckGo only)
-5. **Observability** — Provider logged in results for debugging
-6. **Cost protection** — Session limits prevent runaway agent loops from exhausting quotas
-7. **Agent awareness** — Warning threshold helps agents plan remaining queries
+1. **Resilience**: Multiple providers ensure search availability
+2. **No breaking changes**: Same tool interface for agents
+3. **Cost optimization**: Free DuckDuckGo used first, paid APIs only as fallback
+4. **Graceful degradation**: Works without any API keys (DuckDuckGo only)
+5. **Observability**: Provider logged in results for debugging
+6. **Cost protection**: Session limits prevent runaway agent loops from exhausting quotas
+7. **Agent awareness**: Warning threshold helps agents plan remaining queries
 
 ### Negative
 
-1. **Complexity** — Three providers to maintain
-2. **Latency** — Failed attempts add latency before fallback
-3. **Cost** — Fallback providers have costs at scale
-4. **Dependencies** — Additional packages to maintain
-5. **Session limit friction** — Agents may hit limits on complex research tasks
+1. **Complexity**: Three providers to maintain
+2. **Latency**: Failed attempts add latency before fallback
+3. **Cost**: Fallback providers have costs at scale
+4. **Dependencies**: Additional packages to maintain
+5. **Session limit friction**: Agents may hit limits on complex research tasks
 
 ### Risks
 
-1. **All providers fail** — Unlikely but possible during outages
+1. **All providers fail**: Unlikely but possible during outages
    - **Mitigation:** Agents designed to work with training data as final fallback
 
-2. **Runaway agent loops** — Uncontrolled loops could exhaust API quotas
+2. **Runaway agent loops**: Uncontrolled loops could exhaust API quotas
    - **Mitigation:** Hard session limit (default 20) with warning threshold (default 15)
    - **Mitigation:** Counter resets only at workflow start, not per-agent
 
-3. **API key exposure** — Keys in .env could leak
+3. **API key exposure**: Keys in .env could leak
    - **Mitigation:** Use secrets management in production
 
-4. **Session limit too restrictive** — Complex research may need more searches
+4. **Session limit too restrictive**: Complex research may need more searches
    - **Mitigation:** Configurable via environment variable
    - **Mitigation:** Agents can combine related queries to maximize value
 

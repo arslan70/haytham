@@ -141,7 +141,7 @@ def route_feedback(
 
         return route_result
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent + parsing boundary with fallback
         logger.error(f"Error routing feedback: {e}")
         # Fall back to routing to the last stage in the workflow
         fallback_stage = available_stages[-1] if available_stages else None

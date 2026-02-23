@@ -161,7 +161,7 @@ Most agents return structured data (scores, competitor lists, story skeletons) r
 
 ### The Control Plane Pattern
 
-Haytham separates two concerns: **deciding what to build** (Phases 1-4) and **executing the build** (Phase 5+). The specification phases are Haytham's core. Execution is delegated to whatever agent or person is best suited — coding agents, design services, cloud service agents, or human developers. The workflow engine treats all of these the same way: same specification context, same approval gates, same traceability.
+Haytham separates two concerns: **deciding what to build** (Phases 1-4) and **executing the build** (Phase 5+). The specification phases are Haytham's core. Execution is delegated to whatever agent or person is best suited: coding agents, design services, cloud service agents, or human developers. The workflow engine treats all of these the same way: same specification context, same approval gates, same traceability.
 
 See [VISION.md](../../VISION.md#the-control-plane-orchestrating-execution-agents) for the full rationale and [Roadmap](../roadmap.md) for planned integrations (including [Google Stitch](https://stitch.withgoogle.com/) via [ADR-021](../adr/ADR-021-design-ux-workflow-stage.md)).
 

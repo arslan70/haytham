@@ -1,7 +1,7 @@
 # ADR-021: Design & UX Workflow Stage via Google Stitch MCP
 
 ## Status
-**Proposed** — 2026-01-31
+**Proposed**, 2026-01-31
 
 **Milestone**: Genesis
 
@@ -13,19 +13,19 @@
 
 ### Why Genesis Is Incomplete Without This
 
-The Constitution declares Genesis complete when Haytham can transform "a startup idea" into "a concrete, working, validated MVP." The Gym Leaderboard validated the *loop* — but the loop has a gap. Genesis produces stories that, for UI-facing MVPs, lack the design context needed to implement correctly on the first pass. This isn't polish — it's a missing input to story generation that causes rework in the implementation stage.
+The Constitution declares Genesis complete when Haytham can transform "a startup idea" into "a concrete, working, validated MVP." The Gym Leaderboard validated the *loop*, but the loop has a gap. Genesis produces stories that, for UI-facing MVPs, lack the design context needed to implement correctly on the first pass. This isn't polish; it's a missing input to story generation that causes rework in the implementation stage.
 
 The argument for Genesis (not Evolution) rests on three points:
 
-1. **Stories without design context produce incomplete implementation specs.** The story generator currently outputs acceptance criteria like "Dashboard loads within 2 seconds" and "Shows 5 most recent items" — but says nothing about layout, component structure, or visual hierarchy. When a coding agent (or human developer) implements these stories, they invent a layout. When design is applied later, that layout is wrong and must be reworked. This means Genesis does not produce a "concrete, working MVP" — it produces a plan that requires a design rework cycle before the MVP is actually working. Closing this gap completes Genesis; it does not extend it.
+1. **Stories without design context produce incomplete implementation specs.** The story generator currently outputs acceptance criteria like "Dashboard loads within 2 seconds" and "Shows 5 most recent items", but says nothing about layout, component structure, or visual hierarchy. When a coding agent (or human developer) implements these stories, they invent a layout. When design is applied later, that layout is wrong and must be reworked. This means Genesis does not produce a "concrete, working MVP"; it produces a plan that requires a design rework cycle before the MVP is actually working. Closing this gap completes Genesis; it does not extend it.
 
-2. **Design direction is an input to story generation, not a layer on top.** This is the key distinction from ADR-015 (which proposed post-pipeline mockup generation). If design were purely cosmetic, it could be deferred to Evolution. But design decisions affect story structure — a capability that requires a multi-step wizard has different stories than one that uses a single-page dashboard. Establishing screen structure *before* stories means stories are correct the first time.
+2. **Design direction is an input to story generation, not a layer on top.** This is the key distinction from ADR-015 (which proposed post-pipeline mockup generation). If design were purely cosmetic, it could be deferred to Evolution. But design decisions affect story structure: a capability that requires a multi-step wizard has different stories than one that uses a single-page dashboard. Establishing screen structure *before* stories means stories are correct the first time.
 
-3. **The stage is conditional and zero-cost for non-UI projects.** CLI tools, API services, and IoT backends skip the stage entirely. It runs only when the architecture stage identifies a user-facing UI frontend and Stitch is configured. This satisfies the Constitution's "would this work for a CLI tool?" test — it doesn't run, rather than producing irrelevant output.
+3. **The stage is conditional and zero-cost for non-UI projects.** CLI tools, API services, and IoT backends skip the stage entirely. It runs only when the architecture stage identifies a user-facing UI frontend and Stitch is configured. This satisfies the Constitution's "would this work for a CLI tool?" test: it doesn't run, rather than producing irrelevant output.
 
 ### Relationship to ADR-015
 
-[ADR-015](./ADR-015-google-stitch-mcp-integration.md) proposed Google Stitch integration as a **UI-triggered enhancement** — users click a button to generate mockups on-demand after the pipeline completes. This ADR supersedes that approach because:
+[ADR-015](./ADR-015-google-stitch-mcp-integration.md) proposed Google Stitch integration as a **UI-triggered enhancement** (users click a button to generate mockups on-demand after the pipeline completes). This ADR supersedes that approach because:
 
 - On-demand generation produces screens *after* stories exist, so stories lack design context
 - Retrofitting design onto implemented code causes rework
@@ -105,7 +105,7 @@ To remove GCP setup friction for end users, production deployments use a shared 
 4. Generate key, store in secrets manager
 5. Set `GOOGLE_APPLICATION_CREDENTIALS=/secrets/stitch-sa-key.json`
 
-**Developer setup**: For personal/dev use, an API key from Stitch settings is sufficient — no GCP project needed.
+**Developer setup**: For personal/dev use, an API key from Stitch settings is sufficient; no GCP project needed.
 
 **Environment configuration:**
 
@@ -134,8 +134,8 @@ The endpoint exposes tools for programmatic UI generation:
 | `fetch_screen_image` | Download screen as high-res image |
 
 **Authentication** supports two methods:
-- **API Key** — simpler, from Stitch settings, backed by Google Cloud Managed Projects (good for personal/dev use)
-- **Application Default Credentials (ADC)** — uses GCP credentials with IAM roles (good for production/shared use)
+- **API Key**: simpler, from Stitch settings, backed by Google Cloud Managed Projects (good for personal/dev use)
+- **Application Default Credentials (ADC)**: uses GCP credentials with IAM roles (good for production/shared use)
 
 A community proxy ([davideast/stitch-mcp](https://github.com/davideast/stitch-mcp)) handles token refresh automatically, which suggests the raw auth flow has friction points that need validation in the spike.
 
@@ -152,7 +152,7 @@ The [Strands Agents MCP Client](https://github.com/strands-agents/tools/blob/mai
 - **Tool invocation**: Call MCP tools with arguments and receive results
 - **Connection management**: Thread-safe, supports multiple concurrent connections
 
-This means a Haytham agent can be given the `mcp_client` tool and autonomously connect to Stitch, discover its tools, generate screens, and extract code — all within a single agent turn.
+This means a Haytham agent can be given the `mcp_client` tool and autonomously connect to Stitch, discover its tools, generate screens, and extract code, all within a single agent turn.
 
 **This integration path is unvalidated.** No evidence exists that `strands_tools.mcp_client` has been tested with the Stitch SSE endpoint, GCP auth token refresh during long agent turns, or binary responses (screen images). The prerequisite spike validates this before any implementation work begins.
 
@@ -167,9 +167,9 @@ This means a Haytham agent can be given the `mcp_client` tool and autonomously c
 │                    UPDATED WORKFLOW: WHY → WHAT → HOW → LOOK → STORIES     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  PHASE 1: WHY (Idea Validation)         — unchanged                        │
-│  PHASE 2: WHAT (MVP Specification)      — unchanged                        │
-│  PHASE 3: HOW (Technical Design)        — unchanged                        │
+│  PHASE 1: WHY (Idea Validation)         - unchanged                        │
+│  PHASE 2: WHAT (MVP Specification)      - unchanged                        │
+│  PHASE 3: HOW (Technical Design)        - unchanged                        │
 │                                    │                                        │
 │                        ┌───────────┴───────────┐                           │
 │                        │    DECISION GATE 3    │                           │
@@ -199,7 +199,7 @@ This means a Haytham agent can be given the `mcp_client` tool and autonomously c
 │               └────────────────────┘                                        │
 │                        │                                                    │
 │                        ▼                                                    │
-│  PHASE 4: STORIES (Implementation)  — enhanced with design references      │
+│  PHASE 4: STORIES (Implementation)  - enhanced with design references      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -211,7 +211,7 @@ Like `pivot_strategy` (gated on `risk_level="HIGH"`), the `ux-design` stage is *
 1. The MVP has user-facing UI capabilities (not CLI-only, not API-only)
 2. Stitch integration is configured (`STITCH_ENABLED=true`)
 
-This satisfies the Constitution's "would this work for a CLI tool?" test — it simply doesn't run for non-UI projects.
+This satisfies the Constitution's "would this work for a CLI tool?" test: it simply doesn't run for non-UI projects.
 
 ### Workflow Ordering: Where DESIGN_AND_UX Fits
 
@@ -233,7 +233,7 @@ workflow_order = [
     WorkflowType.IDEA_VALIDATION,
     WorkflowType.MVP_SPECIFICATION,
     WorkflowType.TECHNICAL_DESIGN,
-    WorkflowType.DESIGN_AND_UX,       # New — optional
+    WorkflowType.DESIGN_AND_UX,       # New, optional
     WorkflowType.STORY_GENERATION,
 ]
 ```
@@ -316,7 +316,7 @@ Generate 1 screen, show it to the user, let them give text feedback, iterate. Th
 │  Benefits:                                                                  │
 │  • Lower generation budget (1-3 vs always 3 for sampling)                  │
 │  • User gets *directed* control ("more whitespace") vs *selection* control │
-│  • Feedback is composable — user can adjust multiple aspects iteratively   │
+│  • Feedback is composable, user can adjust multiple aspects iteratively    │
 │  • Text feedback from the user doubles as style documentation              │
 │                                                                              │
 │  Drawbacks:                                                                 │
@@ -357,9 +357,9 @@ Generate 3 samples with different style moods, let the user pick one visually.
 │  Budget: Always exactly 3 generations for sampling                          │
 │                                                                              │
 │  Benefits:                                                                  │
-│  • Zero articulation required — user just picks visually                   │
+│  • Zero articulation required, user just picks visually                    │
 │  • Guaranteed variety across options                                        │
-│  • Simple binary gate — select and continue                                │
+│  • Simple binary gate, select and continue                                 │
 │                                                                              │
 │  Drawbacks:                                                                 │
 │  • Always burns 3 generations (25% of a 12-generation session budget)      │
@@ -379,21 +379,21 @@ Both approaches fit the existing Burr architecture as a **two-sub-stage pattern*
 | User gate | Approve / refine text input | Pick one of 3 |
 | `design_generation` | Generate remaining screens in approved style | Generate remaining screens in chosen style |
 
-The user gate between sub-stages mirrors the existing decision gate pattern between phases — it's a stage-boundary interaction, not a mid-agent pause. The `StageExecutor` handles each sub-stage independently, with the user gate implemented as a Streamlit view between them (identical to how decision gates between phases work today).
+The user gate between sub-stages mirrors the existing decision gate pattern between phases; it's a stage-boundary interaction, not a mid-agent pause. The `StageExecutor` handles each sub-stage independently, with the user gate implemented as a Streamlit view between them (identical to how decision gates between phases work today).
 
 ### Style Transfer: The Key Unknown
 
 The spike must answer: **Does Stitch maintain style coherence across screens within a project?**
 
-If yes, the flow is clean — the chosen sample establishes the style, and subsequent screens inherit it naturally.
+If yes, the flow is clean: the chosen sample establishes the style, and subsequent screens inherit it naturally.
 
 If no, the agent must extract style cues from the chosen screen and inject them into subsequent prompts. Possible approaches:
 
 | Approach | Complexity | Reliability |
 |----------|-----------|-------------|
-| Use same project in Stitch (if Stitch maintains project-level style) | Low | Unknown — spike validates |
-| Extract style description from chosen screen via LLM vision | Medium | Moderate — depends on prompt quality |
-| Use community `extract_design_context` tool | Medium | Unknown — third-party dependency |
+| Use same project in Stitch (if Stitch maintains project-level style) | Low | Unknown, spike validates |
+| Extract style description from chosen screen via LLM vision | Medium | Moderate, depends on prompt quality |
+| Use community `extract_design_context` tool | Medium | Unknown, third-party dependency |
 | Include chosen screen image as reference in subsequent prompts | Low | Depends on Stitch multimodal support |
 
 The spike determines which approach is needed. The implementation plan does not proceed until this is answered.
@@ -432,7 +432,7 @@ The architecture decisions stage (Phase 3) already determines the frontend frame
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-If the architecture chose a framework not supported by Stitch's code export, the agent falls back to the closest match and notes this in the output. Stitch supports React, Vue, Flutter, SwiftUI, Angular, HTML/CSS — covering most common choices.
+If the architecture chose a framework not supported by Stitch's code export, the agent falls back to the closest match and notes this in the output. Stitch supports React, Vue, Flutter, SwiftUI, Angular, HTML/CSS, covering most common choices.
 
 ### Agent Design
 
@@ -523,7 +523,7 @@ Acceptance Criteria:
 **Problem**: Haytham currently requires only AWS (Bedrock). Adding Google Stitch introduces a second cloud provider dependency.
 
 **Mitigation**:
-- Gated behind `STITCH_ENABLED=true` — zero impact when not configured
+- Gated behind `STITCH_ENABLED=true`, zero impact when not configured
 - Two auth options: API Key (simple, personal) or ADC (production, shared)
 - For production: shared service account approach (see "Shared Service Account" section above) eliminates per-user GCP setup
 - No GCP dependency for users who don't want design generation
@@ -544,7 +544,7 @@ Acceptance Criteria:
 - Default per-session limit of 12 generations (configurable via `STITCH_PER_SESSION_LIMIT`)
 - Single-sample-with-iteration (if spike Q4 passes) saves 0-2 generations vs 3-sample approach
 - Agent prompt instructs: generate only for user-facing capabilities (`CAP-F-*`), skip non-functional (`CAP-NF-*`) and admin/system screens
-- Cache generated screens in `session/ux-design/` — re-runs skip already-generated screens
+- Cache generated screens in `session/ux-design/`; re-runs skip already-generated screens
 - On re-runs, if a chosen design direction already exists, skip sampling entirely
 
 ### Concern 3: Non-Web MVPs
@@ -557,7 +557,7 @@ Acceptance Criteria:
 
 The `architecture_decisions` agent already produces structured JSON internally (with a `decisions` array, `coverage_check`, and `summary`), but the current `_run_architecture_decisions()` function in `stage_executor.py` discards the JSON and returns only markdown. This ADR requires two changes:
 
-**Change 1: Preserve the structured JSON.** Modify `_run_architecture_decisions()` to save the parsed JSON to `session/architecture-decisions/decisions.json` alongside the existing markdown output. This is a small change — the JSON is already parsed via `extract_json_from_response()` at line ~420 of `stage_executor.py`; it just needs to be written to disk before being discarded.
+**Change 1: Preserve the structured JSON.** Modify `_run_architecture_decisions()` to save the parsed JSON to `session/architecture-decisions/decisions.json` alongside the existing markdown output. This is a small change; the JSON is already parsed via `extract_json_from_response()` at line ~420 of `stage_executor.py`; it just needs to be written to disk before being discarded.
 
 **Change 2: Add `deployment_context` to the architecture agent's JSON schema.** Extend the existing JSON output format with a new top-level field:
 
@@ -575,7 +575,7 @@ The `architecture_decisions` agent already produces structured JSON internally (
 }
 ```
 
-The `deployment_context.platform` field is constrained to one of: `"web"`, `"mobile"`, `"desktop"`, `"cli"`, `"api"`, `"iot"`, `"hybrid"`. The `has_user_facing_ui` field is `true` when `platform` is `"web"`, `"mobile"`, `"desktop"`, or `"hybrid"`. The agent prompt already reasons about platform and framework — this change asks it to emit that reasoning as structured data instead of only prose.
+The `deployment_context.platform` field is constrained to one of: `"web"`, `"mobile"`, `"desktop"`, `"cli"`, `"api"`, `"iot"`, `"hybrid"`. The `has_user_facing_ui` field is `true` when `platform` is `"web"`, `"mobile"`, `"desktop"`, or `"hybrid"`. The agent prompt already reasons about platform and framework; this change asks it to emit that reasoning as structured data instead of only prose.
 
 **Reading the flag in Burr:** The `design_sampling` action reads `session/architecture-decisions/decisions.json`, extracts `deployment_context.has_user_facing_ui`, and stores it in Burr state. The transition is wired as:
 
@@ -606,7 +606,7 @@ This follows the existing pattern used for `pivot_strategy` (gated on `risk_leve
 - The agent reads framework from `architecture_decisions` and uses it in `fetch_screen_code`
 - Stitch supports React, Vue, Flutter, SwiftUI, Angular, HTML/CSS
 - If the architecture chose an unsupported framework (e.g., Svelte), the agent falls back to the closest match and notes this in the output
-- Position generated code as "starter scaffolding" — stories reference screen layouts, not copy-paste the code
+- Position generated code as "starter scaffolding"; stories reference screen layouts, not copy-paste the code
 
 ### Concern 5: Latency
 
@@ -622,7 +622,7 @@ This follows the existing pattern used for `pivot_strategy` (gated on `risk_leve
 **Problem**: Google Labs products can be shut down. Building a workflow stage on it creates an external dependency.
 
 **Mitigation**:
-- The agent uses `mcp_client` generically — it connects to an MCP server and calls tools
+- The agent uses `mcp_client` generically; it connects to an MCP server and calls tools
 - If Stitch is discontinued, the same agent could connect to a different MCP-compatible design tool
 - Feature flag means removal is a one-line config change
 - The stage output format (screens + code + images) is tool-agnostic
@@ -647,7 +647,7 @@ The spike is a standalone investigation, tracked as its own task, producing a de
 |---|----------|------|---------------|
 | 1 | Can Strands `mcp_client` connect to `stitch.googleapis.com/mcp` via SSE? | Create a minimal Strands agent with `mcp_client`, connect to Stitch, call `list_projects` | Successful connection, auth header passing, response parsing |
 | 2 | Can the agent autonomously generate a screen and fetch image + code? | `generate_screen` → `fetch_screen_image` → `fetch_screen_code` in a single agent turn | All three calls succeed; binary image is retrievable; token budget fits in one turn |
-| 3 | Does Stitch maintain style coherence across screens in the same project? | Generate 3 screens in the same project with similar style prompts, visually compare | Subjective visual comparison — document findings regardless |
+| 3 | Does Stitch maintain style coherence across screens in the same project? | Generate 3 screens in the same project with similar style prompts, visually compare | Subjective visual comparison, document findings regardless |
 | 4 | Does the single-sample-with-feedback loop work? | Generate 1 screen, describe a style adjustment in a follow-up prompt, regenerate | Second screen reflects the feedback; iteration is cheaper than 3-up sampling |
 
 ### Spike Outcomes and Decision Matrix
@@ -753,7 +753,7 @@ A document in `docs/spikes/spike-stitch-mcp.md` containing:
 
 5. Add session caching for generated screens in `session/ux-design/`
 
-### Phase 3: Streamlit UI — Design Selection Gate
+### Phase 3: Streamlit UI - Design Selection Gate
 
 1. Add design sampling view (`frontend_streamlit/views/design_selection.py`):
    - **If single-sample-with-iteration** (spike Q4 passed):
@@ -778,7 +778,7 @@ A document in `docs/spikes/spike-stitch-mcp.md` containing:
 
 1. Update `story_generator` prompt to consume design context when available
 2. Add conditional context: if `design-generation` stage has output, include screen references
-3. Stories reference Screen IDs when design context exists — but don't make them blocking acceptance criteria
+3. Stories reference Screen IDs when design context exists, but don't make them blocking acceptance criteria
 
 ### Phase 5: Testing
 
@@ -798,29 +798,29 @@ A document in `docs/spikes/spike-stitch-mcp.md` containing:
 
 ### Positive
 
-1. **Demonstrates orchestration** — Haytham visibly integrates an external service (Google Stitch via MCP), proving its multi-service orchestration capability
-2. **Avoids design rework** — Design direction is established before implementation stories are written
-3. **Richer deliverables** — MVP output includes visual screens alongside specs and stories
-4. **Intuitive user control** — Visual selection or text-based iteration requires zero design knowledge
-5. **Framework-aware code** — Generated code matches the architecture's framework choice
-6. **Replaceability** — MCP abstraction means any future design tool with MCP support can be swapped in
-7. **Idempotent** — Chosen design direction stored locally; re-runs skip the selection step
+1. **Demonstrates orchestration**: Haytham visibly integrates an external service (Google Stitch via MCP), proving its multi-service orchestration capability
+2. **Avoids design rework**: Design direction is established before implementation stories are written
+3. **Richer deliverables**: MVP output includes visual screens alongside specs and stories
+4. **Intuitive user control**: Visual selection or text-based iteration requires zero design knowledge
+5. **Framework-aware code**: Generated code matches the architecture's framework choice
+6. **Replaceability**: MCP abstraction means any future design tool with MCP support can be swapped in
+7. **Idempotent**: Chosen design direction stored locally; re-runs skip the selection step
 
 ### Negative
 
-1. **Second cloud provider** — GCP dependency (optional but present when enabled)
-2. **External service dependency** — Stitch availability affects stage completion
-3. **GCP auth setup** — One-time configuration per developer (eliminated in production via shared service account)
-4. **Workflow time increase** — Additional time for screen generation per run
-5. **Sampling budget cost** — 1-3 generations spent on style selection (8-25% of session budget depending on approach and iteration count)
+1. **Second cloud provider**: GCP dependency (optional but present when enabled)
+2. **External service dependency**: Stitch availability affects stage completion
+3. **GCP auth setup**: One-time configuration per developer (eliminated in production via shared service account)
+4. **Workflow time increase**: Additional time for screen generation per run
+5. **Sampling budget cost**: 1-3 generations spent on style selection (8-25% of session budget depending on approach and iteration count)
 
 ### Risks
 
-1. **Spike failure** — Strands `mcp_client` may not work with Stitch's SSE endpoint
+1. **Spike failure**: Strands `mcp_client` may not work with Stitch's SSE endpoint
    - Mitigation: Spike is a prerequisite gate; if Q1 or Q2 fails, this ADR is rejected with no wasted implementation effort
 2. **Stitch API discontinuation** (Google Labs product)
    - Mitigation: Feature flag, MCP abstraction, tool-agnostic output format
-3. **No style coherence across screens** — Each screen may look visually different
+3. **No style coherence across screens**: Each screen may look visually different
    - Mitigation: Spike answers this; fallback approaches documented in "Style Transfer" section
 4. **Generated UI quality** may not match user expectations
    - Mitigation: Position as wireframes/starting points, not final designs
@@ -835,7 +835,7 @@ A document in `docs/spikes/spike-stitch-mcp.md` containing:
 
 Stick with on-demand mockup generation from the Streamlit UI.
 
-**Rejected because:** Does not feed design context into story generation. Each mockup is isolated — no design system, no consistency across screens. Does not demonstrate autonomous orchestration. Causes design rework when applied after implementation.
+**Rejected because:** Does not feed design context into story generation. Each mockup is isolated, no design system, no consistency across screens. Does not demonstrate autonomous orchestration. Causes design rework when applied after implementation.
 
 ### Alternative B: Full Separate Phase with Multiple Sub-Stages
 
@@ -847,7 +847,7 @@ Create a `WorkflowType.DESIGN_AND_UX` with many sub-stages (UX flows, design sys
 
 Have the `story_generator` agent call Stitch directly to generate screens during story creation.
 
-**Rejected because:** Violates separation of concerns. Story generation should focus on task decomposition, not UI design. Also makes testing harder — a story generation failure could be caused by Stitch issues rather than prompt problems.
+**Rejected because:** Violates separation of concerns. Story generation should focus on task decomposition, not UI design. Also makes testing harder: a story generation failure could be caused by Stitch issues rather than prompt problems.
 
 ### Alternative D: Color Palette Approval Instead of Visual Sampling
 
@@ -868,20 +868,20 @@ Use Vercel's v0.dev or Figma AI instead of Stitch.
 
 ## Dependencies
 
-- [ADR-015: Google Stitch MCP Integration](./ADR-015-google-stitch-mcp-integration.md) — Superseded by this ADR (rate limiting and shared service account designs restated in full above)
-- [ADR-016: Four-Phase Workflow](./ADR-016-four-phase-workflow.md) — Current workflow architecture being extended
-- [ADR-018: LLM-as-Judge Agent Testing](./ADR-018-llm-as-judge-agent-testing.md) — Testing framework for the new agent
+- [ADR-015: Google Stitch MCP Integration](./ADR-015-google-stitch-mcp-integration.md) - Superseded by this ADR (rate limiting and shared service account designs restated in full above)
+- [ADR-016: Four-Phase Workflow](./ADR-016-four-phase-workflow.md) - Current workflow architecture being extended
+- [ADR-018: LLM-as-Judge Agent Testing](./ADR-018-llm-as-judge-agent-testing.md) - Testing framework for the new agent
 
 ---
 
 ## References
 
 - [Google Stitch](https://stitch.withgoogle.com/)
-- [Stitch MCP Setup Guide](https://stitch.withgoogle.com/docs/mcp/setup) — Official setup documentation
-- [Stitch MCP Endpoint](https://stitch.googleapis.com/mcp) — Official Google API
-- [davideast/stitch-mcp](https://github.com/davideast/stitch-mcp) — Community proxy for auth token management
+- [Stitch MCP Setup Guide](https://stitch.withgoogle.com/docs/mcp/setup) - Official setup documentation
+- [Stitch MCP Endpoint](https://stitch.googleapis.com/mcp) - Official Google API
+- [davideast/stitch-mcp](https://github.com/davideast/stitch-mcp) - Community proxy for auth token management
 - [Strands Agents MCP Client](https://github.com/strands-agents/tools/blob/main/src/strands_tools/mcp_client.py)
-- [Google Developers Blog — Introducing Stitch](https://developers.googleblog.com/stitch-a-new-way-to-design-uis/)
+- [Google Developers Blog - Introducing Stitch](https://developers.googleblog.com/stitch-a-new-way-to-design-uis/)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
-- [auto-stitch-mcp](https://glama.ai/mcp/servers/@GreenSheep01201/auto-stitch-mcp) — Community extension with additional tools
+- [auto-stitch-mcp](https://glama.ai/mcp/servers/@GreenSheep01201/auto-stitch-mcp) - Community extension with additional tools
 - [Gemini CLI Stitch Extension](https://github.com/gemini-cli-extensions/stitch)

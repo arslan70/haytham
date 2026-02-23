@@ -287,7 +287,7 @@ def run_evaluation(
                     }
                 )
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: test evaluation must not abort other tests
             logger.error(f"Error evaluating {agent_name}/{idea_id}: {e}", exc_info=True)
             results.append(
                 {

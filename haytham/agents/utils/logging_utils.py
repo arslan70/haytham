@@ -175,7 +175,7 @@ class AgentLogger:
         # Ensure session directory exists (in case it was deleted or not created)
         try:
             session_dir.mkdir(parents=True, exist_ok=True)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to create session directory {session_dir}: {e}")
             return
 
@@ -203,7 +203,7 @@ METADATA:
         try:
             with open(log_file, "a", encoding="utf-8") as f:
                 f.write(log_text)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to write log entry to {log_file}: {e}")
 
     def log_llm_input(self, prompt: str, metadata: dict[str, Any] | None = None) -> None:
@@ -381,7 +381,7 @@ METADATA:
         # Ensure session directory exists
         try:
             session_dir.mkdir(parents=True, exist_ok=True)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to create session directory {session_dir}: {e}")
             return
 
@@ -398,7 +398,7 @@ METADATA:
             logger.info(
                 f"[{self.agent_name}] Token summary written: {self.token_usage['total_tokens']} total tokens"
             )
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to write token summary to {summary_file}: {e}")
 
 

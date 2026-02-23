@@ -81,7 +81,7 @@ def run_story_generation(state: State) -> tuple[str, str]:
             return json.dumps({"stories": stories_dicts}), "completed"
         return stories_markdown, "completed"
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         logger.error(f"Story generation swarm failed: {e}", exc_info=True)
         return f"Error generating stories: {str(e)}", "failed"
 
@@ -697,7 +697,7 @@ def create_backlog_drafts_from_stories(
                 failed_count += 1
                 logger.warning(f"Failed to create draft for {story_id}: {title}")
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: per-story backlog creation
             failed_count += 1
             logger.error(f"Error creating draft for {story_id}: {e}")
 
@@ -723,7 +723,7 @@ def create_backlog_drafts_after_ordering(session_manager: Any, output: str) -> N
         try:
             stories = json.loads(stories_json_file.read_text())
             logger.info(f"Loaded {len(stories)} stories from stories.json for backlog drafts")
-        except (json.JSONDecodeError, Exception) as e:
+        except (json.JSONDecodeError, OSError) as e:
             logger.warning(f"Failed to read stories.json: {e}")
 
     # Fallback: parse from markdown
@@ -735,7 +735,7 @@ def create_backlog_drafts_after_ordering(session_manager: Any, output: str) -> N
 
         try:
             story_markdown = story_gen_file.read_text()
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Failed to read story generation file: {e}")
             return
 

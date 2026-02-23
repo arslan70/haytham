@@ -12,7 +12,7 @@ Haytham's first milestone, **Genesis** (idea to validated specification), is com
 
 **Priority:** High | **Contribution:** Core Team
 
-The docs describe the Phase 4 story output as an "execution contract" and a "universal interface." Today it is markdown files in `session/{stage-slug}/`. For the control plane claim to be real, the output needs a machine-readable format with traceability tags parseable by external agents — not just readable by humans.
+The docs describe the Phase 4 story output as an "execution contract" and a "universal interface." Today it is markdown files in `session/{stage-slug}/`. For the control plane claim to be real, the output needs a machine-readable format with traceability tags parseable by external agents, not just readable by humans.
 
 ### What this means concretely
 
@@ -24,7 +24,7 @@ The docs describe the Phase 4 story output as an "execution contract" and a "uni
 
 - Changing the internal session persistence format
 - Breaking existing Streamlit UI rendering
-- Building a generic "work item protocol" — the schema serves Haytham's output, not an industry standard
+- Building a generic "work item protocol". The schema serves Haytham's output, not an industry standard
 
 ---
 
@@ -37,8 +37,8 @@ Build the dispatch path from Phase 4 output to a single coding agent. The agent 
 
 ### Recommended first target: Claude Code
 
-- Already used by the team — lowest integration friction
-- CLI-based — can be invoked programmatically with structured input
+- Already used by the team, lowest integration friction
+- CLI-based, can be invoked programmatically with structured input
 - Supports tool use and file operations needed for implementation
 
 ### Scope
@@ -51,9 +51,9 @@ Build the dispatch path from Phase 4 output to a single coding agent. The agent 
 
 ### Out of scope (for now)
 
-- Multiple agent support — build one, learn, then generalize
-- Autonomous multi-story execution — start with single-story dispatch with human approval between stories
-- Agent selection logic — the user picks the agent, Haytham provides the context
+- Multiple agent support. Build one, learn, then generalize
+- Autonomous multi-story execution. Start with single-story dispatch with human approval between stories
+- Agent selection logic. The user picks the agent, Haytham provides the context
 
 ---
 
@@ -74,7 +74,7 @@ After a coding agent implements stories, validate the result against the capabil
 
 - How much validation can be automated vs. requiring human review?
 - Should validation use the same LLM agents as specification, or different tooling (static analysis, test execution)?
-- What is the feedback loop when validation fails — re-dispatch to the coding agent with guidance, or surface to the human?
+- What is the feedback loop when validation fails? Re-dispatch to the coding agent with guidance, or surface to the human?
 
 ---
 
@@ -105,7 +105,7 @@ Already planned and referenced in VISION.md, how-it-works.md, and architecture/o
 **Priority:** Medium | **Contribution:** Community Welcome
 **Depends on:** Item 1 (execution contract)
 
-Haytham's GTM narrative is "the specification layer for the AI coding agent ecosystem." Two open formats already exist for feeding specifications to coding agents: [OpenSpec](https://github.com/Fission-AI/OpenSpec) (Fission AI) and [Spec Kit](https://github.com/github/spec-kit) (GitHub). Rather than invent a proprietary format, export to both — letting any AI coding agent (Claude Code, Cursor, Copilot, Devin) consume Haytham's output natively.
+Haytham's GTM narrative is "the specification layer for the AI coding agent ecosystem." Two open formats already exist for feeding specifications to coding agents: [OpenSpec](https://github.com/Fission-AI/OpenSpec) (Fission AI) and [Spec Kit](https://github.com/github/spec-kit) (GitHub). Rather than invent a proprietary format, export to both, letting any AI coding agent (Claude Code, Cursor, Copilot, Devin) consume Haytham's output natively.
 
 ### Why both
 
@@ -120,7 +120,7 @@ They serve different workflows. Supporting both is low marginal cost once the fi
 
 | Artifact | Haytham source |
 |----------|---------------|
-| Specs / requirements | Capability Model (CAP-F-\*, CAP-NF-\*) — acceptance criteria become requirements, user flows become scenarios |
+| Specs / requirements | Capability Model (CAP-F-\*, CAP-NF-\*). Acceptance criteria become requirements, user flows become scenarios |
 | Technical plan / design | Architecture Decisions (DEC-\*) + Build/Buy Analysis |
 | Tasks | Stories (dependency-ordered, layered) |
 | Proposal / project context | MVP Scope + Validation Summary (verdict, risk level, scores) |
@@ -129,19 +129,19 @@ They serve different workflows. Supporting both is low marginal cost once the fi
 
 ### Scope
 
-- New `ExportableProject` model that aggregates full session context (capabilities, decisions, stories, scope, validation) — the story-only `ExportableStory` is insufficient for spec-driven formats
-- `OpenSpecExporter` — produces the `openspec/` directory tree (config.yaml, specs/, changes/initial-mvp/)
-- `SpecKitExporter` — produces the `.speckit/` directory tree (constitution.md, specs/NNN-feature/)
+- New `ExportableProject` model that aggregates full session context (capabilities, decisions, stories, scope, validation). The story-only `ExportableStory` is insufficient for spec-driven formats
+- `OpenSpecExporter`: produces the `openspec/` directory tree (config.yaml, specs/, changes/initial-mvp/)
+- `SpecKitExporter`: produces the `.speckit/` directory tree (constitution.md, specs/NNN-feature/)
 - Directory-tree export method on `BaseExporter` (`export_tree() → dict[str, str]`) alongside existing `export() → str`
-- Template-based transformation (deterministic, no LLM pass) — acceptance criteria → SHALL statements, user flows → Given/When/Then
+- Template-based transformation (deterministic, no LLM pass). Acceptance criteria → SHALL statements, user flows → Given/When/Then
 - UI integration: export button in Streamlit after STORIES phase completes
 
 ### What this does NOT mean
 
-- Replacing the internal session format — OpenSpec/Spec Kit are export targets, not persistence formats
-- LLM-enhanced scenario generation — start with templates, upgrade later if quality is insufficient
-- Building OpenSpec/Spec Kit CLI integrations — just produce the directory structure; users run their own tooling
-- Changing how stories are generated — the export transforms existing output, it does not influence upstream agents
+- Replacing the internal session format. OpenSpec/Spec Kit are export targets, not persistence formats
+- LLM-enhanced scenario generation. Start with templates, upgrade later if quality is insufficient
+- Building OpenSpec/Spec Kit CLI integrations. Just produce the directory structure; users run their own tooling
+- Changing how stories are generated. The export transforms existing output, it does not influence upstream agents
 
 ---
 

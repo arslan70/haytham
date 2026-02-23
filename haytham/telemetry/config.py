@@ -184,7 +184,7 @@ def _setup_strands_telemetry(config: TelemetryConfig) -> Any:
 
         return telemetry
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: optional infrastructure, must not crash app
         logger.warning(f"Failed to initialize OpenTelemetry: {e}")
         return None
 

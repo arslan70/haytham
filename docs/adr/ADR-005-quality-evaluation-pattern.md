@@ -1,11 +1,11 @@
 # ADR-005: Quality Evaluation Pattern
 
 ## Status
-**Accepted** — 2026-01-14
+**Accepted**, 2026-01-14
 
 ## Context
 
-Workflow stages produce outputs (capabilities, decisions, entities, stories) that may have quality issues. These issues are valuable signals for improving the system—prompts, agents, and architecture—but should not block users from proceeding.
+Workflow stages produce outputs (capabilities, decisions, entities, stories) that may have quality issues. These issues are valuable signals for improving the system (prompts, agents, and architecture) but should not block users from proceeding.
 
 ## Decision
 
@@ -29,7 +29,7 @@ Stage Execution ──► Output Saved ──► [Evaluate Button] ──► AI 
 
 4. **Improvement Signals**: Quality issues are captured in `project/improvement_signals.md` as inputs for system improvement, not as blockers.
 
-5. **System-Level Fixes**: Issues inform changes to prompts, agents, and architecture—not patches to individual outputs.
+5. **System-Level Fixes**: Issues inform changes to prompts, agents, and architecture, not patches to individual outputs.
 
 ### Improvement Signals File
 

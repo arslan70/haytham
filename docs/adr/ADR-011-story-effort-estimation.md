@@ -1,7 +1,7 @@
 # ADR-011: Story Effort Estimation
 
 ## Status
-**Proposed** — 2026-01-19
+**Proposed**, 2026-01-19
 
 ## Context
 
@@ -47,7 +47,7 @@ The generated stories for Haytham included 27 tasks. A founder looking at this l
 | Hour Ranges | Concrete, budgetable | False precision, varies by skill |
 | Complexity Score | Objective factors | Doesn't translate to time |
 
-**For solo founders, T-shirt sizes with hour ranges provide the best balance** — simple enough to understand, concrete enough for contractor quotes.
+**For solo founders, T-shirt sizes with hour ranges provide the best balance**: simple enough to understand, concrete enough for contractor quotes.
 
 ---
 
@@ -453,23 +453,23 @@ Title,Description,Priority,Labels,Estimate
 
 ### Positive
 
-1. **Actionable planning** — Founders can scope work and set timelines
-2. **Budget visibility** — Contractor costs become estimable
-3. **Prioritization data** — Quick wins vs. big efforts become visible
-4. **Export value** — Estimates make exports more useful
+1. **Actionable planning**: Founders can scope work and set timelines
+2. **Budget visibility**: Contractor costs become estimable
+3. **Prioritization data**: Quick wins vs. big efforts become visible
+4. **Export value**: Estimates make exports more useful
 
 ### Negative
 
-1. **False precision risk** — Users may over-trust estimates
-2. **Calibration needed** — Initial estimates may be off
-3. **Extra latency** — Additional API calls for estimation
+1. **False precision risk**: Users may over-trust estimates
+2. **Calibration needed**: Initial estimates may be off
+3. **Extra latency**: Additional API calls for estimation
 
 ### Risks
 
-1. **Estimate anchoring** — Users take estimates as commitments
+1. **Estimate anchoring**: Users take estimates as commitments
    - **Mitigation:** Always show ranges, display confidence levels, include disclaimers
 
-2. **Context blindness** — AI doesn't know user's skill level
+2. **Context blindness**: AI doesn't know user's skill level
    - **Mitigation:** Document that estimates assume "mid-level developer"; add skill multiplier option later
 
 ---

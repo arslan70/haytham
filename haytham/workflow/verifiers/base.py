@@ -175,7 +175,7 @@ class PhaseVerifier(ABC):
             # Run the verifier agent
             result = self._run_verification(prompt)
             return result
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: fail-open verifier must not block pipeline
             logger.error(f"Verification failed for {self.phase_name}: {e}")
             return PhaseVerification(
                 phase=self.phase_name,
@@ -414,11 +414,11 @@ class WhatPhaseVerifier(PhaseVerifier):
             try:
                 save_verification_result(result, session_dir=session_dir)
                 logger.info("Verification result saved successfully")
-            except Exception as save_err:
+            except OSError as save_err:
                 logger.error(f"Failed to save verification result: {save_err}")
 
             return result
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: fail-open verifier must not block pipeline
             logger.error(f"Swarm verification failed for {self.phase_name}: {e}", exc_info=True)
             error_result = PhaseVerification(
                 phase=self.phase_name,
@@ -431,7 +431,7 @@ class WhatPhaseVerifier(PhaseVerifier):
             try:
                 save_verification_result(error_result, session_dir=session_dir)
                 logger.info("Error verification result saved")
-            except Exception as save_err:
+            except OSError as save_err:
                 logger.error(f"Failed to save error verification result: {save_err}")
             return error_result
 

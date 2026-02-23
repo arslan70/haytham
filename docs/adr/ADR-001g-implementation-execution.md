@@ -10,7 +10,7 @@
 
 ## POC Simplifications
 
-- **Coding Agent**: Claude Code only — no multi-agent abstraction
+- **Coding Agent**: Claude Code only, no multi-agent abstraction
 - **Execution**: Sequential task execution, no parallelization
 - **Verification**: Run tests after each task; if tests fail, ask Claude Code to fix
 - **State Updates**: Update state.json after each completed task

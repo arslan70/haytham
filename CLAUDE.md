@@ -74,7 +74,7 @@ make test-agents-quick                        # Smoke test
 make test-agents-verbose                      # With judge reasoning
 make record-fixtures IDEA_ID=T1               # Record upstream fixtures
 
-# Setup — configure .env with AWS creds + model IDs
+# Setup: configure .env with AWS creds + model IDs
 ```
 
 ## Before Every Commit (REQUIRED)
@@ -127,14 +127,14 @@ recommendation(NO-GO) + gate_approved → END
 - **SessionManager** (`haytham/session/session_manager.py`): State, checkpoints, stage outputs. Saves to `session/{stage-slug}/`.
 
 **Key files:**
-- `haytham/workflow/burr_workflow.py` — Workflow definition and transitions
-- `haytham/workflow/burr_actions.py` — Burr action wrappers that call the stage executor
-- `haytham/workflow/stage_registry.py` — Stage metadata (slugs, phases, ordering), `WorkflowType` enum
-- `haytham/workflow/stage_executor.py` — `StageExecutor` class
-- `haytham/workflow/stages/configs.py` — `STAGE_CONFIGS` dict (assembled from domain modules)
-- `haytham/workflow/entry_conditions.py` — Entry validators, `_VALIDATORS` dict
-- `haytham/agents/factory/agent_factory.py` — Agent creation via `create_agent_by_name()`
-- `haytham/session/session_manager.py` — Session state, checkpoints, stage outputs
+- `haytham/workflow/burr_workflow.py` - Workflow definition and transitions
+- `haytham/workflow/burr_actions.py` - Burr action wrappers that call the stage executor
+- `haytham/workflow/stage_registry.py` - Stage metadata (slugs, phases, ordering), `WorkflowType` enum
+- `haytham/workflow/stage_executor.py` - `StageExecutor` class
+- `haytham/workflow/stages/configs.py` - `STAGE_CONFIGS` dict (assembled from domain modules)
+- `haytham/workflow/entry_conditions.py` - Entry validators, `_VALIDATORS` dict
+- `haytham/agents/factory/agent_factory.py` - Agent creation via `create_agent_by_name()`
+- `haytham/session/session_manager.py` - Session state, checkpoints, stage outputs
 
 ### Adding a New Agent
 
@@ -149,7 +149,7 @@ recommendation(NO-GO) + gate_approved → END
 1. `StageMetadata` in `stage_registry.py`
 2. `StageExecutionConfig` in `haytham/workflow/stages/configs.py`
 3. Burr action in `burr_actions.py` + transition in `burr_workflow.py`
-4. Entry validator in `entry_conditions.py` — register in `_VALIDATORS` dict and update `get_next_available_workflow()` order
+4. Entry validator in `entry_conditions.py`. Register in `_VALIDATORS` dict and update `get_next_available_workflow()` order
 
 **Key files:** `haytham/workflow/stage_registry.py`, `haytham/workflow/stages/configs.py`, `haytham/workflow/burr_actions.py`, `haytham/workflow/burr_workflow.py`, `haytham/workflow/entry_conditions.py`
 
@@ -164,15 +164,15 @@ recommendation(NO-GO) + gate_approved → END
 
 ### Package Boundaries
 
-- `haytham/workflow/` imports from `haytham/agents/` — not the reverse
-- `haytham/session/` is imported by both `workflow/` and `agents/` — keep it dependency-free
-- `haytham/agents/output_utils.py` is the shared extraction layer — individual `worker_*/` modules import from here, not from each other
-- `haytham/phases/` is **deprecated** — it re-exports from `haytham/workflow/stage_registry`. Import from `workflow/` directly
+- `haytham/workflow/` imports from `haytham/agents/`, not the reverse
+- `haytham/session/` is imported by both `workflow/` and `agents/`. Keep it dependency-free
+- `haytham/agents/output_utils.py` is the shared extraction layer. Individual `worker_*/` modules import from here, not from each other
+- `haytham/workflow/architecture_diff.py` contains `ArchitectureDiff` and diff computation for Workflow 2
 
 
 ## Documentation Editing Standards
 - Write in plain, human-friendly language. Avoid jargon and verbose AI-sounding prose.
-- Never use em dashes (—). Use commas, periods, or parentheses instead.
+- Never use em dashes. Use commas, periods, or parentheses instead.
 - Prefer diagrams (mermaid) over long explanatory paragraphs when showing architecture or flows.
 - When editing docs, keep it concise. If the user asks for simplification, go further than you think necessary.
 
@@ -285,7 +285,7 @@ Optional: `LOG_LEVEL`, `OTEL_SDK_DISABLED` (default: true), `OTEL_EXPORTER_OTLP_
 
 ## Backlog.md MCP (For Generated Systems Only)
 
-**IMPORTANT:** The Backlog.md MCP tools are NOT for tracking Haytham development tasks. They are part of the system that Haytham generates — used by generated applications to manage their own task backlogs.
+**IMPORTANT:** The Backlog.md MCP tools are NOT for tracking Haytham development tasks. They are part of the system that Haytham generates, used by generated applications to manage their own task backlogs.
 
 - **DO NOT** use `mcp__backlog__*` tools to track ADR implementations, bug fixes, or feature work on Haytham itself
 - **DO** use these tools when working on the story generation or project management features that Haytham outputs for generated applications

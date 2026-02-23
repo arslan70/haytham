@@ -34,10 +34,10 @@ The existing `mvp_specification` stage outputs to `session/mvp-specification/mvp
 - ✅ Success metrics
 
 **What it lacks (needed for pipeline):**
-- ❌ Story IDs (S-001, S-002) — currently no IDs
-- ❌ Entity extraction — prose only ("Workout data from gym equipment")
-- ❌ Dependency graph — implicit relationships only
-- ❌ Uncertainty markers — ambiguities not flagged
+- ❌ Story IDs (S-001, S-002): currently no IDs
+- ❌ Entity extraction: prose only ("Workout data from gym equipment")
+- ❌ Dependency graph: implicit relationships only
+- ❌ Uncertainty markers: ambiguities not flagged
 
 **Decision**: Modify the existing `worker_mvp_specification` agent prompt to output the enhanced format. The agent will:
 1. Assign IDs to stories (S-001, S-002, etc.)
@@ -59,7 +59,7 @@ The MVP Specification stage currently produces a human-readable document contain
 - Feature specifications
 - Success metrics
 
-This format is designed to be **domain-agnostic** — it works for any startup idea (social networks, SaaS tools, marketplaces, hardware companions, etc.).
+This format is designed to be **domain-agnostic**. It works for any startup idea (social networks, SaaS tools, marketplaces, hardware companions, etc.).
 
 ### Current Format Assessment
 
@@ -95,13 +95,13 @@ The current MVP specification format requires significant interpretation effort 
 
 Enhance the MVP Specification format with **structured sections** that complement (not replace) human-readable content. The enhanced format will include:
 
-1. **Explicit Domain Model** — Entities, attributes, relationships
-2. **User Roles & Permissions** — Who can do what
-3. **Feature Dependency Graph** — Build order constraints
-4. **Integration Point Inventory** — External systems and their interfaces
-5. **Uncertainty Registry** — Explicit "TBD" items requiring decisions
-6. **Non-Functional Hints** — Performance, security, scale expectations
-7. **Story Enrichment** — Additional structured metadata per story
+1. **Explicit Domain Model**: Entities, attributes, relationships
+2. **User Roles & Permissions**: Who can do what
+3. **Feature Dependency Graph**: Build order constraints
+4. **Integration Point Inventory**: External systems and their interfaces
+5. **Uncertainty Registry**: Explicit "TBD" items requiring decisions
+6. **Non-Functional Hints**: Performance, security, scale expectations
+7. **Story Enrichment**: Additional structured metadata per story
 
 All sections use **generic templates** that apply to any domain.
 

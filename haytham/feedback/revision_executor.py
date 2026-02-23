@@ -199,7 +199,7 @@ def execute_revision(
             success=True,
         )
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: agent execution boundary
         logger.error(f"Error revising stage '{stage_slug}': {e}")
 
         if on_progress:

@@ -1,9 +1,9 @@
 # ADR-017: UX Design for Four-Phase Workflow
 
 ## Status
-**Proposed** — 2026-01-24
+**Proposed**, 2026-01-24
 
-**Milestone**: Genesis (M1) — User experience for Phases 1-6
+**Milestone**: Genesis (M1), User experience for Phases 1-6
 
 **Related**: [ADR-016: Four-Phase Workflow Architecture](./ADR-016-four-phase-workflow.md)
 
@@ -109,7 +109,7 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 - **Complete** (●): Phase locked, outputs available
 - **In Progress** (◐): Currently working on this phase
 - **Not Started** (○): Blocked by previous phase
-- **Skipped** (—): Phase was skipped (e.g., pivot strategy not needed)
+- **Skipped** (-): Phase was skipped (e.g., pivot strategy not needed)
 
 **Interaction**: Clicking a completed phase navigates to its results view.
 
@@ -193,7 +193,7 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 │  │                                                                      │   │
 │  │  ─────────────────────────────────────────────────────────────────  │   │
 │  │                                                                      │   │
-│  │  ## Next: Phase 3 — HOW (Technical Design)                          │   │
+│  │  ## Next: Phase 3 - HOW (Technical Design)                           │   │
 │  │                                                                      │   │
 │  │  You'll decide **how** to build each capability:                    │   │
 │  │  • Build vs Buy analysis for each capability                        │   │
@@ -241,7 +241,7 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                      │   │
-│  │  PHASE 3: HOW — Technical Design                                    │   │
+│  │  PHASE 3: HOW - Technical Design                                     │   │
 │  │  ════════════════════════════════                                   │   │
 │  │                                                                      │   │
 │  │  Question: "How should we build each capability?"                   │   │
@@ -300,9 +300,9 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 │  │  │ 1. WHY    │ ✓ Done    │ GO recommendation         │ [View]     │ │   │
 │  │  │ 2. WHAT   │ ✓ Done    │ 6 capabilities defined    │ [View]     │ │   │
 │  │  │ 3. HOW    │ ◐ Active  │ 4/6 build vs buy decided  │ [Continue] │ │   │
-│  │  │ 4. STORIES│ 🔒 Locked │ —                         │ —          │ │   │
-│  │  │ 5. BUILD  │ 🔒 Locked │ —                         │ —          │ │   │
-│  │  │ 6. VALIDATE│🔒 Locked │ —                         │ —          │ │   │
+│  │  │ 4. STORIES│ 🔒 Locked │ -                         │ -          │ │   │
+│  │  │ 5. BUILD  │ 🔒 Locked │ -                         │ -          │ │   │
+│  │  │ 6. VALIDATE│🔒 Locked │ -                         │ -          │ │   │
 │  │                                                                      │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
@@ -322,7 +322,7 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                      │   │
-│  │  PHASE 3: HOW — Running Technical Design                            │   │
+│  │  PHASE 3: HOW - Running Technical Design                             │   │
 │  │  ═══════════════════════════════════════                            │   │
 │  │                                                                      │   │
 │  │  ┌─────────────────────────────────────────────────────────────┐    │   │
@@ -415,7 +415,7 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 
 | Phase | Stage | View File | Shows |
 |-------|-------|-----------|-------|
-| — | — | `dashboard.py` | Project overview, next action |
+| - | - | `dashboard.py` | Project overview, next action |
 | 1: WHY | All | `discovery.py` | Validation results, GO/NO-GO |
 | 2: WHAT | All | `mvp_spec.py` | MVP scope, capabilities |
 | 3: HOW | build-buy | `build_buy.py` | BUILD/BUY/HYBRID per capability |
@@ -424,7 +424,7 @@ Aligned with the [VISION.md](../../VISION.md), the UX must:
 | 4: STORIES | roadmap | `roadmap.py` | Visual timeline |
 | 5: BUILD | All | `implementation.py` | Code progress (future) |
 | 6: VALIDATE | All | `validation.py` | Capability test results (future) |
-| — | Execution | `execution.py` | Real-time agent progress |
+| - | Execution | `execution.py` | Real-time agent progress |
 
 ---
 
@@ -476,9 +476,9 @@ When a user clicks a locked phase:
 │  │                                                                      │   │
 │  │  To unlock this phase, you need to complete:                        │   │
 │  │                                                                      │   │
-│  │  ✓ Phase 1: WHY (Idea Validation)         — Complete                │   │
-│  │  ✓ Phase 2: WHAT (MVP Specification)      — Complete                │   │
-│  │  ◐ Phase 3: HOW (Technical Design)        — In Progress             │   │
+│  │  ✓ Phase 1: WHY (Idea Validation)         - Complete                 │   │
+│  │  ✓ Phase 2: WHAT (MVP Specification)      - Complete                 │   │
+│  │  ◐ Phase 3: HOW (Technical Design)        - In Progress              │   │
 │  │                                                                      │   │
 │  │  **Missing**: Architecture Decisions                                │   │
 │  │                                                                      │   │
@@ -601,6 +601,6 @@ When a user clicks a locked phase:
 
 ## References
 
-- [VISION.md](../../VISION.md) — Complete roadmap
-- [ADR-016: Four-Phase Workflow Architecture](./ADR-016-four-phase-workflow.md) — Backend architecture
-- [ADR-008: UX Improvements](./ADR-008-ux-improvements.md) — Previous UX work
+- [VISION.md](../../VISION.md) - Complete roadmap
+- [ADR-016: Four-Phase Workflow Architecture](./ADR-016-four-phase-workflow.md) - Backend architecture
+- [ADR-008: UX Improvements](./ADR-008-ux-improvements.md) - Previous UX work

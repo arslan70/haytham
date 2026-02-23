@@ -1,7 +1,7 @@
 # ADR-023: Evidence Enrichment & Scorer Dimension Reduction (8 → 6)
 
 ## Status
-**Accepted** — 2026-02-11
+**Accepted**, 2026-02-11
 
 ## Context
 
@@ -24,7 +24,7 @@ The real fix is two-pronged: **enrich the data sources** AND **reduce only the g
 ### Current Data Sources (Before)
 
 1. **User's free-text idea** + optional clarifying Q&A
-2. **Undirected web search** — MI and CA agents search broadly with no domain filtering
+2. **Undirected web search**: MI and CA agents search broadly with no domain filtering
 
 This produces ~5 evidence clusters: pain signals, market sizing, competitive positioning, technical/operational claims, and revenue signals.
 
@@ -42,9 +42,9 @@ This enriches context for dimensions like Execution Feasibility (solo founder + 
 
 #### 1b. Directed Web Search
 
-**Tier 1 — Prompt-level `site:` guidance** (zero code change): MI and CA prompts now include archetype-keyed `site:` operator examples (e.g., B2B SaaS → `site:g2.com`, Consumer → `site:reddit.com`).
+**Tier 1 - Prompt-level `site:` guidance** (zero code change): MI and CA prompts now include archetype-keyed `site:` operator examples (e.g., B2B SaaS -> `site:g2.com`, Consumer -> `site:reddit.com`).
 
-**Tier 2 — Tool-level `include_domains` + `search_depth` params**: The `web_search` tool now accepts optional `include_domains` (list of domains) and `search_depth` ("basic" or "advanced"). Provider handling:
+**Tier 2 - Tool-level `include_domains` + `search_depth` params**: The `web_search` tool now accepts optional `include_domains` (list of domains) and `search_depth` ("basic" or "advanced"). Provider handling:
 - **Tavily**: Passes both natively (already supported)
 - **DuckDuckGo/Brave**: Translates `include_domains` into `site:` query prefix
 
@@ -56,7 +56,7 @@ Concept Health signals from concept expansion (pain clarity, trigger strength, W
 
 ### Part 2: Dimension Reduction (8 → 6)
 
-Merge **Solution Feasibility + Operational Feasibility → Execution Feasibility** and drop **Founder-Market Fit** (empirical testing showed the scorer consistently fails to cross-reference FounderPersona defaults with the idea description — this assessment is deferred to later stages).
+Merge **Solution Feasibility + Operational Feasibility -> Execution Feasibility** and drop **Founder-Market Fit** (empirical testing showed the scorer consistently fails to cross-reference FounderPersona defaults with the idea description; this assessment is deferred to later stages).
 
 | # | Dimension | Primary Evidence |
 |---|-----------|-----------------|
@@ -121,31 +121,31 @@ Forces evidence extraction before scoring. Triples latency/cost (3 agent calls) 
 | Action | File |
 |--------|------|
 | Create | `docs/architecture/scoring-pipeline.md` |
-| Edit | `CLAUDE.md` — add Scoring & Validation Pipeline subsection |
-| Edit | `haytham/workflow/anchor_schema.py` — add FounderPersona dataclass |
-| Edit | `haytham/workflow/stages/idea_validation.py` — inject persona into scorer query |
-| Edit | `haytham/workflow/stages/configs.py` — inject persona into risk-assessment query |
-| Edit | `haytham/agents/worker_validation_scorer/worker_validation_scorer_prompt.txt` — 7 dims, WHERE TO LOOK, new examples |
-| Edit | `haytham/agents/worker_startup_validator/worker_startup_validator_prompt.txt` — reference founder context |
-| Edit | `haytham/agents/worker_market_intelligence/worker_market_intelligence_prompt.txt` — add site: guidance |
-| Edit | `haytham/agents/worker_competitor_analysis/worker_competitor_analysis_prompt.txt` — add site: guidance |
-| Edit | `haytham/agents/utils/web_search.py` — add include_domains + search_depth params |
-| Edit | `haytham/agents/tools/recommendation.py` — add evidence dedup |
-| Edit | `haytham/agents/worker_validation_summary/validation_summary_models.py` — 8→6 description |
-| Edit | `haytham/config.py` — 8→6 comment |
-| Keep | `haytham/workflow/validators/dim8_inputs.py` — still validates Adoption & Engagement Risk |
+| Edit | `CLAUDE.md` - add Scoring & Validation Pipeline subsection |
+| Edit | `haytham/workflow/anchor_schema.py` - add FounderPersona dataclass |
+| Edit | `haytham/workflow/stages/idea_validation.py` - inject persona into scorer query |
+| Edit | `haytham/workflow/stages/configs.py` - inject persona into risk-assessment query |
+| Edit | `haytham/agents/worker_validation_scorer/worker_validation_scorer_prompt.txt` - 7 dims, WHERE TO LOOK, new examples |
+| Edit | `haytham/agents/worker_startup_validator/worker_startup_validator_prompt.txt` - reference founder context |
+| Edit | `haytham/agents/worker_market_intelligence/worker_market_intelligence_prompt.txt` - add site: guidance |
+| Edit | `haytham/agents/worker_competitor_analysis/worker_competitor_analysis_prompt.txt` - add site: guidance |
+| Edit | `haytham/agents/utils/web_search.py` - add include_domains + search_depth params |
+| Edit | `haytham/agents/tools/recommendation.py` - add evidence dedup |
+| Edit | `haytham/agents/worker_validation_summary/validation_summary_models.py` - 8->6 description |
+| Edit | `haytham/config.py` - 8->6 comment |
+| Keep | `haytham/workflow/validators/dim8_inputs.py` - still validates Adoption & Engagement Risk |
 | Keep | `tests/test_dim8_inputs.py` |
 | Add | `tests/test_founder_persona.py` |
 | Add | `tests/test_web_search_domains.py` |
-| Edit | `tests/test_counter_signal_scoring.py` — add 7-dim new fixture |
-| Edit | `tests/test_evidence_validation.py` — add evidence dedup tests |
+| Edit | `tests/test_counter_signal_scoring.py` - add 7-dim new fixture |
+| Edit | `tests/test_evidence_validation.py` - add evidence dedup tests |
 
 ## Verification
 
-1. `pytest tests/ -v -m "not integration"` — full suite passes
-2. `pytest tests/test_evidence_validation.py -v` — dedup + existing evidence gate tests pass
-3. `pytest tests/test_counter_signal_scoring.py -v` — 7-dimension composite scores correct
-4. `pytest tests/test_dim8_inputs.py -v` — dim8 validator still works
-5. `pytest tests/test_founder_persona.py -v` — FounderPersona defaults and formatting
-6. `pytest tests/test_web_search_domains.py -v` — domain filter translation
-7. End-to-end: run psychologist idea — verify 6 scored dimensions with distinct evidence
+1. `pytest tests/ -v -m "not integration"` - full suite passes
+2. `pytest tests/test_evidence_validation.py -v` - dedup + existing evidence gate tests pass
+3. `pytest tests/test_counter_signal_scoring.py -v` - 7-dimension composite scores correct
+4. `pytest tests/test_dim8_inputs.py -v` - dim8 validator still works
+5. `pytest tests/test_founder_persona.py -v` - FounderPersona defaults and formatting
+6. `pytest tests/test_web_search_domains.py -v` - domain filter translation
+7. End-to-end: run psychologist idea, verify 6 scored dimensions with distinct evidence

@@ -421,6 +421,18 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         tool_profile=ToolProfile.NONE,
         structured_output_model_path="haytham.workflow.verifiers.schemas:PhaseVerification",
     ),
+    # Architecture Decisions - JSON-output architect for technical decisions stage.
+    # Uses HEAVY tier and 8000 tokens for detailed decision JSON with coverage checks.
+    "architecture_decisions": AgentConfig(
+        name="architecture_decisions_agent",
+        prompt_key="",  # unused: custom_system_prompt overrides
+        max_tokens=8000,
+        model_tier=ModelTier.HEAVY,
+        custom_system_prompt=(
+            "You are an expert software architect. "
+            "Follow the instructions precisely and output valid JSON when requested."
+        ),
+    ),
     # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline.
     # 12000 tokens: the ValidationReport structured output (executive_summary JSON + full markdown
     # report with arithmetic, evidence tags, cross-references) needs 5000-8000 tokens.
