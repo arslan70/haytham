@@ -263,7 +263,7 @@ The old validation-summary pipeline (4 agents + 6 validators) was replaced with 
 
 Required: `AWS_REGION` or `AWS_PROFILE`, `BEDROCK_REASONING_MODEL_ID`, `BEDROCK_HEAVY_MODEL_ID`, `BEDROCK_LIGHT_MODEL_ID`
 
-Optional: `LOG_LEVEL`, `OTEL_SDK_DISABLED` (default: true), `OTEL_EXPORTER_OTLP_ENDPOINT` (default: localhost:4317), `DEFAULT_MAX_TOKENS` (default: 5000), `WEB_SEARCH_SESSION_LIMIT` (default: 20), `BRAVE_API_KEY` or `TAVILY_API_KEY`
+Optional: `LOG_LEVEL`, `OTEL_SDK_DISABLED` (default: true), `OTEL_EXPORTER_OTLP_ENDPOINT` (default: localhost:4317), `DEFAULT_MAX_TOKENS` (default: 5000), `WEB_SEARCH_SESSION_LIMIT` (default: 30), `BRAVE_API_KEY` or `TAVILY_API_KEY`
 
 ## Backlog.md MCP (For Generated Systems Only)
 

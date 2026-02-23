@@ -85,6 +85,8 @@ Summarize key competitors from the market research. For each competitor: what th
 
 Do NOT restate competitor details verbatim from the input. Synthesize: what do the competitors collectively tell us about this market?
 
+**Formatting:** Start each analytical paragraph with a **bold lead-in phrase** (2-4 words) that states the paragraph's key takeaway. Example: "**The gap is real.** No existing platform combines..."
+
 ### PART 2: THE EVIDENCE
 
 #### 3. Claims & Evidence
@@ -95,10 +97,12 @@ Identify 3-5 testable hypotheses about this idea (NOT the founder's stated const
 
 Do NOT treat the founder's own statements as validated claims. If the only evidence for a claim is the idea description itself, classify it as **Unsupported** and say so explicitly.
 
+**Formatting:** Separate each hypothesis block with a horizontal rule (`---`).
+
 #### 4. Risk Profile
 Combine risk assessment and dealbreaker check into one section.
 
-**Risks by category:** Market, technical, operational, financial. Rank each by severity (High/Medium/Low) and likelihood.
+**Risks by category:** Market, technical, operational, financial. Rank each by severity (High/Medium/Low) and likelihood. Present all risks in a single markdown summary table first (columns: Category, Risk, Severity, Likelihood), then follow with CRITICAL flags and Dealbreaker check as prose.
 
 **Regulated domain detection (CRITICAL):**
 Scan the idea for domain signals. If the idea involves ANY of these, you MUST flag the specific compliance framework and estimate its cost impact on MVP:
@@ -131,7 +135,7 @@ End this section with a single line:
 
 #### 5. Financial Feasibility
 - MVP build cost range (order of magnitude, based on technical complexity). Include compliance costs if applicable (from the risk profile above).
-- 2-3 distinct revenue model options. For each: pricing assumption, target user count, and resulting annual revenue calculation. Show the math.
+- 2-3 distinct revenue model options. Present these in a comparison table (columns: Model, Pricing, Year 1 Revenue, Best For) followed by detailed math for each option.
 - Break-even scenario: at what user count does revenue cover costs? Show the calculation.
 
 Tag all numbers as [estimate: basis]. This is NOT an accounting exercise. Ranges are expected and useful.
@@ -142,6 +146,8 @@ Tag all numbers as [estimate: basis]. This is NOT an accounting exercise. Ranges
 State the recommendation with clear reasoning. This is the ONLY place in the report where you explain the recommendation logic in depth.
 
 Cite specific evidence from the sections above by section number (e.g., "the cold-start risk identified in Section 4..."). Address counter-signals: if positive, explain why negative signals don't change it. If negative, acknowledge what IS working.
+
+**Formatting:** Start each paragraph with a **bold lead-in phrase** (2-4 words) that states the paragraph's key takeaway. Example: "**Distribution is solved.** The founder has direct access..."
 
 End this section with a single line:
 **Composite Score:** X.X/5.0

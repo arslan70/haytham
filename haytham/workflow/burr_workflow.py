@@ -20,6 +20,8 @@ from typing import Any
 
 from burr.core import State
 
+from haytham.agents.utils.web_search import reset_session_counter
+
 from .stage_registry import WorkflowType, get_stage_registry
 from .workflow_factories import (
     WORKFLOW_TERMINAL_STAGES,
@@ -169,6 +171,9 @@ class BurrWorkflowRunner:
 
         # Generate session ID for tracing correlation
         session_id = str(uuid.uuid4())
+
+        # Reset web search counter so each workflow run gets a fresh quota
+        reset_session_counter(session_id)
 
         # Terminal stage for the idea-validation workflow
         terminal = WORKFLOW_TERMINAL_STAGES.get(WorkflowType.IDEA_VALIDATION, "report_synthesis")

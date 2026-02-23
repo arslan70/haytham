@@ -422,13 +422,15 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         structured_output_model_path="haytham.workflow.verifiers.schemas:PhaseVerification",
     ),
     # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline.
-    # 8000 tokens: Sonnet-class models produce ~3000-4000 word reports with step-by-step arithmetic,
-    # evidence tags, and cross-references. TOKENS_LARGE (4000) truncates on capable models.
+    # 12000 tokens: the ValidationReport structured output (executive_summary JSON + full markdown
+    # report with arithmetic, evidence tags, cross-references) needs 5000-8000 tokens.
+    # Uses HEAVY tier because REASONING models (e.g. Nova Pro v1) cap at ~5120 output tokens,
+    # which truncates the structured output and causes MaxTokensReachedException.
     "report_synthesis": AgentConfig(
         name="report_synthesis_agent",
         prompt_key="worker_report_synthesis",
-        max_tokens=8000,
-        model_tier=ModelTier.REASONING,
+        max_tokens=12000,
+        model_tier=ModelTier.HEAVY,
         structured_output_model_path="haytham.agents.worker_report_synthesis.report_synthesis_models:ValidationReport",
     ),
 }

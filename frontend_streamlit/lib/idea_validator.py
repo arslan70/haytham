@@ -426,7 +426,6 @@ def _normalize_text(text: str) -> str:
     return " ".join(text.lower().split())
 
 
-
 def _parse_polish_response(response_text: str, original_idea: str) -> PolishResult:
     """Parse the JSON response from the polish agent."""
     try:

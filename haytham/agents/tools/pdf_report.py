@@ -24,6 +24,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     Flowable,
+    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -44,6 +45,9 @@ ALT_ROW = colors.HexColor("#F5F5F5")
 VERDICT_COLORS = {"GO": GREEN, "PIVOT": ORANGE, "NO-GO": RED}
 RISK_COLORS = {"LOW": GREEN, "MEDIUM": ORANGE, "HIGH": RED}
 STATUS_COLORS = {"PASS": GREEN, "FAIL": RED, "PARTIAL": ORANGE}
+
+# Usable page width: letter (8.5") minus 0.75" margins each side
+_USABLE_WIDTH = 7.0 * inch
 
 # ---------------------------------------------------------------------------
 # Data models
@@ -103,8 +107,8 @@ def _build_styles() -> dict[str, ParagraphStyle]:
         parent=base["Normal"],
         fontName="Helvetica",
         fontSize=10,
-        leading=14,
-        spaceAfter=6,
+        leading=15,
+        spaceAfter=8,
     )
     custom["h1"] = ParagraphStyle(
         "HaythamH1",
@@ -132,25 +136,34 @@ def _build_styles() -> dict[str, ParagraphStyle]:
         spaceBefore=10,
         spaceAfter=6,
     )
+    custom["h3_critical"] = ParagraphStyle(
+        "HaythamH3Critical",
+        parent=base["Heading3"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        textColor=colors.HexColor("#E65100"),
+        spaceBefore=14,
+        spaceAfter=6,
+    )
     custom["bullet"] = ParagraphStyle(
         "HaythamBullet",
         parent=base["Normal"],
         fontName="Helvetica",
         fontSize=10,
-        leading=14,
+        leading=15,
         leftIndent=18,
         bulletIndent=6,
-        spaceAfter=3,
+        spaceAfter=5,
     )
     custom["sub_bullet"] = ParagraphStyle(
         "HaythamSubBullet",
         parent=base["Normal"],
         fontName="Helvetica",
         fontSize=10,
-        leading=14,
+        leading=15,
         leftIndent=36,
         bulletIndent=24,
-        spaceAfter=3,
+        spaceAfter=4,
     )
     custom["cover_title"] = ParagraphStyle(
         "HaythamCoverTitle",
@@ -264,6 +277,28 @@ class _Badge(Flowable):
 
 
 # ---------------------------------------------------------------------------
+# Part banner (PART 1: THE OPPORTUNITY, etc.)
+# ---------------------------------------------------------------------------
+
+
+class _PartBanner(Flowable):
+    """Full-width purple banner for PART headers."""
+
+    def __init__(self, text: str, width: float, height: float = 28):
+        super().__init__()
+        self.text = text.upper()
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        self.canv.setFillColor(PURPLE)
+        self.canv.roundRect(0, 0, self.width, self.height, 3, fill=1, stroke=0)
+        self.canv.setFillColor(colors.white)
+        self.canv.setFont("Helvetica-Bold", 11)
+        self.canv.drawString(12, (self.height - 11) / 2 + 1, self.text)
+
+
+# ---------------------------------------------------------------------------
 # Markdown → Platypus converter
 # ---------------------------------------------------------------------------
 
@@ -272,6 +307,9 @@ _RE_ITALIC = re.compile(r"\*(.+?)\*")
 _RE_MD_TABLE_ROW = re.compile(r"^\|(.+)\|$")
 _RE_MD_SEP_ROW = re.compile(r"^\|[-\s|:]+\|$")
 _RE_SCORE_BAR = re.compile(r"[█░■□▪▫▓▒]+\s*")  # visual score bars in markdown
+_RE_PART_HEADER = re.compile(r"^\*{0,2}(PART\s+\d+:\s*.+?)\*{0,2}$")
+_RE_RISK_LEVEL_LINE = re.compile(r"^\*\*Overall Risk Level:\*\*\s*(HIGH|MEDIUM|LOW)", re.IGNORECASE)
+_RE_COMPOSITE_LINE = re.compile(r"^\*\*Composite Score:\*\*\s*(\d+\.?\d*)/5\.0")
 
 
 def _md_inline(text: str) -> str:
@@ -299,8 +337,7 @@ def _parse_markdown_table(lines: list[str], styles: dict) -> Table | None:
 
     # Convert to Paragraph cells for word-wrapping
     col_count = max(len(r) for r in rows)
-    avail = 7.0 * inch  # usable width
-    col_width = avail / col_count
+    col_width = _USABLE_WIDTH / col_count
     table_data = []
     for ri, row in enumerate(rows):
         # Pad row if fewer cells
@@ -340,13 +377,86 @@ def _markdown_to_flowables(text: str, styles: dict) -> list:
             i += 1
             continue
 
-        # Headings
+        # PART headers (e.g. "PART 1: THE OPPORTUNITY")
+        part_m = _RE_PART_HEADER.match(line.strip())
+        if part_m:
+            # Page break before parts 2+ (not the first)
+            if any(isinstance(f, _PartBanner) for f in flowables):
+                flowables.append(PageBreak())
+            flowables.append(Spacer(1, 4))
+            flowables.append(_PartBanner(part_m.group(1), _USABLE_WIDTH))
+            flowables.append(Spacer(1, 12))
+            i += 1
+            continue
+
+        # Inline metric: Overall Risk Level
+        risk_m = _RE_RISK_LEVEL_LINE.match(line.strip())
+        if risk_m:
+            level = risk_m.group(1).upper()
+            c = RISK_COLORS.get(level, colors.gray)
+            flowables.append(Spacer(1, 8))
+            badge_row = Table(
+                [
+                    [
+                        Paragraph("<b>Overall Risk Level</b>", styles["body"]),
+                        _Badge(level, c, width=90, height=26),
+                    ]
+                ],
+                colWidths=[160, 100],
+            )
+            badge_row.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("LEFTPADDING", (0, 0), (0, 0), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ]
+                )
+            )
+            flowables.append(badge_row)
+            flowables.append(Spacer(1, 8))
+            i += 1
+            continue
+
+        # Inline metric: Composite Score
+        score_m = _RE_COMPOSITE_LINE.match(line.strip())
+        if score_m:
+            score_val = score_m.group(1)
+            flowables.append(Spacer(1, 8))
+            badge_row = Table(
+                [
+                    [
+                        Paragraph("<b>Composite Score</b>", styles["body"]),
+                        _Badge(f"{score_val}/5.0", PURPLE, width=100, height=26),
+                    ]
+                ],
+                colWidths=[160, 110],
+            )
+            badge_row.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("LEFTPADDING", (0, 0), (0, 0), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ]
+                )
+            )
+            flowables.append(badge_row)
+            flowables.append(Spacer(1, 8))
+            i += 1
+            continue
+
+        # Headings (with CRITICAL flag detection)
         if line.startswith("#### "):
-            flowables.append(Paragraph(_md_inline(line[5:].strip()), styles["h3"]))
+            heading_text = line[5:].strip()
+            style_key = "h3_critical" if "CRITICAL" in heading_text.upper() else "h3"
+            flowables.append(Paragraph(_md_inline(heading_text), styles[style_key]))
             i += 1
             continue
         if line.startswith("### "):
-            flowables.append(Paragraph(_md_inline(line[4:].strip()), styles["h3"]))
+            heading_text = line[4:].strip()
+            style_key = "h3_critical" if "CRITICAL" in heading_text.upper() else "h3"
+            flowables.append(Paragraph(_md_inline(heading_text), styles[style_key]))
             i += 1
             continue
         if line.startswith("## "):
@@ -426,7 +536,9 @@ def _markdown_to_flowables(text: str, styles: dict) -> list:
 def _render_markdown_section(section: ReportSection, styles: dict) -> list:
     """Render a MARKDOWN section."""
     elems: list = []
-    elems.append(Paragraph(section.title, styles["h2"]))
+    # Skip "Overview" heading -- its content (PART banner) provides its own visual
+    if section.title != "Overview":
+        elems.append(Paragraph(section.title, styles["h2"]))
     if section.content:
         elems.extend(_markdown_to_flowables(str(section.content), styles))
     return elems
@@ -707,11 +819,29 @@ def generate_pdf(config: ReportConfig) -> bytes:
 
     story: list = _build_cover(config.cover, styles, page_width)
 
-    for section in config.sections:
+    for idx, section in enumerate(config.sections):
         renderer = _SECTION_RENDERERS.get(section.section_type)
         if renderer:
             story.extend(renderer(section, styles))
-            story.append(Spacer(1, 8))
+            # Thin divider between sections (not after the last one)
+            if idx < len(config.sections) - 1:
+                story.append(Spacer(1, 12))
+                divider = Table([[""]], colWidths=[_USABLE_WIDTH], rowHeights=[1])
+                divider.setStyle(
+                    TableStyle(
+                        [
+                            (
+                                "LINEBELOW",
+                                (0, 0),
+                                (-1, 0),
+                                0.25,
+                                colors.HexColor("#E0E0E0"),
+                            ),
+                        ]
+                    )
+                )
+                story.append(divider)
+                story.append(Spacer(1, 12))
 
     # First page = cover (no header/footer), subsequent pages get header/footer
     doc.build(story, onLaterPages=_header_footer)
