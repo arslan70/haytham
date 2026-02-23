@@ -6,7 +6,7 @@ dimension assessments and targeted clarifying questions.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class DimensionAssessment(BaseModel):
@@ -27,6 +27,14 @@ class DiscoveryQuestion(BaseModel):
     dimension: str = Field(description="Which Lean Canvas dimension this question addresses")
     question: str = Field(description="The clarifying question to ask the founder")
     placeholder: str = Field(description="Example answer to guide the founder")
+
+    @field_validator("question")
+    @classmethod
+    def question_must_not_be_empty(cls, v: str) -> str:
+        if not v.strip():
+            msg = "question must not be empty"
+            raise ValueError(msg)
+        return v
 
 
 class IdeaDiscoveryOutput(BaseModel):
