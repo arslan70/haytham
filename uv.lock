@@ -1433,7 +1433,7 @@ requires-dist = [
     { name = "ddgs", specifier = ">=6.1.0" },
     { name = "dspy", marker = "extra == 'dspy-poc'", specifier = ">=2.6" },
     { name = "haytham", extras = ["anthropic", "openai", "ollama"], marker = "extra == 'providers'" },
-    { name = "haytham", extras = ["observability", "vectordb", "reports", "providers"], marker = "extra == 'full'" },
+    { name = "haytham", extras = ["observability", "vectordb", "providers"], marker = "extra == 'full'" },
     { name = "lancedb", marker = "extra == 'vectordb'", specifier = ">=0.26.1" },
     { name = "langfuse", marker = "extra == 'observability'", specifier = ">=2.0.0" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.0.0" },
@@ -1450,7 +1450,7 @@ requires-dist = [
     { name = "streamlit", specifier = ">=1.52.2" },
     { name = "tenacity", specifier = ">=8.2.0" },
 ]
-provides-extras = ["observability", "vectordb", "reports", "anthropic", "openai", "ollama", "dspy-poc", "providers", "docs", "full"]
+provides-extras = ["observability", "vectordb", "anthropic", "openai", "ollama", "dspy-poc", "providers", "docs", "full"]
 
 [package.metadata.requires-dev]
 dev = [

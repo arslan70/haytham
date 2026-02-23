@@ -337,8 +337,7 @@ def _parse_markdown_table(lines: list[str], styles: dict) -> Table | None:
 
     # Convert to Paragraph cells for word-wrapping
     col_count = max(len(r) for r in rows)
-    avail = 7.0 * inch  # usable width
-    col_width = avail / col_count
+    col_width = _USABLE_WIDTH / col_count
     table_data = []
     for ri, row in enumerate(rows):
         # Pad row if fewer cells

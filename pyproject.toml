@@ -43,14 +43,13 @@ Documentation = "https://arslan70.github.io/haytham/"
 [project.optional-dependencies]
 observability = ["langfuse>=2.0.0"]
 vectordb = ["lancedb>=0.26.1", "pyarrow>=22.0.0"]
-reports = []  # reportlab is now a core dependency
 anthropic = ["anthropic>=0.45.0"]
 openai = ["openai>=1.10.0"]
 ollama = ["ollama>=0.4.0"]
 dspy-poc = ["dspy>=2.6"]
 providers = ["haytham[anthropic,openai,ollama]"]
 docs = ["mkdocs-material>=9.0.0", "mkdocs-rss-plugin"]
-full = ["haytham[observability,vectordb,reports,providers]"]
+full = ["haytham[observability,vectordb,providers]"]
 
 [build-system]
 requires = ["hatchling"]
