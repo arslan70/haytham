@@ -289,15 +289,15 @@ def extract_json_from_output(output: str) -> str:
 
 
 def store_capabilities_in_vector_db(session_manager: Any, output: str) -> None:
-    """Store capability model output in the vector database.
+    """Store capability model output in the system state store.
 
     This function parses the JSON capability model output and stores
-    each capability in the vector DB using StateWriterAgent.
+    each capability in the system state store.
 
-    Per ADR-004: System State Implementation.
+    Per ADR-004: System State Implementation, ADR-027: JSON store.
     """
     if session_manager is None:
-        logger.warning("No session manager - skipping vector DB storage")
+        logger.warning("No session manager - skipping system state storage")
         return
 
     try:
@@ -306,19 +306,15 @@ def store_capabilities_in_vector_db(session_manager: Any, output: str) -> None:
         capability_data = json.loads(json_str)
     except json.JSONDecodeError as e:
         logger.warning(f"Could not parse capability model JSON: {e}")
-        logger.info("Capabilities will not be stored in vector DB")
+        logger.info("Capabilities will not be stored in system state")
         return
 
     try:
-        # Import state infrastructure
-        from haytham.agents.state_writer.state_writer_agent import StateWriterAgent
-        from haytham.state import DuplicateEntryError, SystemStateDB, get_embedder
+        from haytham.state import DuplicateEntryError, SystemStateStore, create_capability
 
-        # Initialize vector DB
-        db_path = session_manager.session_dir / "vector_db"
-        embedder = get_embedder()
-        db = SystemStateDB(db_path, embedder=embedder)
-        writer = StateWriterAgent(db)
+        # Initialize system state store
+        store_path = session_manager.session_dir / "system_state.json"
+        store = SystemStateStore(store_path)
 
         stored_ids = []
         skipped_count = 0
@@ -326,14 +322,21 @@ def store_capabilities_in_vector_db(session_manager: Any, output: str) -> None:
         # Store functional capabilities
         for cap in capability_data.get("capabilities", {}).get("functional", []):
             try:
-                cap_id = writer.create_functional_capability(
+                entry = create_capability(
                     name=cap.get("name", ""),
                     description=cap.get("description", ""),
+                    subtype="functional",
                     source_stage="capability-model",
                     rationale=cap.get("rationale"),
-                    acceptance_criteria=cap.get("acceptance_criteria"),
-                    user_segment=capability_data.get("summary", {}).get("primary_user_segment"),
+                    metadata={
+                        "priority": "P1",
+                        "acceptance_criteria": cap.get("acceptance_criteria"),
+                        "user_segment": capability_data.get("summary", {}).get(
+                            "primary_user_segment"
+                        ),
+                    },
                 )
+                cap_id = store.add_entry(entry)
                 stored_ids.append(cap_id)
                 logger.info(f"Stored functional capability: {cap_id}")
             except DuplicateEntryError:
@@ -343,29 +346,31 @@ def store_capabilities_in_vector_db(session_manager: Any, output: str) -> None:
         # Store non-functional capabilities
         for cap in capability_data.get("capabilities", {}).get("non_functional", []):
             try:
-                cap_id = writer.create_non_functional_capability(
+                entry = create_capability(
                     name=cap.get("name", ""),
                     description=cap.get("description", ""),
-                    category=cap.get("category", "performance"),
-                    requirement=cap.get("requirement", ""),
+                    subtype="non_functional",
                     source_stage="capability-model",
                     rationale=cap.get("rationale"),
-                    measurement=cap.get("measurement"),
+                    metadata={
+                        "category": cap.get("category", "performance"),
+                        "requirement": cap.get("requirement", ""),
+                        "measurement": cap.get("measurement"),
+                    },
                 )
+                cap_id = store.add_entry(entry)
                 stored_ids.append(cap_id)
                 logger.info(f"Stored non-functional capability: {cap_id}")
             except DuplicateEntryError:
                 logger.info(f"Skipping existing capability: {cap.get('name', '')}")
                 skipped_count += 1
 
-        logger.info(f"Stored {len(stored_ids)} capabilities in vector DB: {stored_ids}")
+        logger.info(f"Stored {len(stored_ids)} capabilities in system state: {stored_ids}")
         if skipped_count > 0:
             logger.info(f"Skipped {skipped_count} existing capabilities (idempotent)")
 
-    except ImportError as e:
-        logger.warning(f"State infrastructure not available: {e}")
     except (OSError, KeyError, TypeError, ValueError, RuntimeError) as e:
-        logger.error(f"Failed to store capabilities in vector DB: {e}", exc_info=True)
+        logger.error(f"Failed to store capabilities in system state: {e}", exc_info=True)
 
 
 def extract_system_traits_processor(output: str, state: State) -> dict[str, Any]:

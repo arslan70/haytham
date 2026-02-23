@@ -132,22 +132,22 @@ def _has_stories() -> bool:
 
 
 def get_artifact_counts() -> dict[str, int]:
-    """Get counts of artifacts from VectorDB.
+    """Get counts of artifacts from system state store.
 
     Returns:
         Dict with capability, decision, and entity counts
     """
     try:
         # Lazy import to avoid circular deps
-        from haytham.state.vector_db import SystemStateDB
+        from haytham.state.store import SystemStateStore
 
-        db_path = SESSION_DIR / "vector_db"
-        if db_path.exists():
-            db = SystemStateDB(str(db_path))
+        store_path = SESSION_DIR / "system_state.json"
+        if store_path.exists():
+            store = SystemStateStore(store_path)
             return {
-                "capabilities": len(db.get_capabilities()),
-                "decisions": len(db.get_decisions()),
-                "entities": len(db.get_entities()),
+                "capabilities": len(store.get_capabilities()),
+                "decisions": len(store.get_decisions()),
+                "entities": len(store.get_entities()),
             }
     except Exception:
         pass

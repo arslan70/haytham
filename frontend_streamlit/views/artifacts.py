@@ -16,14 +16,14 @@ SESSION_DIR = get_session_dir()
 
 @st.cache_data(ttl=60)
 def load_capabilities():
-    """Load capabilities from VectorDB."""
+    """Load capabilities from system state store."""
     try:
-        from haytham.state.vector_db import SystemStateDB
+        from haytham.state.store import SystemStateStore
 
-        db_path = SESSION_DIR / "vector_db"
-        if db_path.exists():
-            db = SystemStateDB(str(db_path))
-            caps = db.get_capabilities()
+        store_path = SESSION_DIR / "system_state.json"
+        if store_path.exists():
+            store = SystemStateStore(store_path)
+            caps = store.get_capabilities()
             return caps
     except Exception as e:
         st.error(f"Error loading capabilities: {e}")
@@ -32,14 +32,14 @@ def load_capabilities():
 
 @st.cache_data(ttl=60)
 def load_decisions():
-    """Load decisions from VectorDB."""
+    """Load decisions from system state store."""
     try:
-        from haytham.state.vector_db import SystemStateDB
+        from haytham.state.store import SystemStateStore
 
-        db_path = SESSION_DIR / "vector_db"
-        if db_path.exists():
-            db = SystemStateDB(str(db_path))
-            return db.get_decisions()
+        store_path = SESSION_DIR / "system_state.json"
+        if store_path.exists():
+            store = SystemStateStore(store_path)
+            return store.get_decisions()
     except Exception as e:
         st.error(f"Error loading decisions: {e}")
     return []
@@ -47,14 +47,14 @@ def load_decisions():
 
 @st.cache_data(ttl=60)
 def load_entities():
-    """Load entities from VectorDB."""
+    """Load entities from system state store."""
     try:
-        from haytham.state.vector_db import SystemStateDB
+        from haytham.state.store import SystemStateStore
 
-        db_path = SESSION_DIR / "vector_db"
-        if db_path.exists():
-            db = SystemStateDB(str(db_path))
-            return db.get_entities()
+        store_path = SESSION_DIR / "system_state.json"
+        if store_path.exists():
+            store = SystemStateStore(store_path)
+            return store.get_entities()
     except Exception as e:
         st.error(f"Error loading entities: {e}")
     return []
