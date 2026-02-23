@@ -51,8 +51,11 @@ class SystemStateStore:
     def _load(self) -> None:
         """Load entries from disk and sync ID counters."""
         if self._path.exists():
-            with open(self._path) as fh:
-                self._entries = json.load(fh)
+            try:
+                with open(self._path) as fh:
+                    self._entries = json.load(fh)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Corrupt JSON in system state file {self._path}: {exc}") from exc
             self._sync_id_counters()
             logger.info(
                 "SystemStateStore loaded %d entries from %s",
@@ -64,9 +67,11 @@ class SystemStateStore:
             logger.info("SystemStateStore created (empty) at %s", self._path)
 
     def _persist(self) -> None:
-        """Write entries to disk."""
-        with open(self._path, "w") as fh:
+        """Write entries to disk atomically via rename."""
+        tmp = self._path.with_suffix(".tmp")
+        with open(tmp, "w") as fh:
             json.dump(self._entries, fh, indent=2, default=str)
+        tmp.replace(self._path)
 
     def _sync_id_counters(self) -> None:
         """Parse existing IDs and resume counters from the highest number."""
