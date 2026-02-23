@@ -195,7 +195,7 @@ Full details with examples and rationale: [docs/contributing/architecture-patter
 - **AWS Bedrock**: LLM calls via `create_bedrock_model()` with configurable timeouts
 - **Sequential Execution**: Phase 1 runs market_intelligence then competitor_analysis (JTBD handoff)
 - **Structured Output**: `report_synthesis` uses `structured_output_model=ValidationReport`
-- **Session Persistence**: Checkpoints saved as markdown in `session/{stage-slug}/`
+- **Session Persistence**: Checkpoints saved as markdown in `session/{stage-slug}/`. System state stored as JSON in `session/system_state.json`
 
 **Key files:** `haytham/agents/factory/agent_factory.py`, `haytham/agents/output_utils.py`, `haytham/agents/hooks.py`, `haytham/config.py`
 
