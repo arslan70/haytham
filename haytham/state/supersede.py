@@ -114,7 +114,7 @@ def find_superseded_capabilities(session_manager) -> list[SupersededCapability]:
         return []
 
     store = SystemStateStore(store_path)
-    capabilities = store.get_capabilities()
+    capabilities = store.get_capabilities(include_superseded=True)
 
     superseded = []
     for cap in capabilities:
@@ -124,7 +124,7 @@ def find_superseded_capabilities(session_manager) -> list[SupersededCapability]:
                     id=cap.get("id", ""),
                     name=cap.get("name", "Unknown"),
                     superseded_by=cap.get("superseded_by"),
-                    superseded_at=cap.get("updated_at"),
+                    superseded_at=cap.get("created_at"),
                 )
             )
 

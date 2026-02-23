@@ -205,11 +205,16 @@ class SystemStateStore:
         self,
         entry_type: str | None = None,
         subtype: str | None = None,
+        include_superseded: bool = False,
     ) -> list[dict]:
-        """Return all non-superseded entries, optionally filtered."""
+        """Return entries, optionally filtered by type/subtype.
+
+        By default only non-superseded entries are returned. Pass
+        ``include_superseded=True`` to include superseded entries as well.
+        """
         results = []
         for record in self._entries.values():
-            if record.get("superseded_by", "") not in ("", None):
+            if not include_superseded and record.get("superseded_by", "") not in ("", None):
                 continue
             if entry_type and record["type"] != entry_type:
                 continue
@@ -218,17 +223,21 @@ class SystemStateStore:
             results.append(self._normalize_output(record))
         return results
 
-    def get_capabilities(self, subtype: str | None = None) -> list[dict]:
-        """Return all current capabilities, optionally filtered by subtype."""
-        return self.get_current_state(entry_type="capability", subtype=subtype)
+    def get_capabilities(
+        self, subtype: str | None = None, include_superseded: bool = False
+    ) -> list[dict]:
+        """Return capabilities, optionally filtered by subtype."""
+        return self.get_current_state(
+            entry_type="capability", subtype=subtype, include_superseded=include_superseded
+        )
 
-    def get_decisions(self) -> list[dict]:
-        """Return all current decisions."""
-        return self.get_current_state(entry_type="decision")
+    def get_decisions(self, include_superseded: bool = False) -> list[dict]:
+        """Return decisions."""
+        return self.get_current_state(entry_type="decision", include_superseded=include_superseded)
 
-    def get_entities(self) -> list[dict]:
-        """Return all current entities."""
-        return self.get_current_state(entry_type="entity")
+    def get_entities(self, include_superseded: bool = False) -> list[dict]:
+        """Return entities."""
+        return self.get_current_state(entry_type="entity", include_superseded=include_superseded)
 
     def get_history(self, entry_id: str) -> list[dict]:
         """Follow the supersedes chain from *entry_id* back to the oldest."""
