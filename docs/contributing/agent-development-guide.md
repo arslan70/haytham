@@ -83,8 +83,8 @@ Add a new entry to the `AGENT_CONFIGS` dictionary:
     name="concept_summarizer_agent",
     prompt_key="worker_concept_summarizer",
     max_tokens=TOKENS_DEFAULT,
-)```
-
+)
+```
 This is the only required registration step.
 
 `AGENT_CONFIGS` acts as the single source of truth for agent definitions.  
