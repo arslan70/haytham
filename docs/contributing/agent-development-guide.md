@@ -84,3 +84,34 @@ Add a new entry to the `AGENT_CONFIGS` dictionary:
     prompt_key="worker_concept_summarizer",
     max_tokens=TOKENS_DEFAULT,
 )
+This is the only required registration step.
+
+`AGENT_CONFIGS` acts as the single source of truth for agent definitions.  
+Once registered here, the factory can construct the agent automatically.
+
+Optional configuration fields include:
+
+- `tool_profile` — if the agent requires tools
+- `model_tier` — to select the appropriate model tier
+- `structured_output_model_path` — if the agent returns structured JSON
+- `custom_system_prompt` — to override the prompt file entirely
+
+---
+
+### 3. (Optional) Register in STAGE_CONFIGS
+
+If the agent should run as part of a workflow stage, register it in:
+
+`haytham/workflow/stages/configs.py`
+
+This determines when and how the agent participates in workflow orchestration.
+
+If the agent is used programmatically outside a workflow stage, this step may not be required.
+
+---
+
+### No Changes to the Factory
+
+You should never modify `agent_factory.py` to support a new agent.
+
+The `create_agent_by_name()` factory method dynamically constructs agents using `AGENT_CONFIGS`, ensuring the system remains open for extension and closed for modification.
