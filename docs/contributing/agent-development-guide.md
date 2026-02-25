@@ -116,3 +116,35 @@ If the agent is used programmatically outside a workflow stage, this step may no
 You should never modify `agent_factory.py` to support a new agent.
 
 The `create_agent_by_name()` factory method dynamically constructs agents using `AGENT_CONFIGS`, ensuring the system remains open for extension and closed for modification.
+
+## Section 3: Structured Output (If Required)
+
+If the agent must return structured JSON instead of plain text, define a Pydantic model.
+
+Create a new file:
+
+`haytham/schemas/concept_summary.py`
+
+```python
+from pydantic import BaseModel
+
+class ConceptSummary(BaseModel):
+    title: str
+    summary: str
+    key_points: list[str]
+```
+
+Then update your `AGENT_CONFIGS` entry:
+
+```python
+"concept_summarizer": AgentConfig(
+    name="concept_summarizer_agent",
+    prompt_key="worker_concept_summarizer",
+    max_tokens=TOKENS_DEFAULT,
+    structured_output_model_path="haytham.schemas.concept_summary.ConceptSummary",
+)
+```
+
+When `structured_output_model_path` is provided, the factory automatically enables structured output parsing.
+
+If your agent only returns text, you can skip this section.
