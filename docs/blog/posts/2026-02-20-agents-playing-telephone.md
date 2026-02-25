@@ -15,8 +15,6 @@ description: "Multi-agent pipelines lose your intent one handoff at a time. Here
 
 # Your Agents Are Playing Telephone
 
-*By someone who has stared at too many multi-agent pipelines.*
-
 ![Agents Playing Telephone](telephone-comic.svg)
 
 ---
@@ -27,11 +25,9 @@ There are good reasons to split a complex task across multiple agents. A single 
 
 Decomposition buys you three things: specialization (each agent does one thing well), decision gates (you review before the next phase runs), and cost control (change one phase without re-running everything).
 
-So you split the work. Research agent, planning agent, design agent, implementation agent. Each one focused. Each one manageable.
+So you split the work. Research agent, planning agent, design agent, implementation agent. Each one focused and manageable.
 
-And then something goes wrong.
-
-Give the pipeline a specific, nuanced input. Something like "build an invite-only marketplace for vintage furniture restorers, with escrow payments, max 500 sellers at launch." What comes out the other end is a generic two-sided marketplace with open signup, Stripe checkout, and infinite scalability. Every distinctive constraint, the things that made the input *yours*, got smoothed away by agents who each did their job perfectly in isolation.
+But give the pipeline a specific, nuanced input. Something like "build an invite-only marketplace for vintage furniture restorers, with escrow payments, max 500 sellers at launch." What comes out the other end is a generic two-sided marketplace with open signup, Stripe checkout, and infinite scalability. Every distinctive constraint, the things that made the input *yours*, got smoothed away by agents who each did their job perfectly in isolation.
 
 This is the telephone game, except the players are LLMs and the message is your system.
 
@@ -39,21 +35,17 @@ This is the telephone game, except the players are LLMs and the message is your 
 
 ## The Failure Modes Are Predictable
 
-Build enough multi-agent pipelines and the same failure modes keep showing up.
+Build enough multi-agent pipelines and the same failure modes keep showing up. The most common is genericization: agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. This happens even when the constraints are right there in the prompt, because models actively drift toward training-data priors, treating your specific requirements as suggestions. Constraints expressed only in prose fare worse. We saw "build in 2 weeks" produce a 40-story backlog across 4 frameworks. The constraint was never enforced by the system, so no agent respected it.
 
-**Genericization.** Agents default to whatever dominates their training data. "Invite-only for restorers" becomes "open marketplace." "Max 500" disappears. This happens even when the constraints are right there in the prompt. Models don't just lose information through truncation; they actively drift toward training-data priors, treating your specific requirements as suggestions rather than hard constraints.
+Specific requirements also vanish through summarization. The "max 500 sellers" constraint was in paragraph three of one upstream output. By the planning agent, it's gone. Nobody notices because the output still *looks* complete.
 
-**Fabrication.** Agent 3 invents a market size figure, marks it `[validated]`, and Agent 4 trusts it completely. A single agent hallucinating is bad. A pipeline that treats hallucinations as upstream ground truth, then builds on them, is structurally worse. Each handoff adds confidence to claims that were never grounded.
+Fabrication compounds the problem. Agent 3 invents a market size figure, marks it `[validated]`, and Agent 4 trusts it completely. A pipeline that treats hallucinations as upstream ground truth, then builds on them, is structurally worse than a single agent hallucinating. Each handoff adds confidence to claims that were never grounded.
 
-**Contradiction.** Agent 2 says `auth: invite-only`. Agent 4 designs an open registration flow. Each agent validates against its own inputs, not its siblings. Both statements coexist peacefully in the final output.
+Contradictions slip through just as quietly. Agent 2 says `auth: invite-only`. Agent 4 designs an open registration flow. Each agent validates against its own inputs, not its siblings. Both statements coexist peacefully in the final output.
 
-**Context loss.** The "max 500 sellers" constraint was in paragraph three of one upstream output. By the planning agent, it's gone. Specific requirements vanish as information passes through summarization layers, and nobody notices because the output still *looks* complete.
+The obvious fix is to ask agents "did you preserve the original requirements?" We tried. They always say yes. Subtle genericization doesn't register as an error to the model that produced it. "Open marketplace" and "invite-only marketplace" are both valid marketplaces. The model sees no contradiction because the drift is qualitative, not logical.
 
-**Self-check failure.** We tried asking agents "did you preserve the original requirements?" They always say yes. Subtle genericization doesn't register as an error to the model that produced it. "Open marketplace" and "invite-only marketplace" are both valid marketplaces. The model sees no contradiction because the drift is qualitative, not logical.
-
-**Constraint drift.** "Build in 2 weeks" produces a 40-story backlog across 4 frameworks. The constraint was expressed in prose, not enforced by the system.
-
-Research backs this up. Kim et al. (2025) found that multi-agent systems had only 34% context overlap after 10 interactions, with error amplification of 17.2x in independent agent architectures. This isn't a bug in any specific system. It's a property of the architecture.
+Kim et al. (2025) studied context preservation across multi-agent architectures and found only 34% context overlap after 10 interactions, with error amplification of 17.2x in independent agent setups. This isn't a bug in any specific system. It's a property of the architecture.
 
 ## Why It Happens
 
@@ -134,21 +126,12 @@ Do this at the handoff boundary, not as a self-check (self-checks don't work, re
 
 Run validators after an agent completes but *before* its output enters the pipeline state. This is where you catch contradictions: if Agent 2 decided `auth: invite-only` and Agent 4 outputs an open registration flow, a validator at the boundary flags the conflict before it cements. Without this, you discover three stages later that your spec describes a completely different product.
 
-## The Uncomfortable Truth
+## What We Haven't Solved
 
-You can't fix the telephone game by making agents smarter. And you definitely can't fix it by adding *more* agents. The fix is structural:
+You can't fix the telephone game by making agents smarter, and you definitely can't fix it by adding more agents. The fix is structural: fewer handoffs, immutable anchors, structured data at boundaries, deterministic rules that code enforces, evidence gates, and validators before state entry.
 
-1. **Fewer handoffs** where the split doesn't justify the cost
-2. **Anchors** for things that must never change
-3. **Structured data** for things that must never be misinterpreted
-4. **Deterministic rules** for things that must never be overridden
-5. **Evidence gates** for things that must never be unsourced
-6. **Validators** for things that must never go unchecked
+That gets you a long way. Kim et al.'s study found that centralized verification drops error amplification from 17.2x to 4.4x. Meaningful, but not zero.
 
-The common thread: stop trusting prose as protocol. Every time you pass information between agents as natural language and hope it survives, you're playing telephone. Kim et al.'s numbers bear this out: centralized verification drops error amplification from 17.2x to 4.4x. Still not zero. But it's the difference between an output that resembles your input and one that doesn't.
+The hardest remaining problem is forced summarization. When a downstream agent genuinely needs context from five prior stages, something has to give. We're experimenting with selective context injection (full output for the most relevant upstream stages, summaries for the rest), but we don't have a clean answer yet.
 
-Your agents are doing their best. They're just playing a game they can't win. Change the game.
-
----
-
-*These patterns come from building [Haytham](https://github.com/arslan70/haytham), an open-source multi-agent system. The mangled outputs were real. The generic CRUD apps were not what we asked for.*
+If you're building a multi-agent pipeline and hitting similar problems, start with immutable anchors. They're the smallest change with the biggest impact. We're working through these patterns in [Haytham](https://github.com/arslan70/haytham), an open-source multi-agent system, and the codebase shows what this looks like in practice.

@@ -173,8 +173,27 @@ recommendation(NO-GO) + gate_approved → END
 ## Documentation Editing Standards
 - Write in plain, human-friendly language. Avoid jargon and verbose AI-sounding prose.
 - Never use em dashes. Use commas, periods, or parentheses instead.
+- Avoid LLM writing patterns: "Not X, but Y" contrasts, theatrical reversals ("That's not magic. It's engineering."), parallel triplets used more than once, and tidy wrap-up sentences that restate what was just said. Just say what the thing is.
 - Prefer diagrams (mermaid) over long explanatory paragraphs when showing architecture or flows.
 - When editing docs, keep it concise. If the user asks for simplification, go further than you think necessary.
+
+### Blog Writing Style
+
+These apply to posts in `docs/blog/`.
+
+**Voice:** Write like you're explaining something to a colleague. Conversational, not academic. Use active voice. Say "we found" and "I've seen", not "it was observed that."
+
+**Structure:** Prose paragraphs over bullet lists. Bullets are for genuinely parallel items (steps, options), not for decomposing an argument into fragments. Keep paragraphs to 2-4 sentences. Short paragraphs pull the reader forward.
+
+**Emphasis:** Bold only when introducing an unfamiliar term or for rare high-impact moments. Overusing bold destroys its power. Use italics where you'd stress the word if reading aloud.
+
+**Clarity:** Lead with concrete examples, not abstractions. Explain unfamiliar terms at point of use. If a section makes your eyes glaze over, simplify it. Code examples should err toward simplicity over realism.
+
+**Endings:** Point forward (further reading, open questions, what to try next). Don't restate what was just said.
+
+**Credibility:** Write from real experience, not hypotheticals. Say when something does NOT work, not just when it does. Contra-indications build more trust than sales pitches.
+
+**Read aloud test:** If a sentence sounds awkward spoken, rewrite it.
 
 ## Code Hygiene Rules (Summary)
 
