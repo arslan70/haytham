@@ -6,7 +6,7 @@ dimension assessments and targeted clarifying questions.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class DimensionAssessment(BaseModel):
@@ -28,14 +28,6 @@ class DiscoveryQuestion(BaseModel):
     question: str = Field(description="The clarifying question to ask the founder")
     placeholder: str = Field(description="Example answer to guide the founder")
 
-    @field_validator("question")
-    @classmethod
-    def question_must_not_be_empty(cls, v: str) -> str:
-        if not v.strip():
-            msg = "question must not be empty"
-            raise ValueError(msg)
-        return v
-
 
 class IdeaDiscoveryOutput(BaseModel):
     """Structured output from the idea discovery agent.
@@ -53,3 +45,14 @@ class IdeaDiscoveryOutput(BaseModel):
     questions: list[DiscoveryQuestion] = Field(
         description="0-5 targeted clarifying questions for gaps only"
     )
+
+    @model_validator(mode="after")
+    def drop_empty_questions(self) -> IdeaDiscoveryOutput:
+        """Silently discard questions with empty question text.
+
+        Some models (e.g. Nova Lite) occasionally emit questions with empty
+        strings. Rather than rejecting the entire output and triggering a
+        noisy retry loop, drop the invalid entries and keep the valid ones.
+        """
+        self.questions = [q for q in self.questions if q.question.strip()]
+        return self
