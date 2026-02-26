@@ -586,9 +586,72 @@ if new_idea:
 
     st.info(f"*{validated_idea}*")
 
+    # =========================================================================
+    # Check for Phase 2: Resume from research_brief pause
+    # =========================================================================
+    paused_result = st.session_state.get("paused_validation_result")
+    if paused_result and paused_result.status == "paused":
+        st.title("Research Brief")
+        st.markdown(
+            "Please review the research below. Our recommendations are only as good "
+            "as the research they're based on. If anything looks wrong, irrelevant, "
+            "or missing, let us know before we continue."
+        )
+
+        # Show the research brief
+        brief_file = SESSION_DIR / "research-brief" / "research_brief.md"
+        if brief_file.exists():
+            import re as _re
+
+            brief_content = brief_file.read_text()
+            # Strip agent output header
+            brief_content = _re.sub(r"^#+ Output\s*\n+", "", brief_content, flags=_re.MULTILINE)
+            brief_content = _re.sub(r"^# (?!#).+\n+", "", brief_content.strip())
+            st.markdown(brief_content)
+        else:
+            st.warning("Research brief output not found.")
+
+        st.divider()
+
+        if st.button("Continue to Analysis", type="primary", use_container_width=True):
+            from lib.workflow_runner import StageProgress, resume_idea_validation
+
+            with st.spinner("Running validation report synthesis..."):
+                resume_result = resume_idea_validation(
+                    paused_result=paused_result,
+                    session_dir=SESSION_DIR,
+                )
+
+            # Clean up pause state
+            del st.session_state["paused_validation_result"]
+            for key in [
+                "new_idea",
+                "idea_validated",
+                "validated_idea",
+                "idea_clarification",
+                "idea_discovery",
+                "idea_discovery_complete",
+                "archetype_selected",
+                "idea_archetype",
+            ]:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+            if resume_result.status == "completed":
+                st.session_state.navigate_to = "discovery"
+                st.rerun()
+            else:
+                st.error(f"Report synthesis failed: {resume_result.error or 'Unknown error'}")
+
+        st.stop()
+
+    # =========================================================================
+    # Phase 1: Run to research_brief (pauses for user review)
+    # =========================================================================
     STAGES = [
         ("idea-analysis", "Idea Analysis", "Expanding and structuring your concept"),
         ("market-context", "Market Context", "Researching market and competitors"),
+        ("research-brief", "Research Brief", "Preparing research findings for your review"),
         ("report-synthesis", "Validation Report", "Generating GO/NO-GO recommendation"),
     ]
 
@@ -638,6 +701,11 @@ if new_idea:
         clear_existing=True,
         archetype=st.session_state.get("idea_archetype"),
     )
+
+    if result.status == "paused":
+        # Store paused result and rerun to show brief review UI
+        st.session_state.paused_validation_result = result
+        st.rerun()
 
     # Clean up validation state
     for key in [
