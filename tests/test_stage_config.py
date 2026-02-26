@@ -60,15 +60,16 @@ class TestStageRegistry:
     """Test StageRegistry class with all stages."""
 
     def test_all_stages_present(self):
-        """Test all 11 stages are defined (ADR-026: removed risk-assessment, pivot-strategy, validation-summary)."""
+        """Test all 12 stages are defined (research-brief added between market-context and report-synthesis)."""
         registry = get_stage_registry()
-        assert len(registry) == 11
+        assert len(registry) == 12
 
     def test_stage_order(self):
-        """Test stages are in correct order (ADR-026: simplified idea-validation)."""
+        """Test stages are in correct order."""
         expected_slugs = [
             "idea-analysis",
             "market-context",
+            "research-brief",
             "report-synthesis",
             "mvp-scope",
             "capability-model",
@@ -83,10 +84,9 @@ class TestStageRegistry:
         assert actual_slugs == expected_slugs
 
     def test_stage_order_without_optional(self):
-        """Test stages order excludes optional stages (none are optional after ADR-026)."""
+        """Test stages order excludes optional stages (none are optional currently)."""
         slugs = get_all_stage_slugs(include_optional=False)
-        # No optional stages remain after ADR-026 removed pivot-strategy
-        assert len(slugs) == 11
+        assert len(slugs) == 12
         assert slugs == get_all_stage_slugs(include_optional=True)
 
     def test_get_by_slug(self):
@@ -112,7 +112,9 @@ class TestStageRegistry:
         registry = get_stage_registry()
 
         idea_stages = registry.get_stages_for_workflow(WorkflowType.IDEA_VALIDATION)
-        assert len(idea_stages) == 3  # ADR-026: idea-analysis, market-context, report-synthesis
+        assert (
+            len(idea_stages) == 4
+        )  # idea-analysis, market-context, research-brief, report-synthesis
 
         mvp_stages = registry.get_stages_for_workflow(WorkflowType.MVP_SPECIFICATION)
         assert len(mvp_stages) == 3
@@ -150,13 +152,22 @@ class TestStageConfigs:
         assert stage.execution_mode == "sequential"
         assert stage.required_context == ["idea-analysis"]
 
+    def test_research_brief_stage(self):
+        """Test research-brief stage configuration."""
+        stage = get_stage_by_slug("research-brief")
+        assert stage.display_name == "Research Brief"
+        assert stage.display_index == "2b"
+        assert stage.agent_names == ["research_brief"]
+        assert stage.required_context == ["idea-analysis", "market-context"]
+        assert not stage.is_optional
+
     def test_report_synthesis_stage(self):
-        """Test report-synthesis stage configuration (ADR-026)."""
+        """Test report-synthesis stage configuration."""
         stage = get_stage_by_slug("report-synthesis")
         assert stage.display_name == "Validation Report"
         assert stage.display_index == 3
         assert stage.agent_names == ["report_synthesis"]
-        assert stage.required_context == ["idea-analysis", "market-context"]
+        assert stage.required_context == ["research-brief"]
         assert not stage.is_optional
 
     def test_build_buy_analysis_stage(self):

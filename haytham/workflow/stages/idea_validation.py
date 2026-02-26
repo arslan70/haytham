@@ -377,8 +377,7 @@ def run_report_synthesis(state: State) -> tuple[str, str]:
     query = "\n".join(query_parts)
 
     logger.info(
-        f"Report synthesis query built: {len(query)} chars "
-        f"(research_brief={len(research_brief)})"
+        f"Report synthesis query built: {len(query)} chars (research_brief={len(research_brief)})"
     )
 
     # Pass empty context dict — all data is already in the query

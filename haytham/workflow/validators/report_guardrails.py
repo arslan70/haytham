@@ -186,12 +186,33 @@ def validate_regulated_domain_safety(output: str, state: "State") -> list[str]:
 # Research Brief: Judgment Language Validator
 # =============================================================================
 
-_JUDGMENT_WORDS = frozenset([
-    "strong", "weak", "promising", "concerning", "impressive", "worrying",
-    "significant", "notable", "excellent", "poor", "remarkable", "alarming",
-    "recommend", "should", "must", "better", "worse", "leading", "lagging",
-    "opportunity", "threat", "advantage", "disadvantage",
-])
+_JUDGMENT_WORDS = frozenset(
+    [
+        "strong",
+        "weak",
+        "promising",
+        "concerning",
+        "impressive",
+        "worrying",
+        "significant",
+        "notable",
+        "excellent",
+        "poor",
+        "remarkable",
+        "alarming",
+        "recommend",
+        "should",
+        "must",
+        "better",
+        "worse",
+        "leading",
+        "lagging",
+        "opportunity",
+        "threat",
+        "advantage",
+        "disadvantage",
+    ]
+)
 
 _JUDGMENT_RE = re.compile(
     r"\b(" + "|".join(re.escape(w) for w in sorted(_JUDGMENT_WORDS)) + r")\b",
