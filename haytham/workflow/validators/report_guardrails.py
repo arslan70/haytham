@@ -180,3 +180,49 @@ def validate_regulated_domain_safety(output: str, state: "State") -> list[str]:
             )
 
     return warnings
+
+
+# =============================================================================
+# Research Brief: Judgment Language Validator
+# =============================================================================
+
+_JUDGMENT_WORDS = frozenset([
+    "strong", "weak", "promising", "concerning", "impressive", "worrying",
+    "significant", "notable", "excellent", "poor", "remarkable", "alarming",
+    "recommend", "should", "must", "better", "worse", "leading", "lagging",
+    "opportunity", "threat", "advantage", "disadvantage",
+])
+
+_JUDGMENT_RE = re.compile(
+    r"\b(" + "|".join(re.escape(w) for w in sorted(_JUDGMENT_WORDS)) + r")\b",
+    re.IGNORECASE,
+)
+
+# Lines starting with # are headers — skip them
+_HEADER_RE = re.compile(r"^\s*#+\s")
+
+
+def validate_no_judgment_language(output: str, state: "State") -> list[str]:
+    """Flag judgment or recommendation language in the research brief.
+
+    The research brief must be non-opinionated. This validator surfaces
+    instances of judgment words so the user or system can review.
+    """
+    warnings: list[str] = []
+    found_words: set[str] = set()
+
+    for line in output.splitlines():
+        # Skip markdown headers
+        if _HEADER_RE.match(line):
+            continue
+        for match in _JUDGMENT_RE.finditer(line):
+            found_words.add(match.group(1).lower())
+
+    if found_words:
+        sorted_words = ", ".join(sorted(found_words))
+        warnings.append(
+            f"Research brief contains judgment language: {sorted_words}. "
+            "The brief should present facts without opinion."
+        )
+
+    return warnings

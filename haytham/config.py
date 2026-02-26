@@ -337,6 +337,13 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         tool_profile=ToolProfile.COMPETITOR_RESEARCH,
         model_tier=ModelTier.HEAVY,
     ),
+    # Research Brief - non-opinionated research presenter for user review
+    "research_brief": AgentConfig(
+        name="research_brief_agent",
+        prompt_key="worker_research_brief",
+        max_tokens=TOKENS_LARGE,  # ~4000 tokens for full brief with two sections
+        model_tier=ModelTier.LIGHT,
+    ),
     # Standard agents (no special tools or timeouts)
     "mvp_scope": AgentConfig(
         name="mvp_scope_agent",

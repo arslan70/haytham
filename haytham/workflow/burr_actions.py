@@ -62,13 +62,27 @@ def market_context(state: State) -> State:
         "system_goal",
         "idea_analysis",
         "market_context",
+        "research_brief_status",
+        "session_manager",
+    ],
+    writes=["research_brief", "research_brief_status", "current_stage"],
+)
+def research_brief(state: State) -> State:
+    """Stage 2b: Present research findings for user review."""
+    return execute_stage("research-brief", state)
+
+
+@action(
+    reads=[
+        "system_goal",
+        "research_brief",
         "report_synthesis_status",
         "session_manager",
     ],
     writes=["report_synthesis", "report_synthesis_status", "current_stage", "recommendation"],
 )
 def report_synthesis(state: State) -> State:
-    """Stage 3: Synthesize validation report from upstream findings."""
+    """Stage 3: Synthesize validation report from validated research brief."""
     return execute_stage("report-synthesis", state)
 
 

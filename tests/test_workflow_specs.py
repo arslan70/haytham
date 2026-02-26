@@ -160,15 +160,16 @@ class TestSpecStructure:
 class TestIdeaValidationTransitions:
     """Tests for the idea-validation workflow's linear pipeline (ADR-026)."""
 
-    def test_idea_validation_has_three_stages(self):
-        """ADR-026: idea-validation is now 3 stages (no risk-assessment/pivot-strategy)."""
-        assert len(IDEA_VALIDATION_SPEC.stages) == 3
+    def test_idea_validation_has_four_stages(self):
+        """Research brief adds a 4th stage to idea-validation."""
+        assert len(IDEA_VALIDATION_SPEC.stages) == 4
 
-    def test_linear_transitions(self):
-        """ADR-026: idea_analysis -> market_context -> report_synthesis (no branching)."""
+    def test_linear_transitions_with_research_brief(self):
+        """idea_analysis -> market_context -> research_brief -> report_synthesis."""
         assert IDEA_VALIDATION_SPEC.transitions == [
             ("idea_analysis", "market_context"),
-            ("market_context", "report_synthesis"),
+            ("market_context", "research_brief"),
+            ("research_brief", "report_synthesis"),
         ]
 
     def test_no_conditional_branching(self):
