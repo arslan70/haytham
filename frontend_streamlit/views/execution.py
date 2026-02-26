@@ -591,11 +591,13 @@ if new_idea:
     # =========================================================================
     paused_result = st.session_state.get("paused_validation_result")
     if paused_result and paused_result.status == "paused":
+        from components.feedback_conversation import render_feedback_conversation
+
         st.title("Research Brief")
         st.markdown(
             "Please review the research below. Our recommendations are only as good "
             "as the research they're based on. If anything looks wrong, irrelevant, "
-            "or missing, let us know before we continue."
+            "or missing, tell us before we continue."
         )
 
         # Show the research brief
@@ -613,12 +615,13 @@ if new_idea:
 
         st.divider()
 
-        if st.button("Continue to Analysis", type="primary", use_container_width=True):
-            from lib.workflow_runner import StageProgress, resume_idea_validation
+        def _on_accept_brief():
+            """Resume workflow from research_brief to report_synthesis."""
+            from lib.workflow_runner import resume_idea_validation
 
             with st.spinner("Running validation report synthesis..."):
                 resume_result = resume_idea_validation(
-                    paused_result=paused_result,
+                    paused_result=st.session_state["paused_validation_result"],
                     session_dir=SESSION_DIR,
                 )
 
@@ -641,7 +644,19 @@ if new_idea:
                 st.session_state.navigate_to = "discovery"
                 st.rerun()
             else:
-                st.error(f"Report synthesis failed: {resume_result.error or 'Unknown error'}")
+                st.error(
+                    f"Report synthesis failed: {resume_result.error or 'Unknown error'}"
+                )
+
+        render_feedback_conversation(
+            workflow_type="research-brief-review",
+            workflow_display_name="Research Brief",
+            on_accept=_on_accept_brief,
+            stage_slugs=["research-brief"],
+            system_goal=validated_idea,
+            session_dir=SESSION_DIR,
+            next_stage_name="Analysis",
+        )
 
         st.stop()
 
