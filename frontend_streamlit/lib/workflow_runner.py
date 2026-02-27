@@ -48,11 +48,12 @@ class WorkflowResult:
     """Result of workflow execution."""
 
     workflow_type: str
-    status: str  # "completed", "failed", "cancelled"
+    status: str  # "completed", "failed", "cancelled", "paused"
     stages: list[StageProgress] = field(default_factory=list)
     execution_time: float = 0.0
     error: str | None = None
     recommendation: str | None = None  # GO/NO-GO/PIVOT for idea validation
+    _burr_app: Any = field(default=None, repr=False)  # Preserved for resume after pause
 
 
 @dataclass
@@ -65,6 +66,7 @@ class WorkflowConfig:
     factory_kwargs: dict = field(default_factory=dict)
     pre_run: Callable | None = None  # Called with (session_manager, session_dir)
     post_run: Callable | None = None  # Called with (state, session_dir) -> recommendation
+    pause_after: str | None = None  # Action name to pause at (e.g., "research_brief")
 
 
 def _get_stage_display_info(action_name: str) -> tuple[str, str, int | str]:
@@ -172,11 +174,32 @@ def run_workflow(
             **config.factory_kwargs,
         )
 
-        # Run to completion
+        # Determine halt point (pause_after or terminal stage)
         terminal_stage = WORKFLOW_TERMINAL_STAGES[config.workflow_type]
-        logger.info(f"Running {config.workflow_slug} workflow to terminal stage: {terminal_stage}")
+        halt_stage = config.pause_after or terminal_stage
+        is_pausing = config.pause_after is not None and config.pause_after != terminal_stage
 
-        action, result, state = app.run(halt_after=[terminal_stage])
+        logger.info(
+            f"Running {config.workflow_slug} workflow to "
+            f"{'pause' if is_pausing else 'terminal'} stage: {halt_stage}"
+        )
+
+        action, result, state = app.run(halt_after=[halt_stage])
+
+        if is_pausing:
+            pause_status = state.get(f"{halt_stage}_status", "completed")
+            execution_time = time.time() - start_time
+            logger.info(
+                f"{config.workflow_slug} workflow paused at {halt_stage} "
+                f"in {execution_time:.1f}s (status={pause_status})"
+            )
+            return WorkflowResult(
+                workflow_type=config.workflow_slug,
+                status="paused",
+                stages=stages_progress,
+                execution_time=execution_time,
+                _burr_app=app,
+            )
 
         final_status = state.get(f"{terminal_stage}_status", "completed")
         execution_time = time.time() - start_time
@@ -211,6 +234,81 @@ def run_workflow(
             status="failed",
             stages=stages_progress,
             execution_time=execution_time,
+            error=str(e),
+        )
+
+
+def resume_workflow(
+    paused_result: WorkflowResult,
+    config: WorkflowConfig,
+    session_dir: Path,
+    on_stage_start: Callable[[StageProgress], None] | None = None,
+    on_stage_complete: Callable[[StageProgress], None] | None = None,
+) -> WorkflowResult:
+    """Resume a paused workflow from where it stopped.
+
+    Takes the _burr_app from a paused WorkflowResult and runs it to the
+    terminal stage.
+
+    Args:
+        paused_result: WorkflowResult with status="paused" and _burr_app set
+        config: Original workflow config
+        session_dir: Path to session directory
+        on_stage_start: Callback when a stage starts
+        on_stage_complete: Callback when a stage completes
+
+    Returns:
+        WorkflowResult with final status
+    """
+    app = paused_result._burr_app
+    if app is None:
+        return WorkflowResult(
+            workflow_type=config.workflow_slug,
+            status="failed",
+            error="No Burr app found in paused result",
+        )
+
+    start_time = time.time()
+    terminal_stage = WORKFLOW_TERMINAL_STAGES[config.workflow_type]
+    stages_progress: list[StageProgress] = list(paused_result.stages)
+
+    logger.info(f"Resuming {config.workflow_slug} workflow to terminal stage: {terminal_stage}")
+
+    try:
+        action, result, state = app.run(halt_after=[terminal_stage])
+
+        final_status = state.get(f"{terminal_stage}_status", "completed")
+        total_time = paused_result.execution_time + (time.time() - start_time)
+
+        recommendation = None
+        if config.post_run:
+            recommendation = config.post_run(state, session_dir)
+
+        session_manager_val = state.get("session_manager")
+        if final_status == "completed" and session_manager_val:
+            session_manager_val.run_tracker.record_workflow_complete(config.workflow_slug)
+
+        logger.info(
+            f"{config.workflow_slug} workflow completed in {total_time:.1f}s "
+            f"(status={final_status})"
+        )
+
+        return WorkflowResult(
+            workflow_type=config.workflow_slug,
+            status="completed" if final_status == "completed" else "failed",
+            stages=stages_progress,
+            execution_time=total_time,
+            recommendation=recommendation,
+        )
+
+    except Exception as e:
+        logger.error(f"Resume failed: {e}", exc_info=True)
+        total_time = paused_result.execution_time + (time.time() - start_time)
+        return WorkflowResult(
+            workflow_type=config.workflow_slug,
+            status="failed",
+            stages=stages_progress,
+            execution_time=total_time,
             error=str(e),
         )
 
@@ -293,16 +391,42 @@ def run_idea_validation(
     clear_existing: bool = True,
     archetype: str | None = None,
 ) -> WorkflowResult:
-    """Run Idea Validation workflow synchronously."""
-    config = WorkflowConfig(
+    """Run Idea Validation workflow, pausing at research_brief for user review.
+
+    Returns a WorkflowResult with status="paused" after research_brief completes.
+    The caller should show the brief to the user, then call resume_idea_validation()
+    to continue to report_synthesis.
+    """
+    config = _idea_validation_config(system_goal, clear_existing, archetype)
+    return run_workflow(config, session_dir, on_stage_start, on_stage_complete)
+
+
+def resume_idea_validation(
+    paused_result: WorkflowResult,
+    session_dir: Path,
+    on_stage_start: Callable[[StageProgress], None] | None = None,
+    on_stage_complete: Callable[[StageProgress], None] | None = None,
+) -> WorkflowResult:
+    """Resume idea validation from research_brief to report_synthesis."""
+    config = _idea_validation_config("", clear_existing=False)
+    return resume_workflow(paused_result, config, session_dir, on_stage_start, on_stage_complete)
+
+
+def _idea_validation_config(
+    system_goal: str = "",
+    clear_existing: bool = True,
+    archetype: str | None = None,
+) -> WorkflowConfig:
+    """Build the WorkflowConfig for idea validation."""
+    return WorkflowConfig(
         workflow_type=WorkflowType.IDEA_VALIDATION,
         workflow_slug="idea-validation",
         factory_fn=create_idea_validation_workflow,
         factory_kwargs={"system_goal": system_goal, "archetype": archetype},
         pre_run=lambda sm, sd: _idea_validation_pre_run(sm, sd, system_goal, clear_existing),
         post_run=_extract_recommendation,
+        pause_after="research_brief",
     )
-    return run_workflow(config, session_dir, on_stage_start, on_stage_complete)
 
 
 def _factory_for_type(workflow_type: WorkflowType) -> Callable:
@@ -424,6 +548,7 @@ def process_workflow_feedback(
         "idea-validation": [
             "idea-analysis",
             "market-context",
+            "research-brief",
             "report-synthesis",
         ],
         "mvp-specification": [

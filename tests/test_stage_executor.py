@@ -479,7 +479,7 @@ class TestContextBuilding:
 
     def test_context_includes_required_context_stages(self):
         """Context includes outputs from required_context stages."""
-        config = StageExecutionConfig(stage_slug="report-synthesis")
+        config = StageExecutionConfig(stage_slug="research-brief")
         executor = StageExecutor(config)
 
         state = _make_state(
@@ -489,7 +489,7 @@ class TestContextBuilding:
 
         context = executor._build_context(state, "Goal")
 
-        # report-synthesis requires idea-analysis and market-context
+        # research-brief requires idea-analysis and market-context
         assert context.get("idea_analysis") == "Idea output"
         assert context.get("market_context") == "Market output"
 

@@ -135,13 +135,34 @@ _STAGES: list[StageMetadata] = [
         required_context=["idea-analysis"],
     ),
     StageMetadata(
+        slug="research-brief",
+        action_name="research_brief",
+        display_name="Research Brief",
+        display_index="2b",
+        description=(
+            "Presents the system's understanding of your idea and the research findings "
+            "for your review. Our recommendations are only as good as the research they're "
+            "based on, so please verify the facts, flag anything missing, and correct any "
+            "misunderstandings before we proceed to analysis."
+        ),
+        state_key="research_brief",
+        status_key="research_brief_status",
+        workflow_type=WorkflowType.IDEA_VALIDATION,
+        query_template=(
+            "Create a non-opinionated research brief that presents the system's understanding "
+            "of the idea and the market research findings. No scores, ratings, or recommendations."
+        ),
+        agent_names=["research_brief"],
+        required_context=["idea-analysis", "market-context"],
+    ),
+    StageMetadata(
         slug="report-synthesis",
         action_name="report_synthesis",
         display_name="Validation Report",
         display_index=3,
         description=(
-            "Synthesizes a comprehensive validation report from idea analysis and market research. "
-            "A single reasoning agent cross-references all upstream findings to produce an "
+            "Synthesizes a comprehensive validation report from the validated research brief. "
+            "A single reasoning agent cross-references all findings to produce an "
             "executive summary, risk analysis, competitive positioning, and a GO/PIVOT/NO-GO "
             "recommendation. This becomes the foundation for MVP scoping."
         ),
@@ -153,7 +174,7 @@ _STAGES: list[StageMetadata] = [
             "Synthesize all upstream findings into a decision-ready assessment."
         ),
         agent_names=["report_synthesis"],
-        required_context=["idea-analysis", "market-context"],
+        required_context=["research-brief"],
     ),
     # =========================================================================
     # WORKFLOW 2: MVP SPECIFICATION (Stages 5-6)

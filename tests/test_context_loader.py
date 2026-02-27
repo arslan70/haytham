@@ -44,6 +44,7 @@ def sample_session(temp_base_dir):
     for slug in [
         "idea-analysis",
         "market-context",
+        "research-brief",
         "report-synthesis",
         "mvp-scope",
         "capability-model",
@@ -135,10 +136,32 @@ This is the report synthesis output.
 It contains the full validation report.
 """
 
+    research_brief_output = """# Agent Output: research_brief
+
+## Metadata
+- Agent: research_brief
+- Stage: research-brief - Research Brief
+- Executed: 2024-01-15T10:12:00Z
+- Duration: 60s
+- Status: completed
+
+## Execution Details
+- Model: claude-sonnet-4.5
+- Input Tokens: 2000
+- Output Tokens: 1500
+- Tools Used: []
+
+## Output
+
+This is the research brief output.
+It presents the research findings for user review.
+"""
+
     # Write agent outputs to stage directories
     (session_dir / "idea-analysis" / "concept_expansion.md").write_text(concept_output)
     (session_dir / "market-context" / "market_intelligence.md").write_text(market_output)
     (session_dir / "market-context" / "competitor_analysis.md").write_text(competitor_output)
+    (session_dir / "research-brief" / "research_brief.md").write_text(research_brief_output)
     (session_dir / "report-synthesis" / "report_synthesis.md").write_text(report_output)
 
     # Create preferences.json in session directory
@@ -225,10 +248,8 @@ class TestContextLoader:
 
         context = loader.load_context(stage_slug="report-synthesis")
 
-        # report-synthesis requires ["idea-analysis", "market-context"]
-        assert "concept_expansion" in context["agent_outputs"]
-        assert "market_intelligence" in context["agent_outputs"]
-        assert "competitor_analysis" in context["agent_outputs"]
+        # report-synthesis requires ["research-brief"]
+        assert "research_brief" in context["agent_outputs"]
         assert context["system_goal"] == TEST_SYSTEM_GOAL
         assert context["_missing_agents"] == []
 

@@ -286,21 +286,15 @@ def run_market_context_sequential(state: State) -> tuple[str, str]:
 
 
 # =============================================================================
-# Report Synthesis — Programmatic executor with full upstream context
+# Research Brief — Programmatic executor with full upstream context
 # =============================================================================
 
 
-def run_report_synthesis(state: State) -> tuple[str, str]:
-    """Run report-synthesis with full upstream context embedded in the query.
+def run_research_brief(state: State) -> tuple[str, str]:
+    """Run research-brief with full upstream context embedded in the query.
 
-    The default execution path truncates stage outputs to ~200 chars via
-    ``build_context_summary()``.  The synthesis agent needs the FULL
-    idea-analysis and market-context research (~15k+ chars) to produce
-    quality reports that cross-reference findings, cite evidence, and
-    avoid hallucinating market data.
-
-    This programmatic executor embeds upstream outputs directly in the
-    query and passes an empty context dict so nothing gets truncated.
+    Embeds idea_analysis, market_context, and concept_anchor directly in the
+    query so the research brief agent has all facts available for formatting.
 
     Returns:
         Tuple of (output, status) for stage_executor compatibility.
@@ -312,13 +306,13 @@ def run_report_synthesis(state: State) -> tuple[str, str]:
 
     anchor_str = get_anchor_context_string(state)
 
-    # Build query with full upstream data inline
     query_parts = [
-        "Produce a comprehensive validation report based on the research below.",
+        "Create a research brief from the upstream research below.",
+        "Present facts only. No scores, ratings, or recommendations.",
     ]
 
     if system_goal:
-        query_parts.append(f"\n## Original Idea (system_goal)\n\n{system_goal}")
+        query_parts.append(f"\n## Original Idea\n\n{system_goal}")
 
     if anchor_str:
         query_parts.append(f"\n## Concept Anchor\n\n{anchor_str}")
@@ -332,8 +326,58 @@ def run_report_synthesis(state: State) -> tuple[str, str]:
     query = "\n".join(query_parts)
 
     logger.info(
-        f"Report synthesis query built: {len(query)} chars "
+        f"Research brief query built: {len(query)} chars "
         f"(idea_analysis={len(idea_analysis)}, market_context={len(market_context)})"
+    )
+
+    # Pass empty context dict — all data is already in the query
+    result = run_agent("research_brief", query, {}, session_manager)
+
+    output = result.get("output", "")
+    status = result.get("status", "failed")
+
+    return output, status
+
+
+# =============================================================================
+# Report Synthesis — Programmatic executor with full upstream context
+# =============================================================================
+
+
+def run_report_synthesis(state: State) -> tuple[str, str]:
+    """Run report-synthesis with the validated research brief as input.
+
+    The research_brief is the user-validated single source of truth,
+    replacing raw idea_analysis and market_context as synthesis input.
+    See design doc: docs/plans/2026-02-25-research-brief-stage-design.md
+
+    Returns:
+        Tuple of (output, status) for stage_executor compatibility.
+    """
+    system_goal = state.get("system_goal", "")
+    research_brief = state.get("research_brief", "")
+    session_manager = state.get("session_manager")
+
+    anchor_str = get_anchor_context_string(state)
+
+    # Build query with validated research brief inline
+    query_parts = [
+        "Produce a comprehensive validation report based on the validated research brief below.",
+    ]
+
+    if system_goal:
+        query_parts.append(f"\n## Original Idea (system_goal)\n\n{system_goal}")
+
+    if anchor_str:
+        query_parts.append(f"\n## Concept Anchor\n\n{anchor_str}")
+
+    if research_brief:
+        query_parts.append(f"\n## Validated Research Brief\n\n{research_brief}")
+
+    query = "\n".join(query_parts)
+
+    logger.info(
+        f"Report synthesis query built: {len(query)} chars (research_brief={len(research_brief)})"
     )
 
     # Pass empty context dict — all data is already in the query

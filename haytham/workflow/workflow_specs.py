@@ -20,6 +20,7 @@ from .burr_actions import (
     market_context,
     mvp_scope,
     report_synthesis,
+    research_brief,
     story_generation,
     story_validation,
     system_traits,
@@ -86,17 +87,20 @@ IDEA_VALIDATION_SPEC = WorkflowSpec(
     actions={
         "idea_analysis": idea_analysis,
         "market_context": market_context,
+        "research_brief": research_brief,
         "report_synthesis": report_synthesis,
     },
     transitions=[
         ("idea_analysis", "market_context"),
-        ("market_context", "report_synthesis"),
+        ("market_context", "research_brief"),
+        ("research_brief", "report_synthesis"),
     ],
     entrypoint="idea_analysis",
     tracking_project="haytham-validation",
     stages=[
         "idea_analysis",
         "market_context",
+        "research_brief",
         "report_synthesis",
     ],
     extra_state_keys=["recommendation"],
@@ -119,6 +123,7 @@ MVP_SPECIFICATION_SPEC = WorkflowSpec(
     stages=["mvp_scope", "capability_model", "system_traits"],
     context_stages=[
         "report-synthesis",
+        "research-brief",
         "idea-analysis",
         "market-context",
     ],

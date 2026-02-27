@@ -35,7 +35,8 @@ class ContextLoader:
     Stage Context Requirements (from StageConfig.required_context):
         idea-analysis: [] (no previous context)
         market-context: ["idea-analysis"]
-        report-synthesis: ["idea-analysis", "market-context"]
+        research-brief: ["idea-analysis", "market-context"]
+        report-synthesis: ["research-brief"]
     """
 
     # Agent to stage mapping (for loading agent outputs from stage directories)
@@ -43,6 +44,7 @@ class ContextLoader:
         "concept_expansion": "idea-analysis",
         "market_intelligence": "market-context",
         "competitor_analysis": "market-context",
+        "research_brief": "research-brief",
         "report_synthesis": "report-synthesis",
         # Legacy mappings (for backwards compatibility with old sessions)
         "niche_identification": "opportunity-discovery",

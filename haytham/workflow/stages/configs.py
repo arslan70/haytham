@@ -21,6 +21,7 @@ from haytham.agents.worker_system_traits.system_traits_models import (
 )
 from haytham.workflow.stage_executor import StageExecutionConfig
 from haytham.workflow.validators.report_guardrails import (
+    validate_no_judgment_language,
     validate_regulated_domain_safety,
     validate_som_arithmetic,
 )
@@ -32,6 +33,7 @@ from .idea_validation import (
     extract_recommendation_processor,
     run_market_context_sequential,
     run_report_synthesis,
+    run_research_brief,
     save_final_output,
 )
 from .mvp_scope_swarm import run_mvp_scope_swarm
@@ -92,6 +94,11 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
         stage_slug="market-context",
         programmatic_executor=run_market_context_sequential,
         post_processor=extract_competitor_data_processor,
+    ),
+    "research-brief": StageExecutionConfig(
+        stage_slug="research-brief",
+        programmatic_executor=run_research_brief,
+        post_validators=[validate_no_judgment_language],
     ),
     "report-synthesis": StageExecutionConfig(
         stage_slug="report-synthesis",

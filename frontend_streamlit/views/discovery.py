@@ -113,6 +113,17 @@ STAGES = [
         "output_files": ["market_intelligence.md", "competitor_analysis.md"],
     },
     {
+        "id": "research-brief",
+        "name": "Research Brief",
+        "icon": "[2b]",
+        "description": (
+            "What we understood about your idea and what we found in the research."
+            " Please review the facts, flag anything missing, and correct any"
+            " misunderstandings before we proceed to analysis."
+        ),
+        "output_file": "research_brief.md",
+    },
+    {
         "id": "report-synthesis",
         "name": "Validation Report",
         "icon": "[3]",
@@ -442,6 +453,8 @@ if is_workflow_locked():
     accomplishments = ["Idea analyzed and structured"]
     if (SESSION_DIR / "market-context").exists():
         accomplishments.append("Market intelligence gathered")
+    if (SESSION_DIR / "research-brief").exists():
+        accomplishments.append("Research brief reviewed")
     if (SESSION_DIR / "report-synthesis").exists():
         accomplishments.append("GO/NO-GO recommendation issued")
 
