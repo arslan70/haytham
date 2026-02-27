@@ -1,6 +1,6 @@
 # Agent Development Guide
 
-## Overview of Haytham Agent Architecture
+## 1. Overview of Haytham Agent Architecture
 
 Haytham uses a configuration-driven architecture for defining and constructing agents.
 
@@ -8,8 +8,8 @@ Agents are not hardcoded classes or registered using conditionals. Instead, all 
 
 Each agent is defined using an `AgentConfig` object, which specifies:
 
-- The agent's name
-- The prompt file to load
+- Agent name
+- Prompt file to load
 - Token limits
 - Tool profile
 - Model tier
@@ -18,14 +18,16 @@ Each agent is defined using an `AgentConfig` object, which specifies:
 
 When the system needs to create an agent, it calls:
 
-`create_agent_by_name(agent_name)`
+```python
+create_agent_by_name(agent_name)
+```
 
 This factory method:
 
-1. Looks up the agent in `AGENT_CONFIGS`
-2. Resolves structured output models dynamically (if configured)
-3. Applies any runtime overrides
-4. Delegates construction to `_create_agent_from_config`
+- Looks up the agent in `AGENT_CONFIGS`
+- Resolves structured output models dynamically (if configured)
+- Applies runtime overrides
+- Delegates construction to `_create_agent_from_config`
 
 Because of this design:
 
@@ -41,42 +43,52 @@ Workflow Stage
 → `_create_agent_from_config()`  
 → Fully constructed Agent
 
-## Adding a New Agent
+---
 
-Because Haytham uses a configuration-driven architecture, adding a new agent does not require modifying factory logic. Instead, you define the agent declaratively and allow the system to construct it automatically.
+## 2. Adding a New Agent
 
-Adding a new agent involves three steps:
+Adding a new agent does not require modifying factory logic. It is done entirely through configuration.
 
-### 1. Create the Prompt Directory
+### Step 1: Create the Prompt Directory
 
 Create a new directory under:
 
-`haytham/agents/`
+```
+haytham/agents/
+```
 
-Following the naming convention:
+Follow the naming convention:
 
-`worker_{agent_name}/`
+```
+worker_{agent_name}/
+```
 
-Inside that directory, add a prompt file:
+Inside that directory, create:
 
-`worker_{agent_name}_prompt.txt`
+```
+worker_{agent_name}_prompt.txt
+```
 
 Example:
 
+```
 haytham/agents/worker_concept_summarizer/
     worker_concept_summarizer_prompt.txt
+```
 
-The `prompt_key` defined in `AgentConfig` must match the worker directory name.
+The `prompt_key` in `AgentConfig` must match the worker directory name.
 
 ---
 
-### 2. Register the Agent in AGENT_CONFIGS
+### Step 2: Register the Agent in AGENT_CONFIGS
 
 Open:
 
-`haytham/config.py`
+```
+haytham/config.py
+```
 
-Add a new entry to the `AGENT_CONFIGS` dictionary:
+Add an entry to `AGENT_CONFIGS`:
 
 ```python
 "concept_summarizer": AgentConfig(
@@ -85,29 +97,31 @@ Add a new entry to the `AGENT_CONFIGS` dictionary:
     max_tokens=TOKENS_DEFAULT,
 )
 ```
+
 This is the only required registration step.
 
-`AGENT_CONFIGS` acts as the single source of truth for agent definitions.  
-Once registered here, the factory can construct the agent automatically.
+`AGENT_CONFIGS` is the single source of truth for all agents.
 
 Optional configuration fields include:
 
-- `tool_profile` — if the agent requires tools
-- `model_tier` — to select the appropriate model tier
-- `structured_output_model_path` — if the agent returns structured JSON
-- `custom_system_prompt` — to override the prompt file entirely
+- `tool_profile` — if tools are required
+- `model_tier` — to select model tier
+- `structured_output_model_path` — if structured JSON output is needed
+- `custom_system_prompt` — to override the prompt file
 
 ---
 
-### 3. (Optional) Register in STAGE_CONFIGS
+### Step 3: (Optional) Register in STAGE_CONFIGS
 
 If the agent should run as part of a workflow stage, register it in:
 
-`haytham/workflow/stages/configs.py`
+```
+haytham/workflow/stages/configs.py
+```
 
 This determines when and how the agent participates in workflow orchestration.
 
-If the agent is used programmatically outside a workflow stage, this step may not be required.
+If the agent is used programmatically outside workflow stages, this step may not be required.
 
 ---
 
@@ -115,15 +129,15 @@ If the agent is used programmatically outside a workflow stage, this step may no
 
 You should never modify `agent_factory.py` to support a new agent.
 
-The `create_agent_by_name()` factory method dynamically constructs agents using `AGENT_CONFIGS`, ensuring the system remains open for extension and closed for modification.
+The `create_agent_by_name()` method dynamically constructs agents using `AGENT_CONFIGS`, ensuring the system remains open for extension and closed for modification.
 
-## Section 3: Structured Output (If Required)
+---
 
-If the agent must return structured JSON instead of plain text, define a Pydantic model.
+## 3. Structured Output (If Required)
 
-Create a new file:
+If the agent must return structured JSON, define a Pydantic model.
 
-`haytham/schemas/concept_summary.py`
+Example:
 
 ```python
 from pydantic import BaseModel
@@ -134,7 +148,7 @@ class ConceptSummary(BaseModel):
     key_points: list[str]
 ```
 
-Then update your `AGENT_CONFIGS` entry:
+Then update the agent configuration:
 
 ```python
 "concept_summarizer": AgentConfig(
@@ -145,25 +159,26 @@ Then update your `AGENT_CONFIGS` entry:
 )
 ```
 
-When `structured_output_model_path` is provided, the factory automatically enables structured output parsing.
+When `structured_output_model_path` is provided, the factory automatically resolves and enables structured output parsing.
 
-If your agent only returns text, you can skip this section.
+If the agent only returns text, this section can be skipped.
 
-## Testing an Agent
+---
+
+## 4. Testing an Agent
 
 Agents should be tested without making real LLM calls.
 
-Existing tests in the repository use mocked LLM responses. Follow the same pattern to ensure tests are fast and deterministic.
+Existing tests in the repository use mocked LLM responses.
 
-When writing a test for a new agent:
+When writing tests for a new agent:
 
-1. Mock the LLM client.
-2. Provide a controlled response.
-3. Verify that:
-   - The agent loads correctly.
-   - The prompt is applied.
-   - Structured output (if enabled) is parsed correctly.
-   - The output extraction behaves as expected.
+- Mock the LLM client
+- Provide a controlled response
+- Verify agent loads correctly
+- Verify prompt is applied
+- Verify structured output (if enabled)
+- Verify output extraction behaves correctly
 
 Example test structure:
 
@@ -176,68 +191,78 @@ def test_concept_summarizer():
     # Call agent
 
     # Assert
-    # Verify expected output format
+    # Verify expected output
 ```
 
 Refer to existing worker agent tests for the correct mocking pattern.
 
-## How Agents Fit Into the Burr Workflow
+---
 
-Haytham agents do not run in isolation. They are executed as part of the Burr orchestration workflow.
+## 5. How Agents Fit Into the Burr Workflow
 
-The high-level lifecycle is:
+Haytham agents run inside the Burr orchestration workflow.
+
+High-level lifecycle:
 
 1. A workflow stage is triggered.
-2. The stage configuration (`STAGE_CONFIGS`) determines which agent should run.
+2. `STAGE_CONFIGS` determines which agent runs.
 3. The workflow calls `create_agent_by_name()`.
 4. The factory builds the agent using `AGENT_CONFIGS`.
 5. The agent executes with its prompt, tools, and model configuration.
 6. The output is processed and passed to the next stage.
 
 This separation ensures:
-- Agents remain modular.
-- Workflow logic remains independent.
-- New agents can be added without modifying orchestration code.
 
-## Tool Calling with Strands SDK
+- Agents remain modular
+- Workflow logic remains independent
+- New agents can be added without modifying orchestration code
 
-Some agents use tools to interact with external systems.
+---
 
-Tool access is controlled through the `tool_profile` field in `AgentConfig`.
+## 6. Tool Calling
+
+Some agents use tools.
+
+Tool access is controlled via the `tool_profile` field in `AgentConfig`.
 
 When tools are enabled:
 
-- The agent receives a predefined tool set.
-- Tool parameters follow scalar input patterns.
-- Tool outputs may be accumulated and passed back into the agent reasoning loop.
+- The agent receives a predefined tool set
+- Tool parameters follow scalar input patterns
+- Tool outputs may be accumulated into the reasoning loop
 
-This tool integration is handled automatically by the factory and does not require custom wiring when adding a new agent.
+Tool configuration must be defined in `AGENT_CONFIGS`, not in the factory.
 
-Tool configuration should always be defined in `AGENT_CONFIGS`, not inside the factory.
+---
 
-## Testing Strategy and LLM-as-Judge (ADR-018)
+## 7. Testing Strategy (ADR-018)
 
-For advanced validation workflows, Haytham supports evaluation using the LLM-as-Judge pattern described in ADR-018.
+Haytham supports evaluation using the LLM-as-Judge pattern described in ADR-018.
 
 When writing tests:
 
-- Avoid real model calls in unit tests.
-- Use mocked LLM responses.
-- Validate structured output schemas when applicable.
-- Ensure agent behavior aligns with expected output format.
+- Avoid real model calls in unit tests
+- Use mocked responses
+- Validate structured output schemas
+- Ensure behavior matches expected format
 
-This approach guarantees deterministic and fast test execution while preserving production behavior.
+This guarantees deterministic and fast tests.
 
-## Architectural References
+---
 
-This guide follows the patterns defined in:
+## 8. Architectural References
 
-`docs/contributing/architecture-patterns.md`
+This guide follows patterns defined in:
+
+```
+docs/contributing/architecture-patterns.md
+```
 
 That document describes:
+
 - Core system design principles
 - Agent registration patterns
 - Workflow orchestration structure
 - Extensibility guidelines
 
-New contributors should review it alongside this guide for deeper architectural understanding.
+New contributors should review it alongside this guide.
