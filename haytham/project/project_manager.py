@@ -410,9 +410,14 @@ class ProjectManager:
             project_id: The project identifier
 
         Raises:
+            ValueError: If project_id contains path traversal
             FileNotFoundError: If project does not exist
         """
         project_dir = self.base_dir / project_id
+
+        # Prevent path traversal
+        if not project_dir.resolve().is_relative_to(self.base_dir.resolve()):
+            raise ValueError(f"Invalid project ID: {project_id}")
 
         if not project_dir.exists():
             raise FileNotFoundError(f"Project not found: {project_id}")
