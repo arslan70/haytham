@@ -132,7 +132,7 @@ def workflow_span(
                 span.set_status(StatusCode.OK)
             except ImportError:
                 pass
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: re-raised after recording to OTEL span
             # Record exception and set error status
             span.record_exception(e)
             try:
@@ -202,7 +202,7 @@ def stage_span(
                 span.set_status(StatusCode.OK)
             except ImportError:
                 pass
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: re-raised after recording to OTEL span
             # Record exception and set error status
             span.record_exception(e)
             try:
