@@ -91,7 +91,7 @@ def search_brave(query: str, max_results: int = 5) -> list[BraveResult]:
         raise BraveSearchError(f"Brave API error: {e.response.status_code}") from e
     except httpx.TimeoutException as e:
         raise BraveSearchError("Brave API timeout") from e
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: wrap unknown errors as BraveSearchError
         raise BraveSearchError(f"Brave search failed: {e}") from e
 
     # Extract results from response

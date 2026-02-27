@@ -53,7 +53,6 @@ flowchart TD
     Factory["Agent Factory\n(config-driven)"]
     Agent["Strands Agent\n(prompt + model + schema)"]
     Session["Session Manager\n(disk persistence)"]
-    VectorDB["LanceDB\n(capabilities, decisions)"]
     Backlog["Backlog.md\n(stories, tasks)"]
 
     UI --> Runner
@@ -63,7 +62,6 @@ flowchart TD
     Executor -->|"creates agent for stage"| Factory
     Factory --> Agent
     Executor -->|"saves output"| Session
-    Agent -->|"reads/writes context"| VectorDB
     Agent -->|"reads/writes stories"| Backlog
 
     style UI fill:#e1f5fe
@@ -72,7 +70,7 @@ flowchart TD
     style Session fill:#f3e5f5
 ```
 
-**Data flows:** User input enters through the Streamlit UI, which hands off to the Workflow Runner. Burr drives the state machine, consulting the Stage Registry for ordering and conditional transitions. For each stage, the Stage Executor creates an agent via the Agent Factory, runs it, and saves the output through the Session Manager. Agents read upstream context from LanceDB (capabilities, architecture decisions, domain entities) and write stories to Backlog.md.
+**Data flows:** User input enters through the Streamlit UI, which hands off to the Workflow Runner. Burr drives the state machine, consulting the Stage Registry for ordering and conditional transitions. For each stage, the Stage Executor creates an agent via the Agent Factory, runs it, and saves the output through the Session Manager. Agents read upstream context from the JSON store (capabilities, architecture decisions, domain entities) and write stories to Backlog.md.
 
 ---
 
@@ -112,7 +110,7 @@ Two stores keep information flowing between phases:
 
 | Store | What it holds | How it works |
 |-------|---------------|-------------|
-| **Vector database ([LanceDB](https://lancedb.github.io/lancedb/))** | Capabilities, architecture decisions, domain entities | Agents search it to find relevant context from earlier phases. Runs locally, no server needed. |
+| **JSON store** | Capabilities, architecture decisions, domain entities | Agents read context from earlier phases via JSON files on disk. No external database needed. |
 | **[Backlog.md](https://backlog.md/) (MCP)** | Stories, tasks, status | Where the generated stories live. Coding agents can read and update stories during implementation via [MCP](https://modelcontextprotocol.io/). |
 
 ### Nothing is overwritten
@@ -167,7 +165,7 @@ See [VISION.md](../../VISION.md#the-control-plane-orchestrating-execution-agents
 
 ## Validation Pipeline
 
-At the end of Phase 1, a three-step pipeline (scorer → narrator → merge) decides whether the idea is worth building, producing a GO / NO-GO / PIVOT verdict. See [Scoring Pipeline](scoring-pipeline.md) for full details.
+At the end of Phase 1, a single `report_synthesis` agent decides whether the idea is worth building, producing a GO / NO-GO / PIVOT verdict (see [ADR-026](../adr/ADR-026-simplified-validation-pipeline.md)).
 
 ## Project Structure
 
@@ -182,7 +180,6 @@ haytham/
 ├── session/                 # Saves progress and stage outputs to disk
 ├── state/                   # Tracks what's been produced and what's covered
 ├── formatters/              # Converts structured data to readable output
-├── phases/                  # Configuration for each phase
 └── telemetry/               # Optional tracing (OpenTelemetry)
 
 frontend_streamlit/          # Web UI

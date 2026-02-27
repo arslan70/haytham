@@ -15,6 +15,8 @@ The output informs:
 import json
 import logging
 
+from haytham.agents.output_utils import extract_json_from_text
+
 from .catalog import ServiceCatalog, load_service_catalog
 from .models import (
     BuildBuyRecommendation,
@@ -260,24 +262,14 @@ def analyze_capabilities(capability_model: dict | str) -> CapabilityBuildBuySumm
     """
     if isinstance(capability_model, str):
         # Parse JSON, extracting from markdown code blocks if needed
-        json_str = _extract_json_from_output(capability_model)
-        capability_model = json.loads(json_str)
+        parsed = extract_json_from_text(capability_model)
+        if parsed is not None:
+            capability_model = parsed
+        else:
+            capability_model = json.loads(capability_model)
 
     analyzer = CapabilityBuildBuyAnalyzer()
     return analyzer.analyze_capabilities(capability_model)
-
-
-def _extract_json_from_output(output: str) -> str:
-    """Extract JSON from output that may contain markdown code blocks.
-
-    Note: Returns the raw JSON *string* (not parsed dict) for backward compat.
-    """
-    from haytham.agents.output_utils import extract_json_from_text
-
-    parsed = extract_json_from_text(output)
-    if parsed is not None:
-        return json.dumps(parsed)
-    return output
 
 
 def format_capability_analysis_as_markdown(summary: CapabilityBuildBuySummary) -> str:

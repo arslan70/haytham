@@ -202,7 +202,9 @@ class FileContextManager:
                     # Return single summary entry (Requirement 7.3)
                     return {"_context_summary": summary}
 
-                except Exception as e:
+                except (
+                    Exception
+                ) as e:  # Intentional catch-all: summarization failure uses raw context
                     logger.error(f"Automatic summarization failed: {str(e)}", exc_info=True)
                     logger.warning("Falling back to original outputs")
                     # Fall through to return original outputs

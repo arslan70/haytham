@@ -189,7 +189,7 @@ Agents that use Pydantic structured output can fail if the LLM returns malformed
 
 ## Web Search Failures
 
-**"Search rate limit reached".** The session-wide search limit (`WEB_SEARCH_SESSION_LIMIT`, default 20) has been exceeded. This is a cost protection measure. To increase it, set `WEB_SEARCH_SESSION_LIMIT=50` in `.env`.
+**"Search rate limit reached".** The session-wide search limit (`WEB_SEARCH_SESSION_LIMIT`, default 30) has been exceeded. This is a cost protection measure. To increase it, set `WEB_SEARCH_SESSION_LIMIT=50` in `.env`.
 
 **"No search results".** The DuckDuckGo provider may be rate-limited. Add a Brave or Tavily API key for more reliable results:
 
@@ -208,7 +208,7 @@ Enable Jaeger tracing, run a workflow, then sort spans by duration. Stage spans 
 
 ### "Why did validation return NO-GO?"
 
-Check the `session/validation-summary/` directory for the scorer output. The scorer JSON includes dimension scores, knockouts, counter-signals, and the verdict chain. See [Scoring Pipeline](architecture/scoring-pipeline.md) for the full logic.
+Check the `session/report-synthesis/` directory for the synthesis output. The report includes dimension scores, risk assessment, and the GO/NO-GO/PIVOT recommendation with evidence. See [ADR-026](adr/ADR-026-simplified-validation-pipeline.md) for the pipeline design.
 
 ### "An agent is producing bad output"
 

@@ -182,7 +182,7 @@ Open a [GitHub Issue](https://github.com/arslan70/haytham/issues) with:
 5. **What did you do?** Exact steps or startup idea used
 6. **What did you expect?**
 7. **What actually happened?** Full error message or unexpected output
-8. **Which stage did it fail at?** e.g., `market-context`, `validation-summary`, `story-generation`
+8. **Which stage did it fail at?** e.g., `market-context`, `report-synthesis`, `story-generation`
 
 For security vulnerabilities, see [SECURITY.md](SECURITY.md). Do not open a public issue.
 

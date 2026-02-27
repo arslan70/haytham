@@ -94,7 +94,7 @@ Already planned and referenced in VISION.md, how-it-works.md, and architecture/o
 ### What remains
 
 - Implement the `ux_designer` agent and its prompt
-- Register in `AGENT_FACTORIES` and `STAGE_CONFIGS`
+- Register in `AGENT_CONFIGS` and `STAGE_CONFIGS`
 - Add the stage to the Phase 2 workflow (after system traits, before Gate 2)
 - Handle Stitch MCP endpoint authentication and error cases
 

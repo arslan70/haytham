@@ -5,6 +5,7 @@ from lib.session_utils import get_session_dir, get_system_goal, load_environment
 setup_paths()
 load_environment()
 
+import html  # noqa: E402
 import json  # noqa: E402
 
 import streamlit as st  # noqa: E402
@@ -108,13 +109,13 @@ if unrelated_redirect:
 
     # Show what they entered
     st.markdown(
-        f'<div class="user-input-bubble">"{unrelated_redirect["original_input"]}"</div>',
+        f'<div class="user-input-bubble">"{html.escape(unrelated_redirect["original_input"])}"</div>',
         unsafe_allow_html=True,
     )
 
     # Friendly message
     st.markdown(
-        f'<div class="friendly-message">{unrelated_redirect["message"]}</div>',
+        f'<div class="friendly-message">{html.escape(unrelated_redirect["message"])}</div>',
         unsafe_allow_html=True,
     )
 
@@ -141,8 +142,8 @@ if unrelated_redirect:
                 st.markdown(
                     f"""
                     <div class="idea-card">
-                        <div class="idea-title">{icon} {title}</div>
-                        <div class="idea-desc">{description}</div>
+                        <div class="idea-title">{html.escape(icon)} {html.escape(title)}</div>
+                        <div class="idea-desc">{html.escape(description)}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -644,9 +645,7 @@ if new_idea:
                 st.session_state.navigate_to = "discovery"
                 st.rerun()
             else:
-                st.error(
-                    f"Report synthesis failed: {resume_result.error or 'Unknown error'}"
-                )
+                st.error(f"Report synthesis failed: {resume_result.error or 'Unknown error'}")
 
         render_feedback_conversation(
             workflow_type="research-brief-review",

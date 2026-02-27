@@ -22,7 +22,7 @@ AI coding agents have made building faster, but they haven't solved the harder p
 
 **What it does:**
 
-Haytham orchestrates 21 specialist AI agents through four sequential phases, each answering one question:
+Haytham orchestrates 19 specialist AI agents through four sequential phases, each answering one question:
 
 1. **Should this be built?** Market research, competitor analysis, risk assessment, and a GO/NO-GO/PIVOT verdict backed by evidence. If risks are high, pivot strategies are generated automatically.
 2. **What exactly?** MVP scoping, capability modeling, and system trait classification.

@@ -84,7 +84,7 @@ def load_agent_prompt(agent_name: str, filename: str | None = None, use_cache: b
         logger.error(error_msg)
         raise PromptLoadError(error_msg) from None
 
-    except Exception as e:
+    except Exception as e:  # Intentional catch-all: wrap unknown errors as PromptLoadError
         error_msg = (
             f"Unexpected error loading prompt for agent '{agent_name}': {e}. File: {prompt_file}"
         )

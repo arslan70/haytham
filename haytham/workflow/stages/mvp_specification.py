@@ -10,6 +10,8 @@ from typing import Any
 
 from burr.core import State
 
+from haytham.agents.output_utils import extract_json_from_text
+
 logger = logging.getLogger(__name__)
 
 # Regex for extracting system trait key-value pairs from markdown fallback output
@@ -275,19 +277,6 @@ def build_system_traits_context(state: State) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def extract_json_from_output(output: str) -> str:
-    """Extract JSON from agent output that may contain markdown code blocks.
-
-    Note: Returns the raw JSON *string* (not parsed dict) for backward compat.
-    """
-    from haytham.agents.output_utils import extract_json_from_text
-
-    parsed = extract_json_from_text(output)
-    if parsed is not None:
-        return json.dumps(parsed)
-    return output
-
-
 def store_capabilities_in_state(session_manager: Any, output: str) -> None:
     """Store capability model output in the system state store.
 
@@ -300,12 +289,10 @@ def store_capabilities_in_state(session_manager: Any, output: str) -> None:
         logger.warning("No session manager - skipping system state storage")
         return
 
-    try:
-        # Parse JSON from output
-        json_str = extract_json_from_output(output)
-        capability_data = json.loads(json_str)
-    except json.JSONDecodeError as e:
-        logger.warning(f"Could not parse capability model JSON: {e}")
+    # Parse JSON from output
+    capability_data = extract_json_from_text(output)
+    if capability_data is None:
+        logger.warning("Could not parse capability model JSON from output")
         logger.info("Capabilities will not be stored in system state")
         return
 

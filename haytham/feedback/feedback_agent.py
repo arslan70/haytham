@@ -17,6 +17,7 @@ from strands import Agent, tool
 
 from haytham.agents.factory.agent_factory import get_bedrock_model_id
 from haytham.agents.hooks import HaythamAgentHooks
+from haytham.agents.output_utils import extract_text_from_result
 from haytham.agents.utils.model_provider import create_model
 
 logger = logging.getLogger(__name__)
@@ -324,8 +325,6 @@ Generate comprehensive, well-structured output for this stage following your sta
             result = agent(prompt)
 
             # Extract and format output using the same logic as the workflow
-            from haytham.agents.output_utils import extract_text_from_result
-
             output = extract_text_from_result(result)
             outputs.append(output)
 
@@ -404,7 +403,7 @@ def _extract_and_format_output(result, agent_name: str) -> str:
                             return _format_structured_output(tool_use["input"], agent_name)
 
     # Fall back to text extraction
-    return _extract_text_output(result)
+    return extract_text_from_result(result)
 
 
 def _format_structured_output(data, agent_name: str) -> str:
@@ -417,13 +416,6 @@ def _format_structured_output(data, agent_name: str) -> str:
         return f"```json\n{json.dumps(data, indent=2)}\n```"
 
     return str(data)
-
-
-def _extract_text_output(result) -> str:
-    """Extract text from agent result."""
-    from haytham.agents.output_utils import extract_text_from_result
-
-    return extract_text_from_result(result)
 
 
 def get_pending_changes(workflow_type: str) -> list[dict]:
@@ -649,8 +641,6 @@ class FeedbackConversation:
 
     def _extract_response_text(self, result) -> str:
         """Extract text from Strands SDK agent result."""
-        from haytham.agents.output_utils import extract_text_from_result
-
         try:
             return extract_text_from_result(result)
         except Exception as e:  # Intentional catch-all: extraction fallback to str()

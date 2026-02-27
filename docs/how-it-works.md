@@ -19,21 +19,19 @@ flowchart TD
     gatekeeper --> discovery[Idea Discovery]
     discovery --> concept[Concept Expansion]
 
-    subgraph phase1["Phase 1: Should this be built?"]
+    subgraph why["WHY: Should this be built?"]
         concept --> anchor[Anchor Extractor]
         anchor --> market[Market Intelligence]
         anchor --> competitor[Competitor Analysis]
-        market --> risk[Risk Assessment]
-        competitor --> risk
-        risk -->|HIGH risk| pivot[Pivot Strategy]
-        pivot --> summary[Validation Summary]
-        risk -->|MEDIUM / LOW| summary
+        market --> brief[Research Brief]
+        competitor --> brief
+        brief --> synthesis[Report Synthesis]
     end
 
-    summary --> gate1{Gate 1: Founder Review}
+    synthesis --> gate1{Gate 1: Founder Review}
     gate1 -->|GO| mvp
 
-    subgraph phase2["Phase 2: What exactly?"]
+    subgraph what["WHAT: What exactly?"]
         mvp[MVP Scope] --> capability[Capability Model]
         capability --> traits[System Traits]
     end
@@ -41,14 +39,14 @@ flowchart TD
     traits --> gate2{Gate 2: Product Owner}
     gate2 -->|Approved| build_buy
 
-    subgraph phase3["Phase 3: How?"]
+    subgraph how["HOW: How?"]
         build_buy[Build vs Buy] --> arch[Architecture Decisions]
     end
 
     arch --> gate3{Gate 3: Architect}
     gate3 -->|Approved| stories
 
-    subgraph phase4["Phase 4: Tasks"]
+    subgraph stories_phase["STORIES: Tasks"]
         stories[Story Generation] --> story_val[Story Validation]
         story_val --> ordering[Dependency Ordering]
     end
@@ -93,7 +91,7 @@ Independent phase-boundary verifiers then check each phase's output against the 
 
 **Market Intelligence** and **Competitor Analysis** run in parallel. Market Intelligence uses the [Jobs-to-be-Done](https://jtbd.info/) framework to identify core functional, emotional, and social jobs, then sizes the opportunity using [TAM/SAM/SOM](https://en.wikipedia.org/wiki/Total_addressable_market) analysis. Competitor Analysis anchors searches around the customer job rather than the product category, finding competitors across markets that solve the same job, and evaluates switching costs, lock-in factors, and market structure. Both agents include explicit confirmation bias checks to ensure findings aren't shaped to fit a predetermined conclusion.
 
-The **Startup Validator** extracts 10–15 key claims and validates each against evidence, classifying risk as HIGH / MEDIUM / LOW. The **Validation Summary** then applies a [Stage-Gate](https://en.wikipedia.org/wiki/Stage-gate_model) scorecard (Robert Cooper) with three knockout criteria and six scored dimensions to produce a GO / NO-GO / PIVOT verdict. The scorer uses tool calls to build a scorecard incrementally. Each tool validates evidence quality, rejects rubric phrases, and prevents the same evidence from being cited for multiple dimensions. If risk is HIGH, a **Pivot Strategy** agent proposes alternatives before the verdict is finalized.
+The **Research Brief** presents the market and competitor findings in a non-opinionated format for user review before any verdict is rendered. The **Report Synthesis** agent then applies a [Stage-Gate](https://en.wikipedia.org/wiki/Stage-gate_model) scorecard (Robert Cooper) with three knockout criteria and six scored dimensions to produce a GO / NO-GO / PIVOT verdict. This single agent replaced a multi-agent scoring pipeline per [ADR-026](adr/ADR-026-simplified-validation-pipeline.md). Two lightweight post-validators (SOM arithmetic and regulated-domain safety) provide guardrails on the output.
 
 ### Gate 1: Founder Review
 
@@ -147,25 +145,23 @@ Specialist agents, some working individually and others coordinating in multi-ag
 |---|-------|-------|----------------|------------|
 | 1 | Idea Gatekeeper | Discovery | Classify input quality | - |
 | 2 | Idea Discovery | Discovery | Assess coverage gaps, generate targeted questions | Lean Canvas, The Mom Test, JTBD |
-| 3 | Anchor Extractor | Phase 1 | Extract core concept anchor before expansion | - |
-| 4 | Concept Expansion | Phase 1 | Structure raw idea into validated concept | Lean Canvas |
-| 5 | Market Intelligence | Phase 1 | Research market size, trends, core jobs | JTBD (functional/emotional/social), TAM/SAM/SOM |
-| 6 | Competitor Analysis | Phase 1 | Find and analyze real competitors | JTBD-anchored search, switching cost analysis |
-| 7 | Startup Validator | Phase 1 | Validate claims, classify risk | Claims-based validation, archetype calibration |
-| 8 | Pivot Strategy | Phase 1 | Propose alternatives when risk is high | - |
-| 9 | Validation Scorer | Phase 1 | Score dimensions, detect knockouts, compute verdict | Stage-Gate scorecard (Robert Cooper) |
-| 10 | Validation Narrator | Phase 1 | Generate prose report from scorer results | - |
-| 11 | Validation Summary | Phase 1 | Merge scorer + narrator into final verdict | Deterministic merge with verdict fix |
-| 12 | MVP Scope (swarm) | Phase 2 | Define focused first version | Shape Up (appetite-based scoping) |
-| 13 | ↳ Scope Boundaries | Phase 2 | Define in/out-of-scope boundaries | - |
-| 14 | ↳ Scope Core | Phase 2 | Identify core value proposition and user segment | - |
-| 15 | ↳ Scope Flows | Phase 2 | Define primary user flows | - |
-| 16 | MVP Specification | Phase 2 | Assemble final MVP spec from swarm outputs | - |
-| 17 | Capability Model | Phase 2 | Map functional and non-functional requirements | Capability mapping, traceability matrix |
-| 18 | System Traits | Phase 2 | Classify system type for downstream decisions | 8-trait system classification |
-| 19 | Build/Buy Analyzer | Phase 3 | Decide build vs buy per capability | 6-dimension weighted scoring |
-| 20 | Architecture Decisions | Phase 3 | Make key technical decisions | - |
-| 21 | Story Generation | Phase 4 | Create user stories with validation and dependency ordering | Agile user stories, Gherkin/BDD, INVEST, DAG ordering |
+| 3 | Anchor Extractor | WHY | Extract core concept anchor before expansion | - |
+| 4 | Concept Expansion | WHY | Structure raw idea into validated concept | Lean Canvas |
+| 5 | Market Intelligence | WHY | Research market size, trends, core jobs | JTBD (functional/emotional/social), TAM/SAM/SOM |
+| 6 | Competitor Analysis | WHY | Find and analyze real competitors | JTBD-anchored search, switching cost analysis |
+| 7 | Research Brief | WHY | Present research findings for user review | - |
+| 8 | Report Synthesis | WHY | Validate claims, score dimensions, produce GO/NO-GO/PIVOT verdict | Stage-Gate scorecard (Robert Cooper) |
+| 9 | Phase Verifier | WHY | Independent phase-boundary verification against concept anchor | - |
+| 10 | MVP Scope (swarm) | WHAT | Define focused first version | Shape Up (appetite-based scoping) |
+| 11 | ↳ Scope Core | WHAT | Identify core value proposition and user segment | - |
+| 12 | ↳ Scope Boundaries | WHAT | Define in/out-of-scope boundaries | - |
+| 13 | ↳ Scope Flows | WHAT | Define primary user flows | - |
+| 14 | MVP Specification | WHAT | Assemble final MVP spec from swarm outputs | - |
+| 15 | Capability Model | WHAT | Map functional and non-functional requirements | Capability mapping, traceability matrix |
+| 16 | System Traits | WHAT | Classify system type for downstream decisions | 8-trait system classification |
+| 17 | Build/Buy Advisor | HOW | Evaluate build vs buy per capability | 6-dimension weighted scoring |
+| 18 | ↳ Build/Buy Analyzer | HOW | Structured analysis with web search | - |
+| 19 | Architecture Decisions | HOW | Make key technical decisions | - |
 
 ---
 

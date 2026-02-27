@@ -140,7 +140,7 @@ class LangfuseTracer:
             logger.error("langfuse package not installed. Install with: pip install langfuse")
             self.enabled = False
             self.client = None
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to initialize Langfuse client: {e}")
             self.enabled = False
             self.client = None
@@ -187,7 +187,7 @@ class LangfuseTracer:
             logger.info(f"Created Langfuse trace: {trace_id} (session: {session_id})")
             return trace
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to create Langfuse trace: {e}")
             return None
 
@@ -228,7 +228,7 @@ class LangfuseTracer:
             logger.debug(f"Created phase span: Phase {phase_number} - {phase_name}")
             return span
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to create phase span: {e}")
             return None
 
@@ -266,7 +266,7 @@ class LangfuseTracer:
             logger.debug(f"Created agent span: {agent_name}")
             return span
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to create agent span: {e}")
             return None
 
@@ -324,7 +324,7 @@ class LangfuseTracer:
             logger.debug(f"Created generation for model: {model} (cost: ${cost:.4f})")
             return generation
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to create generation: {e}")
             return None
 
@@ -368,7 +368,7 @@ class LangfuseTracer:
             logger.debug(f"Created tool span: {tool_name}")
             return span
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to create tool span: {e}")
             return None
 
@@ -397,7 +397,7 @@ class LangfuseTracer:
 
             logger.debug(f"Ended span with status: {status}")
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to end span: {e}")
 
     def add_user_feedback(
@@ -437,7 +437,7 @@ class LangfuseTracer:
 
             logger.info(f"Added user feedback to trace {trace_id}: {action} (score: {score})")
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to add user feedback: {e}")
 
     def track_error(
@@ -475,7 +475,7 @@ class LangfuseTracer:
 
             logger.info(f"Tracked error in trace {trace_id}: {type(error).__name__}")
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to track error: {e}")
 
     def flush(self) -> None:
@@ -491,7 +491,7 @@ class LangfuseTracer:
             self.client.flush()
             logger.info("Flushed pending traces to Langfuse")
 
-        except Exception as e:
+        except Exception as e:  # Intentional catch-all: tracer must never crash workflow
             logger.error(f"Failed to flush traces: {e}")
 
     def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:

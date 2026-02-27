@@ -224,7 +224,7 @@ For multi-select traits, story layers are **unioned**: each selected value contr
 
 | File | Change |
 |---|---|
-| `agent_factory.py` | Add `create_system_traits_agent()` factory function and register in `AGENT_FACTORIES` |
+| `agent_factory.py` | Add `create_system_traits_agent()` factory function and register in `AGENT_CONFIGS` |
 | `stage_registry.py` | Add `system_traits` stage metadata (slug: `system-traits`, phase: WHAT, position: after capability_model) |
 | `stage_executor.py` | Add `system_traits` config in `STAGE_CONFIGS`. Parse trait values from agent output, store as `system_traits` dict in Burr state. Add trait-to-layer resolution logic and cross-trait validation rules |
 | `burr_workflow.py` | Add `system_traits` action and transition: `capability_model → system_traits → build_buy_analysis`. Add conditional gate logic (show gate only when traits are non-default, ambiguous, or trigger warnings) |

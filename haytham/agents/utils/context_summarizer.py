@@ -125,7 +125,9 @@ class ContextSummarizer:
 
                     summaries.append(summary)
 
-                except Exception as agent_error:
+                except (
+                    Exception
+                ) as agent_error:  # Intentional catch-all: summarization failure uses raw output
                     # Log error with agent name (Requirement 4.4)
                     logger.error(
                         f"Error processing agent '{agent_name}': {str(agent_error)}", exc_info=True
@@ -148,7 +150,9 @@ class ContextSummarizer:
 
             return combined
 
-        except Exception as e:
+        except (
+            Exception
+        ) as e:  # Intentional catch-all: summarization failure falls back to raw context
             # Error handling with fallback (Requirement 1.4, 4.4)
             logger.error(f"Summarization failed with error: {str(e)}", exc_info=True)
             logger.warning("Falling back to original outputs due to summarization error")

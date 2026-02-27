@@ -679,9 +679,9 @@ uv run pytest tests/ -v -m "not integration" -x
 ```
 
 Expected: ALL PASS. Key tests to watch:
-- `test_burr_actions_metadata.py` — verifies action reads/writes match registry
-- `test_workflow_specs.py` — verifies transitions and stage lists
-- `test_research_brief_integration.py` — verifies data flow and validator
+- `test_burr_actions_metadata.py`: verifies action reads/writes match registry
+- `test_workflow_specs.py`: verifies transitions and stage lists
+- `test_research_brief_integration.py`: verifies data flow and validator
 
 **Step 3: Fix any failures and re-run**
 

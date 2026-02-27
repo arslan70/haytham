@@ -230,7 +230,7 @@ METADATA:
             session_id=session_id,
             agent_name=self.agent_name,
             interaction_type="llm_input",
-            content=prompt,
+            content=f"[REDACTED] {input_tokens} tokens",
             metadata={**(metadata or {}), "estimated_tokens": input_tokens},
         )
 
@@ -261,7 +261,7 @@ METADATA:
             session_id=session_id,
             agent_name=self.agent_name,
             interaction_type="llm_output",
-            content=response,
+            content=f"[REDACTED] {output_tokens} tokens",
             metadata={**(metadata or {}), "estimated_tokens": output_tokens},
         )
 

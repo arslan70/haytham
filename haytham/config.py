@@ -12,10 +12,32 @@ Design Principles:
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+
+# =============================================================================
+# Startup Validation
+# =============================================================================
+
+_REQUIRED_ENV_VARS = [
+    "BEDROCK_HEAVY_MODEL_ID",
+    "BEDROCK_LIGHT_MODEL_ID",
+    "BEDROCK_REASONING_MODEL_ID",
+]
+
+
+def validate_config() -> None:
+    """Validate all required environment variables are set. Call at startup."""
+    missing = [var for var in _REQUIRED_ENV_VARS if not os.environ.get(var)]
+    if missing:
+        raise OSError(
+            f"Missing required environment variables: {', '.join(missing)}. "
+            f"Set them in .env or export them."
+        )
+
 
 # =============================================================================
 # Enums for Type Safety

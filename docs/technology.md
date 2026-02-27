@@ -24,7 +24,7 @@ flowchart TD
 
 [github.com/strands-agents/sdk-python](https://github.com/strands-agents/sdk-python) | `>=1.25.0`
 
-The framework all 21 agents are built with. Strands is lightweight: an agent is just a prompt, a set of tools, and a model. It doesn't impose heavy abstractions. Haytham chose it because it supports structured output (agents return typed data, not free-form text), tool use (web search, scoring, PDF generation), multi-agent swarms (several agents collaborating on one task), and built-in tracing.
+The framework all 19 agents are built with. Strands is lightweight: an agent is just a prompt, a set of tools, and a model. It doesn't impose heavy abstractions. Haytham chose it because it supports structured output (agents return typed data, not free-form text), tool use (web search, scoring, PDF generation), multi-agent swarms (several agents collaborating on one task), and built-in tracing.
 
 **How Haytham uses it:**
 
@@ -111,7 +111,7 @@ Agents that need real-time information (market research, competitor analysis) se
 2. **Brave Search.** Requires an API key, higher quality results.
 3. **Tavily.** Requires an API key, alternative provider.
 
-A session-wide limit (default: 20 searches across the entire pipeline) prevents runaway costs.
+A session-wide limit (default: 30 searches across the entire pipeline) prevents runaway costs.
 
 ### ReportLab (PDF Generation)
 
@@ -119,11 +119,9 @@ A session-wide limit (default: 20 searches across the entire pipeline) prevents 
 
 Generates styled PDF reports from workflow outputs. Optional.
 
-### LanceDB (Vector Storage)
+### JSON Store (Session Persistence)
 
-[lancedb.github.io/lancedb](https://lancedb.github.io/lancedb/)
-
-An embedded vector database that runs locally with no server. Stores capabilities, architecture decisions, and domain entities so agents can search for relevant context from earlier stages.
+Stage outputs are persisted as JSON and markdown files in `session/{stage-slug}/`. The `SystemStateStore` uses atomic file writes (rename) for consistency. This replaced LanceDB vector storage per [ADR-027](../adr/ADR-027-replace-vectordb-with-json-store.md).
 
 ---
 

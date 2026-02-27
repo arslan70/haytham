@@ -32,6 +32,8 @@ def _make_state(**overrides) -> State:
         "idea_analysis_status": "pending",
         "market_context": "",
         "market_context_status": "pending",
+        "research_brief": "",
+        "research_brief_status": "pending",
         "report_synthesis": "",
         "report_synthesis_status": "pending",
         "concept_anchor_str": "",
@@ -142,6 +144,7 @@ class TestSingleAgentExecution:
         state = _make_state(
             idea_analysis="Idea content",
             market_context="Market content",
+            research_brief="Research brief content",
             report_synthesis="",
             report_synthesis_status="pending",
         )
@@ -164,6 +167,7 @@ class TestSingleAgentExecution:
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
+            research_brief="Research brief",
             report_synthesis="",
             report_synthesis_status="pending",
         )
@@ -236,7 +240,11 @@ class TestProgrammaticExecution:
             stage_slug="market-context",
             programmatic_executor=capture_state,
         )
-        state = _make_state(market_context="", market_context_status="pending")
+        state = _make_state(
+            market_context="",
+            market_context_status="pending",
+            idea_analysis="Prior context",
+        )
 
         executor = StageExecutor(config)
         executor.execute(state)
@@ -344,6 +352,7 @@ class TestPostProcessors:
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
+            research_brief="Research brief",
             report_synthesis="",
             report_synthesis_status="pending",
         )
@@ -369,6 +378,7 @@ class TestPostProcessors:
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
+            research_brief="Research brief",
             report_synthesis="",
             report_synthesis_status="pending",
         )
@@ -408,6 +418,7 @@ class TestPostValidators:
         state = _make_state(
             idea_analysis="Idea",
             market_context="Market",
+            research_brief="Research brief",
             report_synthesis="",
             report_synthesis_status="pending",
         )
@@ -436,6 +447,7 @@ class TestPostValidators:
         state = _make_state(
             idea_analysis="I",
             market_context="M",
+            research_brief="R",
             report_synthesis="",
             report_synthesis_status="pending",
         )
@@ -502,6 +514,7 @@ class TestContextBuilding:
             concept_anchor_str="Core: scheduling. Invariant: must be real-time.",
             idea_analysis="Idea",
             market_context="Market",
+            research_brief="Research brief",
         )
 
         context = executor._build_context(state, "Goal")
@@ -578,7 +591,8 @@ class TestOutputModelRendering:
 
         state = _make_state(
             idea_analysis="I",
-            market_context="M",
+            mvp_scope="MVP scope",
+            capability_model="Capability model",
             system_traits="",
             system_traits_status="pending",
         )
@@ -609,7 +623,8 @@ class TestOutputModelRendering:
 
         state = _make_state(
             idea_analysis="I",
-            market_context="M",
+            mvp_scope="MVP scope",
+            capability_model="Capability model",
             system_traits="",
             system_traits_status="pending",
         )

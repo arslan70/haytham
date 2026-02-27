@@ -112,9 +112,11 @@ class TestSpecStructure:
         )
 
     def test_all_actions_have_stage_entries(self, spec_pair):
-        """Every action name appears in the stages list."""
+        """Every action name appears in the stages list (except workflow_failed)."""
         wf_type, spec = spec_pair
         for action_name in spec.actions:
+            if action_name == "workflow_failed":
+                continue  # Terminal failure action, not a stage
             assert action_name in spec.stages, (
                 f"{wf_type}: action '{action_name}' not in stages list"
             )
@@ -165,17 +167,28 @@ class TestIdeaValidationTransitions:
         assert len(IDEA_VALIDATION_SPEC.stages) == 4
 
     def test_linear_transitions_with_research_brief(self):
-        """idea_analysis -> market_context -> research_brief -> report_synthesis."""
-        assert IDEA_VALIDATION_SPEC.transitions == [
+        """idea_analysis -> market_context -> research_brief -> report_synthesis.
+
+        Each stage pair has a fail-fast guard (to workflow_failed) and a
+        default success transition, so we verify the success path order.
+        """
+        from burr.core import default as burr_default
+
+        success_transitions = [
+            (t[0], t[1])
+            for t in IDEA_VALIDATION_SPEC.transitions
+            if len(t) == 3 and t[2] is burr_default
+        ]
+        assert success_transitions == [
             ("idea_analysis", "market_context"),
             ("market_context", "research_brief"),
             ("research_brief", "report_synthesis"),
         ]
 
-    def test_no_conditional_branching(self):
-        """ADR-026: No when() conditions in transitions (all are 2-tuples)."""
+    def test_all_transitions_are_conditional(self):
+        """CRIT-01: All transitions are 3-tuples with Condition guards."""
         for t in IDEA_VALIDATION_SPEC.transitions:
-            assert len(t) == 2, f"Expected 2-tuple transition, got {len(t)}-tuple: {t}"
+            assert len(t) == 3, f"Expected 3-tuple transition, got {len(t)}-tuple: {t}"
 
 
 # =============================================================================

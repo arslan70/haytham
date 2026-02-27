@@ -141,7 +141,7 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 Each phase takes a few minutes. The full pipeline completes in approximately 20 minutes.
 
-**Cost note:** A full 4-phase run sends requests to 21 agents with web search. With commercial API providers (Anthropic, OpenAI), expect roughly $5–$20 in API credits per run depending on model choices and idea complexity. Use Ollama for free local inference, or assign cheaper models to the LIGHT tier to reduce costs.
+**Cost note:** A full 4-phase run sends requests to 19 agents with web search. With commercial API providers (Anthropic, OpenAI), expect roughly $5–$20 in API credits per run depending on model choices and idea complexity. Use Ollama for free local inference, or assign cheaper models to the LIGHT tier to reduce costs.
 
 ## Optional: Observability
 
