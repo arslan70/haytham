@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 from unittest import mock
 
+import pytest
+
 from haytham.workflow.contracts.assembler import (
     _extract_summary,
     _parse_traits_from_markdown,
@@ -466,8 +468,28 @@ class TestSaveExecutionContract:
 # ===========================================================================
 
 
+_SCHEMA_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "docs"
+    / "architecture"
+    / "execution-contract-schema.json"
+)
+
+
 class TestSchemaValidation:
+    def test_checked_in_schema_matches_model(self):
+        """Guard against stale schema: the checked-in JSON must match the model."""
+        assert _SCHEMA_FILE.exists(), f"Schema file not found: {_SCHEMA_FILE}"
+        on_disk = json.loads(_SCHEMA_FILE.read_text())
+        from_model = ExecutionContract.model_json_schema()
+        assert on_disk == from_model, (
+            "docs/architecture/execution-contract-schema.json is stale. "
+            "Regenerate with: ExecutionContract.model_json_schema()"
+        )
+
     def test_contract_validates_against_json_schema(self):
+        jsonschema = pytest.importorskip("jsonschema")
+
         schema = ExecutionContract.model_json_schema()
         contract = ExecutionContract(
             metadata=ContractMetadata(
@@ -492,15 +514,4 @@ class TestSchemaValidation:
             ],
         )
         instance = json.loads(contract.model_dump_json())
-
-        # Validate using jsonschema if available, otherwise structural check
-        try:
-            import jsonschema
-
-            jsonschema.validate(instance, schema)
-        except ImportError:
-            # Fallback: verify structural compatibility
-            assert "schema_version" in instance
-            assert "metadata" in instance
-            assert "stories" in instance
-            assert instance["stories"][0]["acceptance_criteria"][0]["id"] == "AC-001"
+        jsonschema.validate(instance, schema)

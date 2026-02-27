@@ -30,7 +30,7 @@ def _is_fence(line: str) -> bool:
     if not line.startswith("```"):
         return False
     after = line[3:].strip().lower()
-    return after == "" or after == "gherkin"
+    return after in ("", "gherkin")
 
 
 def _strip_keyword(line: str, keyword: str) -> str | None:

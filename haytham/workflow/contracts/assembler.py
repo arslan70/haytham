@@ -55,8 +55,15 @@ def _parse_traits_from_markdown(markdown: str) -> dict[str, str | list[str]]:
 
 def _split_implements(refs: list[str]) -> tuple[list[str], list[str]]:
     """Split mixed implements list into (capabilities, decisions)."""
-    caps = [r for r in refs if r.startswith(("CAP-F-", "CAP-NF-"))]
-    decs = [r for r in refs if r.startswith("DEC-")]
+    caps = []
+    decs = []
+    for r in refs:
+        if r.startswith(("CAP-F-", "CAP-NF-")):
+            caps.append(r)
+        elif r.startswith("DEC-"):
+            decs.append(r)
+        else:
+            logger.debug("Unknown reference prefix, excluded from contract: %s", r)
     return caps, decs
 
 
@@ -79,6 +86,7 @@ def assemble_execution_contract(
     stories: list[dict[str, Any]],
     session_manager: Any,
     system_goal: str,
+    appetite: str = "",
 ) -> ExecutionContract:
     """Build an ExecutionContract from story dicts and session state.
 
@@ -86,19 +94,14 @@ def assemble_execution_contract(
         stories: List of story dicts (from stories.json / StoryHybrid.model_dump).
         session_manager: Active session manager for loading stage outputs.
         system_goal: The system goal / idea summary string.
+        appetite: The appetite/scope constraint string. Passed explicitly by the
+            caller to avoid duplicating session_manager.get_system_goal() calls.
     """
     # Load system traits from the markdown on disk
     traits: dict[str, str | list[str]] = {}
     traits_output = session_manager.load_stage_output("system-traits")
     if traits_output:
         traits = _parse_traits_from_markdown(traits_output)
-
-    # Load appetite from session
-    appetite = ""
-    try:
-        appetite = session_manager.get_system_goal() or ""
-    except (AttributeError, TypeError):
-        pass
 
     # Build contract stories
     contract_stories = []

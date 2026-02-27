@@ -12,6 +12,8 @@ from typing import Any
 
 from burr.core import State
 
+from haytham.workflow.contracts.assembler import assemble_execution_contract
+
 logger = logging.getLogger(__name__)
 
 
@@ -715,8 +717,6 @@ def save_execution_contract(session_manager: Any, output: str) -> None:
     dependency-ordering stage. Reads stories.json and session state to
     produce a machine-readable contract for downstream consumers.
     """
-    from haytham.workflow.contracts.assembler import assemble_execution_contract
-
     story_gen_dir = Path(session_manager.session_dir) / "story-generation"
     stories_json_file = story_gen_dir / "stories.json"
 
@@ -738,9 +738,11 @@ def save_execution_contract(session_manager: Any, output: str) -> None:
     try:
         system_goal = session_manager.get_system_goal() or ""
     except (AttributeError, TypeError):
-        pass
+        logger.debug("session_manager.get_system_goal() unavailable; using empty string")
 
-    contract = assemble_execution_contract(stories, session_manager, system_goal)
+    contract = assemble_execution_contract(
+        stories, session_manager, system_goal, appetite=system_goal
+    )
     contract_path = story_gen_dir / "execution_contract.json"
     contract_path.write_text(contract.to_json())
     logger.info(f"Execution contract saved to {contract_path} ({len(stories)} stories)")
