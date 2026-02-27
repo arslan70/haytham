@@ -13,7 +13,6 @@
 
 - **[Technology Stack](technology.md)** - Foundational technologies, why they were chosen, and upstream docs
 - **[Architecture Overview](architecture/overview.md)** - System design, components, and shared state
-- **[Scoring Pipeline](architecture/scoring-pipeline.md)** - Validation scoring mechanics (scorer, narrator, merge)
 
 ## Decision Records
 

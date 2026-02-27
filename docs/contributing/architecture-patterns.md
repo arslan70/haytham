@@ -74,8 +74,8 @@ When adding a new workflow, agent, stage, or search provider:
 
 - **Strands SDK**: Agents use `strands.Agent` with prompts from `worker_*_prompt.txt`
 - **AWS Bedrock**: LLM calls via `create_bedrock_model()` with configurable timeouts
-- **Parallel Execution**: Phase 1 runs market_intelligence and competitor_analysis concurrently
-- **Structured Output**: Agents like `startup_validator` use `structured_output_model=ValidationOutput`
+- **Sequential Execution**: Phase 1 runs market_intelligence then competitor_analysis (JTBD handoff)
+- **Structured Output**: `report_synthesis` uses `structured_output_model=ValidationReport`
 - **Session Persistence**: Checkpoints saved as markdown in `session/{stage-slug}/`
 
 Key files: `haytham/agents/factory/agent_factory.py`, `haytham/agents/output_utils.py`, `haytham/agents/hooks.py`, `haytham/config.py`
@@ -149,7 +149,7 @@ init_scorecard(risk_level=risk_level)  # pre-set before agent runs
 
 **The principle**: Treat agent inputs like function arguments. If a value is already in the system state, it flows as typed data, not prose. If a required value is missing, fail loudly instead of letting the agent invent it.
 
-Key file: `haytham/agents/tools/recommendation.py` (`init_scorecard`), `haytham/workflow/stages/idea_validation.py`
+Key file: `haytham/workflow/stages/idea_validation.py`
 
 ### Imports Inside Function Bodies
 
@@ -184,10 +184,3 @@ Never let LLM-generated text override deterministic safety rules. If the system 
 - **User-facing output**: Stage outputs saved as markdown in `session/{stage-slug}/`. Rendered in Streamlit UI.
 - **Never log**: User's startup idea text, full LLM prompts/responses, API keys, or session state content in debug logs.
 
----
-
-## Scoring & Validation Pipeline
-
-The `validation-summary` stage runs scorer, narrator, then merge sequentially. See [scoring-pipeline.md](../architecture/scoring-pipeline.md) for the full verdict logic, dimension scoring, and post-validator details.
-
-Key files: `recommendation.py`, `validation_summary_models.py`, `idea_validation.py`, `worker_validation_scorer_prompt.txt`, `validators/`
