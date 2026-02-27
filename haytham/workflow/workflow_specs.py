@@ -9,6 +9,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from burr.core import Condition, default
+
 from haytham.workflow.stage_registry import WorkflowType
 
 from .burr_actions import (
@@ -24,6 +26,7 @@ from .burr_actions import (
     story_generation,
     story_validation,
     system_traits,
+    workflow_failed,
 )
 
 
@@ -89,11 +92,15 @@ IDEA_VALIDATION_SPEC = WorkflowSpec(
         "market_context": market_context,
         "research_brief": research_brief,
         "report_synthesis": report_synthesis,
+        "workflow_failed": workflow_failed,
     },
     transitions=[
-        ("idea_analysis", "market_context"),
-        ("market_context", "research_brief"),
-        ("research_brief", "report_synthesis"),
+        ("idea_analysis", "workflow_failed", Condition.when(idea_analysis_status="failed")),
+        ("idea_analysis", "market_context", default),
+        ("market_context", "workflow_failed", Condition.when(market_context_status="failed")),
+        ("market_context", "research_brief", default),
+        ("research_brief", "workflow_failed", Condition.when(research_brief_status="failed")),
+        ("research_brief", "report_synthesis", default),
     ],
     entrypoint="idea_analysis",
     tracking_project="haytham-validation",
@@ -113,10 +120,13 @@ MVP_SPECIFICATION_SPEC = WorkflowSpec(
         "mvp_scope": mvp_scope,
         "capability_model": capability_model,
         "system_traits": system_traits,
+        "workflow_failed": workflow_failed,
     },
     transitions=[
-        ("mvp_scope", "capability_model"),
-        ("capability_model", "system_traits"),
+        ("mvp_scope", "workflow_failed", Condition.when(mvp_scope_status="failed")),
+        ("mvp_scope", "capability_model", default),
+        ("capability_model", "workflow_failed", Condition.when(capability_model_status="failed")),
+        ("capability_model", "system_traits", default),
     ],
     entrypoint="mvp_scope",
     tracking_project="haytham-mvp-spec",
@@ -132,7 +142,7 @@ MVP_SPECIFICATION_SPEC = WorkflowSpec(
 
 BUILD_BUY_ANALYSIS_SPEC = WorkflowSpec(
     workflow_type=WorkflowType.BUILD_BUY_ANALYSIS,
-    actions={"build_buy_analysis": build_buy_analysis},
+    actions={"build_buy_analysis": build_buy_analysis, "workflow_failed": workflow_failed},
     transitions=[],
     entrypoint="build_buy_analysis",
     tracking_project="haytham-build-buy",
@@ -147,7 +157,7 @@ BUILD_BUY_ANALYSIS_SPEC = WorkflowSpec(
 
 ARCHITECTURE_DECISIONS_SPEC = WorkflowSpec(
     workflow_type=WorkflowType.ARCHITECTURE_DECISIONS,
-    actions={"architecture_decisions": architecture_decisions},
+    actions={"architecture_decisions": architecture_decisions, "workflow_failed": workflow_failed},
     transitions=[],
     entrypoint="architecture_decisions",
     tracking_project="haytham-architecture",
@@ -167,10 +177,13 @@ STORY_GENERATION_SPEC = WorkflowSpec(
         "story_generation": story_generation,
         "story_validation": story_validation,
         "dependency_ordering": dependency_ordering,
+        "workflow_failed": workflow_failed,
     },
     transitions=[
-        ("story_generation", "story_validation"),
-        ("story_validation", "dependency_ordering"),
+        ("story_generation", "workflow_failed", Condition.when(story_generation_status="failed")),
+        ("story_generation", "story_validation", default),
+        ("story_validation", "workflow_failed", Condition.when(story_validation_status="failed")),
+        ("story_validation", "dependency_ordering", default),
     ],
     entrypoint="story_generation",
     tracking_project="haytham-stories",

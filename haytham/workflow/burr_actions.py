@@ -296,6 +296,17 @@ def dependency_ordering(state: State) -> State:
     return execute_stage("dependency-ordering", state)
 
 
+@action(reads=["current_stage"], writes=["workflow_failed_stage", "workflow_failed_error"])
+def workflow_failed(state: State) -> State:
+    """Terminal action when a stage fails. Halts the workflow."""
+    failed_stage = state.get("current_stage", "unknown")
+    logger.error(f"Workflow halted: stage '{failed_stage}' failed")
+    return state.update(
+        workflow_failed_stage=failed_stage,
+        workflow_failed_error=f"Stage '{failed_stage}' failed",
+    )
+
+
 # =============================================================================
 # Human-in-the-loop Actions
 # =============================================================================

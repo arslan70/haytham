@@ -196,7 +196,7 @@ class BurrWorkflowRunner:
 
                 # Run workflow to completion
                 final_action, final_result, final_state = self.app.run(
-                    halt_after=[terminal],
+                    halt_after=[terminal, "workflow_failed"],
                     inputs={},
                 )
 
@@ -212,7 +212,28 @@ class BurrWorkflowRunner:
                     recommendation = final_state.get("recommendation", "UNKNOWN")
                     span.set_attribute("workflow.recommendation_at_completion", recommendation)
 
-                # Check for failures and identify which stage failed
+                # Check if workflow halted at the workflow_failed terminal action
+                if final_action.name == "workflow_failed":
+                    failed_stage = final_state.get("workflow_failed_stage", "unknown")
+                    failed_stage_display = failed_stage.replace("_", " ").title()
+                    error_msg = final_state.get(
+                        "workflow_failed_error", f"Stage '{failed_stage_display}' failed"
+                    )
+
+                    if hasattr(span, "set_attribute"):
+                        span.set_attribute("workflow.status", "FAILED")
+                        span.set_attribute("workflow.failed_stage", failed_stage)
+
+                    return WorkflowResult(
+                        status="FAILED",
+                        current_stage=failed_stage,
+                        results=results,
+                        error=error_msg,
+                        failed_stage=failed_stage_display,
+                        execution_time=execution_time,
+                    )
+
+                # Fallback: Check for failures and identify which stage failed
                 registry = get_stage_registry()
                 stage_names = IDEA_VALIDATION_SPEC.stages
                 failed_stage = None
