@@ -180,3 +180,64 @@ def test_concept_summarizer():
 ```
 
 Refer to existing worker agent tests for the correct mocking pattern.
+
+## How Agents Fit Into the Burr Workflow
+
+Haytham agents do not run in isolation. They are executed as part of the Burr orchestration workflow.
+
+The high-level lifecycle is:
+
+1. A workflow stage is triggered.
+2. The stage configuration (`STAGE_CONFIGS`) determines which agent should run.
+3. The workflow calls `create_agent_by_name()`.
+4. The factory builds the agent using `AGENT_CONFIGS`.
+5. The agent executes with its prompt, tools, and model configuration.
+6. The output is processed and passed to the next stage.
+
+This separation ensures:
+- Agents remain modular.
+- Workflow logic remains independent.
+- New agents can be added without modifying orchestration code.
+
+## Tool Calling with Strands SDK
+
+Some agents use tools to interact with external systems.
+
+Tool access is controlled through the `tool_profile` field in `AgentConfig`.
+
+When tools are enabled:
+
+- The agent receives a predefined tool set.
+- Tool parameters follow scalar input patterns.
+- Tool outputs may be accumulated and passed back into the agent reasoning loop.
+
+This tool integration is handled automatically by the factory and does not require custom wiring when adding a new agent.
+
+Tool configuration should always be defined in `AGENT_CONFIGS`, not inside the factory.
+
+## Testing Strategy and LLM-as-Judge (ADR-018)
+
+For advanced validation workflows, Haytham supports evaluation using the LLM-as-Judge pattern described in ADR-018.
+
+When writing tests:
+
+- Avoid real model calls in unit tests.
+- Use mocked LLM responses.
+- Validate structured output schemas when applicable.
+- Ensure agent behavior aligns with expected output format.
+
+This approach guarantees deterministic and fast test execution while preserving production behavior.
+
+## Architectural References
+
+This guide follows the patterns defined in:
+
+`docs/contributing/architecture-patterns.md`
+
+That document describes:
+- Core system design principles
+- Agent registration patterns
+- Workflow orchestration structure
+- Extensibility guidelines
+
+New contributors should review it alongside this guide for deeper architectural understanding.
