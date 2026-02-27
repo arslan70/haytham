@@ -638,6 +638,106 @@ class TestOutputModelRendering:
 
 
 # =============================================================================
+# StageExecutor: JSON Persistence (_save_json)
+# =============================================================================
+
+
+class TestJsonPersistence:
+    """Tests for canonical JSON file persistence alongside markdown."""
+
+    @mock.patch("haytham.workflow.stage_executor.run_agent")
+    @mock.patch("haytham.workflow.stage_executor.save_stage_output")
+    def test_json_saved_when_output_model_valid(self, mock_save, mock_run, tmp_path):
+        """When output_model is set and validation succeeds, output.json is created."""
+        json_output = '{"interface": "browser", "auth": "multi_user"}'
+        mock_run.return_value = {"output": json_output, "status": "completed"}
+
+        mock_model_instance = mock.Mock()
+        mock_model_instance.to_markdown.return_value = "# Rendered Markdown"
+        mock_model_class = mock.Mock()
+        mock_model_class.model_validate_json.return_value = mock_model_instance
+
+        config = StageExecutionConfig(
+            stage_slug="system-traits",
+            output_model=mock_model_class,
+        )
+
+        session_manager = mock.MagicMock()
+        session_manager.session_dir = tmp_path
+
+        state = _make_state(
+            session_manager=session_manager,
+            idea_analysis="I",
+            mvp_scope="MVP scope",
+            capability_model="Capability model",
+            system_traits="",
+            system_traits_status="pending",
+        )
+
+        executor = StageExecutor(config)
+        executor.execute(state)
+
+        json_path = tmp_path / "system-traits" / "output.json"
+        assert json_path.exists()
+        assert json_path.read_text(encoding="utf-8") == json_output
+
+    @mock.patch("haytham.workflow.stage_executor.run_agent")
+    @mock.patch("haytham.workflow.stage_executor.save_stage_output")
+    def test_no_json_when_output_model_is_none(self, mock_save, mock_run, tmp_path):
+        """When output_model is None, no output.json file is created."""
+        mock_run.return_value = {"output": "Plain text output.", "status": "completed"}
+
+        config = StageExecutionConfig(stage_slug="idea-analysis")
+
+        session_manager = mock.MagicMock()
+        session_manager.session_dir = tmp_path
+
+        state = _make_state(
+            session_manager=session_manager,
+            idea_analysis="",
+            idea_analysis_status="pending",
+        )
+
+        executor = StageExecutor(config)
+        executor.execute(state)
+
+        json_path = tmp_path / "idea-analysis" / "output.json"
+        assert not json_path.exists()
+
+    @mock.patch("haytham.workflow.stage_executor.run_agent")
+    @mock.patch("haytham.workflow.stage_executor.save_stage_output")
+    def test_no_json_when_output_model_validation_fails(self, mock_save, mock_run, tmp_path):
+        """When output_model validation fails, no output.json is written."""
+        mock_run.return_value = {"output": "not valid json", "status": "completed"}
+
+        mock_model_class = mock.Mock()
+        mock_model_class.model_validate_json.side_effect = ValueError("Invalid JSON")
+
+        config = StageExecutionConfig(
+            stage_slug="system-traits",
+            output_model=mock_model_class,
+        )
+
+        session_manager = mock.MagicMock()
+        session_manager.session_dir = tmp_path
+
+        state = _make_state(
+            session_manager=session_manager,
+            idea_analysis="I",
+            mvp_scope="MVP scope",
+            capability_model="Capability model",
+            system_traits="",
+            system_traits_status="pending",
+        )
+
+        executor = StageExecutor(config)
+        executor.execute(state)
+
+        json_path = tmp_path / "system-traits" / "output.json"
+        assert not json_path.exists()
+
+
+# =============================================================================
 # get_stage_executor and execute_stage
 # =============================================================================
 
