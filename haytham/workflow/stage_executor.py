@@ -292,8 +292,12 @@ class StageExecutor:
             stage_meta = self.registry.get_by_slug_safe(slug)
             if stage_meta:
                 value = state.get(stage_meta.state_key, "")
-                if value:
-                    context[stage_meta.state_key] = value
+                if not value:
+                    raise ValueError(
+                        f"Stage '{self.stage.slug}' required context from '{slug}' is empty. "
+                        f"Upstream stage may have failed."
+                    )
+                context[stage_meta.state_key] = value
 
         return context
 
