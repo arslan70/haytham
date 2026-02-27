@@ -113,6 +113,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Git worktrees (machine-local)
+.worktrees/
+
 # Claude Code (machine-local)
 .claude/
 
