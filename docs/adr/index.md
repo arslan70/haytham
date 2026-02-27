@@ -44,6 +44,7 @@ Once you understand the workflow and the fidelity mechanism, the other ADRs fill
 | [ADR-002](ADR-002-backlog-md-integration.md) | Backlog.md Integration | Accepted |
 | [ADR-013](ADR-013-build-vs-buy-recommendations.md) | Build vs Buy Recommendations | Accepted |
 | [ADR-014](ADR-014-web-search-fallback-chain.md) | Web Search Fallback Chain | Accepted |
+| [ADR-028](ADR-028-execution-contract-schema.md) | Execution Contract Schema | Accepted |
 | [ADR-010](ADR-010-stories-export.md) | Stories Export | Accepted |
 | [ADR-011](ADR-011-story-effort-estimation.md) | Story Effort Estimation | Accepted |
 | [ADR-012](ADR-012-visual-roadmap.md) | Visual Roadmap | Accepted |

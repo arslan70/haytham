@@ -5,7 +5,7 @@ wired together from the domain-specific modules.  It is imported by
 :mod:`haytham.workflow.stage_executor` at the module level.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from haytham.agents.worker_build_buy_advisor.build_buy_models import (
     BuildBuyAnalysisOutput as _BuildBuyAnalysisOutput,
@@ -50,6 +50,7 @@ from .story_pipeline import (
     run_dependency_ordering,
     run_story_generation,
     run_story_validation,
+    save_execution_contract,
 )
 from .technical_design import (
     analyze_capabilities_for_build_buy,
@@ -80,6 +81,17 @@ def story_coherence_validator(output: str, state: "State") -> list[str]:
         warnings.append(warning)
 
     return warnings
+
+
+# =============================================================================
+# Composed additional_save for dependency-ordering
+# =============================================================================
+
+
+def _dependency_ordering_additional_save(session_manager: Any, output: str) -> None:
+    """Run contract generation then backlog draft creation after ordering."""
+    save_execution_contract(session_manager, output)
+    create_backlog_drafts_after_ordering(session_manager, output)
 
 
 STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
@@ -160,6 +172,6 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     "dependency-ordering": StageExecutionConfig(
         stage_slug="dependency-ordering",
         programmatic_executor=run_dependency_ordering,
-        additional_save=create_backlog_drafts_after_ordering,
+        additional_save=_dependency_ordering_additional_save,
     ),
 }
