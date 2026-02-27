@@ -21,6 +21,7 @@ load_dotenv()
 from strands_evals import Case, Experiment
 from strands_evals.evaluators import OutputEvaluator
 
+from haytham.agents.output_utils import extract_text_from_result
 from haytham.testing.criteria import (
     AGENT_RUBRICS,
     build_capability_model_cases,
@@ -46,13 +47,6 @@ PILOT_AGENTS = ["concept_expansion", "capability_model", "system_traits", "story
 # =============================================================================
 
 
-def _extract_agent_output(result) -> str:
-    """Extract text from a Strands agent result."""
-    from haytham.agents.output_utils import extract_text_from_result
-
-    return extract_text_from_result(result)
-
-
 def run_concept_expansion(case: Case) -> str:
     """Task function for concept_expansion agent."""
     from haytham.agents.factory.agent_factory import create_agent_by_name
@@ -63,7 +57,7 @@ def run_concept_expansion(case: Case) -> str:
         f"target users, and unique value proposition: {case.input}"
     )
     result = agent(query)
-    return _extract_agent_output(result)
+    return extract_text_from_result(result)
 
 
 def run_capability_model(case: Case) -> str:
@@ -72,7 +66,7 @@ def run_capability_model(case: Case) -> str:
 
     agent = create_agent_by_name("capability_model")
     result = agent(case.input)
-    return _extract_agent_output(result)
+    return extract_text_from_result(result)
 
 
 def run_system_traits(case: Case) -> str:
@@ -81,7 +75,7 @@ def run_system_traits(case: Case) -> str:
 
     agent = create_agent_by_name("system_traits")
     result = agent(case.input)
-    return _extract_agent_output(result)
+    return extract_text_from_result(result)
 
 
 def run_story_generator(case: Case) -> str:

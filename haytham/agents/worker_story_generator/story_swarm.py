@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from strands import Agent
 
+from haytham.agents.output_utils import extract_text_from_result
 from haytham.agents.utils.model_provider import create_model
 from haytham.agents.utils.prompt_loader import load_agent_prompt
 
@@ -40,13 +41,6 @@ LAYER_DETAIL_PROMPTS: dict[int, str] = {
     4: "detail_ui_prompt.txt",
     5: "detail_realtime_prompt.txt",
 }
-
-
-def _extract_text(result) -> str:
-    """Extract text from agent result."""
-    from haytham.agents.output_utils import extract_text_from_result
-
-    return extract_text_from_result(result)
 
 
 def _build_shared_context(
@@ -134,7 +128,7 @@ Generate all story skeletons now.
 
     # Fallback: try to parse JSON from text
     logger.warning("No structured skeleton output, attempting text extraction")
-    text = _extract_text(result)
+    text = extract_text_from_result(result)
     try:
         parsed = json.loads(text)
         output = StorySkeletonOutput.model_validate(parsed)
@@ -190,7 +184,7 @@ Write the full markdown content for {skeleton.id}: {skeleton.title}.
 
     try:
         result = detail_agent(task)
-        content = _extract_text(result)
+        content = extract_text_from_result(result)
 
         if not content or content.strip() == "":
             logger.warning(f"Empty content for {skeleton.id}, using summary as fallback")

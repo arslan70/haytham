@@ -16,6 +16,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from haytham.agents.factory.agent_factory import create_agent_by_name
+from haytham.agents.output_utils import extract_text_from_result
 from haytham.session.session_manager import SessionManager
 from haytham.workflow.stage_registry import get_stage_registry
 
@@ -173,7 +174,7 @@ def execute_revision(
             result = agent(prompt)
 
             # Extract the output text
-            revised_output = _extract_agent_output(result)
+            revised_output = extract_text_from_result(result)
             revised_outputs.append(revised_output)
 
             # Save the revised output (replaces original)
@@ -230,20 +231,6 @@ def _get_agents_for_stage(stage_slug: str) -> list[str]:
 
     logger.warning(f"No agents found for stage '{stage_slug}'")
     return []
-
-
-def _extract_agent_output(result) -> str:
-    """Extract text output from agent execution result.
-
-    Args:
-        result: Result from agent() call
-
-    Returns:
-        Output text string
-    """
-    from haytham.agents.output_utils import extract_text_from_result
-
-    return extract_text_from_result(result)
 
 
 def _save_revised_output(

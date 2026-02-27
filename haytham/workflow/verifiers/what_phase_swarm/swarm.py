@@ -6,8 +6,8 @@ and intent alignment.
 """
 
 import logging
-from typing import Any
 
+from haytham.agents.output_utils import extract_json_from_text, extract_text_from_result
 from haytham.workflow.anchor_schema import ConceptAnchor
 from haytham.workflow.verifiers.schemas import (
     GenericizationFlag,
@@ -62,10 +62,10 @@ def run_what_phase_swarm_verification(
         result = verifier(task)
 
         # Extract text from result
-        text_content = _extract_text_from_result(result)
+        text_content = extract_text_from_result(result)
 
         if text_content:
-            parsed = _try_parse_json(text_content)
+            parsed = extract_json_from_text(text_content)
             if parsed:
                 return _dict_to_phase_verification(parsed)
 
@@ -182,20 +182,6 @@ def _fail_open_result(error_message: str) -> PhaseVerification:
         confidence_rationale=f"Verification error: {truncated}",
         warnings=[f"Verification error: {error_message}"],
     )
-
-
-def _extract_text_from_result(result: Any) -> str:
-    """Extract text content from an agent result."""
-    from haytham.agents.output_utils import extract_text_from_result
-
-    return extract_text_from_result(result)
-
-
-def _try_parse_json(text: str) -> dict | None:
-    """Try to extract and parse JSON from text content."""
-    from haytham.agents.output_utils import extract_json_from_text
-
-    return extract_json_from_text(text)
 
 
 def _dict_to_phase_verification(data: dict) -> PhaseVerification:
