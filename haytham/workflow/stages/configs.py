@@ -7,6 +7,9 @@ wired together from the domain-specific modules.  It is imported by
 
 from typing import TYPE_CHECKING, Any
 
+from haytham.agents.worker_architecture_decisions.architecture_decisions_models import (
+    ArchitectureDecisionsOutput as _ArchitectureDecisionsOutput,
+)
 from haytham.agents.worker_build_buy_advisor.build_buy_models import (
     BuildBuyAnalysisOutput as _BuildBuyAnalysisOutput,
 )
@@ -157,6 +160,7 @@ STAGE_CONFIGS: dict[str, StageExecutionConfig] = {
     "architecture-decisions": StageExecutionConfig(
         stage_slug="architecture-decisions",
         programmatic_executor=run_architecture_decisions,
+        output_model=_ArchitectureDecisionsOutput,
     ),
     "story-generation": StageExecutionConfig(
         stage_slug="story-generation",
