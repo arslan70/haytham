@@ -12,6 +12,8 @@ from typing import Any
 
 from burr.core import State
 
+from haytham.workflow.contracts.assembler import assemble_execution_contract
+
 logger = logging.getLogger(__name__)
 
 
@@ -706,6 +708,44 @@ def create_backlog_drafts_from_stories(
         "failed_count": failed_count,
         "draft_ids": draft_ids,
     }
+
+
+def save_execution_contract(session_manager: Any, output: str) -> None:
+    """Assemble and save the execution contract after dependency ordering.
+
+    Wired as part of the composed additional_save callback for the
+    dependency-ordering stage. Reads stories.json and session state to
+    produce a machine-readable contract for downstream consumers.
+    """
+    story_gen_dir = Path(session_manager.session_dir) / "story-generation"
+    stories_json_file = story_gen_dir / "stories.json"
+
+    if not stories_json_file.exists():
+        logger.warning("stories.json not found; skipping execution contract generation")
+        return
+
+    try:
+        stories = json.loads(stories_json_file.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        logger.warning(f"Failed to read stories.json for contract: {e}")
+        return
+
+    if not stories:
+        logger.warning("No stories found; skipping execution contract generation")
+        return
+
+    system_goal = ""
+    try:
+        system_goal = session_manager.get_system_goal() or ""
+    except (AttributeError, TypeError):
+        logger.debug("session_manager.get_system_goal() unavailable; using empty string")
+
+    contract = assemble_execution_contract(
+        stories, session_manager, system_goal, appetite=system_goal
+    )
+    contract_path = story_gen_dir / "execution_contract.json"
+    contract_path.write_text(contract.to_json())
+    logger.info(f"Execution contract saved to {contract_path} ({len(stories)} stories)")
 
 
 def create_backlog_drafts_after_ordering(session_manager: Any, output: str) -> None:
