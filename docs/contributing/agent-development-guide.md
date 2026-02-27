@@ -148,3 +148,35 @@ Then update your `AGENT_CONFIGS` entry:
 When `structured_output_model_path` is provided, the factory automatically enables structured output parsing.
 
 If your agent only returns text, you can skip this section.
+
+## Testing an Agent
+
+Agents should be tested without making real LLM calls.
+
+Existing tests in the repository use mocked LLM responses. Follow the same pattern to ensure tests are fast and deterministic.
+
+When writing a test for a new agent:
+
+1. Mock the LLM client.
+2. Provide a controlled response.
+3. Verify that:
+   - The agent loads correctly.
+   - The prompt is applied.
+   - Structured output (if enabled) is parsed correctly.
+   - The output extraction behaves as expected.
+
+Example test structure:
+
+```python
+def test_concept_summarizer():
+    # Arrange
+    # Mock LLM response
+
+    # Act
+    # Call agent
+
+    # Assert
+    # Verify expected output format
+```
+
+Refer to existing worker agent tests for the correct mocking pattern.
