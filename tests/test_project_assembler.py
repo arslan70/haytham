@@ -7,7 +7,6 @@ import pytest
 
 from haytham.exporters.project_assembler import assemble_exportable_project
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

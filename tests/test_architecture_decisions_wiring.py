@@ -7,7 +7,6 @@ from haytham.agents.worker_architecture_decisions.architecture_decisions_models 
     ArchitectureDecisionsOutput,
 )
 
-
 _SAMPLE_OUTPUT = ArchitectureDecisionsOutput(
     decisions=[
         {

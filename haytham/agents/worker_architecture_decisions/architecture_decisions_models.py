@@ -106,13 +106,9 @@ class ArchitectureDecisionsOutput(BaseModel):
             lines.append("")
             lines.append(f"**Rationale:** {decision.rationale}")
             lines.append("")
-            lines.append(
-                f"**Serves Capabilities:** {', '.join(decision.serves_capabilities)}"
-            )
+            lines.append(f"**Serves Capabilities:** {', '.join(decision.serves_capabilities)}")
             lines.append("")
-            lines.append(
-                f"**Implements:** {decision.implements_recommendation}"
-            )
+            lines.append(f"**Implements:** {decision.implements_recommendation}")
             lines.append("")
 
             if decision.alternatives_considered:
