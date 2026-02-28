@@ -12,6 +12,10 @@ from haytham.workflow.contracts.execution_contract import AcceptanceCriterion, C
 
 _SLUGIFY_RE = re.compile(r"[^a-z0-9]+")
 
+# Verb endings where the third-person-singular is formed by adding -es after
+# a sibilant consonant cluster. Stripping -es recovers the infinitive.
+_SIBILANT_ENDINGS = ("sses", "shes", "ches", "xes", "zes")
+
 _TRAIT_ARTICLE_MAP = {
     "interface": "Interface Principle",
     "authentication": "Security Principle",
@@ -32,10 +36,40 @@ def slugify(name: str) -> str:
     return _SLUGIFY_RE.sub("-", name.lower()).strip("-")
 
 
+def _to_bare_infinitive(word: str) -> str:
+    """Convert a third-person-singular English verb to its bare infinitive.
+
+    Handles the standard English conjugation rules in reverse:
+    - ``-ies`` → ``-y``  (identifies → identify)
+    - sibilant + ``-es`` → strip ``-es``  (processes → process, pushes → push)
+    - ``-s`` → strip ``-s``  (ensures → ensure, maintains → maintain)
+
+    Words of 3 characters or fewer, and words ending in ``-ss`` or ``-us``,
+    are returned unchanged to avoid false positives (access, process, focus).
+    """
+    if len(word) <= 3 or not word.endswith("s"):
+        return word
+    # -ies → -y (identifies → identify, notifies → notify)
+    if word.endswith("ies") and len(word) > 4:
+        return word[:-3] + "y"
+    # sibilant + es (processes, pushes, matches, fixes, buzzes)
+    for ending in _SIBILANT_ENDINGS:
+        if word.endswith(ending):
+            return word[:-2]
+    # Words ending in -ss or -us are typically not conjugated verbs
+    # (access, process, express, focus, bonus, status)
+    if word.endswith("ss") or word.endswith("us"):
+        return word
+    return word[:-1]
+
+
 def capability_to_shall_statement(cap: ExportableCapability) -> str:
     """Convert a capability description to a formal SHALL statement.
 
-    Lowercases the first character of the description if it starts uppercase.
+    Lowercases and deconjugates the leading verb so that descriptions like
+    "Ensures secure communication" become "The system SHALL ensure secure
+    communication" (bare infinitive after SHALL).
+
     Returns a placeholder statement when the description is empty.
     """
     desc = cap.description
@@ -43,6 +77,14 @@ def capability_to_shall_statement(cap: ExportableCapability) -> str:
         return f"The system SHALL provide {cap.name}."
     if desc[0].isupper():
         desc = desc[0].lower() + desc[1:]
+    # Deconjugate the leading verb: "ensures X" → "ensure X"
+    first_space = desc.find(" ")
+    if first_space > 0:
+        first_word = desc[:first_space]
+        rest = desc[first_space:]
+        desc = _to_bare_infinitive(first_word) + rest
+    else:
+        desc = _to_bare_infinitive(desc)
     return f"The system SHALL {desc}"
 
 

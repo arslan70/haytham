@@ -170,6 +170,7 @@ class TestProjectAssembler:
         project = assemble_exportable_project(session_dir)
 
         # Metadata from contract
+        assert project.project_name == "FitBoard"
         assert project.idea_summary == "Fitness leaderboard app"
         assert project.appetite == "6 weeks"
         assert project.generated_at == "2026-02-28T12:00:00Z"
@@ -214,6 +215,17 @@ class TestProjectAssembler:
         assert auth_scope.name == "User Auth"
         assert auth_scope.capabilities == ["CAP-F-001"]
         assert "STORY-001" in auth_scope.stories
+
+    def test_scope_item_descriptions_from_capabilities(self, tmp_path):
+        """Scope item descriptions are synthesized from linked capability descriptions."""
+        session_dir = tmp_path / "session"
+        _write_session_files(session_dir)
+
+        project = assemble_exportable_project(session_dir)
+
+        auth_scope = project.scope_items[0]
+        assert auth_scope.name == "User Auth"
+        assert auth_scope.description == "Allow users to register and log in"
 
     def test_orphan_stories_in_infrastructure(self, tmp_path):
         """Stories without implements go to a synthetic Infrastructure scope item."""
@@ -283,6 +295,7 @@ class TestProjectAssembler:
 
         project = assemble_exportable_project(session_dir)
 
+        assert project.project_name == ""
         assert project.idea_summary == "Minimal app"
         assert len(project.stories) == 1
         assert project.capabilities == []

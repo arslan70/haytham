@@ -350,6 +350,56 @@ class TestTraitsParsing:
         traits = _parse_traits_from_markdown(md)
         assert "interface" not in traits
 
+    def test_bullet_prefixed_lines(self):
+        """Traits rendered with bullet markers by SystemTraitsOutput.to_markdown()."""
+        md = (
+            "## SYSTEM TRAITS\n"
+            "\n"
+            "- **interface:** [[mobile_native]]\n"
+            "  Explanation: A mobile app is practical.\n"
+            "\n"
+            "- **auth:** multi_user\n"
+            "  Explanation: Invite-only for existing patients.\n"
+        )
+        traits = _parse_traits_from_markdown(md)
+        assert traits["interface"] == "mobile_native"
+        assert traits["auth"] == "multi_user"
+
+    def test_double_bracket_single_value(self):
+        """Double brackets [[value]] are treated as a single enum value."""
+        md = "**deployment:** [[cloud_hosted]]"
+        traits = _parse_traits_from_markdown(md)
+        assert traits["deployment"] == "cloud_hosted"
+
+    def test_double_bracket_via_bullet(self):
+        """Double brackets work with bullet prefix too."""
+        md = "- **realtime:** [[websocket]]"
+        traits = _parse_traits_from_markdown(md)
+        assert traits["realtime"] == "websocket"
+
+    def test_real_session_traits(self):
+        """Full integration test with actual session output format."""
+        md = (
+            "## SYSTEM TRAITS\n"
+            "\n"
+            "- **interface:** [[mobile_native]]\n"
+            "  Explanation: Mobile for patients.\n"
+            "\n"
+            "- **auth:** multi_user\n"
+            "- **deployment:** [[cloud_hosted]]\n"
+            "- **data_layer:** remote_db\n"
+            "- **realtime:** true\n"
+            "- **communication:** video\n"
+            "- **payments:** none\n"
+            "- **scheduling:** required\n"
+        )
+        traits = _parse_traits_from_markdown(md)
+        assert len(traits) == 8
+        assert traits["interface"] == "mobile_native"
+        assert traits["deployment"] == "cloud_hosted"
+        assert traits["realtime"] == "true"
+        assert traits["payments"] == "none"
+
 
 # ===========================================================================
 # Full assembly

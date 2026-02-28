@@ -463,7 +463,7 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         ),
         structured_output_model_path=(
             "haytham.agents.worker_architecture_decisions"
-            ".architecture_decisions_models.ArchitectureDecisionsOutput"
+            ".architecture_decisions_models:ArchitectureDecisionsOutput"
         ),
     ),
     # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline.

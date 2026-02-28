@@ -128,8 +128,12 @@ def _build_scope_items(
     scope_items: list[ExportableScopeItem] = []
 
     for name in scope_names:
-        # Find capability IDs for this scope item
-        cap_ids = [c.id for c in functional_caps if c.serves_scope_item == name]
+        # Find capabilities for this scope item
+        linked_caps = [c for c in functional_caps if c.serves_scope_item == name]
+        cap_ids = [c.id for c in linked_caps]
+
+        # Synthesize description from linked capability descriptions
+        description = ". ".join(c.description for c in linked_caps if c.description)
 
         # Find story IDs where story.implements overlaps with cap_ids
         cap_id_set = set(cap_ids)
@@ -143,6 +147,7 @@ def _build_scope_items(
         scope_items.append(
             ExportableScopeItem(
                 name=name,
+                description=description,
                 capabilities=cap_ids,
                 stories=story_ids,
             )
@@ -210,8 +215,14 @@ def assemble_exportable_project(session_dir: Path) -> ExportableProject:
     else:
         scope_items = []
 
-    # 6. Assemble the project
+    # 6. Extract short project name from capability model summary
+    project_name = ""
+    if cap_data is not None:
+        project_name = cap_data.get("summary", {}).get("system_name", "")
+
+    # 7. Assemble the project
     return ExportableProject(
+        project_name=project_name,
         idea_summary=contract.metadata.idea_summary,
         appetite=contract.metadata.appetite,
         generated_at=contract.metadata.generated_at,

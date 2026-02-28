@@ -55,6 +55,7 @@ class ExportableProject(BaseModel):
     """
 
     # Metadata
+    project_name: str = ""
     idea_summary: str
     appetite: str = ""
     generated_at: str = ""

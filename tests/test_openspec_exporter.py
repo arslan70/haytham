@@ -57,7 +57,7 @@ def _make_project(**overrides) -> ExportableProject:
             ExportableCapability(
                 id="CAP-NF-001",
                 name="Response Time",
-                description="API responses under 200ms at p95",
+                description="Respond within 200ms for p95 API calls",
                 serves_scope_item=None,
                 is_functional=False,
             ),
@@ -191,6 +191,94 @@ class TestSpecContent:
         # Fallback should generate scenario from capability's acceptance_criteria
         assert "#### Scenario: Users can log in with Google" in spec
 
+    def test_duplicate_scenarios_are_deduplicated(self):
+        """When multiple stories share identical ACs, only one copy is rendered."""
+        shared_ac = AcceptanceCriterion(
+            id="AC-001",
+            scenario="Create session",
+            given="I am authenticated",
+            when='I POST to "/api/sessions"',
+            then="the response status should be 201",
+        )
+        project = _make_project(
+            stories=[
+                ContractStory(
+                    id="STORY-001",
+                    title="Session CRUD",
+                    layer=3,
+                    summary="Create sessions",
+                    implements=["CAP-F-001"],
+                    acceptance_criteria=[shared_ac],
+                ),
+                ContractStory(
+                    id="STORY-002",
+                    title="Session management",
+                    layer=3,
+                    summary="Manage sessions",
+                    implements=["CAP-F-001"],
+                    acceptance_criteria=[shared_ac],
+                ),
+            ],
+            scope_items=[
+                ExportableScopeItem(
+                    name="User Authentication",
+                    capabilities=["CAP-F-001"],
+                    stories=["STORY-001", "STORY-002"],
+                ),
+            ],
+        )
+        tree = OpenSpecExporter().export_tree(project)
+        spec = tree["openspec/specs/user-authentication/spec.md"]
+        assert spec.count("#### Scenario: Create session") == 1
+
+    def test_different_scenarios_with_same_name_kept(self):
+        """Scenarios with the same name but different content are both kept."""
+        ac1 = AcceptanceCriterion(
+            id="AC-001",
+            scenario="Validation failure",
+            given="I am authenticated",
+            when="I POST with empty message",
+            then="the response status should be 400",
+        )
+        ac2 = AcceptanceCriterion(
+            id="AC-002",
+            scenario="Validation failure",
+            given="I am authenticated",
+            when="I POST with missing field",
+            then="the response status should be 422",
+        )
+        project = _make_project(
+            stories=[
+                ContractStory(
+                    id="STORY-001",
+                    title="Wishes",
+                    layer=3,
+                    summary="Send wishes",
+                    implements=["CAP-F-001"],
+                    acceptance_criteria=[ac1],
+                ),
+                ContractStory(
+                    id="STORY-002",
+                    title="Messages",
+                    layer=3,
+                    summary="Send messages",
+                    implements=["CAP-F-001"],
+                    acceptance_criteria=[ac2],
+                ),
+            ],
+            scope_items=[
+                ExportableScopeItem(
+                    name="User Authentication",
+                    capabilities=["CAP-F-001"],
+                    stories=["STORY-001", "STORY-002"],
+                ),
+            ],
+        )
+        tree = OpenSpecExporter().export_tree(project)
+        spec = tree["openspec/specs/user-authentication/spec.md"]
+        # Same name but different content → both kept
+        assert spec.count("#### Scenario: Validation failure") == 2
+
 
 # ===========================================================================
 # Cross-cutting spec tests
@@ -202,7 +290,7 @@ class TestCrossCuttingSpec:
         project = _make_project()
         tree = OpenSpecExporter().export_tree(project)
         spec = tree["openspec/specs/cross-cutting/spec.md"]
-        assert "API responses under 200ms at p95" in spec
+        assert "respond within 200ms for p95 API calls" in spec
 
     def test_cross_cutting_has_shall(self):
         project = _make_project()
@@ -210,11 +298,13 @@ class TestCrossCuttingSpec:
         spec = tree["openspec/specs/cross-cutting/spec.md"]
         assert "SHALL" in spec
 
-    def test_cross_cutting_has_scenario(self):
+    def test_cross_cutting_no_placeholder_scenarios(self):
+        """Non-functional specs render SHALL statements only, no fake scenarios."""
         project = _make_project()
         tree = OpenSpecExporter().export_tree(project)
         spec = tree["openspec/specs/cross-cutting/spec.md"]
-        assert "#### Scenario:" in spec
+        assert "#### Scenario:" not in spec
+        assert "the requirement is satisfied" not in spec
 
 
 # ===========================================================================
@@ -223,8 +313,16 @@ class TestCrossCuttingSpec:
 
 
 class TestConfigAndProject:
-    def test_config_contains_project_name(self):
-        project = _make_project()
+    def test_config_uses_project_name_when_set(self):
+        project = _make_project(project_name="GymBoard")
+        tree = OpenSpecExporter().export_tree(project)
+        config = tree["openspec/config.yaml"]
+        assert "GymBoard" in config
+        # Full idea_summary appears as description, not as name
+        assert "description:" in config
+
+    def test_config_falls_back_to_idea_summary(self):
+        project = _make_project(project_name="")
         tree = OpenSpecExporter().export_tree(project)
         config = tree["openspec/config.yaml"]
         assert "gym leaderboard" in config
