@@ -47,9 +47,6 @@ PROJECT_EXPORTERS: dict[str, type[ProjectExporter]] = {
     "speckit": SpecKitExporter,
 }
 
-# Backwards compatibility
-EXPORTERS = STORY_EXPORTERS
-
 
 def get_exporter(format_name: str, options: ExportOptions | None = None) -> BaseExporter:
     """Get a story-level exporter instance by format name."""

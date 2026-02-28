@@ -70,6 +70,16 @@ class TestCapabilityToShallStatement:
         result = capability_to_shall_statement(cap)
         assert result == "The system SHALL respond within 200ms for 95th percentile"
 
+    def test_empty_description_uses_name(self):
+        cap = ExportableCapability(
+            id="C3",
+            name="Search",
+            description="",
+            is_functional=True,
+        )
+        result = capability_to_shall_statement(cap)
+        assert result == "The system SHALL provide Search."
+
 
 # ---------------------------------------------------------------------------
 # group_stories_by_layer

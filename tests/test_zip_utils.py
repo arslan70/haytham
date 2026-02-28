@@ -3,6 +3,8 @@
 import zipfile
 from io import BytesIO
 
+import pytest
+
 from haytham.exporters.zip_utils import tree_to_zip
 
 
@@ -29,6 +31,14 @@ class TestTreeToZip:
         with zipfile.ZipFile(BytesIO(zip_bytes)) as zf:
             assert zf.namelist() == ["a.md", "z.md"]
 
+    def test_rejects_path_traversal(self):
+        with pytest.raises(ValueError, match="Unsafe path"):
+            tree_to_zip({"../../../etc/passwd": "malicious"})
+
+    def test_rejects_absolute_path(self):
+        with pytest.raises(ValueError, match="Unsafe path"):
+            tree_to_zip({"/etc/passwd": "malicious"})
+
 
 class TestExporterRegistries:
     def test_story_exporters_exist(self):
@@ -51,8 +61,3 @@ class TestExporterRegistries:
         exporter = get_exporter("markdown")
         assert exporter is not None
 
-    def test_backwards_compat_exporters_dict(self):
-        from haytham.exporters import EXPORTERS
-
-        assert "linear" in EXPORTERS
-        assert EXPORTERS is not None

@@ -296,14 +296,18 @@ def store_capabilities_in_state(session_manager: Any, output: str) -> None:
         logger.info("Capabilities will not be stored in system state")
         return
 
-    # Validate against schema (turns silent degradation into explicit failure)
+    # Import inside function to avoid circular dependency:
+    # workflow/stages/ imports from agents/ at module level via factory;
+    # adding this model import at module level creates a tighter coupling.
+    from pydantic import ValidationError
+
     from haytham.agents.worker_capability_model.capability_model_models import (
         CapabilityModelOutput,
     )
 
     try:
         validated = CapabilityModelOutput.model_validate(capability_data)
-    except Exception:
+    except ValidationError:
         logger.error("Capability model JSON failed schema validation", exc_info=True)
         raise
 
@@ -312,7 +316,7 @@ def store_capabilities_in_state(session_manager: Any, output: str) -> None:
     stage_dir.mkdir(parents=True, exist_ok=True)
     json_path = stage_dir / "output.json"
     json_path.write_text(validated.model_dump_json(indent=2), encoding="utf-8")
-    logger.info(f"Saved validated capability model JSON to {json_path.name}")
+    logger.info("Saved validated capability model JSON to %s", json_path.name)
 
     try:
         from haytham.state import DuplicateEntryError, SystemStateStore, create_capability

@@ -421,7 +421,7 @@ class StageExecutor:
         stage_dir.mkdir(parents=True, exist_ok=True)
         json_path = stage_dir / "output.json"
         json_path.write_text(json_content, encoding="utf-8")
-        logger.info(f"Stage {self.stage.slug}: Saved canonical JSON to {json_path.name}")
+        logger.info("Stage %s: Saved canonical JSON to %s", self.stage.slug, json_path.name)
 
 
 # =============================================================================

@@ -18,5 +18,7 @@ def tree_to_zip(tree: dict[str, str]) -> bytes:
     buffer = BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         for path, content in sorted(tree.items()):
+            if ".." in path or path.startswith("/"):
+                raise ValueError(f"Unsafe path in export tree: {path}")
             zf.writestr(path, content)
     return buffer.getvalue()

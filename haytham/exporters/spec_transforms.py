@@ -36,9 +36,12 @@ def capability_to_shall_statement(cap: ExportableCapability) -> str:
     """Convert a capability description to a formal SHALL statement.
 
     Lowercases the first character of the description if it starts uppercase.
+    Returns a placeholder statement when the description is empty.
     """
     desc = cap.description
-    if desc and desc[0].isupper():
+    if not desc:
+        return f"The system SHALL provide {cap.name}."
+    if desc[0].isupper():
         desc = desc[0].lower() + desc[1:]
     return f"The system SHALL {desc}"
 
