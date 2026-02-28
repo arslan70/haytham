@@ -610,3 +610,35 @@ class TestConcurrentSessionOperations:
         recorded_types = {r.get("workflow_type") for r in runs}
         for wt in workflow_types:
             assert wt in recorded_types, f"Missing workflow type: {wt}"
+
+
+class TestLoadExecutionContract:
+    """Tests for load_execution_contract() method."""
+
+    def test_returns_contract_when_file_exists(self, tmp_path):
+        """load_execution_contract returns a validated ExecutionContract."""
+        from haytham.workflow.contracts.execution_contract import (
+            ContractMetadata,
+            ExecutionContract,
+        )
+
+        sm = SessionManager(base_dir=str(tmp_path))
+        contract_dir = tmp_path / "session" / "story-generation"
+        contract_dir.mkdir(parents=True)
+        contract = ExecutionContract(
+            metadata=ContractMetadata(
+                generated_at="2026-02-28",
+                idea_summary="Test",
+            ),
+            stories=[],
+        )
+        (contract_dir / "execution_contract.json").write_text(contract.model_dump_json())
+
+        result = sm.load_execution_contract()
+        assert result is not None
+        assert result.metadata.idea_summary == "Test"
+
+    def test_returns_none_when_no_file(self, tmp_path):
+        """load_execution_contract returns None when no contract file exists."""
+        sm = SessionManager(base_dir=str(tmp_path))
+        assert sm.load_execution_contract() is None

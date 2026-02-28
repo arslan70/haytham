@@ -5,7 +5,6 @@ Functions used by build-buy-analysis and architecture-decisions stage configs.
 
 import json
 import logging
-import re
 import time
 from typing import Any
 
@@ -57,7 +56,7 @@ def _run_architect_agent(
 
         agent = create_agent_by_name(agent_name)
         result = agent(full_prompt)
-        output_text = str(result)
+        output_text = extract_text_from_result(result, output_as_json=True)
 
         execution_time = time.time() - start_time
 
@@ -77,78 +76,6 @@ def _run_architect_agent(
             "error": str(e),
             "execution_time": execution_time,
         }
-
-
-def _extract_json_from_response(text: str) -> dict | None:
-    """Extract JSON from agent response.
-
-    Handles responses that include JSON in markdown code blocks.
-    Also handles common LLM output issues like backtick template literals.
-
-    Args:
-        text: Raw agent response text
-
-    Returns:
-        Parsed JSON dict, or None if not found
-    """
-
-    def fix_backtick_strings(json_str: str) -> str:
-        """Replace backtick template literals with proper JSON strings."""
-
-        def replace_backtick(match):
-            content = match.group(1)
-            content = content.replace("\\", "\\\\")
-            content = content.replace('"', '\\"')
-            content = content.replace("\n", "\\n")
-            content = content.replace("\r", "\\r")
-            content = content.replace("\t", "\\t")
-            return f'"{content}"'
-
-        return re.sub(r"`([\s\S]*?)`", replace_backtick, json_str)
-
-    def try_parse(json_str: str) -> dict | None:
-        """Try to parse JSON, with fallbacks for common issues."""
-        try:
-            return json.loads(json_str)
-        except json.JSONDecodeError:
-            pass
-
-        # Try fixing backtick template literals (LLM sometimes uses JS syntax)
-        fixed = fix_backtick_strings(json_str)
-        try:
-            return json.loads(fixed)
-        except json.JSONDecodeError:
-            pass
-
-        # Try removing trailing commas before ] or }
-        fixed = re.sub(r",\s*([}\]])", r"\1", fixed)
-        try:
-            return json.loads(fixed)
-        except json.JSONDecodeError:
-            pass
-
-        return None
-
-    # Try to find JSON in code blocks
-    json_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
-    if json_match:
-        result = try_parse(json_match.group(1))
-        if result:
-            return result
-
-    # Try the whole text as JSON
-    result = try_parse(text)
-    if result:
-        return result
-
-    # Try to find JSON object anywhere in the text
-    obj_match = re.search(r"\{[\s\S]*\}", text)
-    if obj_match:
-        result = try_parse(obj_match.group(0))
-        if result:
-            return result
-
-    return None
 
 
 _ARCHITECTURE_DECISIONS_PROMPT = """You are a Software Architect creating technical decisions for an MVP.
@@ -295,11 +222,7 @@ Output ONLY valid JSON."""
 def run_architecture_decisions(state: State) -> tuple[str, str]:
     """Run architecture decisions stage.
 
-    This stage makes key technical decisions based on build vs buy analysis.
-    Creates decisions that:
-    - Cover ALL capabilities (functional and non-functional)
-    - Implement Build/Buy recommendations
-    - Specify HOW to use the recommended services
+    Returns JSON string. The StageExecutor renders markdown via output_model.to_markdown().
     """
     # Get context from state
     system_goal = state.get("system_goal", "")
@@ -310,7 +233,6 @@ def run_architecture_decisions(state: State) -> tuple[str, str]:
     # Parse build_buy_analysis - may be JSON (from output_model) or markdown (legacy)
     try:
         bb_data = json.loads(build_buy_raw)
-        # Extract a prompt-friendly summary from structured data
         stack_lines = []
         for svc in bb_data.get("recommended_stack", []):
             name = svc.get("name", "?")
@@ -323,10 +245,8 @@ def run_architecture_decisions(state: State) -> tuple[str, str]:
             f"Recommended Stack:\n" + "\n".join(stack_lines)
         )
     except (json.JSONDecodeError, TypeError):
-        build_buy_analysis = build_buy_raw  # backward compat with markdown
+        build_buy_analysis = build_buy_raw
 
-    # Build context for the prompt - use correct field names matching the template
-    # Don't over-truncate - the agent needs full context for complete coverage
     context = {
         "system_goal": system_goal,
         "mvp_scope": mvp_scope[:3000] if mvp_scope else "",
@@ -335,7 +255,6 @@ def run_architecture_decisions(state: State) -> tuple[str, str]:
         "existing_decisions": "[]",
     }
 
-    # Run the agent
     result = _run_architect_agent(
         agent_name="architecture_decisions",
         prompt_template=_ARCHITECTURE_DECISIONS_PROMPT,
@@ -345,59 +264,8 @@ def run_architecture_decisions(state: State) -> tuple[str, str]:
     if result["status"] == "failed":
         return f"Error: {result.get('error', 'Unknown error')}", "failed"
 
-    # Parse the response
-    parsed = _extract_json_from_response(result["output"])
-
-    if not parsed or "decisions" not in parsed:
-        # Return raw output if parsing fails
-        return result["output"], "completed"
-
-    # Build output summary
-    output_md = "# Architecture Decisions\n\n"
-    output_md += f"**Summary:** {parsed.get('summary', 'N/A')}\n\n"
-    output_md += f"**Decisions Created:** {len(parsed.get('decisions', []))}\n\n"
-
-    # Add coverage check summary if present
-    coverage = parsed.get("coverage_check", {})
-    if coverage:
-        func_covered = coverage.get("functional_capabilities_covered", [])
-        nf_covered = coverage.get("non_functional_capabilities_covered", [])
-        uncovered = coverage.get("uncovered_capabilities", [])
-
-        output_md += "## Coverage Summary\n\n"
-        output_md += f"- **Functional Capabilities Covered:** {', '.join(func_covered) if func_covered else 'None'}\n"
-        output_md += f"- **Non-Functional Capabilities Covered:** {', '.join(nf_covered) if nf_covered else 'None'}\n"
-        if uncovered:
-            output_md += f"- **Uncovered Capabilities:** {', '.join(uncovered)}\n"
-        else:
-            output_md += "- **All capabilities covered**\n"
-        output_md += "\n---\n\n"
-
-    # Output each decision
-    for i, dec in enumerate(parsed.get("decisions", []), 1):
-        dec_id = dec.get("id", f"DEC-{i:03d}")
-        output_md += f"## {i}. {dec_id}: {dec.get('name', 'Unnamed')}\n\n"
-        output_md += f"**Description:** {dec.get('description', 'N/A')}\n\n"
-        output_md += f"**Rationale:** {dec.get('rationale', 'N/A')}\n\n"
-
-        serves = dec.get("serves_capabilities", [])
-        if serves:
-            output_md += f"**Serves Capabilities:** {', '.join(serves)}\n\n"
-
-        implements = dec.get("implements_recommendation", "")
-        if implements:
-            output_md += f"**Implements:** {implements}\n\n"
-
-        alternatives = dec.get("alternatives_considered", [])
-        if alternatives:
-            output_md += "**Alternatives Considered:**\n"
-            for alt in alternatives:
-                output_md += f"- {alt}\n"
-            output_md += "\n"
-
-        output_md += "---\n\n"
-
-    return output_md, "completed"
+    # Return JSON directly; StageExecutor renders markdown via output_model.to_markdown()
+    return result["output"], "completed"
 
 
 def analyze_capabilities_for_build_buy(state: State) -> tuple[str, str]:

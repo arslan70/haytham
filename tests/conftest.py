@@ -81,26 +81,26 @@ _SYNTHETIC_CAPABILITY_MODEL = {
     "capabilities": {
         "functional": [
             {
-                "id": "CAP-001",
+                "id": "CAP-F-001",
                 "name": "User Authentication",
                 "serves_scope_item": "User registration and login",
                 "user_flow": "Flow 1",
             },
             {
-                "id": "CAP-002",
+                "id": "CAP-F-002",
                 "name": "Workout Recording",
                 "serves_scope_item": "Workout logging",
                 "user_flow": "Flow 1",
             },
             {
-                "id": "CAP-003",
+                "id": "CAP-F-003",
                 "name": "Ranking Engine",
                 "serves_scope_item": "Leaderboard ranking",
                 "user_flow": "Flow 2",
             },
         ],
         "non_functional": [
-            {"id": "NFR-001", "name": "Sub-second leaderboard load"},
+            {"id": "CAP-NF-001", "name": "Sub-second leaderboard load"},
         ],
     }
 }
@@ -110,19 +110,19 @@ _SYNTHETIC_BUILD_BUY = {
         {
             "name": "Supabase",
             "category": "Authentication & Database",
-            "capabilities_served": ["CAP-001", "CAP-002"],
+            "capabilities_served": ["CAP-F-001", "CAP-F-002"],
             "rationale": "Provides auth and Postgres in one managed service.",
         },
         {
             "name": "Vercel",
             "category": "Hosting & Deployment",
-            "capabilities_served": ["CAP-001", "CAP-002", "CAP-003"],
+            "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003"],
             "rationale": "Zero-config deployment for web applications.",
         },
         {
             "name": "Upstash Redis",
             "category": "Caching",
-            "capabilities_served": ["CAP-003"],
+            "capabilities_served": ["CAP-F-003"],
             "rationale": "Serverless Redis for low-latency leaderboard queries.",
         },
     ],

@@ -461,6 +461,10 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
             "You are an expert software architect. "
             "Follow the instructions precisely and output valid JSON when requested."
         ),
+        structured_output_model_path=(
+            "haytham.agents.worker_architecture_decisions"
+            ".architecture_decisions_models.ArchitectureDecisionsOutput"
+        ),
     ),
     # Report Synthesis (ADR-026) - single-agent validation report replacing scorer+narrator pipeline.
     # 12000 tokens: the ValidationReport structured output (executive_summary JSON + full markdown

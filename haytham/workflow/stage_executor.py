@@ -218,6 +218,9 @@ class StageExecutor:
                             "Saving raw output instead."
                         )
                         display_output = output  # Ensure display_output is set even on failure
+                    else:
+                        # Persist canonical JSON alongside markdown
+                        self._save_json(session_manager, output)
                     self._save_output(session_manager, display_output)
                 else:
                     self._save_output(session_manager, output)
@@ -411,6 +414,14 @@ class StageExecutor:
                 agent_name=agent_name,
                 output=output,
             )
+
+    def _save_json(self, session_manager: Any, json_content: str) -> None:
+        """Persist validated JSON to the stage directory."""
+        stage_dir = session_manager.session_dir / self.stage.slug
+        stage_dir.mkdir(parents=True, exist_ok=True)
+        json_path = stage_dir / "output.json"
+        json_path.write_text(json_content, encoding="utf-8")
+        logger.info("Stage %s: Saved canonical JSON to %s", self.stage.slug, json_path.name)
 
 
 # =============================================================================
