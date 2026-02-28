@@ -27,6 +27,7 @@ from haytham.exporters.spec_transforms import (
     group_stories_by_layer,
     render_gherkin_scenario,
     slugify,
+    strip_wrapping_fences,
     traits_to_constitution_articles,
 )
 from haytham.workflow.contracts.execution_contract import ContractStory
@@ -115,6 +116,7 @@ class SpecKitExporter(ProjectExporter):
         if scenario_stories:
             lines.append("## User Scenarios & Testing")
             lines.append("")
+            seen_scenarios: set[tuple[str, str, str, str]] = set()
             for idx, story in enumerate(scenario_stories, 1):
                 lines.append(f"### User Story {idx} - {story.title}")
                 lines.append("")
@@ -122,6 +124,10 @@ class SpecKitExporter(ProjectExporter):
                     lines.append(story.summary)
                     lines.append("")
                 for ac in story.acceptance_criteria:
+                    key = (ac.scenario, ac.given, ac.when, ac.then)
+                    if key in seen_scenarios:
+                        continue
+                    seen_scenarios.add(key)
                     lines.append(f"**Scenario: {ac.scenario}**")
                     lines.append("")
                     lines.extend(render_gherkin_scenario(ac, bold_keywords=False))
@@ -245,7 +251,7 @@ class SpecKitExporter(ProjectExporter):
             lines.append(f"## {story.title}")
             lines.append("")
             if story.content:
-                lines.append(story.content)
+                lines.append(strip_wrapping_fences(story.content))
                 lines.append("")
             elif story.summary:
                 lines.append(story.summary)
@@ -254,16 +260,28 @@ class SpecKitExporter(ProjectExporter):
         return "\n".join(lines)
 
     def _render_contracts(self, layer_3_stories: list[ContractStory]) -> str:
-        """Render contracts/api.md from layer 3 stories."""
+        """Render contracts/api.md from layer 3 stories.
+
+        Strips wrapping code fences and deduplicates stories with
+        identical content.
+        """
         lines: list[str] = []
         lines.append("# API Contracts")
         lines.append("")
 
+        seen_content: set[str] = set()
         for story in layer_3_stories:
+            content = strip_wrapping_fences(story.content) if story.content else ""
+            content_key = content.strip()
+            if content_key and content_key in seen_content:
+                continue
+            if content_key:
+                seen_content.add(content_key)
+
             lines.append(f"## {story.title}")
             lines.append("")
-            if story.content:
-                lines.append(story.content)
+            if content:
+                lines.append(content)
                 lines.append("")
             elif story.summary:
                 lines.append(story.summary)
@@ -277,11 +295,24 @@ class SpecKitExporter(ProjectExporter):
 
     @staticmethod
     def _collect_success_criteria(stories: list[ContractStory]) -> list[str]:
-        """Collect unique success criteria text from story acceptance_criteria."""
+        """Collect unique success criteria from story acceptance_criteria.
+
+        Deduplicates by scenario name. When Given/When/Then are available,
+        includes them for richer, more actionable criteria text.
+        """
         criteria: list[str] = []
+        seen: set[str] = set()
         for story in stories:
             for ac in story.acceptance_criteria:
-                criteria.append(ac.scenario)
+                if ac.scenario in seen:
+                    continue
+                seen.add(ac.scenario)
+                if ac.given and ac.when and ac.then:
+                    criteria.append(
+                        f"{ac.scenario}: Given {ac.given}, when {ac.when}, then {ac.then}"
+                    )
+                else:
+                    criteria.append(ac.scenario)
         return criteria
 
     @staticmethod

@@ -7,6 +7,7 @@ from haytham.exporters.spec_transforms import (
     group_stories_by_layer,
     render_gherkin_scenario,
     slugify,
+    strip_wrapping_fences,
     traits_to_constitution_articles,
 )
 from haytham.workflow.contracts.execution_contract import AcceptanceCriterion, ContractStory
@@ -274,3 +275,44 @@ class TestTraitsToConstitution:
         # Only one article should be generated (interface), not a separate
         # one for the _explanation key.
         assert result.count("### Article") == 1
+
+
+# ---------------------------------------------------------------------------
+# strip_wrapping_fences
+# ---------------------------------------------------------------------------
+
+
+class TestStripWrappingFences:
+    def test_strips_markdown_wrapper(self):
+        content = "```markdown\n## Description\n\nActual content.\n```"
+        assert strip_wrapping_fences(content) == "## Description\n\nActual content."
+
+    def test_strips_gherkin_wrapper(self):
+        content = "```gherkin\nScenario: Login\n  Given a user\n```"
+        assert strip_wrapping_fences(content) == "Scenario: Login\n  Given a user"
+
+    def test_strips_plain_wrapper(self):
+        content = "```\nSome content\n```"
+        assert strip_wrapping_fences(content) == "Some content"
+
+    def test_preserves_internal_fences(self):
+        content = "Some text\n```python\ncode\n```\nMore text"
+        assert strip_wrapping_fences(content) == content
+
+    def test_preserves_no_fences(self):
+        content = "Just plain text\nwith multiple lines"
+        assert strip_wrapping_fences(content) == content
+
+    def test_preserves_empty(self):
+        assert strip_wrapping_fences("") == ""
+
+    def test_preserves_single_line(self):
+        assert strip_wrapping_fences("one line") == "one line"
+
+    def test_handles_whitespace_around_fences(self):
+        content = "  ```markdown  \n## Content\n  ```  "
+        assert strip_wrapping_fences(content) == "## Content"
+
+    def test_preserves_outer_fence_with_nested_code_block(self):
+        content = "```markdown\n## Description\n```python\ncode_block()\n```\n```"
+        assert strip_wrapping_fences(content) == content

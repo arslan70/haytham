@@ -322,6 +322,22 @@ class TestSummaryExtraction:
     def test_whitespace_only_fallback(self):
         assert _extract_summary("   \n  \n", "My Title") == "My Title"
 
+    def test_skips_description_heading(self):
+        content = "## Description\n\nThis story sets up the invite system."
+        assert _extract_summary(content, "fallback") == "This story sets up the invite system."
+
+    def test_skips_code_fence_marker(self):
+        content = "```markdown\n## Description\n\nActual content here.\n```"
+        assert _extract_summary(content, "fallback") == "Actual content here."
+
+    def test_skips_multiple_structural_lines(self):
+        content = "```markdown\n## Description\n\n## Files to Create\n\nReal summary line."
+        assert _extract_summary(content, "fallback") == "Real summary line."
+
+    def test_falls_back_when_only_structural(self):
+        content = "## Description\n\n## Files to Create\n"
+        assert _extract_summary(content, "My Title") == "My Title"
+
 
 class TestTraitsParsing:
     def test_basic_traits(self):
