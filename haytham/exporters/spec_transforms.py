@@ -161,3 +161,19 @@ def traits_to_constitution_articles(traits: dict) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+def strip_wrapping_fences(content: str) -> str:
+    """Strip an outer code fence wrapper if the content is entirely enclosed.
+
+    Handles ``markdown``, ``gherkin``, and bare fence markers. Preserves
+    content that contains internal fences but isn't fully wrapped.
+    """
+    if not content:
+        return content
+    lines = content.strip().splitlines()
+    if len(lines) < 2:
+        return content
+    if lines[0].strip().startswith("```") and lines[-1].strip() == "```":
+        return "\n".join(lines[1:-1])
+    return content
