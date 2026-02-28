@@ -18,6 +18,7 @@ from components.feedback_conversation import (  # noqa: E402
 )
 
 from haytham.exporters import (  # noqa: E402
+    PROJECT_EXPORTERS,
     CSVExporter,
     ExportOptions,
     JiraExporter,
@@ -25,6 +26,8 @@ from haytham.exporters import (  # noqa: E402
     MarkdownExporter,
     load_stories_from_json,
 )
+from haytham.exporters.project_assembler import assemble_exportable_project  # noqa: E402
+from haytham.exporters.zip_utils import tree_to_zip  # noqa: E402
 
 SESSION_DIR = get_session_dir()
 
@@ -581,7 +584,15 @@ if is_workflow_locked():
     # Export format selection
     export_format = st.selectbox(
         "Export Format",
-        options=["Linear (CSV)", "Jira (CSV)", "Markdown", "Generic CSV", "JSON"],
+        options=[
+            "Linear (CSV)",
+            "Jira (CSV)",
+            "Markdown",
+            "Generic CSV",
+            "JSON",
+            "OpenSpec (zip)",
+            "Spec Kit (zip)",
+        ],
         help="Choose the format that matches your project management tool",
     )
 
@@ -630,8 +641,43 @@ if is_workflow_locked():
             s for s in exportable_stories if s.layer in export_options.filter_layers
         ]
 
-    # Export buttons
-    if export_format == "Linear (CSV)":
+    # Project-level exporters (directory tree -> zip)
+    if export_format in ("OpenSpec (zip)", "Spec Kit (zip)"):
+        format_key = "openspec" if "OpenSpec" in export_format else "speckit"
+        exporter_cls = PROJECT_EXPORTERS[format_key]
+        exporter = exporter_cls()
+
+        try:
+            project = assemble_exportable_project(SESSION_DIR)
+            tree = exporter.export_tree(project)
+
+            # Show tree preview
+            with st.expander(f"Preview ({len(tree)} files)"):
+                st.code("\n".join(sorted(tree.keys())), language="text")
+
+            zip_bytes = tree_to_zip(tree)
+            st.download_button(
+                f"Download {exporter.format_name} (.zip)",
+                data=zip_bytes,
+                file_name=exporter.get_filename(),
+                mime=exporter.mime_type,
+                type="primary",
+                use_container_width=True,
+            )
+            if format_key == "openspec":
+                st.caption("OpenSpec format for AI coding agents (Claude Code, Copilot, Cursor)")
+            else:
+                st.caption("Spec Kit format for GitHub ecosystem AI coding agents")
+        except FileNotFoundError:
+            st.warning(
+                "Complete the full pipeline (through dependency-ordering) "
+                "before exporting to spec formats."
+            )
+        except Exception as e:
+            st.error(f"Export failed: {e}")
+
+    # Story-level exporters (existing code below)
+    elif export_format == "Linear (CSV)":
         exporter = LinearExporter(export_options)
         content = exporter.export(exportable_stories)
         filename = exporter.get_filename("project")
@@ -691,7 +737,7 @@ if is_workflow_locked():
         )
         st.caption("Universal format for spreadsheets or custom imports")
 
-    else:  # JSON
+    elif export_format == "JSON":
         stories_json = json.dumps(stories, indent=2)
         st.download_button(
             "📥 Download JSON",
