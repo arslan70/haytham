@@ -312,3 +312,7 @@ class TestStripWrappingFences:
     def test_handles_whitespace_around_fences(self):
         content = "  ```markdown  \n## Content\n  ```  "
         assert strip_wrapping_fences(content) == "## Content"
+
+    def test_preserves_outer_fence_with_nested_code_block(self):
+        content = "```markdown\n## Description\n```python\ncode_block()\n```\n```"
+        assert strip_wrapping_fences(content) == content
