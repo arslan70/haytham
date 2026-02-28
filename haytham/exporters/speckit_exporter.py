@@ -115,6 +115,7 @@ class SpecKitExporter(ProjectExporter):
         if scenario_stories:
             lines.append("## User Scenarios & Testing")
             lines.append("")
+            seen_scenarios: set[tuple[str, str, str, str]] = set()
             for idx, story in enumerate(scenario_stories, 1):
                 lines.append(f"### User Story {idx} - {story.title}")
                 lines.append("")
@@ -122,6 +123,10 @@ class SpecKitExporter(ProjectExporter):
                     lines.append(story.summary)
                     lines.append("")
                 for ac in story.acceptance_criteria:
+                    key = (ac.scenario, ac.given, ac.when, ac.then)
+                    if key in seen_scenarios:
+                        continue
+                    seen_scenarios.add(key)
                     lines.append(f"**Scenario: {ac.scenario}**")
                     lines.append("")
                     lines.extend(render_gherkin_scenario(ac, bold_keywords=False))
@@ -277,11 +282,24 @@ class SpecKitExporter(ProjectExporter):
 
     @staticmethod
     def _collect_success_criteria(stories: list[ContractStory]) -> list[str]:
-        """Collect unique success criteria text from story acceptance_criteria."""
+        """Collect unique success criteria from story acceptance_criteria.
+
+        Deduplicates by scenario name. When Given/When/Then are available,
+        includes them for richer, more actionable criteria text.
+        """
         criteria: list[str] = []
+        seen: set[str] = set()
         for story in stories:
             for ac in story.acceptance_criteria:
-                criteria.append(ac.scenario)
+                if ac.scenario in seen:
+                    continue
+                seen.add(ac.scenario)
+                if ac.given and ac.when and ac.then:
+                    criteria.append(
+                        f"{ac.scenario}: Given {ac.given}, when {ac.when}, then {ac.then}"
+                    )
+                else:
+                    criteria.append(ac.scenario)
         return criteria
 
     @staticmethod
