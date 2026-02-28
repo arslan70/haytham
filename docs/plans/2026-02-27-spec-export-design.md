@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-27
 **Updated:** 2026-02-28 (upstream simplification review)
-**Status:** Phase 0 Complete, design reviewed (see [findings](./phase-0-findings.md))
+**Status:** Phase 0 Complete, design reviewed
 **Issues:** #10 (Spec Kit), #8 (OpenSpec, not yet created)
 **Dependencies:** Execution Contract Schema (ADR-028, complete), upstream structured output changes (Phase 1a)
 

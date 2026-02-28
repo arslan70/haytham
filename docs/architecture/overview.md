@@ -111,7 +111,7 @@ Two stores keep information flowing between phases:
 | Store | What it holds | How it works |
 |-------|---------------|-------------|
 | **JSON store** | Capabilities, architecture decisions, domain entities | Agents read context from earlier phases via JSON files on disk. No external database needed. |
-| **[Backlog.md](https://backlog.md/) (MCP)** | Stories, tasks, status | Where the generated stories live. Coding agents can read and update stories during implementation via [MCP](https://modelcontextprotocol.io/). |
+| **Backlog.md (MCP)** | Stories, tasks, status | Where the generated stories live. Coding agents can read and update stories during implementation via [MCP](https://modelcontextprotocol.io/). |
 
 ### Nothing is overwritten
 

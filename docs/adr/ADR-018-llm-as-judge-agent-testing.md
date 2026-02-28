@@ -326,4 +326,4 @@ The prototype is successful if:
 - [ADR-005: Quality Evaluation Pattern](./ADR-005-quality-evaluation-pattern.md)
 - [ADR-006: Story Generation Quality Evaluation](./ADR-006-story-generation-quality-evaluation.md)
 - [Strands Evaluate Documentation](https://strandsai.github.io/sdk-python/user-guide/evaluation/)
-- [CONSOLIDATION_PLAN.md](../CONSOLIDATION_PLAN.md): Phase 4.2: Stage-Level Tests
+- Phase 4.2: Stage-Level Tests (consolidation plan, superseded)

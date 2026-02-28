@@ -294,9 +294,9 @@ Each chunk will be detailed in a separate mini-ADR:
 
 ## Related Documents
 
-- [Architecture Overview](../architecture.md)
+- [Architecture Overview](../architecture/overview.md)
 - MVP Specification Stage (`haytham/workflow/stages/`)
-- [Burr Workflow Engine](../phased-workflow.md)
+- [How It Works](../how-it-works.md)
 
 ---
 

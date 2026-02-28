@@ -337,4 +337,4 @@ User stories are NOT stored in the vector DB. They are generated on-demand and s
 - [ADR-001a: MVP Spec Enhancement](./ADR-001a-mvp-spec-enhancement.md). Document-based specification (superseded)
 - [ADR-002: Backlog.md Integration](./ADR-002-backlog-md-integration.md). Task management
 - [ADR-004: Multi-Phase Workflow Architecture](./ADR-004-multi-phase-workflow-architecture.md). Workflow boundaries
-- [Project Haytham Concept Paper](../concept-paper.md). Core vision and principles
+- [Project Haytham Vision](../../VISION.md). Core vision and principles

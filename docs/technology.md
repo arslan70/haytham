@@ -121,7 +121,7 @@ Generates styled PDF reports from workflow outputs. Optional.
 
 ### JSON Store (Session Persistence)
 
-Stage outputs are persisted as JSON and markdown files in `session/{stage-slug}/`. The `SystemStateStore` uses atomic file writes (rename) for consistency. This replaced LanceDB vector storage per [ADR-027](../adr/ADR-027-replace-vectordb-with-json-store.md).
+Stage outputs are persisted as JSON and markdown files in `session/{stage-slug}/`. The `SystemStateStore` uses atomic file writes (rename) for consistency. This replaced LanceDB vector storage per [ADR-027](adr/ADR-027-replace-vectordb-with-json-store.md).
 
 ---
 

@@ -23,7 +23,7 @@ The Haytham system implements a single Burr workflow (`haytham-validation`) that
 With [ADR-003](./ADR-003-system-state-evolution.md), the `capability_model` stage outputs structured capabilities to a LanceDB vector database. The `mvp_scope` stage constrains the capability model to focus on MVP-critical capabilities only.
 
 ### The Challenge
-The concept paper ([concept-paper.md](../concept-paper.md)) envisions Haytham as covering the full software development lifecycle:
+The concept paper ([VISION.md](../../VISION.md)) envisions Haytham as covering the full software development lifecycle:
 
 1. **Discovery & Validation**: Problem framing, market analysis, risk assessment *(Product Owner role)*
 2. **Technical Translation**: Architecture decisions, story generation *(Software Architect role)*
@@ -1007,5 +1007,5 @@ Include `sprint_planning` stage in Workflow 2.
 - [ADR-003: System State Evolution](./ADR-003-system-state-evolution.md)
 - [ADR-005: Quality Evaluation Pattern](./ADR-005-quality-evaluation-pattern.md)
 - [ADR-006: Story Generation Quality Evaluation](./ADR-006-story-generation-quality-evaluation.md)
-- [Project Haytham Concept Paper](../concept-paper.md)
+- [Project Haytham Vision](../../VISION.md)
 - [Burr Documentation](https://burr.dagworks.io/concepts/state-machine/)
