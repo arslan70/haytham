@@ -8,9 +8,9 @@ This guide expands upon the "Adding a New Agent" section in `CLAUDE.md` and shou
 
 Haytham uses a configuration-driven architecture for defining and constructing agents.
 
-Agents are not hardcoded classes or registered using conditionals. Instead, all agents are defined in a single registry (`AGENT_CONFIGS`) located in `haytham/config.py`. This registry acts as the single source of truth for agent configuration.
+Agents are not hardcoded classes and are not registered using conditionals. Instead, all agents are defined in a single registry (`AGENT_CONFIGS`) located in `haytham/config.py`. This registry acts as the single source of truth for agent configuration.
 
-Each agent is defined using an `AgentConfig` object, which includes:
+Each agent is defined using an `AgentConfig` object, which defines:
 
 - `name`
 - `prompt_key`
@@ -30,14 +30,16 @@ Agents must be created using:
 create_agent_by_name(agent_name)
 ```
 
-This factory method:
+The factory:
 
 - Looks up the agent in `AGENT_CONFIGS`
 - Resolves structured output models dynamically (if configured)
 - Applies runtime overrides
 - Delegates construction to `_create_agent_from_config`
+- Attaches required hooks and tracing attributes
+- Ensures correct model tier routing
 
-### High-level flow:
+### High-level flow
 
 ```
 Workflow Stage
@@ -63,29 +65,6 @@ Choosing the correct tier ensures appropriate capability and cost efficiency.
 
 ---
 
-### Important: Do Not Instantiate Agents Directly
-
-Agents must always be created using:
-
-```python
-create_agent_by_name(agent_name)
-```
-
-Directly calling `Agent(...)` bypasses critical system behavior:
-
-- OpenTelemetry tracing (missing `agent.name`)
-- Required hook registration (`hooks=[HaythamAgentHooks()]`)
-- Model tier routing
-- Runtime overrides
-- Structured output resolution
-- Observability instrumentation
-
-The factory automatically attaches `HaythamAgentHooks()` and ensures proper tracing attributes are set.
-
-Bypassing the factory results in missing hooks, broken observability, and inconsistent behavior.
-
----
-
 ## 2. Factory Usage Requirement
 
 All agents must be instantiated via:
@@ -96,16 +75,15 @@ create_agent_by_name(agent_name)
 
 Direct instantiation of the `Agent` class is prohibited.
 
-The factory ensures:
+Bypassing the factory can result in:
 
-- Hook attachment
-- Trace attribute propagation
-- Model tier routing
-- Structured output resolution
-- Centralized configuration loading
-- Observability instrumentation
+- Missing hooks
+- Broken tracing (`agent.name` not set)
+- Incorrect model routing
+- Inconsistent structured output handling
+- Reduced observability
 
-All new agents must be added through `AGENT_CONFIGS`. The factory should not be modified to support individual agents.
+All new agents must be registered in `AGENT_CONFIGS`. The factory must remain generic and should not be modified to support individual agents.
 
 ---
 
@@ -173,7 +151,7 @@ No changes to the factory are required.
 
 ---
 
-### Step 3: (Optional) Register in `STAGE_CONFIGS`
+### Step 3 (Optional): Register in `STAGE_CONFIGS`
 
 If the agent participates in a workflow stage, register it in:
 
@@ -285,7 +263,7 @@ This ensures standardized text extraction across all agents.
 
 Agents may define tools via `tool_profile` in `AgentConfig`.
 
-### Tool implementation rules:
+Tool implementation rules:
 
 - Tools must never raise exceptions. Return structured error responses instead.
 - Tool parameters must be strongly typed.
