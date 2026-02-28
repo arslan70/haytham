@@ -418,7 +418,7 @@ class TestCapabilityModelNegative:
             "capabilities": {
                 "functional": [
                     {
-                        "id": "CAP-001",
+                        "id": "CAP-F-001",
                         "name": "Orphan Feature",
                         "serves_scope_item": "",
                         "user_flow": "Flow 1",
@@ -435,7 +435,7 @@ class TestCapabilityModelNegative:
             "capabilities": {
                 "functional": [
                     {
-                        "id": "CAP-001",
+                        "id": "CAP-F-001",
                         "name": "Background Sync",
                         "serves_scope_item": "User registration and login",
                         "user_flow": "Supporting flow",
@@ -452,7 +452,7 @@ class TestCapabilityModelNegative:
             "capabilities": {
                 "functional": [
                     {
-                        "id": "CAP-001",
+                        "id": "CAP-F-001",
                         "name": "Time Travel",
                         "serves_scope_item": "User registration and login",
                         "user_flow": "Flow 99",
@@ -474,7 +474,7 @@ class TestBuildBuyNegative:
                 {
                     "name": "React",
                     "category": "Frontend Framework",
-                    "capabilities_served": ["CAP-001"],
+                    "capabilities_served": ["CAP-F-001"],
                     "rationale": "Popular UI library.",
                 },
             ],
@@ -506,7 +506,7 @@ class TestBuildBuyNegative:
                 {
                     "name": "Supabase",
                     "category": "Database",
-                    "capabilities_served": ["CAP-001"],
+                    "capabilities_served": ["CAP-F-001"],
                     "rationale": "Managed Postgres.",
                 },
             ],

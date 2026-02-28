@@ -837,3 +837,19 @@ class SessionManager:
                 continue
 
         return "\n\n---\n\n".join(outputs) if outputs else None
+
+    def load_execution_contract(self):
+        """Load the execution contract from the story-generation stage.
+
+        Returns:
+            Validated ExecutionContract, or None if the file doesn't exist.
+        """
+        contract_path = self.session_dir / "story-generation" / "execution_contract.json"
+        if not contract_path.exists():
+            return None
+
+        # Import inside method to avoid circular dependency:
+        # session/ should not import from workflow/ at module level.
+        from haytham.workflow.contracts.execution_contract import ExecutionContract
+
+        return ExecutionContract.model_validate_json(contract_path.read_text(encoding="utf-8"))
