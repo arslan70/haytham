@@ -1,277 +1,328 @@
-Agent Development Guide
+# Agent Development Guide
 
-This guide expands upon the “Adding a New Agent” section in CLAUDE.md.
-If architectural changes are introduced, both documents should be updated together.
+This guide expands upon the "Adding a New Agent" section in `CLAUDE.md` and should be kept consistent with it. If architectural changes are made, update both documents together.
 
-1. Overview of Haytham Agent Architecture
+---
+
+## 1. Overview of Haytham Agent Architecture
 
 Haytham uses a configuration-driven architecture for defining and constructing agents.
 
-Agents are not hardcoded classes or registered using conditionals. Instead, all agents are defined in a centralized registry (AGENT_CONFIGS) located in haytham/config.py. This registry is the single source of truth for agent configuration.
+Agents are not hardcoded classes or registered using conditionals. Instead, all agents are defined in a single registry (`AGENT_CONFIGS`) located in `haytham/config.py`. This registry acts as the single source of truth for agent configuration.
 
-Each agent is defined using an AgentConfig object, which includes:
+Each agent is defined using an `AgentConfig` object, which includes:
 
-name
+- `name`
+- `prompt_key`
+- `max_tokens`
+- `timeout_config`
+- `tool_profile`
+- `model_tier`
+- `streaming`
+- `use_file_ops_model`
+- `structured_output_model`
+- `structured_output_model_path`
+- `custom_system_prompt`
 
-prompt_key
+Agents must be created using:
 
-max_tokens
-
-timeout_config
-
-tool_profile
-
-model_tier
-
-streaming
-
-use_file_ops_model
-
-structured_output_model
-
-structured_output_model_path
-
-custom_system_prompt
-
-When the system needs to construct an agent, it calls:
-
+```python
 create_agent_by_name(agent_name)
+```
 
-The factory method:
+This factory method:
 
-Looks up configuration in AGENT_CONFIGS
+- Looks up the agent in `AGENT_CONFIGS`
+- Resolves structured output models dynamically (if configured)
+- Applies runtime overrides
+- Delegates construction to `_create_agent_from_config`
 
-Resolves structured_output_model_path dynamically (if provided)
+### High-level flow:
 
-Applies runtime overrides
-
-Delegates construction to _create_agent_from_config
-
-This design follows the Open-Closed Principle (OCP):
-new agents can be added without modifying factory logic.
-
-Model Tier Guidance
-
-Select the appropriate model_tier based on task complexity:
-
-LIGHT — Extraction, summarization, simple transformations
-
-HEAVY — Structured output generation, synthesis, complex reasoning
-
-REASONING — Cross-referencing, validation workflows, multi-step logic
-
-Choosing the correct tier ensures appropriate capability and cost efficiency.
-
-Agent Construction Flow
-
+```
 Workflow Stage
 → create_agent_by_name()
 → AGENT_CONFIGS lookup
 → _create_agent_from_config()
 → Fully constructed Agent
+```
 
-Important: Do Not Instantiate Agents Directly
+This design follows the Open-Closed Principle (OCP): new agents can be added without modifying factory logic.
 
-Agents must always be created using create_agent_by_name().
+---
 
-Directly calling Agent(...) bypasses critical system behavior:
+### Model Tier Guidance
 
-OpenTelemetry tracing (missing agent.name)
+Select the appropriate `model_tier` based on task complexity:
 
-Required hook registration (hooks=[HaythamAgentHooks()])
+- **LIGHT** — Extraction, summarization, simple transformations
+- **HEAVY** — Structured output generation, synthesis, complex reasoning
+- **REASONING** — Cross-referencing, validation workflows, multi-step logic
 
-Model tier routing
+Choosing the correct tier ensures appropriate capability and cost efficiency.
 
-Runtime overrides
+---
 
-Structured output resolution
+### Important: Do Not Instantiate Agents Directly
 
-Observability instrumentation
+Agents must always be created using:
 
-The factory automatically attaches HaythamAgentHooks() and ensures proper tracing attributes are set.
+```python
+create_agent_by_name(agent_name)
+```
 
-Bypassing the factory will result in missing hooks, broken observability, and inconsistent behavior.
+Directly calling `Agent(...)` bypasses critical system behavior:
 
-2. Adding a New Agent
+- OpenTelemetry tracing (missing `agent.name`)
+- Required hook registration (`hooks=[HaythamAgentHooks()]`)
+- Model tier routing
+- Runtime overrides
+- Structured output resolution
+- Observability instrumentation
 
-New agents are added entirely through configuration.
-No changes to the factory are required.
+The factory automatically attaches `HaythamAgentHooks()` and ensures proper tracing attributes are set.
 
-Step 1: Create the Prompt Directory
+Bypassing the factory results in missing hooks, broken observability, and inconsistent behavior.
+
+---
+
+## 2. Factory Usage Requirement
+
+All agents must be instantiated via:
+
+```python
+create_agent_by_name(agent_name)
+```
+
+Direct instantiation of the `Agent` class is prohibited.
+
+The factory ensures:
+
+- Hook attachment
+- Trace attribute propagation
+- Model tier routing
+- Structured output resolution
+- Centralized configuration loading
+- Observability instrumentation
+
+All new agents must be added through `AGENT_CONFIGS`. The factory should not be modified to support individual agents.
+
+---
+
+## 3. Adding a New Agent
+
+Adding a new agent is done entirely through configuration.
+
+### Step 1: Create the Prompt Directory
 
 Create a directory under:
 
+```
 haytham/agents/
+```
 
 Follow the naming convention:
 
+```
 worker_{agent_name}/
+```
 
 Inside that directory, create:
 
+```
 worker_{agent_name}_prompt.txt
+```
 
 Example:
 
+```
 haytham/agents/worker_concept_summarizer/
     worker_concept_summarizer_prompt.txt
+```
 
-The prompt_key in AgentConfig must match the worker directory name.
+The `prompt_key` in `AgentConfig` must match the worker directory name.
 
-Step 2: Register in AGENT_CONFIGS
+---
+
+### Step 2: Register in `AGENT_CONFIGS`
 
 Open:
 
+```
 haytham/config.py
+```
 
-Add a new entry:
+Add:
 
+```python
 "concept_summarizer": AgentConfig(
     name="concept_summarizer_agent",
     prompt_key="worker_concept_summarizer",
     max_tokens=TOKENS_DEFAULT,
 )
+```
 
-Optional fields include:
+Optional fields:
 
-tool_profile
+- `tool_profile`
+- `model_tier`
+- `structured_output_model_path`
+- `custom_system_prompt`
 
-model_tier
+No changes to the factory are required.
 
-structured_output_model_path
+---
 
-custom_system_prompt
-
-Step 3: (Optional) Register in STAGE_CONFIGS
+### Step 3: (Optional) Register in `STAGE_CONFIGS`
 
 If the agent participates in a workflow stage, register it in:
 
+```
 haytham/workflow/stages/configs.py
+```
 
-This determines when and how the agent executes within orchestration.
+This determines when and how the agent executes within workflow orchestration.
 
-If the agent is used programmatically outside workflow stages, this step is not required.
+---
 
-3. Structured Output (Optional)
+## 4. Structured Output (Optional)
 
 If the agent must return structured JSON, define a Pydantic model:
 
+```python
 from pydantic import BaseModel
 
 class ConceptSummary(BaseModel):
     title: str
     summary: str
     key_points: list[str]
+```
 
-Update configuration:
+Then configure:
 
+```python
 "concept_summarizer": AgentConfig(
     name="concept_summarizer_agent",
     prompt_key="worker_concept_summarizer",
     max_tokens=TOKENS_DEFAULT,
-    structured_output_model_path="haytham.schemas.concept_summary:ConceptSummary",
+    structured_output_model_path="haytham.schemas.concept_summary.ConceptSummary",
 )
+```
 
-When structured_output_model_path is provided, the factory dynamically resolves the class and enables structured output parsing.
+When `structured_output_model_path` is provided, the factory dynamically resolves and enables structured output parsing.
 
-4. Testing Agents
+---
+
+## 5. Testing Agents
 
 Agents must be tested without making real LLM calls.
 
-Unit Testing (Mocked LLM)
+### Unit Testing (Mocked LLM)
 
 When writing tests:
 
-Mock the LLM client
+- Mock the LLM client
+- Provide controlled responses
+- Verify agent loads correctly
+- Verify prompt usage
+- Verify structured output (if enabled)
+- Verify output extraction
 
-Provide a controlled response
+Example:
 
-Verify prompt loading
-
-Verify structured output (if enabled)
-
-Verify output extraction behavior
-
-Example structure:
-
+```python
 def test_concept_summarizer():
     # Arrange: mock LLM response
-
     # Act: call agent
-
     # Assert: verify expected output
+```
 
 Refer to existing worker agent tests for correct mocking patterns.
 
-LLM-as-Judge Evaluation (ADR-018)
+---
 
-Agent quality is validated using the LLM-as-Judge evaluation framework (ADR-018).
+### LLM-as-Judge Evaluation (ADR-018)
 
-Run evaluations with:
+Agent quality is validated using the LLM-as-Judge framework (ADR-018).
 
+Run:
+
+```
 make test-agents
+```
 
-For faster execution:
+Quick mode:
 
+```
 make test-agents-quick
+```
 
-If new fixtures are required:
+To record fixtures:
 
+```
 make record-fixtures
+```
 
-All new agents should integrate with this evaluation system where applicable.
+All new agents should integrate with this evaluation framework where applicable.
 
-Output Extraction
+---
+
+### Output Extraction
 
 Agent responses must be processed using:
 
+```python
 extract_text_from_result()
-(from haytham/agents/output_utils.py).
+```
 
-This ensures consistent text extraction across all agents and avoids manual parsing.
+(from `haytham/agents/output_utils.py`)
 
-5. Tool Calling
+This ensures standardized text extraction across all agents.
 
-Tool access is controlled via the tool_profile field in AgentConfig.
+---
 
-When defining tools:
+## 6. Tool Calling
 
-Use the @tool decorator
+Agents may define tools via `tool_profile` in `AgentConfig`.
 
-Tools must never raise exceptions — return structured error responses instead
+### Tool implementation rules:
 
-Use strongly typed parameters
+- Tools must never raise exceptions. Return structured error responses instead.
+- Tool parameters must be strongly typed.
+- Provide comprehensive docstrings (the LLM reads both types and docstrings).
+- Tool outputs should be deterministic and structured.
+- Tool configuration must be defined in `AGENT_CONFIGS`, not in the factory.
 
-Provide clear, comprehensive docstrings (the LLM reads them)
+---
 
-Ensure outputs are deterministic and structured
+## 7. Workflow Integration
 
-Tool configuration must be defined in AGENT_CONFIGS, not in the factory.
+Agents execute within the Burr orchestration workflow:
 
-6. How Agents Fit Into the Workflow
+- A workflow stage is triggered.
+- `STAGE_CONFIGS` determines which agent runs.
+- The workflow calls `create_agent_by_name()`.
+- The factory builds the agent from `AGENT_CONFIGS`.
+- The agent executes with configured prompt, tools, and model tier.
+- Output is processed and passed to the next stage.
 
-Agents execute inside the Burr orchestration workflow.
+This separation keeps agents modular and workflow logic independent.
 
-Lifecycle:
+---
 
-A workflow stage is triggered
+## 8. Architectural References
 
-STAGE_CONFIGS determines which agent runs
+This guide follows architectural patterns defined in:
 
-The workflow calls create_agent_by_name()
-
-The factory constructs the agent
-
-The agent executes with its prompt, tools, and model configuration
-
-The output is processed and passed to the next stage
-
-This separation ensures modularity, extensibility, and clean orchestration boundaries.
-
-7. Architectural References
-
-This guide aligns with:
-
+```
 docs/contributing/architecture-patterns.md
+```
 
-Contributors should review that document alongside this guide for deeper architectural context.
+That document describes:
+
+- Core system design principles
+- Agent registration patterns
+- Workflow orchestration structure
+- Extensibility guidelines
+
+New contributors should review it alongside this guide.
