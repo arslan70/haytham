@@ -78,18 +78,41 @@ def _split_implements(refs: list[str]) -> tuple[list[str], list[str]]:
     return caps, decs
 
 
+_STRUCTURAL_HEADINGS = frozenset(
+    {
+        "description",
+        "details",
+        "overview",
+        "files to create",
+        "acceptance criteria",
+        "configuration",
+        "required permissions",
+    }
+)
+
+
 def _extract_summary(content: str, title: str) -> str:
     """Extract summary from story content.
 
-    Takes the first non-empty line, stripping markdown heading markers.
-    Falls back to title if content is empty.
+    Takes the first non-empty, non-structural line, stripping markdown
+    heading markers. Skips code fence delimiters and generic headings
+    like "Description" or "Files to Create".
+    Falls back to title if content is empty or only structural.
     """
     if not content or not content.strip():
         return title
     for line in content.splitlines():
         stripped = line.strip()
-        if stripped:
-            return stripped.lstrip("#").strip()
+        if not stripped:
+            continue
+        # Skip code fence markers
+        if stripped.startswith("```"):
+            continue
+        # Strip heading markers and check for structural headings
+        heading_text = stripped.lstrip("#").strip()
+        if heading_text.lower() in _STRUCTURAL_HEADINGS:
+            continue
+        return heading_text
     return title
 
 
