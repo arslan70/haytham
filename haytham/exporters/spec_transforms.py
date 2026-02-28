@@ -85,6 +85,8 @@ def capability_to_shall_statement(cap: ExportableCapability) -> str:
         desc = _to_bare_infinitive(first_word) + rest
     else:
         desc = _to_bare_infinitive(desc)
+    if not desc.endswith((".", "!", "?")):
+        desc += "."
     return f"The system SHALL {desc}"
 
 

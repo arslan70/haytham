@@ -100,7 +100,7 @@ class TestCapabilityToShallStatement:
             is_functional=True,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL authenticate users via OAuth"
+        assert result == "The system SHALL authenticate users via OAuth."
 
     def test_already_lowercase(self):
         cap = ExportableCapability(
@@ -110,7 +110,7 @@ class TestCapabilityToShallStatement:
             is_functional=True,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL cache frequently accessed data"
+        assert result == "The system SHALL cache frequently accessed data."
 
     def test_non_functional(self):
         cap = ExportableCapability(
@@ -120,7 +120,7 @@ class TestCapabilityToShallStatement:
             is_functional=False,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL respond within 200ms for 95th percentile"
+        assert result == "The system SHALL respond within 200ms for 95th percentile."
 
     def test_empty_description_uses_name(self):
         cap = ExportableCapability(
@@ -141,7 +141,7 @@ class TestCapabilityToShallStatement:
             is_functional=False,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL ensure secure communication and protects user privacy"
+        assert result == "The system SHALL ensure secure communication and protects user privacy."
 
     def test_deconjugates_manages(self):
         cap = ExportableCapability(
@@ -151,7 +151,7 @@ class TestCapabilityToShallStatement:
             is_functional=True,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL manage the invite-only access model"
+        assert result == "The system SHALL manage the invite-only access model."
 
     def test_preserves_infinitive(self):
         """A description already in infinitive form is not mangled."""
@@ -162,7 +162,7 @@ class TestCapabilityToShallStatement:
             is_functional=True,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL access user data securely"
+        assert result == "The system SHALL access user data securely."
 
 
 # ---------------------------------------------------------------------------
