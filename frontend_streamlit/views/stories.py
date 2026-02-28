@@ -50,7 +50,7 @@ def load_startup_idea() -> str | None:
         try:
             data = yaml.safe_load(project_file.read_text())
             return data.get("system_goal", "")
-        except Exception:
+        except (yaml.YAMLError, UnicodeDecodeError, AttributeError):
             pass
     return None
 
@@ -264,7 +264,7 @@ def load_stories():
             stories = json.loads(stories_json.read_text())
             if stories:
                 return [_enrich_story(s) for s in stories]
-        except Exception as e:
+        except (json.JSONDecodeError, UnicodeDecodeError, KeyError) as e:
             st.warning(f"Error loading stories.json: {e}")
 
     # Fallback: parse from markdown (old sessions)
@@ -275,7 +275,7 @@ def load_stories():
             stories = parse_stories_from_markdown(content)
             if stories:
                 return stories
-        except Exception as e:
+        except (UnicodeDecodeError, ValueError) as e:
             st.warning(f"Error parsing story markdown: {e}")
 
     # Legacy fallback
@@ -283,7 +283,7 @@ def load_stories():
     if stories_file.exists():
         try:
             return json.loads(stories_file.read_text())
-        except Exception as e:
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
             st.error(f"Error loading stories: {e}")
     return []
 
@@ -673,7 +673,7 @@ if is_workflow_locked():
                 "Complete the full pipeline (through dependency-ordering) "
                 "before exporting to spec formats."
             )
-        except Exception as e:
+        except (ValueError, KeyError, TypeError) as e:
             st.error(f"Export failed: {e}")
 
     # Story-level exporters (existing code below)

@@ -27,11 +27,15 @@ _BUILD_BUY_PATH = Path("build-buy-analysis") / "output.json"
 
 
 def _load_json(path: Path) -> dict | None:
-    """Load and parse a JSON file, returning None if it does not exist."""
+    """Load and parse a JSON file, returning None if missing or malformed."""
     if not path.exists():
         logger.warning("Expected JSON file not found: %s", path)
         return None
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        logger.warning("Malformed JSON in %s, treating as missing", path)
+        return None
 
 
 def _build_capabilities(

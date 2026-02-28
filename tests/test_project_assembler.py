@@ -332,6 +332,25 @@ class TestProjectAssembler:
         assert "User Auth" in scope_names
         assert "Leaderboard Display" in scope_names
 
+    def test_corrupted_optional_json_treated_as_missing(self, tmp_path):
+        """Malformed JSON in optional files is treated as missing (graceful degradation)."""
+        session_dir = tmp_path / "session"
+        _write_session_files(session_dir)
+
+        # Corrupt the capability model JSON
+        cap_path = session_dir / "capability-model" / "output.json"
+        cap_path.write_text("{this is not valid json", encoding="utf-8")
+
+        project = assemble_exportable_project(session_dir)
+
+        # Should still assemble, just without capabilities
+        assert project.capabilities == []
+        assert project.non_functional_capabilities == []
+        assert project.scope_items == []
+        # Other fields from the valid contract should be intact
+        assert project.idea_summary == "Fitness leaderboard app"
+        assert len(project.stories) == 2
+
     def test_nf_capability_uses_requirement_as_description_fallback(self, tmp_path):
         """Non-functional capability uses 'requirement' field when 'description' is empty."""
         session_dir = tmp_path / "session"

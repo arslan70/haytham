@@ -8,7 +8,7 @@ import re
 from collections import defaultdict
 
 from haytham.exporters.project_model import ExportableCapability
-from haytham.workflow.contracts.execution_contract import ContractStory
+from haytham.workflow.contracts.execution_contract import AcceptanceCriterion, ContractStory
 
 _SLUGIFY_RE = re.compile(r"[^a-z0-9]+")
 
@@ -44,6 +44,35 @@ def capability_to_shall_statement(cap: ExportableCapability) -> str:
     if desc[0].isupper():
         desc = desc[0].lower() + desc[1:]
     return f"The system SHALL {desc}"
+
+
+def render_gherkin_scenario(ac: AcceptanceCriterion, *, bold_keywords: bool = True) -> list[str]:
+    """Render a single acceptance criterion as Gherkin-style lines.
+
+    Args:
+        ac: The acceptance criterion to render.
+        bold_keywords: If True, wrap Given/When/Then in **bold** (OpenSpec style).
+            If False, render plain text (Spec Kit style).
+
+    Returns:
+        List of markdown lines (without trailing blank line).
+    """
+    lines: list[str] = []
+    if bold_keywords:
+        if ac.given:
+            lines.append(f"- **Given** {ac.given}")
+        if ac.when:
+            lines.append(f"- **When** {ac.when}")
+        if ac.then:
+            lines.append(f"- **Then** {ac.then}")
+    else:
+        if ac.given:
+            lines.append(f"- Given {ac.given}")
+        if ac.when:
+            lines.append(f"- When {ac.when}")
+        if ac.then:
+            lines.append(f"- Then {ac.then}")
+    return lines
 
 
 def group_stories_by_layer(stories: list[ContractStory]) -> dict[int, list[ContractStory]]:

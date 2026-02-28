@@ -65,7 +65,7 @@ class ExportableProject(BaseModel):
     capabilities: list[ExportableCapability] = Field(default_factory=list)
     decisions: list[ExportableDecision] = Field(default_factory=list)
     non_functional_capabilities: list[ExportableCapability] = Field(default_factory=list)
-    build_buy: Any = None
+    build_buy: dict | None = None
 
     # Stories (from ExecutionContract)
     stories: list[ContractStory] = Field(default_factory=list)

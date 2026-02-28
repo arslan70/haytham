@@ -25,6 +25,7 @@ from haytham.exporters.project_model import (
 )
 from haytham.exporters.spec_transforms import (
     group_stories_by_layer,
+    render_gherkin_scenario,
     slugify,
     traits_to_constitution_articles,
 )
@@ -123,12 +124,7 @@ class SpecKitExporter(ProjectExporter):
                 for ac in story.acceptance_criteria:
                     lines.append(f"**Scenario: {ac.scenario}**")
                     lines.append("")
-                    if ac.given:
-                        lines.append(f"- Given {ac.given}")
-                    if ac.when:
-                        lines.append(f"- When {ac.when}")
-                    if ac.then:
-                        lines.append(f"- Then {ac.then}")
+                    lines.extend(render_gherkin_scenario(ac, bold_keywords=False))
                     lines.append("")
 
         # Functional Requirements
@@ -222,29 +218,16 @@ class SpecKitExporter(ProjectExporter):
             user_stories.extend(by_layer.get(layer_num, []))
 
         task_counter = 0
-
-        if setup:
-            lines.append("## Phase 1: Setup")
+        for phase_name, phase_stories in [
+            ("Phase 1: Setup", setup),
+            ("Phase 2: Foundational", foundational),
+            ("Phase 3: User Stories", user_stories),
+        ]:
+            if not phase_stories:
+                continue
+            lines.append(f"## {phase_name}")
             lines.append("")
-            for story in setup:
-                task_counter += 1
-                tag = "[P]" if not story.depends_on else "[S]"
-                lines.append(f"- [ ] T{task_counter:03d} {tag} {story.title} - {story.summary}")
-            lines.append("")
-
-        if foundational:
-            lines.append("## Phase 2: Foundational")
-            lines.append("")
-            for story in foundational:
-                task_counter += 1
-                tag = "[P]" if not story.depends_on else "[S]"
-                lines.append(f"- [ ] T{task_counter:03d} {tag} {story.title} - {story.summary}")
-            lines.append("")
-
-        if user_stories:
-            lines.append("## Phase 3: User Stories")
-            lines.append("")
-            for story in user_stories:
+            for story in phase_stories:
                 task_counter += 1
                 tag = "[P]" if not story.depends_on else "[S]"
                 lines.append(f"- [ ] T{task_counter:03d} {tag} {story.title} - {story.summary}")

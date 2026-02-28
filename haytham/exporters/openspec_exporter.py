@@ -21,7 +21,11 @@ from haytham.exporters.project_model import (
     ExportableProject,
     ExportableScopeItem,
 )
-from haytham.exporters.spec_transforms import capability_to_shall_statement, slugify
+from haytham.exporters.spec_transforms import (
+    capability_to_shall_statement,
+    render_gherkin_scenario,
+    slugify,
+)
 from haytham.workflow.contracts.execution_contract import ContractStory
 
 
@@ -69,7 +73,7 @@ class OpenSpecExporter(ProjectExporter):
             config["generated_at"] = project.generated_at
         if project.system_traits:
             config["traits"] = project.system_traits
-        return yaml.dump(config, default_flow_style=False, sort_keys=False)
+        return yaml.safe_dump(config, default_flow_style=False, sort_keys=False)
 
     def _render_project(self, project: ExportableProject) -> str:
         """Render project.md with tech stack and architecture decisions."""
@@ -137,12 +141,7 @@ class OpenSpecExporter(ProjectExporter):
                     has_scenarios = True
                     lines.append(f"#### Scenario: {ac.scenario}")
                     lines.append("")
-                    if ac.given:
-                        lines.append(f"- **Given** {ac.given}")
-                    if ac.when:
-                        lines.append(f"- **When** {ac.when}")
-                    if ac.then:
-                        lines.append(f"- **Then** {ac.then}")
+                    lines.extend(render_gherkin_scenario(ac, bold_keywords=True))
                     lines.append("")
 
             # Fallback: use capability's own acceptance_criteria

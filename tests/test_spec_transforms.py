@@ -4,10 +4,11 @@ from haytham.exporters.project_model import ExportableCapability
 from haytham.exporters.spec_transforms import (
     capability_to_shall_statement,
     group_stories_by_layer,
+    render_gherkin_scenario,
     slugify,
     traits_to_constitution_articles,
 )
-from haytham.workflow.contracts.execution_contract import ContractStory
+from haytham.workflow.contracts.execution_contract import AcceptanceCriterion, ContractStory
 
 # ---------------------------------------------------------------------------
 # slugify
@@ -79,6 +80,53 @@ class TestCapabilityToShallStatement:
         )
         result = capability_to_shall_statement(cap)
         assert result == "The system SHALL provide Search."
+
+
+# ---------------------------------------------------------------------------
+# render_gherkin_scenario
+# ---------------------------------------------------------------------------
+
+
+class TestRenderGherkinScenario:
+    def test_bold_keywords(self):
+        ac = AcceptanceCriterion(
+            id="AC-1",
+            scenario="Login",
+            given="a user",
+            when="they log in",
+            then="they see the dashboard",
+        )
+        lines = render_gherkin_scenario(ac, bold_keywords=True)
+        assert lines == [
+            "- **Given** a user",
+            "- **When** they log in",
+            "- **Then** they see the dashboard",
+        ]
+
+    def test_plain_keywords(self):
+        ac = AcceptanceCriterion(
+            id="AC-1",
+            scenario="Login",
+            given="a user",
+            when="they log in",
+            then="they see the dashboard",
+        )
+        lines = render_gherkin_scenario(ac, bold_keywords=False)
+        assert lines == [
+            "- Given a user",
+            "- When they log in",
+            "- Then they see the dashboard",
+        ]
+
+    def test_missing_fields_skipped(self):
+        ac = AcceptanceCriterion(id="AC-2", scenario="Partial", then="result appears")
+        lines = render_gherkin_scenario(ac, bold_keywords=True)
+        assert lines == ["- **Then** result appears"]
+
+    def test_empty_ac_returns_empty(self):
+        ac = AcceptanceCriterion(id="AC-3", scenario="Empty")
+        lines = render_gherkin_scenario(ac, bold_keywords=True)
+        assert lines == []
 
 
 # ---------------------------------------------------------------------------
