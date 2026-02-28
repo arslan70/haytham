@@ -21,12 +21,20 @@ logger = logging.getLogger("haytham")
 def _parse_traits_from_markdown(markdown: str) -> dict[str, str | list[str]]:
     """Extract system traits from the markdown format stored on disk.
 
-    Parses lines matching ``**Key:** Value``. Multi-select traits use
-    bracket notation: ``**Deployment:** [Container, Serverless]``.
+    Handles two writer formats:
+    - Plain:  ``**Key:** Value``
+    - Bullet: ``- **Key:** Value``  (produced by SystemTraitsOutput.to_markdown)
+
+    Multi-select traits use single brackets: ``[Container, Serverless]``.
+    Enum traits may use double brackets: ``[[mobile_native]]``, treated as
+    a single value with the brackets stripped.
     """
     traits: dict[str, str | list[str]] = {}
     for line in markdown.splitlines():
         stripped = line.strip()
+        # Strip leading bullet marker so both "- **key:**" and "**key:**" work
+        if stripped.startswith("- "):
+            stripped = stripped[2:]
         if not stripped.startswith("**") or ":**" not in stripped:
             continue
 
@@ -39,8 +47,11 @@ def _parse_traits_from_markdown(markdown: str) -> dict[str, str | list[str]]:
         if not key or not raw_value:
             continue
 
-        # Multi-select: [Container, Serverless]
-        if raw_value.startswith("[") and "]" in raw_value:
+        # Double brackets [[value]]: enum single-value notation
+        if raw_value.startswith("[[") and raw_value.endswith("]]"):
+            traits[key] = raw_value[2:-2]
+        # Single brackets [A, B]: multi-select list
+        elif raw_value.startswith("[") and "]" in raw_value:
             bracket_end = raw_value.index("]")
             inner = raw_value[1:bracket_end]
             traits[key] = [v.strip() for v in inner.split(",")]

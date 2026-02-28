@@ -2,6 +2,7 @@
 
 from haytham.exporters.project_model import ExportableCapability
 from haytham.exporters.spec_transforms import (
+    _to_bare_infinitive,
     capability_to_shall_statement,
     group_stories_by_layer,
     render_gherkin_scenario,
@@ -36,6 +37,56 @@ class TestSlugify:
 
 
 # ---------------------------------------------------------------------------
+# _to_bare_infinitive
+# ---------------------------------------------------------------------------
+
+
+class TestToBareInfinitive:
+    def test_regular_s(self):
+        assert _to_bare_infinitive("maintains") == "maintain"
+        assert _to_bare_infinitive("allows") == "allow"
+        assert _to_bare_infinitive("delivers") == "deliver"
+
+    def test_trailing_es_on_e_stem(self):
+        """Verbs whose stem ends in -e: ensure+s, manage+s, facilitate+s."""
+        assert _to_bare_infinitive("ensures") == "ensure"
+        assert _to_bare_infinitive("manages") == "manage"
+        assert _to_bare_infinitive("facilitates") == "facilitate"
+        assert _to_bare_infinitive("guarantees") == "guarantee"
+
+    def test_ies_to_y(self):
+        assert _to_bare_infinitive("identifies") == "identify"
+        assert _to_bare_infinitive("notifies") == "notify"
+
+    def test_sibilant_es(self):
+        assert _to_bare_infinitive("processes") == "process"
+        assert _to_bare_infinitive("addresses") == "address"
+        assert _to_bare_infinitive("pushes") == "push"
+        assert _to_bare_infinitive("matches") == "match"
+        assert _to_bare_infinitive("fixes") == "fix"
+
+    def test_ss_not_stripped(self):
+        """Words ending in -ss are not conjugated verbs."""
+        assert _to_bare_infinitive("access") == "access"
+        assert _to_bare_infinitive("process") == "process"
+        assert _to_bare_infinitive("express") == "express"
+
+    def test_us_not_stripped(self):
+        """Words ending in -us are not conjugated verbs."""
+        assert _to_bare_infinitive("focus") == "focus"
+        assert _to_bare_infinitive("status") == "status"
+
+    def test_short_words_unchanged(self):
+        assert _to_bare_infinitive("is") == "is"
+        assert _to_bare_infinitive("has") == "has"
+        assert _to_bare_infinitive("do") == "do"
+
+    def test_no_trailing_s_unchanged(self):
+        assert _to_bare_infinitive("provide") == "provide"
+        assert _to_bare_infinitive("cache") == "cache"
+
+
+# ---------------------------------------------------------------------------
 # capability_to_shall_statement
 # ---------------------------------------------------------------------------
 
@@ -49,7 +100,7 @@ class TestCapabilityToShallStatement:
             is_functional=True,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL authenticate users via OAuth"
+        assert result == "The system SHALL authenticate users via OAuth."
 
     def test_already_lowercase(self):
         cap = ExportableCapability(
@@ -59,7 +110,7 @@ class TestCapabilityToShallStatement:
             is_functional=True,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL cache frequently accessed data"
+        assert result == "The system SHALL cache frequently accessed data."
 
     def test_non_functional(self):
         cap = ExportableCapability(
@@ -69,7 +120,7 @@ class TestCapabilityToShallStatement:
             is_functional=False,
         )
         result = capability_to_shall_statement(cap)
-        assert result == "The system SHALL respond within 200ms for 95th percentile"
+        assert result == "The system SHALL respond within 200ms for 95th percentile."
 
     def test_empty_description_uses_name(self):
         cap = ExportableCapability(
@@ -80,6 +131,38 @@ class TestCapabilityToShallStatement:
         )
         result = capability_to_shall_statement(cap)
         assert result == "The system SHALL provide Search."
+
+    def test_deconjugates_third_person_verb(self):
+        """Leading verb in third-person-singular is converted to infinitive."""
+        cap = ExportableCapability(
+            id="C4",
+            name="Security",
+            description="Ensures secure communication and protects user privacy",
+            is_functional=False,
+        )
+        result = capability_to_shall_statement(cap)
+        assert result == "The system SHALL ensure secure communication and protects user privacy."
+
+    def test_deconjugates_manages(self):
+        cap = ExportableCapability(
+            id="C5",
+            name="Invites",
+            description="Manages the invite-only access model",
+            is_functional=True,
+        )
+        result = capability_to_shall_statement(cap)
+        assert result == "The system SHALL manage the invite-only access model."
+
+    def test_preserves_infinitive(self):
+        """A description already in infinitive form is not mangled."""
+        cap = ExportableCapability(
+            id="C6",
+            name="Access",
+            description="Access user data securely",
+            is_functional=True,
+        )
+        result = capability_to_shall_statement(cap)
+        assert result == "The system SHALL access user data securely."
 
 
 # ---------------------------------------------------------------------------

@@ -64,9 +64,11 @@ class OpenSpecExporter(ProjectExporter):
     def _render_config(self, project: ExportableProject) -> str:
         """Render config.yaml with project metadata and system traits."""
         config: dict = {
-            "name": project.idea_summary,
+            "name": project.project_name or project.idea_summary,
             "version": "1.0.0",
         }
+        if project.idea_summary:
+            config["description"] = project.idea_summary
         if project.appetite:
             config["appetite"] = project.appetite
         if project.generated_at:
@@ -134,10 +136,15 @@ class OpenSpecExporter(ProjectExporter):
 
             linked = cap_stories.get(cap.id, [])
             has_scenarios = False
+            seen_scenarios: set[tuple[str, str, str, str]] = set()
 
             # Try to render scenarios from linked stories' acceptance criteria
             for story in linked:
                 for ac in story.acceptance_criteria:
+                    key = (ac.scenario, ac.given, ac.when, ac.then)
+                    if key in seen_scenarios:
+                        continue
+                    seen_scenarios.add(key)
                     has_scenarios = True
                     lines.append(f"#### Scenario: {ac.scenario}")
                     lines.append("")
@@ -160,7 +167,12 @@ class OpenSpecExporter(ProjectExporter):
         self,
         nf_capabilities: list[ExportableCapability],
     ) -> str:
-        """Render cross-cutting/spec.md for non-functional capabilities."""
+        """Render cross-cutting/spec.md for non-functional capabilities.
+
+        Non-functional requirements are rendered as SHALL statements only.
+        Unlike functional specs, they have no story-backed Gherkin scenarios
+        to draw from, so omitting placeholder scenarios avoids noise.
+        """
         lines: list[str] = []
 
         lines.append("# Cross-Cutting Requirements")
@@ -172,15 +184,9 @@ class OpenSpecExporter(ProjectExporter):
 
         for cap in nf_capabilities:
             shall = capability_to_shall_statement(cap)
-            lines.append(f"### Requirement: {cap.name}")
+            lines.append(f"### {cap.name}")
             lines.append("")
             lines.append(shall)
-            lines.append("")
-            lines.append(f"#### Scenario: {cap.name} verification")
-            lines.append("")
-            lines.append("- **Given** the system is under normal load")
-            lines.append(f"- **When** {cap.description}")
-            lines.append("- **Then** the requirement is satisfied")
             lines.append("")
 
         return "\n".join(lines)
