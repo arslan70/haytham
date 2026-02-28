@@ -27,6 +27,7 @@ from haytham.exporters.spec_transforms import (
     group_stories_by_layer,
     render_gherkin_scenario,
     slugify,
+    strip_wrapping_fences,
     traits_to_constitution_articles,
 )
 from haytham.workflow.contracts.execution_contract import ContractStory
@@ -250,7 +251,7 @@ class SpecKitExporter(ProjectExporter):
             lines.append(f"## {story.title}")
             lines.append("")
             if story.content:
-                lines.append(story.content)
+                lines.append(strip_wrapping_fences(story.content))
                 lines.append("")
             elif story.summary:
                 lines.append(story.summary)
@@ -259,16 +260,28 @@ class SpecKitExporter(ProjectExporter):
         return "\n".join(lines)
 
     def _render_contracts(self, layer_3_stories: list[ContractStory]) -> str:
-        """Render contracts/api.md from layer 3 stories."""
+        """Render contracts/api.md from layer 3 stories.
+
+        Strips wrapping code fences and deduplicates stories with
+        identical content.
+        """
         lines: list[str] = []
         lines.append("# API Contracts")
         lines.append("")
 
+        seen_content: set[str] = set()
         for story in layer_3_stories:
+            content = strip_wrapping_fences(story.content) if story.content else ""
+            content_key = content.strip()
+            if content_key and content_key in seen_content:
+                continue
+            if content_key:
+                seen_content.add(content_key)
+
             lines.append(f"## {story.title}")
             lines.append("")
-            if story.content:
-                lines.append(story.content)
+            if content:
+                lines.append(content)
                 lines.append("")
             elif story.summary:
                 lines.append(story.summary)

@@ -256,6 +256,129 @@ class TestConditionalFiles:
         tree = SpecKitExporter().export_tree(project)
         assert ".specify/specs/001-user-authentication/contracts/api.md" in tree
 
+    def test_data_model_strips_wrapping_fences(self):
+        """Layer 2 story content wrapped in ```markdown should have fences stripped."""
+        project = _make_project(
+            stories=[
+                ContractStory(
+                    id="STORY-002",
+                    title="User table schema",
+                    layer=2,
+                    summary="Define the user data model",
+                    content="```markdown\n## Users Table\n\n| Column | Type |\n|---|---|\n| id | UUID |\n```",
+                    implements=["CAP-F-001"],
+                    depends_on=["STORY-001"],
+                ),
+                ContractStory(
+                    id="STORY-001",
+                    title="Project scaffolding",
+                    layer=0,
+                    summary="Set up the initial project structure",
+                    implements=["CAP-F-001"],
+                ),
+            ],
+        )
+        tree = SpecKitExporter().export_tree(project)
+        dm = tree[".specify/specs/001-user-authentication/data-model.md"]
+        assert "```markdown" not in dm
+        assert "## Users Table" in dm
+
+    def test_contracts_strips_wrapping_fences(self):
+        """Layer 3 story content wrapped in ```markdown should have fences stripped."""
+        project = _make_project(
+            stories=[
+                ContractStory(
+                    id="STORY-003",
+                    title="Login endpoint",
+                    layer=3,
+                    summary="Implement login API",
+                    content="```markdown\n## POST /auth/login\n\nAccepts OAuth token.\n```",
+                    implements=["CAP-F-001"],
+                    depends_on=["STORY-001"],
+                    acceptance_criteria=[
+                        AcceptanceCriterion(
+                            id="AC-001",
+                            scenario="Login",
+                            given="a user",
+                            when="they submit a token",
+                            then="session returned",
+                        ),
+                    ],
+                ),
+                ContractStory(
+                    id="STORY-001",
+                    title="Project scaffolding",
+                    layer=0,
+                    summary="Setup",
+                    implements=["CAP-F-001"],
+                ),
+            ],
+        )
+        tree = SpecKitExporter().export_tree(project)
+        api = tree[".specify/specs/001-user-authentication/contracts/api.md"]
+        assert "```markdown" not in api
+        assert "## POST /auth/login" in api
+
+    def test_contracts_deduplicates_identical_content(self):
+        """Two layer 3 stories with identical content should only render once."""
+        shared_content = "## POST /api/sessions\n\nCreate a new session."
+        project = _make_project(
+            stories=[
+                ContractStory(
+                    id="STORY-010",
+                    title="Session API",
+                    layer=3,
+                    summary="Session endpoint",
+                    content=shared_content,
+                    implements=["CAP-F-001"],
+                    acceptance_criteria=[
+                        AcceptanceCriterion(
+                            id="AC-001",
+                            scenario="Create session",
+                            given="authenticated user",
+                            when="POST request",
+                            then="201 returned",
+                        ),
+                    ],
+                ),
+                ContractStory(
+                    id="STORY-011",
+                    title="Session API (duplicate)",
+                    layer=3,
+                    summary="Session endpoint duplicate",
+                    content=shared_content,
+                    implements=["CAP-F-001"],
+                    acceptance_criteria=[
+                        AcceptanceCriterion(
+                            id="AC-001",
+                            scenario="Create session",
+                            given="authenticated user",
+                            when="POST request",
+                            then="201 returned",
+                        ),
+                    ],
+                ),
+                ContractStory(
+                    id="STORY-001",
+                    title="Setup",
+                    layer=0,
+                    summary="Setup",
+                    implements=["CAP-F-001"],
+                ),
+            ],
+            scope_items=[
+                ExportableScopeItem(
+                    name="User Authentication",
+                    description="Auth.",
+                    capabilities=["CAP-F-001"],
+                    stories=["STORY-010", "STORY-011", "STORY-001"],
+                ),
+            ],
+        )
+        tree = SpecKitExporter().export_tree(project)
+        api = tree[".specify/specs/001-user-authentication/contracts/api.md"]
+        assert api.count("Create a new session.") == 1
+
     def test_no_data_model_without_layer_2(self):
         """data-model.md should not exist when there are no layer 2 stories."""
         project = _make_project(
