@@ -52,11 +52,11 @@
 }
 
 /* Header: replace site name with tagline (logo already shows "Haytham") */
-.md-header__topic:first-child .md-ellipsis {
+.md-header__title .md-header__topic:first-child .md-ellipsis {
   font-size: 0;
   visibility: hidden;
 }
-.md-header__topic:first-child .md-ellipsis::after {
+.md-header__title .md-header__topic:first-child .md-ellipsis::after {
   content: "From idea to spec to system";
   font-size: 0.7rem;
   font-weight: 400;
