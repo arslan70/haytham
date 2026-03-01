@@ -29,8 +29,6 @@ OpenSpec and Spec Kit solve the format problem. They give agents a structured di
 
 Writing a good spec is genuinely difficult. You need to research the market to know if the idea is viable. You need to scope the MVP so you're not building everything at once. You need to make architecture decisions that fit the constraints. You need to decompose features into stories with clear acceptance criteria, ordered by dependency so an agent can implement them sequentially without hitting blockers. Most people skip all of this and hand vague requirements to a coding agent. The results are predictable: generic implementations that miss the constraints that made the idea distinctive.
 
-The format isn't the bottleneck. The thinking is.
-
 ## What Haytham does
 
 Haytham is an open-source multi-agent system with 19 specialist agents organized into four phases. Each phase does a specific job, and each has a human approval gate before the next phase starts.
