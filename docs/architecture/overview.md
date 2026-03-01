@@ -180,6 +180,7 @@ haytham/
 ├── session/                 # Saves progress and stage outputs to disk
 ├── state/                   # Tracks what's been produced and what's covered
 ├── formatters/              # Converts structured data to readable output
+├── exporters/               # Story-level + project-level (OpenSpec, Spec Kit) exports
 └── telemetry/               # Optional tracing (OpenTelemetry)
 
 frontend_streamlit/          # Web UI

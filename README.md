@@ -71,6 +71,7 @@ Feed Haytham a startup idea. What comes out:
 - **A capability model**: functional and non-functional capabilities, each traceable to a user need.
 - **Architecture decisions**: build-vs-buy analysis, technology choices, and trade-offs. Each decision linked to the capabilities it serves.
 - **Ordered user stories**: with acceptance criteria, dependency ordering, and full traceability. Hand these to a developer or a coding agent.
+- **Agent-ready exports**: download as [OpenSpec](https://github.com/Fission-AI/OpenSpec) or [Spec Kit](https://github.com/github/spec-kit) and hand the spec directly to Claude Code, Cursor, or Copilot.
 
 ## How It Works
 

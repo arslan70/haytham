@@ -135,6 +135,17 @@ Generate an ordered backlog ready for execution. **Story Generation** creates us
 
 Every story links to the capability it implements (`implements:CAP-F-001`), the decisions it depends on (`uses:DEC-001`), and the entities it touches (`touches:ENT-001`). This specification is the execution contract. Whether the executor is a human developer, a hosted coding agent, or a cloud-native service agent, they receive the same traced context.
 
+### Spec-Driven Export
+
+Once the stories phase completes, you can export the full specification (not just stories, but capabilities, architecture decisions, system traits, and traced requirements) in two formats designed for AI coding agents:
+
+| Format | Best for | What it produces |
+|--------|----------|-----------------|
+| **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** | Iterating on an existing spec, change management via spec deltas | `openspec/` directory with `config.yaml`, `project.md`, and per-domain `spec.md` files with SHALL statements and Gherkin scenarios |
+| **[Spec Kit](https://github.com/github/spec-kit)** | Greenfield projects going straight to implementation, GitHub-native workflows | `.specify/` directory with `constitution.md`, per-feature spec/plan/tasks, data models, and API contracts |
+
+Both exports are available as zip downloads from the export dropdown in the stories view. See [Exports](exports.md) for the full format reference and usage with coding agents.
+
 ---
 
 ## Agents at a Glance

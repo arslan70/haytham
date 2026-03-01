@@ -139,6 +139,8 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 6. **Phase 4: What are the tasks?** Ordered user stories with acceptance criteria and full traceability. These are ready to hand to a developer or coding agent.
 
+7. **Export your spec.** After stories are generated, use the export dropdown to download your specification as **OpenSpec** or **Spec Kit** zip. These are structured formats that AI coding agents (Claude Code, Cursor, Copilot) can consume directly. Unzip into your project root and point your coding agent at the spec directory. See [Exports](exports.md) for details on both formats.
+
 Each phase takes a few minutes. The full pipeline completes in approximately 20 minutes.
 
 **Cost note:** A full 4-phase run sends requests to 19 agents with web search. With commercial API providers (Anthropic, OpenAI), expect roughly $5–$20 in API credits per run depending on model choices and idea complexity. Use Ollama for free local inference, or assign cheaper models to the LIGHT tier to reduce costs.

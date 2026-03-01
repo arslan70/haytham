@@ -83,3 +83,46 @@ Generated stories can be exported as Jira CSV with configurable options: accepta
 - Deployment, real-time updates, data integrity (STORY-012 through STORY-025)
 
 Each story includes a description, acceptance criteria, layer assignment, and dependency ordering.
+
+---
+
+### 10. Export as OpenSpec or Spec Kit
+
+After stories are generated, the export dropdown includes **OpenSpec (zip)** and **Spec Kit (zip)** alongside the existing Jira CSV and other formats. Selecting either produces a zip archive containing the full specification: capabilities mapped to requirements, architecture decisions, system traits, and Gherkin scenarios.
+
+The OpenSpec export produces:
+
+```
+openspec/
+├── config.yaml          # Project metadata and system traits
+├── project.md           # Tech stack and architecture decisions
+└── specs/
+    ├── authentication/
+    │   └── spec.md      # SHALL statements + Gherkin scenarios
+    ├── core-features/
+    │   └── spec.md
+    └── cross-cutting/
+        └── spec.md      # Non-functional requirements
+```
+
+The Spec Kit export produces:
+
+```
+.specify/
+├── memory/
+│   └── constitution.md  # System principles + quality attributes
+└── specs/
+    ├── 001-authentication/
+    │   ├── spec.md      # Requirements + user scenarios
+    │   ├── plan.md      # Architecture decisions + build/buy
+    │   ├── tasks.md     # Phased implementation tasks
+    │   └── data-model.md
+    └── 002-core-features/
+        ├── spec.md
+        ├── plan.md
+        ├── tasks.md
+        └── contracts/
+            └── api.md   # API contracts
+```
+
+Unzip either export into your project root and point your coding agent at the spec directory. See [Exports](../exports.md) for the full format reference.
