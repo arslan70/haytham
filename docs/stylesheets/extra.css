@@ -35,6 +35,22 @@
   font-size: 0.8rem;
 }
 
+/* Heading typography */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 1.8em;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
 /* Blog post cards */
 .md-typeset .blog .md-post {
   margin-bottom: 1.5rem;

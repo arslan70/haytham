@@ -34,6 +34,9 @@ theme:
     - search.suggest
     - content.code.copy
     - content.tabs.link
+  font:
+    text: Inter
+    code: JetBrains Mono
   icon:
     logo: material/robot-outline
     repo: fontawesome/brands/github
