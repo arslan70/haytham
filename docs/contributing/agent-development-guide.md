@@ -8,7 +8,7 @@ This guide expands upon the "Adding a New Agent" section in `CLAUDE.md` and shou
 
 Haytham uses a configuration-driven architecture for defining and constructing agents.
 
-Agents are not hardcoded classes and are not registered using conditionals. Instead, all agents are defined in a single registry (`AGENT_CONFIGS`) located in `haytham/config.py`. This registry acts as the single source of truth for agent configuration.
+All agents are defined in a single registry (`AGENT_CONFIGS`) in `haytham/config.py`. No conditionals, no hardcoded classes.
 
 Each agent is defined using an `AgentConfig` object, which defines:
 
@@ -41,15 +41,15 @@ The factory:
 
 ### High-level flow
 
-```
-Workflow Stage
-→ create_agent_by_name()
-→ AGENT_CONFIGS lookup
-→ _create_agent_from_config()
-→ Fully constructed Agent
+```mermaid
+flowchart LR
+    A[Workflow Stage] --> B["create_agent_by_name()"]
+    B --> C[AGENT_CONFIGS lookup]
+    C --> D["_create_agent_from_config()"]
+    D --> E[Fully constructed Agent]
 ```
 
-This design follows the Open-Closed Principle (OCP): new agents can be added without modifying factory logic.
+New agents can be added without modifying factory logic (Open-Closed Principle).
 
 ---
 
@@ -73,17 +73,9 @@ All agents must be instantiated via:
 create_agent_by_name(agent_name)
 ```
 
-Direct instantiation of the `Agent` class is prohibited.
+Direct instantiation of `Agent()` is prohibited. Bypassing the factory skips `HaythamAgentHooks` (no observability), name assignment (broken OTEL spans), trace attributes (no distributed tracing), and model tier routing (wrong model).
 
-Bypassing the factory can result in:
-
-- Missing hooks
-- Broken tracing (`agent.name` not set)
-- Incorrect model routing
-- Inconsistent structured output handling
-- Reduced observability
-
-All new agents must be registered in `AGENT_CONFIGS`. The factory must remain generic and should not be modified to support individual agents.
+If you have a rare case requiring direct `Agent()` (custom tools, conversation history), you must still add `hooks=[HaythamAgentHooks()]` and `name=` manually. See `haytham/agents/hooks.py`.
 
 ---
 
@@ -140,26 +132,34 @@ Add:
 )
 ```
 
-Optional fields:
-
-- `tool_profile`
-- `model_tier`
-- `structured_output_model_path`
-- `custom_system_prompt`
-
-No changes to the factory are required.
+Optional fields include `tool_profile`, `model_tier`, `structured_output_model_path`, and `custom_system_prompt`. See the full `AgentConfig` field list in Section 1.
 
 ---
 
-### Step 3 (Optional): Register in `STAGE_CONFIGS`
+### Step 3: Register in `STAGE_CONFIGS`
 
-If the agent participates in a workflow stage, register it in:
+If the agent participates in a workflow stage (most do), add a `StageExecutionConfig` in `haytham/workflow/stages/configs.py`:
 
+```python
+"concept_summary": StageExecutionConfig(
+    stage_slug="concept-summary",
+    query_template="Summarize the following concept: {system_goal}",
+)
 ```
-haytham/workflow/stages/configs.py
-```
 
-This determines when and how the agent executes within workflow orchestration.
+Key `StageExecutionConfig` fields (defined in `haytham/workflow/stage_executor.py`):
+
+| Field | Purpose |
+|---|---|
+| `stage_slug` | Stage identifier, must match `StageMetadata` in the registry |
+| `query_template` | Prompt template, supports `{system_goal}` placeholder |
+| `parallel_agents` | List of `{"name": ..., "query": ...}` dicts for parallel execution |
+| `post_processor` | Callable to extract structured data from output (e.g., risk level) |
+| `post_validators` | ADR-022 cross-stage consistency checks |
+| `output_model` | Pydantic model for JSON/markdown split rendering |
+| `programmatic_executor` | For stages that don't need an LLM agent |
+
+You also need a `StageMetadata` entry in `stage_registry.py` and a Burr action in `burr_actions.py`. See the "Adding a New Stage" section in CLAUDE.md for the full checklist.
 
 ---
 
@@ -197,25 +197,9 @@ Agents must be tested without making real LLM calls.
 
 ### Unit Testing (Mocked LLM)
 
-When writing tests:
+Tests must mock the LLM client so no real calls are made. Verify that the agent loads correctly, uses the right prompt, and produces expected output (including structured output if configured).
 
-- Mock the LLM client
-- Provide controlled responses
-- Verify agent loads correctly
-- Verify prompt usage
-- Verify structured output (if enabled)
-- Verify output extraction
-
-Example:
-
-```python
-def test_concept_summarizer():
-    # Arrange: mock LLM response
-    # Act: call agent
-    # Assert: verify expected output
-```
-
-Refer to existing worker agent tests for correct mocking patterns.
+See `tests/test_stage_executor.py` for the standard mocking pattern used across the project, and `tests/test_context_summarizer.py` for an agent-specific example.
 
 ---
 
