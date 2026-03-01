@@ -94,6 +94,7 @@ nav:
   - Home: index.md
   - How It Works: how-it-works.md
   - Example Session: example-session/index.md
+  - Exports: exports.md
   - Getting Started: getting-started.md
   - Blog:
     - blog/index.md

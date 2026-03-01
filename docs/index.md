@@ -106,6 +106,12 @@ flowchart TD
 
     Acceptance criteria in Gherkin format, dependency ordering, and full traceability. Hand these to a developer or a coding agent.
 
+-   :material-export:{ .lg .middle } **Agent-ready exports**
+
+    ---
+
+    Download as [OpenSpec](https://github.com/Fission-AI/OpenSpec) or [Spec Kit](https://github.com/github/spec-kit). Feed your spec directly to Claude Code, Cursor, or Copilot.
+
 </div>
 
 ---

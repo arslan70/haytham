@@ -100,9 +100,9 @@ Already planned and referenced in VISION.md, how-it-works.md, and architecture/o
 
 ---
 
-## 5. Spec-Driven Export (OpenSpec + Spec Kit)
+## 5. Spec-Driven Export (OpenSpec + Spec Kit) ✅
 
-**Priority:** Medium | **Contribution:** Community Welcome
+**Status:** Complete (PRs #37, #38, #39)
 **Depends on:** Item 1 (execution contract)
 
 Haytham's GTM narrative is "the specification layer for the AI coding agent ecosystem." Two open formats already exist for feeding specifications to coding agents: [OpenSpec](https://github.com/Fission-AI/OpenSpec) (Fission AI) and [Spec Kit](https://github.com/github/spec-kit) (GitHub). Rather than invent a proprietary format, export to both, letting any AI coding agent (Claude Code, Cursor, Copilot, Devin) consume Haytham's output natively.
@@ -170,13 +170,13 @@ Run Haytham on itself to generate improvement stories, publish results, and crea
 ## Sequencing
 
 ```
-Item 1 (Execution Contract)
+Item 1 (Execution Contract) ✅
   ├── Item 2 (Coding Agent Integration) ── Item 3 (Capability Validation)
   ├── Item 4 (Stitch Integration)
-  └── Item 5 (Spec-Driven Export)
+  └── Item 5 (Spec-Driven Export) ✅
 
 Item 6: Deferred until Items 2 + 4 are complete
 Item 7: Deferred until Evolution (M2) is operational
 ```
 
-Items 2, 4, and 5 can proceed in parallel once Item 1 is done. Item 3 depends on Item 2. Items 6 and 7 are deliberately deferred.
+Items 2 and 4 can proceed in parallel. Item 3 depends on Item 2. Items 1 and 5 are complete. Items 6 and 7 are deliberately deferred.
