@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="800" height="240">
+  <!-- Eagle eye mark -->
+  <g transform="translate(50, 120)">
+    <!-- Outer eye shape -->
+    <path d="M0,0 Q35,-52 80,-52 Q125,-52 160,0 Q125,52 80,52 Q35,52 0,0 Z" fill="#0F172A"/>
+    
+    <!-- Feather lines -->
+    <path d="M12,-2 Q45,-42 78,-42" stroke="#334155" stroke-width="1" fill="none" opacity="0.5"/>
+    <path d="M12,2 Q45,42 78,42" stroke="#334155" stroke-width="1" fill="none" opacity="0.5"/>
+    <path d="M20,-4 Q50,-36 78,-36" stroke="#334155" stroke-width="1" fill="none" opacity="0.3"/>
+    <path d="M20,4 Q50,36 78,36" stroke="#334155" stroke-width="1" fill="none" opacity="0.3"/>
+    
+    <!-- Iris ring -->
+    <circle cx="80" cy="0" r="28" fill="none" stroke="#F59E0B" stroke-width="3"/>
+    
+    <!-- Pupil -->
+    <circle cx="80" cy="0" r="16" fill="#F59E0B"/>
+    <circle cx="80" cy="0" r="8" fill="#0F172A"/>
+    
+    <!-- Highlight -->
+    <circle cx="74" cy="-6" r="4" fill="white" opacity="0.7"/>
+    
+    <!-- Tail feathers -->
+    <path d="M0,0 L-22,-14 L-8,-4 Z" fill="#0F172A"/>
+    <path d="M0,0 L-22,14 L-8,4 Z" fill="#0F172A"/>
+    <path d="M0,0 L-28,0 L-10,0 Z" fill="#1E293B"/>
+
+    <!-- Brow feathers -->
+    <path d="M130,-30 L170,-48 L145,-28 Z" fill="#0F172A" opacity="0.7"/>
+    <path d="M140,-22 L178,-35 L150,-20 Z" fill="#1E293B" opacity="0.5"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(280, 100)">
+    <text font-family="Georgia, Palatino, serif" font-size="64" font-weight="bold" fill="#0F172A" textLength="380" lengthAdjust="spacing">Haytham</text>
+    <text font-family="Georgia, Palatino, serif" font-size="13" fill="#64748B" y="28" textLength="380" lengthAdjust="spacing">FROM IDEA TO SPEC TO SYSTEM</text>
+  </g>
+</svg>

@@ -37,8 +37,8 @@ theme:
   font:
     text: Inter
     code: JetBrains Mono
+  logo: images/logo-nav.svg
   icon:
-    logo: material/robot-outline
     repo: fontawesome/brands/github
 
 extra_css:
