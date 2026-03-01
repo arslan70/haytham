@@ -51,6 +51,21 @@
   font-weight: 600;
 }
 
+/* Header: replace site name with tagline (logo already shows "Haytham") */
+.md-header__topic:first-child .md-ellipsis {
+  font-size: 0;
+  visibility: hidden;
+}
+.md-header__topic:first-child .md-ellipsis::after {
+  content: "From idea to spec to system";
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  visibility: visible;
+  opacity: 0.85;
+}
+
 /* Blog post cards */
 .md-typeset .blog .md-post {
   margin-bottom: 1.5rem;
