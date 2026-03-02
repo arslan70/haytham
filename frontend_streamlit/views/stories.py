@@ -42,6 +42,13 @@ STORY_STAGES = [
     "dependency-ordering",
 ]
 
+# Map UI export format labels to PROJECT_EXPORTERS registry keys
+_FORMAT_KEYS = {
+    "OpenSpec (zip)": "openspec",
+    "Spec Kit (zip)": "speckit",
+    "AI Scaffold (zip)": "scaffold",
+}
+
 
 def load_startup_idea() -> str | None:
     """Load startup idea from project.yaml."""
@@ -643,11 +650,6 @@ if is_workflow_locked():
         ]
 
     # Project-level exporters (directory tree -> zip)
-    _FORMAT_KEYS = {
-        "OpenSpec (zip)": "openspec",
-        "Spec Kit (zip)": "speckit",
-        "AI Scaffold (zip)": "scaffold",
-    }
     if export_format in _FORMAT_KEYS:
         format_key = _FORMAT_KEYS[export_format]
         exporter_cls = PROJECT_EXPORTERS[format_key]

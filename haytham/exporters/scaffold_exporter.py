@@ -72,7 +72,7 @@ class ScaffoldExporter(ProjectExporter):
         lines.append(f"# {name}")
         lines.append("")
 
-        one_liner = project.idea_one_liner or project.idea_summary
+        one_liner = project.display_summary
         if one_liner:
             lines.append(one_liner)
             lines.append("")
@@ -175,7 +175,7 @@ class ScaffoldExporter(ProjectExporter):
         # Project Overview (required by agents.md)
         lines.append(f"# {name}")
         lines.append("")
-        one_liner = project.idea_one_liner or project.idea_summary
+        one_liner = project.display_summary
         if one_liner:
             lines.append(one_liner)
             lines.append("")
@@ -262,7 +262,7 @@ class ScaffoldExporter(ProjectExporter):
         # Tip 1: Project overview
         lines.append(f"# {name}")
         lines.append("")
-        one_liner = project.idea_one_liner or project.idea_summary
+        one_liner = project.display_summary
         if one_liner:
             lines.append(one_liner)
             lines.append("")
@@ -332,7 +332,7 @@ class ScaffoldExporter(ProjectExporter):
         lines.append(f"# {name}")
         lines.append("")
 
-        one_liner = project.idea_one_liner or project.idea_summary
+        one_liner = project.display_summary
         if one_liner:
             lines.append(one_liner)
             lines.append("")

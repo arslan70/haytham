@@ -76,3 +76,8 @@ class ExportableProject(BaseModel):
     explicit_constraints: list[str] = Field(default_factory=list)
     non_goals: list[str] = Field(default_factory=list)
     identity_risks: list[str] = Field(default_factory=list)
+
+    @property
+    def display_summary(self) -> str:
+        """Best available one-line description: one-liner if set, else idea_summary."""
+        return self.idea_one_liner or self.idea_summary
