@@ -392,3 +392,92 @@ class TestProjectAssembler:
 
         nf = project.non_functional_capabilities[0]
         assert nf.description == "99.9% uptime SLA"
+
+
+# ---------------------------------------------------------------------------
+# Concept anchor and recommendation loading (scaffold export support)
+# ---------------------------------------------------------------------------
+
+
+def _write_minimal_session(session_dir: Path) -> None:
+    """Write only the execution contract (minimum required for assembly)."""
+    contract = {
+        "metadata": {
+            "idea_summary": "A gym leaderboard app",
+            "appetite": "Small Batch",
+            "generated_at": "2026-03-01T00:00:00Z",
+        },
+        "system_traits": {"interface": "web"},
+        "stories": [],
+    }
+    story_dir = session_dir / "story-generation"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    (story_dir / "execution_contract.json").write_text(
+        json.dumps(contract), encoding="utf-8"
+    )
+
+
+class TestConceptAnchorLoading:
+    def test_concept_anchor_fields_populated(self, tmp_path):
+        session_dir = tmp_path / "session"
+        _write_minimal_session(session_dir)
+        anchor = {
+            "anchor": {
+                "intent": {
+                    "goal": "Build a gym app",
+                    "explicit_constraints": ["invite-only", "anonymous"],
+                    "non_goals": ["not a social media platform", "not public"],
+                },
+                "identity": [
+                    {
+                        "feature": "anonymous leaderboard",
+                        "why_distinctive": "LLMs tend to add profiles",
+                    }
+                ],
+            }
+        }
+        (session_dir / "concept_anchor.json").write_text(
+            json.dumps(anchor), encoding="utf-8"
+        )
+
+        project = assemble_exportable_project(session_dir)
+        assert project.explicit_constraints == ["invite-only", "anonymous"]
+        assert project.non_goals == ["not a social media platform", "not public"]
+        assert "anonymous leaderboard" in project.identity_risks[0]
+
+    def test_missing_concept_anchor_leaves_defaults(self, tmp_path):
+        session_dir = tmp_path / "session"
+        _write_minimal_session(session_dir)
+        project = assemble_exportable_project(session_dir)
+        assert project.explicit_constraints == []
+        assert project.non_goals == []
+        assert project.identity_risks == []
+
+
+class TestRecommendationLoading:
+    def test_idea_one_liner_populated(self, tmp_path):
+        session_dir = tmp_path / "session"
+        _write_minimal_session(session_dir)
+        rec = {
+            "recommendation": "GO",
+            "executive_summary": {
+                "idea_in_one_line": "A gym leaderboard for CrossFit athletes",
+                "strongest_point": "Clear market need",
+                "recommendation_summary": "Build it",
+                "recommendation_reasoning": "Strong concept",
+                "competitive_snapshot": "No direct competitors",
+                "closing_remark": "Interview 20 users",
+            },
+        }
+        (session_dir / "recommendation.json").write_text(
+            json.dumps(rec), encoding="utf-8"
+        )
+
+        project = assemble_exportable_project(session_dir)
+        assert project.idea_one_liner == "A gym leaderboard for CrossFit athletes"
+
+    def test_missing_recommendation_leaves_default(self, tmp_path):
+        session_dir = tmp_path / "session"
+        _write_minimal_session(session_dir)
+        project = assemble_exportable_project(session_dir)
+        assert project.idea_one_liner == ""

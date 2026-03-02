@@ -8,6 +8,7 @@ from .markdown_exporter import MarkdownExporter
 from .models import ExportableStory, ExportOptions
 from .openspec_exporter import OpenSpecExporter
 from .project_exporter_base import ProjectExporter
+from .scaffold_exporter import ScaffoldExporter
 from .speckit_exporter import SpecKitExporter
 from .transformer import (
     get_layer_summary,
@@ -26,6 +27,7 @@ __all__ = [
     "MarkdownExporter",
     "CSVExporter",
     "OpenSpecExporter",
+    "ScaffoldExporter",
     "SpecKitExporter",
     "load_stories_from_json",
     "load_stories_from_file",
@@ -45,6 +47,7 @@ STORY_EXPORTERS: dict[str, type[BaseExporter]] = {
 PROJECT_EXPORTERS: dict[str, type[ProjectExporter]] = {
     "openspec": OpenSpecExporter,
     "speckit": SpecKitExporter,
+    "scaffold": ScaffoldExporter,
 }
 
 

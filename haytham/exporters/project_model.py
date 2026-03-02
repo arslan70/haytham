@@ -70,3 +70,9 @@ class ExportableProject(BaseModel):
 
     # Stories (from ExecutionContract)
     stories: list[ContractStory] = Field(default_factory=list)
+
+    # Concept anchor (ADR-022) - populated for scaffold export
+    idea_one_liner: str = ""
+    explicit_constraints: list[str] = Field(default_factory=list)
+    non_goals: list[str] = Field(default_factory=list)
+    identity_risks: list[str] = Field(default_factory=list)

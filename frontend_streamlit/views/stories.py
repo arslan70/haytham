@@ -592,6 +592,7 @@ if is_workflow_locked():
             "JSON",
             "OpenSpec (zip)",
             "Spec Kit (zip)",
+            "AI Scaffold (zip)",
         ],
         help="Choose the format that matches your project management tool",
     )
@@ -642,8 +643,13 @@ if is_workflow_locked():
         ]
 
     # Project-level exporters (directory tree -> zip)
-    if export_format in ("OpenSpec (zip)", "Spec Kit (zip)"):
-        format_key = "openspec" if "OpenSpec" in export_format else "speckit"
+    _FORMAT_KEYS = {
+        "OpenSpec (zip)": "openspec",
+        "Spec Kit (zip)": "speckit",
+        "AI Scaffold (zip)": "scaffold",
+    }
+    if export_format in _FORMAT_KEYS:
+        format_key = _FORMAT_KEYS[export_format]
         exporter_cls = PROJECT_EXPORTERS[format_key]
         exporter = exporter_cls()
 
@@ -666,6 +672,11 @@ if is_workflow_locked():
             )
             if format_key == "openspec":
                 st.caption("OpenSpec format for AI coding agents (Claude Code, Copilot, Cursor)")
+            elif format_key == "scaffold":
+                st.caption(
+                    "Ready-to-code project with CLAUDE.md, AGENTS.md, "
+                    "and Copilot instructions for 20+ AI coding tools"
+                )
             else:
                 st.caption("Spec Kit format for GitHub ecosystem AI coding agents")
         except FileNotFoundError:

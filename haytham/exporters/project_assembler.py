@@ -24,6 +24,8 @@ _CONTRACT_PATH = Path("story-generation") / "execution_contract.json"
 _CAPABILITY_PATH = Path("capability-model") / "output.json"
 _ARCHITECTURE_PATH = Path("architecture-decisions") / "output.json"
 _BUILD_BUY_PATH = Path("build-buy-analysis") / "output.json"
+_CONCEPT_ANCHOR_PATH = Path("concept_anchor.json")
+_RECOMMENDATION_PATH = Path("recommendation.json")
 
 
 def _load_json(path: Path) -> dict | None:
@@ -220,6 +222,29 @@ def assemble_exportable_project(session_dir: Path) -> ExportableProject:
     if cap_data is not None:
         project_name = cap_data.get("summary", {}).get("system_name", "")
 
+    # 6b. Load concept anchor (optional, for scaffold export)
+    anchor_data = _load_json(session_dir / _CONCEPT_ANCHOR_PATH)
+    explicit_constraints: list[str] = []
+    non_goals: list[str] = []
+    identity_risks: list[str] = []
+    if anchor_data is not None:
+        anchor = anchor_data.get("anchor", {})
+        intent = anchor.get("intent", {})
+        explicit_constraints = intent.get("explicit_constraints", [])
+        non_goals = intent.get("non_goals", [])
+        identity_risks = [
+            f"{item['feature']}: {item['why_distinctive']}"
+            for item in anchor.get("identity", [])
+            if "feature" in item and "why_distinctive" in item
+        ]
+
+    # 6c. Load recommendation summary (optional, for scaffold export)
+    rec_data = _load_json(session_dir / _RECOMMENDATION_PATH)
+    idea_one_liner = ""
+    if rec_data is not None:
+        exec_summary = rec_data.get("executive_summary", {})
+        idea_one_liner = exec_summary.get("idea_in_one_line", "")
+
     # 7. Assemble the project
     return ExportableProject(
         project_name=project_name,
@@ -233,4 +258,8 @@ def assemble_exportable_project(session_dir: Path) -> ExportableProject:
         non_functional_capabilities=nf_caps,
         build_buy=build_buy,
         stories=list(contract.stories),
+        explicit_constraints=explicit_constraints,
+        non_goals=non_goals,
+        identity_risks=identity_risks,
+        idea_one_liner=idea_one_liner,
     )
