@@ -1,0 +1,10 @@
+{
+  "name": "haytham",
+  "version": "0.1.0",
+  "description": "Validate startup ideas and generate implementation-ready specifications",
+  "author": {
+    "name": "Arslan Mehboob"
+  },
+  "repository": "https://github.com/arslan70/haytham",
+  "license": "MIT"
+}

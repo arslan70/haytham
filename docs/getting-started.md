@@ -2,180 +2,78 @@
 
 ## Prerequisites
 
-- **Python 3.11+**
-- **[uv](https://docs.astral.sh/uv/getting-started/installation/).** Python package manager.
-- **An LLM provider.** Anthropic API key, AWS credentials, OpenAI API key, or Ollama installed locally.
+- [Claude Code](https://claude.ai/code) installed and authenticated.
 
-## Installation
+## Install
+
+```
+/plugin install haytham
+```
+
+That's it. No Python, no API keys, no environment variables. Your existing Claude Code subscription handles all LLM calls.
+
+## First Run
+
+Run the full 4-phase workflow:
+
+```
+/haytham "a gym community leaderboard with anonymous handles"
+```
+
+Or run individual phases:
+
+| Command | Phase | What it does |
+|---------|-------|-------------|
+| `/haytham:validate` | WHY | Market research, competitor analysis, GO/NO-GO/PIVOT verdict |
+| `/haytham:specify` | WHAT | MVP scope, capability model, system traits |
+| `/haytham:design` | HOW | Build-vs-buy analysis, architecture decisions |
+| `/haytham:plan` | STORIES | Dependency-ordered stories with acceptance criteria |
+
+## What to Expect
+
+Each phase runs specialist agents, writes structured output to `.haytham/session/`, and presents a gate decision for your review. Nothing proceeds without your approval.
+
+```
+.haytham/
+  project.yaml                     # Your startup idea
+  session/
+    phase-1-why/                   # Validation findings and verdict
+    phase-2-what/                  # MVP scope and capabilities
+    phase-3-how/                   # Architecture decisions
+    phase-4-stories/               # Implementation-ready stories
+```
+
+A full 4-phase run takes approximately 15-20 minutes.
+
+## Local Development
+
+To modify agents or commands, clone the repo and work locally:
 
 ```bash
 git clone https://github.com/arslan70/haytham.git
 cd haytham
 ```
 
-Install dependencies for your chosen provider:
+### Modifying Agents
 
-```bash
-# AWS Bedrock (tested)
-uv sync
+Agent prompts are markdown files in `agents/`. Edit any file, then reload the plugin to pick up changes. Each agent file contains a system prompt with frontmatter for model selection and tool permissions.
 
-# Anthropic
-uv sync --extra anthropic
+### Adding a New Agent
 
-# OpenAI
-uv sync --extra openai
+1. Create `agents/your-agent.md` with appropriate frontmatter and system prompt
+2. Reference it from the relevant command in `commands/`
 
-# Ollama (free, local)
-uv sync --extra ollama
+### Adding a New Command
 
-# All providers
-uv sync --extra providers
+1. Create `commands/your-command.md`
+2. The command becomes available as `/haytham:your-command`
+
+### Testing Changes
+
+Run the plugin against a test idea:
+
+```
+/haytham "a recipe sharing app for home cooks with dietary restrictions"
 ```
 
-## Provider Setup
-
-Copy the environment template and configure your provider:
-
-```bash
-cp .env.example .env
-```
-
-### AWS Bedrock (Tested)
-
-This is the only provider that has been fully tested. Requires AWS credentials configured via environment variables or AWS CLI profile.
-
-```bash
-LLM_PROVIDER=bedrock
-AWS_REGION=us-east-1
-
-# Model configuration (defaults shown):
-BEDROCK_REASONING_MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
-BEDROCK_HEAVY_MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
-BEDROCK_LIGHT_MODEL_ID=us.anthropic.claude-3-5-haiku-20241022-v1:0
-```
-
----
-
-The providers below are supported but have not been fully tested. They should work, but you may hit rough edges. If you encounter provider-specific issues, please [open an issue](https://github.com/arslan70/haytham/issues).
-
-### Anthropic
-
-Easiest to set up: just an API key.
-
-```bash
-LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Model configuration (defaults shown):
-ANTHROPIC_REASONING_MODEL_ID=claude-sonnet-4-20250514
-ANTHROPIC_HEAVY_MODEL_ID=claude-sonnet-4-20250514
-ANTHROPIC_LIGHT_MODEL_ID=claude-3-5-haiku-20241022
-```
-
-### OpenAI
-
-```bash
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-...
-
-# Model configuration (defaults shown):
-OPENAI_REASONING_MODEL_ID=gpt-4o
-OPENAI_HEAVY_MODEL_ID=gpt-4o
-OPENAI_LIGHT_MODEL_ID=gpt-4o-mini
-```
-
-### Ollama (Free, Local)
-
-No API key needed. Runs entirely on your machine.
-
-```bash
-# Install Ollama: https://ollama.com/download
-ollama pull llama3.1:70b
-```
-
-```bash
-LLM_PROVIDER=ollama
-
-# Model configuration (defaults shown):
-OLLAMA_REASONING_MODEL_ID=llama3.1:70b
-OLLAMA_HEAVY_MODEL_ID=llama3.1:70b
-OLLAMA_LIGHT_MODEL_ID=llama3.1:8b
-```
-
-Note: Quality depends heavily on model size. The 70b parameter model is recommended for meaningful results but requires significant hardware (40+ GB GPU memory). If you don't have a high-end GPU, try the `8b` model. Results will be less consistent, but it runs on most machines. Smaller models may produce incomplete or inconsistent outputs.
-
-## Three-Tier Model Configuration
-
-Haytham uses three model tiers to balance cost and quality:
-
-| Tier | Purpose | Used For |
-|------|---------|----------|
-| **REASONING** | Complex analysis requiring deep reasoning | Validation scoring, risk assessment |
-| **HEAVY** | Substantial generation tasks | Market analysis, architecture decisions, story generation |
-| **LIGHT** | Fast, simple tasks | Idea polishing, formatting, classification |
-
-You can assign different models to each tier. For example, use a more capable model for REASONING and a cheaper model for LIGHT tasks.
-
-## Running Haytham
-
-```bash
-make run
-# Or: streamlit run frontend_streamlit/Haytham.py
-```
-
-Open [http://localhost:8501](http://localhost:8501) in your browser.
-
-## Your First Run
-
-1. **Enter an idea.** Describe a startup idea in plain language. Be specific about the problem, target users, and what makes it different. The more detail you provide, the better the analysis.
-
-2. **Discovery.** Haytham checks whether your idea is clear enough to analyze. If gaps exist (missing problem statement, unclear target user, vague value proposition), it asks targeted questions. If the idea is clear, this step is automatic.
-
-3. **Phase 1: Should this be built?** Specialist agents analyze the market, competitors, and risks. You receive a GO / NO-GO / PIVOT verdict with evidence. Review the findings and approve to proceed.
-
-4. **Phase 2: What exactly should we build?** Agents define MVP scope and extract capabilities. Review the scope boundaries and capability model, then approve.
-
-5. **Phase 3: How should we build it?** Build-vs-buy analysis per capability and architecture decisions. Review the technical choices and approve.
-
-6. **Phase 4: What are the tasks?** Ordered user stories with acceptance criteria and full traceability. These are ready to hand to a developer or coding agent.
-
-7. **Export your spec.** After stories are generated, use the export dropdown to download your specification as **OpenSpec** or **Spec Kit** zip. These are structured formats that AI coding agents (Claude Code, Cursor, Copilot) can consume directly. Unzip into your project root and point your coding agent at the spec directory. See [Exports](exports.md) for details on both formats.
-
-Each phase takes a few minutes. The full pipeline completes in approximately 20 minutes.
-
-**Cost note:** A full 4-phase run sends requests to 19 agents with web search. With commercial API providers (Anthropic, OpenAI), expect roughly $5–$20 in API credits per run depending on model choices and idea complexity. Use Ollama for free local inference, or assign cheaper models to the LIGHT tier to reduce costs.
-
-## Optional: Observability
-
-Haytham includes [OpenTelemetry](https://opentelemetry.io/) tracing for debugging. **Disabled by default.** No data is collected unless you opt in.
-
-```bash
-# Start Jaeger (requires Docker)
-make jaeger-up
-
-# In .env:
-OTEL_SDK_DISABLED=false
-
-# View traces at http://localhost:16686
-```
-
-## Optional: Burr Tracking UI
-
-[Burr](https://github.com/dagworks-inc/burr) provides a tracking UI to visualize workflow state and transitions:
-
-```bash
-burr
-# Open http://localhost:7241
-```
-
-## Platform Support
-
-| Platform | Status |
-|----------|--------|
-| macOS | Tested |
-| Linux | Expected to work |
-| Windows | Untested |
-
-## Troubleshooting
-
-Having issues? See the **[Troubleshooting Guide](troubleshooting.md)** for common errors, debugging tools, and tracing setup.
+Check the output files in `.haytham/session/` to verify agent behavior.

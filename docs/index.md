@@ -14,7 +14,7 @@ Haytham validates your idea with real market research, then generates a complete
 <div class="hero-buttons" markdown>
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
-[See It In Action](example-session/index.md){ .md-button }
+[How It Works](how-it-works.md){ .md-button }
 
 </div>
 </div>
@@ -106,11 +106,11 @@ flowchart TD
 
     Acceptance criteria in Gherkin format, dependency ordering, and full traceability. Hand these to a developer or a coding agent.
 
--   :material-export:{ .lg .middle } **Agent-ready exports**
+-   :material-export:{ .lg .middle } **Agent-ready output**
 
     ---
 
-    Download as [OpenSpec](https://github.com/Fission-AI/OpenSpec) or [Spec Kit](https://github.com/github/spec-kit). Feed your spec directly to Claude Code, Cursor, or Copilot.
+    Output as [OpenSpec](https://github.com/Fission-AI/OpenSpec). Feed your spec directly to Claude Code or any coding agent.
 
 </div>
 
@@ -118,20 +118,18 @@ flowchart TD
 
 ## Quick start
 
-```bash
-git clone https://github.com/arslan70/haytham.git
-cd haytham
-uv sync
-cp .env.example .env   # Configure your LLM provider
-make run               # Open http://localhost:8501
+```
+/plugin install haytham
 ```
 
-Supports **AWS Bedrock**, **Anthropic**, **OpenAI**, and **Ollama** (free, local). See [Getting Started](getting-started.md) for all provider options.
+Then run the full workflow:
 
----
+```
+/haytham "your startup idea here"
+```
 
-## Technology
+Or run individual phases: `/haytham:validate`, `/haytham:specify`, `/haytham:design`, `/haytham:plan`.
 
-Built with [Burr](https://github.com/dagworks-inc/burr) (workflow engine), [Strands Agents SDK](https://github.com/strands-agents/sdk-python) (agent framework), [Streamlit](https://streamlit.io/) (UI), and [uv](https://docs.astral.sh/uv/) (package manager). See [Technology Stack](technology.md) for the full rationale.
+See [Getting Started](getting-started.md) for details.
 
 [View on GitHub :fontawesome-brands-github:](https://github.com/arslan70/haytham){ .md-button }
