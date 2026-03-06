@@ -91,4 +91,4 @@ Haytham works with AWS Bedrock (tested), Anthropic, OpenAI, and Ollama (free, lo
 
 ## What's next
 
-The export layer makes Haytham's output consumable by any coding agent, but you still have to manually download the zip, extract it, and point your agent at the files. The next step is [Phase 5: Coding Agent Integration](../../roadmap.md), where a traced story from the export feeds directly into Claude Code or a similar agent for automated implementation, with validation against the acceptance criteria. If that sounds interesting, the [roadmap](../../roadmap.md) has the full plan, and contributions are welcome.
+The export layer makes Haytham's output consumable by any coding agent, but you still have to manually download the zip, extract it, and point your agent at the files. The next step is Phase 5: Coding Agent Integration, where a traced story from the export feeds directly into Claude Code or a similar agent for automated implementation, with validation against the acceptance criteria. **Update (March 2026):** Haytham is now a [Claude Code plugin](../posts/2026-03-03-build-where-developers-already-are.md), which makes this handoff automatic.

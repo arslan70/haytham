@@ -10,7 +10,7 @@ The journey has three milestones:
 
 | Milestone | Name | Input | Output | Status |
 |-----------|------|-------|--------|--------|
-| M1 | **Genesis** | A startup idea | A validated, implementation-ready specification | Phases 1–4 complete |
+| M1 | **Genesis** | A startup idea | A validated, implementation-ready specification | Delivered as Claude Code plugin |
 | M2 | **Evolution** | System + change request | Updated system with full traceability | PLANNED |
 | M3 | **Sentience** | Running system + telemetry | Continuous autonomous improvement | VISION |
 
@@ -39,11 +39,11 @@ The output of Phases 1–4 is a complete specification: validated assumptions, s
 
 ### Current State
 
-Phases 1–4 are implemented and validated. The system was proven end-to-end with a real startup idea ("a gym community leaderboard with anonymous handles") that produced 10 implementation-ready stories, which were then executed into a working Next.js application.
+Phases 1-4 are delivered as a Claude Code plugin. Install with `/plugin install haytham`, run with `/haytham "your idea"`. The planning intelligence was validated end-to-end with a gym leaderboard idea that produced 10 implementation-ready stories, executed into a working Next.js application. The standalone system (Burr + Strands + Streamlit) was archived in favor of the plugin for zero-setup distribution. See [System Evolution](docs/system-evolution.md) for the full journey.
 
 ### What Remains
 
-- **Phase 5 (Implementation)**: Stories are dispatched to coding agents (Devin, Amazon Q Developer Agent, Claude Code, or any agent that accepts structured work items) for execution
+- **Phase 5 (Implementation)**: The plugin hands the execution contract directly to Claude Code for implementation in the same session
 - **Phase 6 (Validation)**: Implemented capabilities are validated against the specification
 
 Genesis is complete when: idea in, working validated MVP out.
@@ -125,7 +125,7 @@ That is Haytham's role. Not a generic agent router, but a **specification-driven
 
 ### The Pattern in Practice
 
-A planned example illustrates this. [Google Stitch](https://stitch.withgoogle.com/) exposes UI generation capabilities through an official MCP endpoint (`stitch.googleapis.com/mcp`). The planned `ux_designer` agent (see [ADR-021](docs/adr/ADR-021-design-ux-workflow-stage.md)) will connect to Stitch via the Strands `mcp_client` tool, discover its available operations, generate UI screens for each capability, and extract code in the architecture's chosen framework, all within a single agent turn.
+A planned example illustrates this. [Google Stitch](https://stitch.withgoogle.com/) exposes UI generation capabilities through an official MCP endpoint (`stitch.googleapis.com/mcp`). A future `ux_designer` agent could connect to Stitch via MCP, discover its available operations, generate UI screens for each capability, and extract code in the architecture's chosen framework, all within a single agent turn.
 
 The agent won't call a fixed API. It will connect to a service that exposes tools, reason about which tools to call and in what order, and adapt its approach based on the results. This is what "service as agent" looks like in practice: not a chatbot wrapper around an API, but an MCP-native service whose capabilities are discoverable and composable by any agent that speaks the protocol.
 

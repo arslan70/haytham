@@ -7,26 +7,31 @@ on:
     branches: [main]
 
 jobs:
-  lint-and-test:
+  validate-plugin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Validate plugin manifest
+        run: python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - name: Validate hooks config
+        run: python3 -c "import json; json.load(open('hooks/hooks.json'))"
 
-      - name: Install dependencies
-        run: uv sync
+      - name: Check agent files exist
+        run: |
+          for agent in idea-analyst market-researcher research-briefer report-synthesizer mvp-scoper capability-modeler architect story-planner; do
+            test -f "agents/${agent}.md" || (echo "Missing agent: ${agent}.md" && exit 1)
+          done
 
-      - name: Lint
-        run: uv run ruff check haytham/
+      - name: Check command files exist
+        run: |
+          for cmd in haytham validate specify design plan; do
+            test -f "commands/${cmd}.md" || (echo "Missing command: ${cmd}.md" && exit 1)
+          done
 
-      - name: Format check
-        run: uv run ruff format --check haytham/
-
-      - name: Unit tests
-        run: uv run pytest tests/ -v -m "not integration" -x
+      - name: Check script files exist
+        run: |
+          test -f scripts/check_phase_prereqs.sh
+          test -f scripts/validate_schema.py
+          test -f scripts/validate_som.py

@@ -6,7 +6,7 @@ Haytham processes a startup idea through four sequential phases, each answering 
 
 - **Structure over speed.** Good systems require good decisions. Haytham enforces the questions experienced architects ask (problem framing, scope boundaries, build-vs-buy trade-offs, capability traceability) before any code is written.
 - **Honesty over flattery.** If the idea doesn't hold up, the system says NO-GO and tells you why. Only validated ideas proceed to specification.
-- **Human over automation.** Every decision is surfaced for review. Each stage output is a conversation. Disagree with the architecture, challenge the scope, refine the verdict.
+- **Human over automation.** Every decision is surfaced for review. Each phase output is a conversation. Disagree with the architecture, challenge the scope, refine the verdict.
 - **Traceability over magic.** Every story traces to a capability, every capability to a validated need, every decision to the capabilities it serves. When stories reach a developer or coding agent, they carry full context.
 
 ---
@@ -15,63 +15,51 @@ Haytham processes a startup idea through four sequential phases, each answering 
 
 ```mermaid
 flowchart TD
-    idea[Startup Idea] --> gatekeeper[Idea Gatekeeper]
-    gatekeeper --> discovery[Idea Discovery]
-    discovery --> concept[Concept Expansion]
+    idea[Startup Idea] --> idea_analyst[Idea Analyst]
 
     subgraph why["WHY: Should this be built?"]
-        concept --> anchor[Anchor Extractor]
-        anchor --> market[Market Intelligence]
-        anchor --> competitor[Competitor Analysis]
-        market --> brief[Research Brief]
-        competitor --> brief
-        brief --> synthesis[Report Synthesis]
+        idea_analyst --> market[Market Researcher]
+        market --> briefer[Research Briefer]
+        briefer --> synthesis[Report Synthesizer]
     end
 
     synthesis --> gate1{Gate 1: Founder Review}
     gate1 -->|GO| mvp
 
     subgraph what["WHAT: What exactly?"]
-        mvp[MVP Scope] --> capability[Capability Model]
-        capability --> traits[System Traits]
+        mvp[MVP Scoper] --> capability[Capability Modeler]
     end
 
-    traits --> gate2{Gate 2: Product Owner}
+    capability --> gate2{Gate 2: Product Owner}
     gate2 -->|Approved| build_buy
 
     subgraph how["HOW: How?"]
-        build_buy[Build vs Buy] --> arch[Architecture Decisions]
+        build_buy[Architect]
     end
 
-    arch --> gate3{Gate 3: Architect}
+    build_buy --> gate3{Gate 3: Architect}
     gate3 -->|Approved| stories
 
     subgraph stories_phase["STORIES: Tasks"]
-        stories[Story Generation] --> story_val[Story Validation]
-        story_val --> ordering[Dependency Ordering]
+        stories[Story Planner]
     end
 
-    ordering --> output[Implementation-Ready Backlog]
+    stories --> output[Implementation-Ready Backlog]
 ```
 
 ---
 
 ## Discovery: Idea Refinement
 
-Before running any analysis, Haytham checks whether the idea has enough substance to evaluate.
+Before running any analysis, the **Idea Analyst** checks whether the idea has enough substance to evaluate. It classifies the input, assesses coverage across four dimensions (problem, customer, unique value proposition, and solution) using Lean Canvas, The Mom Test, and Jobs-to-be-Done frameworks, and extracts concept anchors.
 
-```mermaid
-flowchart TD
-    input[User Input] --> gatekeeper{Idea Gatekeeper}
-    gatekeeper -->|Valid| discovery[Idea Discovery]
-    gatekeeper -->|Unclear| clarify[Ask for Clarification]
-    gatekeeper -->|Unrelated| reject[Rejected]
-    discovery -->|Gaps found| questions[Targeted Questions]
-    questions --> discovery
-    discovery -->|All dimensions clear| phase1[Phase 1]
-```
+If gaps exist, it asks targeted questions for only what's missing. If the input is unrelated to a startup idea, it rejects it.
 
-The **Idea Gatekeeper** classifies input as valid, needing clarification, or unrelated. The **Idea Discovery** agent then assesses coverage across four dimensions (problem, customer, unique value proposition, and solution) using [Lean Canvas](https://leanstack.com/lean-canvas), [The Mom Test](https://www.momtestbook.com/), and [Jobs-to-be-Done](https://jtbd.info/) frameworks. If gaps exist, the system asks targeted questions for only what's missing.
+### Solving the telephone problem
+
+In a multi-phase pipeline, each agent subtly shifts meaning toward the generic case. After several hops, the output can describe a fundamentally different product.
+
+The Idea Analyst extracts "concept anchors" before any analysis begins: the user's core intent, invariant properties, and identity markers. Every downstream agent receives these anchors unchanged as constraints. If the user says "gym leaderboard with anonymous handles," every phase must reference gyms, leaderboards, and anonymity, not "a community engagement platform with privacy features." See [Lesson 2 in System Evolution](system-evolution.md#2-concept-fidelity-adr-022).
 
 ---
 
@@ -79,19 +67,11 @@ The **Idea Gatekeeper** classifies input as valid, needing clarification, or unr
 
 Determine if the idea is viable before investing in specification.
 
-**Concept Expansion** transforms the raw idea into a structured startup concept with problems, trigger moments, target segments, and an initial [Lean Canvas](https://leanstack.com/lean-canvas).
+The **Market Researcher** uses the Jobs-to-be-Done framework to identify core functional, emotional, and social jobs, then sizes the opportunity using TAM/SAM/SOM analysis. It also anchors competitor searches around the customer job rather than the product category, finding competitors across markets that solve the same job. Both market intelligence and competitor analysis happen in a single agent with web search access.
 
-#### Solving the telephone problem
+The **Research Briefer** presents the findings in a non-opinionated format for user review before any verdict is rendered.
 
-In a multi-agent pipeline, each agent subtly shifts meaning toward the generic case. After several hops, the output can describe a fundamentally different product. A real-world test showed a psychologist's closed-community wish-exchange app becoming a generic open-registration encouragement board by the time stories were generated.
-
-The **Anchor Extractor** prevents this. Before any analysis begins, it captures a small, immutable artifact from the original input: the user's core intent, a set of invariants (properties that must remain true in every downstream output), and identity markers (what makes this idea distinctive rather than generic). This anchor bypasses the agent chain entirely; every downstream agent receives it unchanged as a constraint, not as context that can be reinterpreted.
-
-Independent phase-boundary verifiers then check each phase's output against the anchor at decision gates. If an invariant is violated (say, MVP Scope quietly drops the closed-community requirement), the verifier surfaces it for review before the next phase runs. This is external verification, not self-checking: a separate agent with a narrow mandate reviews the producing agent's work. See [ADR-022](adr/ADR-022-concept-fidelity-pipeline-integrity.md) for the full design.
-
-**Market Intelligence** and **Competitor Analysis** run in parallel. Market Intelligence uses the [Jobs-to-be-Done](https://jtbd.info/) framework to identify core functional, emotional, and social jobs, then sizes the opportunity using [TAM/SAM/SOM](https://en.wikipedia.org/wiki/Total_addressable_market) analysis. Competitor Analysis anchors searches around the customer job rather than the product category, finding competitors across markets that solve the same job, and evaluates switching costs, lock-in factors, and market structure. Both agents include explicit confirmation bias checks to ensure findings aren't shaped to fit a predetermined conclusion.
-
-The **Research Brief** presents the market and competitor findings in a non-opinionated format for user review before any verdict is rendered. The **Report Synthesis** agent then applies a [Stage-Gate](https://en.wikipedia.org/wiki/Stage-gate_model) scorecard (Robert Cooper) with three knockout criteria and six scored dimensions to produce a GO / NO-GO / PIVOT verdict. This single agent replaced a multi-agent scoring pipeline per [ADR-026](adr/ADR-026-simplified-validation-pipeline.md). Two lightweight post-validators (SOM arithmetic and regulated-domain safety) provide guardrails on the output.
+The **Report Synthesizer** applies a Stage-Gate scorecard with three knockout criteria and six scored dimensions to produce a GO / NO-GO / PIVOT verdict. This is a single agent with full upstream context, per [Lesson 3 in System Evolution](system-evolution.md#3-single-agent-for-synthesis-adr-026). Two lightweight post-validators (SOM arithmetic and regulated-domain safety) run as hook scripts.
 
 ### Gate 1: Founder Review
 
@@ -103,9 +83,9 @@ The **Research Brief** presents the market and competitor findings in a non-opin
 
 ## Phase 2: What Exactly Should We Build?
 
-Define a focused, achievable first version. **MVP Scope** uses [Shape Up](https://basecamp.com/shapeup) appetite-based scoping (Small / Medium / Large time constraints) to right-size the first version. It identifies the core value proposition, defines a single primary user segment, in/out-of-scope boundaries, success criteria, and 2–3 core user flows.
+Define a focused, achievable first version. The **MVP Scoper** uses Shape Up appetite-based scoping to right-size the first version. It identifies the core value proposition, defines a single primary user segment, in/out-of-scope boundaries, success criteria, and core user flows.
 
-**Capability Model** decomposes the scope into 3–5 functional and 2–4 non-functional capabilities using standard [capability mapping](https://en.wikipedia.org/wiki/Business_capability_model), each traced to the user flows that justify it. **System Traits** classifies the system type (interface, auth model, deployment targets, data layer) to inform downstream architecture. Without this classification, story generation defaults to web-app patterns (dashboard pages, browser navigation) regardless of whether the product is a CLI tool, an API service, or a mobile app. Traits detection ensures downstream agents generate stories appropriate to the actual system type. See [ADR-019](adr/ADR-019-system-trait-detection.md).
+The **Capability Modeler** decomposes the scope into functional and non-functional capabilities using standard capability mapping, each traced to the user flows that justify it. It also classifies system traits (interface type, auth model, deployment targets, data layer) to inform downstream architecture. Without this classification, story generation defaults to web-app patterns regardless of whether the product is a CLI tool, an API service, or a mobile app.
 
 ### Gate 2: Product Owner Review
 
@@ -116,7 +96,7 @@ Define a focused, achievable first version. **MVP Scope** uses [Shape Up](https:
 
 ## Phase 3: How Should We Build It?
 
-Make key architecture and technology decisions before writing stories. **Build/Buy Analyzer** evaluates each capability using a six-dimension weighted scoring model (complexity, time-to-build, maintenance burden, cost-at-scale, vendor lock-in risk, and differentiation value) to recommend BUILD, BUY, or HYBRID per capability. **Architecture Decisions** records key technical choices (component structure, technology stack, integration patterns, deployment approach) as DEC-* records with rationale and the capabilities each serves.
+The **Architect** evaluates each capability for build-vs-buy using a weighted scoring model (complexity, time-to-build, maintenance burden, cost-at-scale, vendor lock-in risk, and differentiation value). It recommends BUILD, BUY, or HYBRID per capability. It then records key technical decisions (component structure, technology stack, integration patterns, deployment approach) as DEC-* records with rationale and the capabilities each serves.
 
 ### Gate 3: Architect Review
 
@@ -127,76 +107,54 @@ Make key architecture and technology decisions before writing stories. **Build/B
 
 ## Phase 4: What Are the Tasks?
 
-Generate an ordered backlog ready for execution. **Story Generation** creates user stories in standard Agile format ("As a [role], I want to [action] so that [benefit]") with acceptance criteria written in [Gherkin](https://cucumber.io/docs/gherkin/) (Given/When/Then). BUILD capabilities get implementation stories, BUY capabilities get integration stories, each tagged `implements:CAP-*`. The output includes an [entity-relationship model](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model) covering domain entities, attributes, and relationships.
-
-**Story Validation** verifies every capability is covered and validates against [INVEST](https://en.wikipedia.org/wiki/INVEST_(mnemonic)) criteria. **Dependency Ordering** resolves dependencies into a directed acyclic graph (DAG) and orders stories across a six-layer architecture: Foundation → Auth → Integrations → Core → UI → Real-time.
+The **Story Planner** generates user stories in standard Agile format with acceptance criteria in Gherkin (Given/When/Then). BUILD capabilities get implementation stories, BUY capabilities get integration stories, each tagged `implements:CAP-*`. It verifies every capability is covered, validates against INVEST criteria, and resolves dependencies into a directed acyclic graph ordered across architecture layers: Foundation, Auth, Integrations, Core, UI, Real-time.
 
 ### Final Output
 
-Every story links to the capability it implements (`implements:CAP-F-001`), the decisions it depends on (`uses:DEC-001`), and the entities it touches (`touches:ENT-001`). This specification is the execution contract. Whether the executor is a human developer, a hosted coding agent, or a cloud-native service agent, they receive the same traced context.
-
-### Spec-Driven Export
-
-Once the stories phase completes, you can export the full specification (not just stories, but capabilities, architecture decisions, system traits, and traced requirements) in two formats designed for AI coding agents:
-
-| Format | Best for | What it produces |
-|--------|----------|-----------------|
-| **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** | Iterating on an existing spec, change management via spec deltas | `openspec/` directory with `config.yaml`, `project.md`, and per-domain `spec.md` files with SHALL statements and Gherkin scenarios |
-| **[Spec Kit](https://github.com/github/spec-kit)** | Greenfield projects going straight to implementation, GitHub-native workflows | `.specify/` directory with `constitution.md`, per-feature spec/plan/tasks, data models, and API contracts |
-
-Both exports are available as zip downloads from the export dropdown in the stories view. See [Exports](exports.md) for the full format reference and usage with coding agents.
+Every story links to the capability it implements (`implements:CAP-F-001`), the decisions it depends on (`uses:DEC-001`), and the entities it touches (`touches:ENT-001`). This specification is the execution contract. Whether the executor is a human developer or a coding agent, they receive the same traced context.
 
 ---
 
 ## Agents at a Glance
 
-Specialist agents, some working individually and others coordinating in multi-agent swarms. Swarm sub-agents are indented below their parent.
-
-| # | Agent | Phase | Responsibility | Frameworks |
-|---|-------|-------|----------------|------------|
-| 1 | Idea Gatekeeper | Discovery | Classify input quality | - |
-| 2 | Idea Discovery | Discovery | Assess coverage gaps, generate targeted questions | Lean Canvas, The Mom Test, JTBD |
-| 3 | Anchor Extractor | WHY | Extract core concept anchor before expansion | - |
-| 4 | Concept Expansion | WHY | Structure raw idea into validated concept | Lean Canvas |
-| 5 | Market Intelligence | WHY | Research market size, trends, core jobs | JTBD (functional/emotional/social), TAM/SAM/SOM |
-| 6 | Competitor Analysis | WHY | Find and analyze real competitors | JTBD-anchored search, switching cost analysis |
-| 7 | Research Brief | WHY | Present research findings for user review | - |
-| 8 | Report Synthesis | WHY | Validate claims, score dimensions, produce GO/NO-GO/PIVOT verdict | Stage-Gate scorecard (Robert Cooper) |
-| 9 | Phase Verifier | WHY | Independent phase-boundary verification against concept anchor | - |
-| 10 | MVP Scope (swarm) | WHAT | Define focused first version | Shape Up (appetite-based scoping) |
-| 11 | ↳ Scope Core | WHAT | Identify core value proposition and user segment | - |
-| 12 | ↳ Scope Boundaries | WHAT | Define in/out-of-scope boundaries | - |
-| 13 | ↳ Scope Flows | WHAT | Define primary user flows | - |
-| 14 | MVP Specification | WHAT | Assemble final MVP spec from swarm outputs | - |
-| 15 | Capability Model | WHAT | Map functional and non-functional requirements | Capability mapping, traceability matrix |
-| 16 | System Traits | WHAT | Classify system type for downstream decisions | 8-trait system classification |
-| 17 | Build/Buy Advisor | HOW | Evaluate build vs buy per capability | 6-dimension weighted scoring |
-| 18 | ↳ Build/Buy Analyzer | HOW | Structured analysis with web search | - |
-| 19 | Architecture Decisions | HOW | Make key technical decisions | - |
+| Agent | Phase | Responsibility | Model |
+|-------|-------|----------------|-------|
+| Idea Analyst | Discovery/WHY | Classify input, assess coverage, expand concept, extract anchors | sonnet |
+| Market Researcher | WHY | Market intelligence and competitor analysis with web search | sonnet |
+| Research Briefer | WHY | Present research findings neutrally for user review | haiku |
+| Report Synthesizer | WHY | Score dimensions, produce GO/NO-GO/PIVOT verdict | opus |
+| MVP Scoper | WHAT | Scope definition, boundaries, core flows | sonnet |
+| Capability Modeler | WHAT | Capability extraction and system trait classification | sonnet |
+| Architect | HOW | Build/buy analysis and architecture decisions | sonnet |
+| Story Planner | STORIES | Story generation, validation, and dependency ordering | opus |
 
 ---
 
-## Key Behaviors
+## State Management
 
-### Stage-Level Iteration
+Each phase writes structured output to `.haytham/session/`. Phases read upstream context from these files, not from conversation history. This means context compaction doesn't lose critical references (CAP-*, DEC-*, story IDs).
 
-Each stage persists its output independently. This means:
-
-- **Resume from any point.** If the process is interrupted, it picks up from the last completed stage without re-running earlier work.
-- **Re-run selectively.** Revising MVP scope (Phase 2) doesn't re-run the web-search-heavy market analysis (Phase 1). Only the changed phase and its downstream dependencies re-execute.
-- **Tweak one agent at a time.** Each agent has a single focused job with its own prompt file, model tier, and output schema. Improving one agent's prompt doesn't require touching anything else.
-- **Test independently.** Each agent can be tested in isolation with fixed inputs and an LLM judge that evaluates output quality against criteria, catching prompt regressions before they reach users. See [ADR-018](adr/ADR-018-llm-as-judge-agent-testing.md).
-
-This decomposition is a deliberate trade-off: more stages means more inter-stage handoffs to manage, but each stage is small enough to debug, iterate on, and improve quickly and cheaply.
-
-### Refinement at Every Stage
-
-Each stage output is a conversation. You can discuss the output with the system, ask for explanations, request changes, and re-run with different guidance before approving.
-
-### Cost-Aware Design
-
-Running many agents with web search on a commercial API has real cost. Three mechanisms keep it manageable: **three model tiers** (REASONING / HEAVY / LIGHT; see [Architecture Overview](architecture/overview.md#model-tiers)), **structured output** (Pydantic models constrain LLM responses to required fields), and a **web search fallback chain** (DuckDuckGo → Brave → Tavily with session-wide limits; see [Technology](technology.md#web-search) and [ADR-014](adr/ADR-014-web-search-fallback-chain.md)).
-
-### A Control Plane for Execution Agents
-
-The specification Haytham produces (traced capabilities, architecture decisions, ordered stories) is a universal execution contract. Any agent that accepts structured work items can execute against it: coding agents, design services, cloud service agents, or human developers. See the [Vision](../VISION.md#the-control-plane-orchestrating-execution-agents) for how this shapes each milestone and the [Roadmap](roadmap.md) for planned integrations.
+```
+.haytham/session/
+  phase-1-why/
+    idea-analysis.md              # Structured idea analysis
+    concept-anchor.json           # Invariants that prevent idea drift
+    market-research.md            # Market and competitor findings
+    research-brief.md             # Neutral brief for founder review
+    validation-report.md          # Synthesis report
+    validation-report.json        # Structured recommendation
+    gate-decision.json            # Phase, recommendation, user decision
+  phase-2-what/
+    mvp-scope.md                  # Scope, boundaries, core flows
+    capabilities.json             # CAP-F-*, CAP-NF-*
+    system-traits.json            # System trait classification
+    gate-decision.json
+  phase-3-how/
+    build-buy.json                # BUILD/BUY/HYBRID per capability
+    architecture-decisions.json   # DEC-* decisions
+    gate-decision.json
+  phase-4-stories/
+    stories.json                  # Ordered stories
+    execution-contract.json       # Execution contract
+    gate-decision.json
+```
