@@ -15,12 +15,32 @@ You are running Phase 4 of the Haytham validation workflow. This phase generates
 Verify `.haytham/session/phase-3-how/gate-decision.json` exists. If it doesn't, tell the user:
 > "Phase 3 (technical design) must be completed first. Run `/haytham:design` to start."
 
+## Roadmap
+
+Before launching any agents, tell the user:
+
+> **Phase 4: Implementation Plan**
+>
+> This will run 3 steps:
+> 1. Story Planning — generate stories with dependencies and acceptance criteria (~2 min)
+> 2. Review — you review the implementation plan
+> 3. Detail Review — drill into specific stories if needed
+>
+> Estimated total: ~3 minutes.
+
 ## Step 1: Story Planning
 
 Create `.haytham/session/phase-4-stories/` directory if it doesn't exist.
 
+Tell the user:
+> **Step 1/3: Story Planning**
+> Turning capabilities and architecture decisions into implementation-ready stories with dependencies.
+
 Launch a **story-planner** agent with this task:
 > Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, system traits from `.haytham/session/phase-2-what/system-traits.json`, architecture decisions from `.haytham/session/phase-3-how/architecture-decisions.json`, build/buy analysis from `.haytham/session/phase-3-how/build-buy.json`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Generate story skeletons, detail specs, and the execution contract. Write to `.haytham/session/phase-4-stories/stories.json` and `.haytham/session/phase-4-stories/execution-contract.json`.
+
+After the agent completes, read `.haytham/session/phase-4-stories/execution-contract.json` and tell the user:
+> Story planning complete. [One-line summary: total story count and layer breakdown.]
 
 ## Step 2: Review
 
@@ -40,7 +60,9 @@ For each story, show a one-line summary:
 
 ## Step 3: Detail Review
 
-Ask: **"Would you like to review any specific stories in detail? Enter story IDs (e.g., STORY-001, STORY-005) or 'all' to see everything."**
+Ask:
+> **Your implementation plan is ready.**
+> Would you like to drill into any specific stories? Enter story IDs (e.g., STORY-001, STORY-005), or say "looks good" to finish.
 
 If the user requests specific stories, read them from `.haytham/session/phase-4-stories/stories.json` and present the full detail spec.
 
@@ -70,4 +92,4 @@ Phase 4 (STORIES): .haytham/session/phase-4-stories/
   - execution-contract.json - Implementation contract
 ```
 
-Tell the user: "Your implementation plan is ready. Stories are ordered by dependency and can be implemented sequentially starting from Layer 0."
+Tell the user: "Your implementation plan is ready. Ran 1 agent across 3 steps. Stories are ordered by dependency and can be implemented sequentially starting from Layer 0."

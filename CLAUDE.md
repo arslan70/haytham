@@ -167,6 +167,22 @@ Pass known values (e.g., GO/NO-GO recommendation, concept anchors) explicitly to
 
 Don't create scoring dimensions in agent prompts that the upstream evidence can't populate. If you can't name the specific data source that populates a score, delete the score. Hallucinated scoring dimensions produce confident-sounding but unfounded analysis.
 
+### Agent UX Standards
+
+When writing or modifying command files that orchestrate agents, follow these patterns:
+
+**Roadmap first.** Before launching any agents, emit a numbered step list showing what will happen, which steps involve user decisions, and roughly how long the phase takes. The user should see the plan before execution begins.
+
+**Frame every agent call.** Before each agent call, state what the agent will do and why in plain language (not "Launching market-researcher agent" but "Checking if anyone else is solving this problem and how big the opportunity is"). After each agent call, read the output file and emit a one-line digest of what was found.
+
+**Purpose over procedure.** Transition messages should explain why the next step exists relative to the user's goal, not just name the step. "Research gathered. Compiling a neutral summary for your review." not "Now launching Step 3: Research Brief."
+
+**Guided questions.** When asking the user for review or approval, provide specific dimensions to evaluate (e.g., "Is the problem statement right? Are we missing competitors?") rather than open-ended "anything to correct?" prompts. Always include a low-effort escape ("say 'looks good' to continue").
+
+**Soft checkpoints.** Between major steps, give the user a visible window to interject without requiring a response. State what just happened and what's about to happen. The user can steer if they want; the system proceeds if they don't.
+
+**No blocking without reason.** Only use hard gates (explicit approval questions) at phase boundaries. Mid-phase checkpoints should be informational, not blocking. Too many mandatory stops make the workflow feel heavy.
+
 ---
 
 ## Plugin Marketplace Standards
