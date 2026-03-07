@@ -105,7 +105,13 @@ After the agent completes, read `.haytham/session/phase-1-why/validation-report.
 
 Read `.haytham/session/phase-1-why/validation-report.json`. Present the recommendation and key findings.
 
-Ask: **"Do you approve this recommendation?"**
+Ask:
+> **Review the recommendation. Specifically:**
+> - Does the evidence support the verdict?
+> - Are there risks the report missed?
+> - Do you agree with the recommended direction?
+>
+> Approve to proceed, or explain why you disagree.
 
 Write gate decision to `.haytham/session/phase-1-why/gate-decision.json`:
 ```json

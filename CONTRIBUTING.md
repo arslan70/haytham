@@ -120,20 +120,21 @@ After running the plugin against a test idea, run review skills to evaluate outp
 
 #### Finding Format
 
-Every review skill produces findings in a consistent format:
+Every review skill produces findings in a consistent structure:
+
+**Evaluation table** scores each criterion as PASS, PARTIAL, or FAIL with quoted evidence:
 
 ```
-| Finding | Severity | Evidence | Fix Location | Fix Type |
-|---------|----------|----------|--------------|----------|
+| # | Criterion              | Result  | Evidence |
+|---|------------------------|---------|----------|
+| 1 | Problem Articulation   | PASS    | "Solo gym-goers aged 20-35..." |
+| 2 | Market Sizing Basis    | FAIL    | "$7.4B TAM" with no source cited |
 ```
 
-**Fix Location** is always a specific file (`agents/*.md`, `commands/*.md`, `scripts/*.py`).
-
-**Fix Type** is one of:
-- **Missing instruction**: The agent/command prompt doesn't address this at all
-- **Weak instruction**: The instruction exists but isn't followed consistently
-- **Wrong instruction**: The instruction produces the wrong behavior
-- **Structural gap**: The pipeline architecture can't support this (needs a new stage or schema change)
+**Suggested Improvements** follow the table. For each PARTIAL or FAIL, the skill states:
+1. What was observed (with a quote from the output)
+2. Which file needs the fix (`agents/*.md`, `commands/*.md`, `scripts/*.py`)
+3. The **fix type**: missing instruction, weak instruction, wrong instruction, or structural gap
 
 This classification makes every finding directly actionable. You know which file to open and what kind of change to make.
 

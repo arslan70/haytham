@@ -118,7 +118,13 @@ Present the recommendation:
 - **PIVOT**: "The analysis suggests pivoting. [Pivot direction]"
 - **NO-GO**: "The analysis recommends against proceeding. [Key reasons]"
 
-Ask the user: **"Do you approve proceeding to MVP specification? (Phase 2)"**
+Ask:
+> **Review the recommendation. Specifically:**
+> - Does the evidence support the verdict?
+> - Are there risks the report missed?
+> - Do you agree with the recommended direction?
+>
+> Approve to proceed to MVP specification, or explain why you disagree.
 
 - If **NO-GO** and user agrees: Stop and explain the key reasons.
 - If **PIVOT** and user agrees: Note the pivot direction, update `.haytham/project.yaml` with the pivoted idea, and restart from Step 1.
@@ -211,9 +217,10 @@ Before launching any agents, tell the user:
 
 > **Phase 3: Technical Design**
 >
-> This will run 2 steps:
+> This will run 3 steps:
 > 1. Architecture — build/buy analysis and technology decisions (~2 min)
-> 2. Gate 3 — you approve the design ← YOU DECIDE HERE
+> 2. Review — you review the architecture
+> 3. Gate 3 — you approve the design ← YOU DECIDE HERE
 >
 > Estimated total: ~3 minutes.
 
@@ -222,7 +229,7 @@ Before launching any agents, tell the user:
 Verify `.haytham/session/phase-2-what/gate-decision.json` exists.
 
 Tell the user:
-> **Step 1/2: Architecture**
+> **Step 1/3: Architecture**
 > Deciding what to build, what to buy, and how the pieces fit together.
 
 Launch an **architect** agent with this task:
@@ -264,9 +271,10 @@ Before launching any agents, tell the user:
 
 > **Phase 4: Implementation Plan**
 >
-> This will run 2 steps:
+> This will run 3 steps:
 > 1. Story Planning — generate stories with dependencies and acceptance criteria (~2 min)
-> 2. Final Review — you review the implementation plan ← YOU DECIDE HERE
+> 2. Review — you review the implementation plan
+> 3. Detail Review — drill into specific stories if needed ← YOU DECIDE HERE
 >
 > Estimated total: ~3 minutes.
 
@@ -275,7 +283,7 @@ Before launching any agents, tell the user:
 Verify `.haytham/session/phase-3-how/gate-decision.json` exists.
 
 Tell the user:
-> **Step 1/2: Story Planning**
+> **Step 1/3: Story Planning**
 > Turning capabilities and architecture decisions into implementation-ready stories with dependencies.
 
 Launch a **story-planner** agent with this task:
