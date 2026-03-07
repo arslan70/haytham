@@ -373,3 +373,14 @@ class TestMarketplaceJson:
                     f"Invalid category '{category}'. "
                     f"Must be one of: {VALID_CATEGORIES}"
                 )
+
+    def test_version_in_marketplace_only(self):
+        plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
+        marketplace = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())
+        assert "version" not in plugin, (
+            "Version should be managed in marketplace.json only, not plugin.json. "
+            "See https://code.claude.com/docs/en/plugins-reference#version-management"
+        )
+        assert "version" in marketplace["plugins"][0], (
+            "marketplace.json plugins[0] must have a version field"
+        )

@@ -12,7 +12,7 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 
 ## Setup
 
-1. Read `.claude-plugin/plugin.json` and extract the `version` field. Store it as `PLUGIN_VERSION` for use in phase roadmaps.
+1. Read `.claude-plugin/marketplace.json` and extract the `version` field from the first entry in `plugins`. Store it as `PLUGIN_VERSION` for use in phase roadmaps.
 2. Create `.haytham/` directory if it doesn't exist
 3. Create `.haytham/session/phase-1-why/`, `.haytham/session/phase-2-what/`, `.haytham/session/phase-3-how/`, `.haytham/session/phase-4-stories/` directories
 4. Write the user's startup idea to `.haytham/project.yaml`:

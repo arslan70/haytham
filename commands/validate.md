@@ -12,7 +12,7 @@ You are running Phase 1 of the Haytham validation workflow. This phase analyzes 
 
 ## Setup
 
-1. Read `.claude-plugin/plugin.json` and extract the `version` field. Store it as `PLUGIN_VERSION` for use in the roadmap.
+1. Read `.claude-plugin/marketplace.json` and extract the `version` field from the first entry in `plugins`. Store it as `PLUGIN_VERSION` for use in the roadmap.
 2. Create `.haytham/` and `.haytham/session/phase-1-why/` directories if they don't exist
 3. Write the user's startup idea to `.haytham/project.yaml`:
    ```yaml

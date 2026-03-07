@@ -18,6 +18,8 @@ Haytham transforms startup ideas into self-improving autonomous systems via thre
 
 Before starting work, ask: Does this advance the current milestone? Is it the minimum viable implementation? Can it be deferred? If so, challenge the request. See [VISION.md](./VISION.md).
 
+6. **Fix the Root Cause**: When a problem surfaces, fix the underlying issue, not the symptom. Before proposing a workaround or patch, ask: why does this problem exist? Can the root cause be eliminated? A sync test between two files is a patch; putting the data in one file is the fix. Read the relevant documentation before adding scaffolding.
+
 ### Meta-System Design
 
 **Haytham is a factory that produces applications.** It must handle ANY valid startup idea (web app, CLI tool, API service, marketplace), not just specific examples. This means:
@@ -219,6 +221,8 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 ### marketplace.json
 
 Located at `.claude-plugin/marketplace.json`. Must include `$schema` for validation. Valid categories: `development`, `productivity`, `security`, `testing`, `design`, `database`, `monitoring`, `deployment`, `learning`.
+
+**Version management:** The `version` field lives only in `marketplace.json` (inside `plugins[0]`), not in `plugin.json`. Claude Code uses this version to determine whether to update the plugin. Bump it with every release. See the [plugins reference](https://code.claude.com/docs/en/plugins-reference#version-management).
 
 ### Submission
 
