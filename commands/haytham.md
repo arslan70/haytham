@@ -27,39 +27,86 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 
 **Goal:** Understand the idea, research the market, and produce a GO/PIVOT/NO-GO recommendation.
 
+Before launching any agents, tell the user:
+
+> **Phase 1: Idea Validation**
+>
+> This will run 6 steps:
+> 1. Idea Analysis — expand and classify your idea (~1 min)
+> 2. Market Research — web search for competitors, sizing, sentiment (~3 min)
+> 3. Research Brief — neutral summary of findings (~1 min)
+> 4. Founder Review — you review and correct ← YOU DECIDE HERE
+> 5. Validation Report — GO/PIVOT/NO-GO analysis (~1 min)
+> 6. Gate Decision — you approve or reject
+>
+> Step 2 is the heaviest step (runs web searches). Estimated total: ~7 minutes.
+
 ### Step 1: Idea Analysis
+
+Tell the user:
+> **Step 1/6: Idea Analysis**
+> Expanding your idea into a structured concept so we have a clear foundation for research.
 
 Launch an **idea-analyst** agent with this task:
 > Read the startup idea from `.haytham/project.yaml`. Analyze it following your instructions. Write idea analysis to `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor to `.haytham/session/phase-1-why/concept-anchor.json`.
 
 If the agent writes `.haytham/session/phase-1-why/idea-clarification.md`, read it and present the clarification questions or suggestions to the user. Wait for their response, update `.haytham/project.yaml` with the refined idea, and re-run Step 1.
 
+After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` and tell the user:
+> Idea analysis complete. [One-line summary of the core concept from the analysis.]
+> Proceeding to market research. (You can steer by responding, e.g., "focus on competitor X" or "skip research, I know the market", or let it continue.)
+
 ### Step 2: Market Research
 
-Read `.haytham/session/phase-1-why/idea-analysis.md` to confirm it exists.
+Read `.haytham/session/phase-1-why/idea-analysis.md` to confirm it exists. Extract the domain/category.
+
+Tell the user:
+> **Step 2/6: Market Research**
+> Checking if anyone else is solving this, and how big the opportunity is. Searching for competitors, market sizing, and user sentiment in [domain from idea analysis].
+> This is the longest step (~3 min) because it runs web searches.
 
 Launch a **market-researcher** agent with this task:
 > Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Research the market and competitors. Write results to `.haytham/session/phase-1-why/market-research.md`.
 
+After the agent completes, read `.haytham/session/phase-1-why/market-research.md` and tell the user:
+> Market research complete. [One-line summary: number of competitors found, estimated market size if available.]
+
 ### Step 3: Research Brief
 
-Read `.haytham/session/phase-1-why/market-research.md` to confirm it exists.
+Tell the user:
+> Research gathered. Compiling a neutral summary for your review. No scores or judgments, just facts.
 
 Launch a **research-briefer** agent with this task:
 > Read idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and market research from `.haytham/session/phase-1-why/market-research.md`. Compile a neutral research brief. Write to `.haytham/session/phase-1-why/research-brief.md`.
+
+After the agent completes, tell the user:
+> Research brief compiled. Here's what we found. Check if this matches your understanding of the market.
 
 ### Step 4: Founder Review
 
 Read `.haytham/session/phase-1-why/research-brief.md` and present it to the user.
 
-Ask the user: **"Does this accurately capture your idea and the market landscape? Would you like to correct anything before we produce the validation report?"**
+Ask:
+> **Review the brief above. Specifically:**
+> - Is the problem statement right?
+> - Are we missing any key competitors?
+> - Is the market size in the right ballpark?
+>
+> Reply with corrections, or say "looks good" to continue to the validation report.
 
 If the user has corrections, update the relevant files and re-run the affected steps.
 
 ### Step 5: Validation Report
 
+Tell the user:
+> **Step 5/6: Validation Report**
+> Weighing the evidence to produce a GO, PIVOT, or NO-GO recommendation.
+
 Launch a **report-synthesizer** agent with this task:
 > Read all Phase 1 files and produce the validation report. Write to `.haytham/session/phase-1-why/validation-report.md` and `.haytham/session/phase-1-why/validation-report.json`.
+
+After the agent completes, read `.haytham/session/phase-1-why/validation-report.json` and tell the user:
+> Validation report complete. [One-line summary: the recommendation and primary reason.]
 
 ### Step 6: Gate 1
 
@@ -96,25 +143,52 @@ Write gate decision:
 
 **Goal:** Define what the MVP includes and model its capabilities.
 
+Before launching any agents, tell the user:
+
+> **Phase 2: MVP Specification**
+>
+> This will run 3 steps:
+> 1. MVP Scope — define what's in, what's out, and the core flows (~1 min)
+> 2. Capability Model — extract capabilities and system traits (~1 min)
+> 3. Gate 2 — you approve the specification ← YOU DECIDE HERE
+>
+> Estimated total: ~3 minutes.
+
 ### Step 7: MVP Scope
 
 Verify `.haytham/session/phase-1-why/gate-decision.json` exists.
 
+Tell the user:
+> **Step 1/3: MVP Scope**
+> Translating the validated idea into a concrete MVP definition. What's in, what's out, and what the core user flow looks like.
+
 Launch an **mvp-scoper** agent with this task:
 > Read the validation report, idea analysis, and concept anchor. Define the MVP scope. Write to `.haytham/session/phase-2-what/mvp-scope.md`.
 
-Read the output and present the MVP scope to the user (The One Thing, IN/OUT scope table, appetite).
+After the agent completes, read the output and present the MVP scope to the user (The One Thing, IN/OUT scope table, appetite).
 
 ### Step 8: Capability Model
 
+Tell the user:
+> Scope is set. Now extracting the specific capabilities your MVP needs and classifying system traits.
+
 Launch a **capability-modeler** agent with this task:
 > Read the MVP scope, idea analysis, and concept anchor. Produce the capability model and system traits. Write to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
+
+After the agent completes, read `.haytham/session/phase-2-what/capabilities.json` and tell the user:
+> Capability model complete. [One-line summary: number of functional and non-functional capabilities extracted.]
 
 ### Step 9: Gate 2
 
 Read `.haytham/session/phase-2-what/capabilities.json` and present the capabilities summary to the user. Show functional and non-functional capabilities with their traceability.
 
-Ask the user: **"Do you approve this MVP specification? Ready to proceed to technical design? (Phase 3)"**
+Ask:
+> **Review the MVP specification. Specifically:**
+> - Does the IN/OUT scope match your vision?
+> - Are the core capabilities right?
+> - Is there anything critical missing?
+>
+> Approve to proceed to technical design, or request changes.
 
 Write gate decision:
 ```json
@@ -133,21 +207,41 @@ Write gate decision:
 
 **Goal:** Decide on infrastructure and architecture.
 
+Before launching any agents, tell the user:
+
+> **Phase 3: Technical Design**
+>
+> This will run 2 steps:
+> 1. Architecture — build/buy analysis and technology decisions (~2 min)
+> 2. Gate 3 — you approve the design ← YOU DECIDE HERE
+>
+> Estimated total: ~3 minutes.
+
 ### Step 10: Architecture
 
 Verify `.haytham/session/phase-2-what/gate-decision.json` exists.
 
+Tell the user:
+> **Step 1/2: Architecture**
+> Deciding what to build, what to buy, and how the pieces fit together.
+
 Launch an **architect** agent with this task:
 > Read the capabilities, MVP scope, and system traits. Produce build/buy analysis and architecture decisions. Write to `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json`.
 
-Read the outputs and present to the user:
+After the agent completes, read the outputs and present to the user:
 - Recommended technology stack
 - Key architecture decisions
 - Estimated integration effort and monthly cost
 
 ### Step 11: Gate 3
 
-Ask the user: **"Do you approve this technical design? Ready to proceed to story planning? (Phase 4)"**
+Ask:
+> **Review the technical design. Specifically:**
+> - Does the technology stack fit your team's skills?
+> - Are the build/buy decisions reasonable?
+> - Is the estimated cost acceptable?
+>
+> Approve to proceed to story planning, or request changes.
 
 Write gate decision:
 ```json
@@ -166,12 +260,29 @@ Write gate decision:
 
 **Goal:** Generate implementation-ready stories with dependency ordering.
 
+Before launching any agents, tell the user:
+
+> **Phase 4: Implementation Plan**
+>
+> This will run 2 steps:
+> 1. Story Planning — generate stories with dependencies and acceptance criteria (~2 min)
+> 2. Final Review — you review the implementation plan ← YOU DECIDE HERE
+>
+> Estimated total: ~3 minutes.
+
 ### Step 12: Story Planning
 
 Verify `.haytham/session/phase-3-how/gate-decision.json` exists.
 
+Tell the user:
+> **Step 1/2: Story Planning**
+> Turning capabilities and architecture decisions into implementation-ready stories with dependencies.
+
 Launch a **story-planner** agent with this task:
 > Read all Phase 2 and Phase 3 outputs plus the concept anchor. Generate story skeletons, detail specs, and the execution contract. Write to `.haytham/session/phase-4-stories/stories.json` and `.haytham/session/phase-4-stories/execution-contract.json`.
+
+After the agent completes, read `.haytham/session/phase-4-stories/execution-contract.json` and tell the user:
+> Story planning complete. [One-line summary: total story count and layer breakdown.]
 
 ### Step 13: Final Review
 
@@ -180,7 +291,13 @@ Read `.haytham/session/phase-4-stories/execution-contract.json` and present to t
 - Dependency graph (which stories depend on which)
 - Coverage check (all capabilities and decisions covered)
 
-Ask the user: **"Your implementation plan is ready. Would you like to review any specific stories in detail?"**
+Ask:
+> **Review the implementation plan. Specifically:**
+> - Is the story breakdown granular enough to start building?
+> - Are the dependencies in the right order?
+> - Is anything missing from the coverage check?
+>
+> Say "looks good" or request changes.
 
 ### Completion
 
@@ -190,4 +307,4 @@ Summarize what was produced:
 - `.haytham/session/phase-3-how/` - Architecture and build/buy decisions
 - `.haytham/session/phase-4-stories/` - Implementation stories and execution contract
 
-Tell the user: "Your specification is complete. All output files are in `.haytham/session/`. You can use `/haytham:validate`, `/haytham:specify`, `/haytham:design`, or `/haytham:plan` to re-run individual phases."
+Tell the user: "Your specification is complete. Ran 8 agents across 4 phases. All output files are in `.haytham/session/`. You can use `/haytham:validate`, `/haytham:specify`, `/haytham:design`, or `/haytham:plan` to re-run individual phases."

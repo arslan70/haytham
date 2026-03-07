@@ -15,12 +15,32 @@ You are running Phase 3 of the Haytham validation workflow. This phase decides o
 Verify `.haytham/session/phase-2-what/gate-decision.json` exists. If it doesn't, tell the user:
 > "Phase 2 (MVP specification) must be completed first. Run `/haytham:specify` to start."
 
+## Roadmap
+
+Before launching any agents, tell the user:
+
+> **Phase 3: Technical Design**
+>
+> This will run 3 steps:
+> 1. Architecture — build/buy analysis and technology decisions (~2 min)
+> 2. Review — you review the architecture
+> 3. Gate 3 — you approve the design ← YOU DECIDE HERE
+>
+> Estimated total: ~3 minutes.
+
 ## Step 1: Architecture
 
 Create `.haytham/session/phase-3-how/` directory if it doesn't exist.
 
+Tell the user:
+> **Step 1/3: Architecture**
+> Deciding what to build, what to buy, and how the pieces fit together.
+
 Launch an **architect** agent with this task:
 > Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, and system traits from `.haytham/session/phase-2-what/system-traits.json`. Produce build/buy analysis and architecture decisions. Write to `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json`.
+
+After the agent completes, tell the user:
+> Architecture decisions complete. [One-line summary: number of build/buy decisions made.]
 
 ## Step 2: Review
 
@@ -32,7 +52,13 @@ Read both output files and present to the user:
 
 ## Step 3: Gate 3
 
-Ask: **"Do you approve this technical design? Ready to proceed to story planning?"**
+Ask:
+> **Review the technical design. Specifically:**
+> - Does the technology stack fit your team's skills?
+> - Are the build/buy decisions reasonable?
+> - Is the estimated cost acceptable?
+>
+> Approve to proceed to story planning, or request changes.
 
 Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 ```json
@@ -44,4 +70,4 @@ Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 }
 ```
 
-Tell the user: "Phase 3 complete. Run `/haytham:plan` to proceed to story planning (Phase 4)."
+Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Run `/haytham:plan` to proceed to story planning (Phase 4)."
