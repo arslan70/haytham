@@ -39,7 +39,7 @@ The output of Phases 1–4 is a complete specification: validated assumptions, s
 
 ### Current State
 
-Phases 1-4 are delivered as a Claude Code plugin. Install with `/plugin install haytham`, run with `/haytham "your idea"`. The planning intelligence was validated end-to-end with a gym leaderboard idea that produced 10 implementation-ready stories, executed into a working Next.js application. The standalone system (Burr + Strands + Streamlit) was archived in favor of the plugin for zero-setup distribution. See [System Evolution](docs/system-evolution.md) for the full journey.
+Phases 1-4 are delivered as a Claude Code plugin. Install with `/plugin marketplace add arslan70/haytham` then `/plugin install haytham@haytham`, run with `/haytham "your idea"`. The planning intelligence was validated end-to-end with a gym leaderboard idea that produced 10 implementation-ready stories, executed into a working Next.js application. The standalone system (Burr + Strands + Streamlit) was archived in favor of the plugin for zero-setup distribution. See [System Evolution](docs/system-evolution.md) for the full journey.
 
 ### What Remains
 

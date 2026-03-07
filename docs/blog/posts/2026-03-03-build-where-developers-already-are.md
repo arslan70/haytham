@@ -17,10 +17,11 @@ description: "Haytham is now a Claude Code plugin. One command to install, no AW
 
 Haytham turns a startup idea into a validated, implementation-ready specification. Market research with live web search, MVP scoping, architecture decisions, dependency-ordered stories with acceptance criteria. Four phases, each with a human approval gate before the next one starts.
 
-Starting today, you can install it with one command inside Claude Code:
+Starting today, you can install it inside Claude Code:
 
 ```
-/plugin install haytham
+/plugin marketplace add arslan70/haytham
+/plugin install haytham@haytham
 ```
 
 No Python. No AWS credentials. No Streamlit. Your existing Claude Code subscription handles everything.
@@ -80,7 +81,8 @@ For other solo founders building AI-powered developer tools: start on a platform
 ## Try it
 
 ```
-/plugin install haytham
+/plugin marketplace add arslan70/haytham
+/plugin install haytham@haytham
 ```
 
 Once installed, start with `/haytham` and paste your startup idea. The workflow runs through four phases (validate, specify, design, plan), each with a gate where you review findings and decide whether to continue. At the end, you get an execution contract that Claude Code can implement directly.

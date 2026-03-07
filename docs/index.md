@@ -119,7 +119,8 @@ flowchart TD
 ## Quick start
 
 ```
-/plugin install haytham
+/plugin marketplace add arslan70/haytham
+/plugin install haytham@haytham
 ```
 
 Then run the full workflow:

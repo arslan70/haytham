@@ -7,7 +7,8 @@
 ## Install
 
 ```
-/plugin install haytham
+/plugin marketplace add arslan70/haytham
+/plugin install haytham@haytham
 ```
 
 That's it. No Python, no API keys, no environment variables. Your existing Claude Code subscription handles all LLM calls.

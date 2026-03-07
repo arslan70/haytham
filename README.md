@@ -11,7 +11,8 @@ Haytham is a Claude Code plugin that validates startup ideas and generates imple
 ## Install
 
 ```
-/plugin install haytham
+/plugin marketplace add arslan70/haytham
+/plugin install haytham@haytham
 ```
 
 No Python. No AWS credentials. No environment variables. Your existing Claude Code subscription handles everything.
