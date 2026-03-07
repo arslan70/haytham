@@ -51,7 +51,7 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json` an
 
 ## Step 2: Review
 
-Read both output files and present to the user:
+Read both output files and output the following inline in your response (the user must see this without expanding anything):
 - **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
 - **Architecture Decisions**: ID, name, what it covers, capabilities served
 - **Integration Effort**: Estimated days

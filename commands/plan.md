@@ -50,7 +50,7 @@ After the agent completes, read `.haytham/session/phase-4-stories/execution-cont
 
 ## Step 2: Review
 
-Read `.haytham/session/phase-4-stories/execution-contract.json` and present:
+Read `.haytham/session/phase-4-stories/execution-contract.json` and output the following inline in your response (the user must see this without expanding anything):
 
 - **Story Count**: Total stories and breakdown by layer
 - **Appetite Compliance**: Whether story count fits within the appetite constraint
@@ -70,7 +70,7 @@ Ask:
 > **Your implementation plan is ready.**
 > Would you like to drill into any specific stories? Enter story IDs (e.g., STORY-001, STORY-005), or say "looks good" to finish.
 
-If the user requests specific stories, read them from `.haytham/session/phase-4-stories/stories.json` and present the full detail spec.
+If the user requests specific stories, read them from `.haytham/session/phase-4-stories/stories.json` and output the full detail spec inline in your response.
 
 ## Completion
 

@@ -102,7 +102,7 @@ After the agent completes, read `.haytham/session/phase-1-why/research-brief.md`
 
 ## Step 4: Founder Review
 
-Read `.haytham/session/phase-1-why/research-brief.md` and present it to the user.
+Read `.haytham/session/phase-1-why/research-brief.md` and output its full contents inline so the user can see it without expanding anything. Do NOT just reference the file — print the entire brief text in your response.
 
 Ask:
 > **Review the brief above. Specifically:**
@@ -134,7 +134,7 @@ After the agent completes, read `.haytham/session/phase-1-why/validation-report.
 
 ## Step 6: Gate 1
 
-Read `.haytham/session/phase-1-why/validation-report.json`. Present the recommendation and key findings.
+Read `.haytham/session/phase-1-why/validation-report.json`. Output the recommendation and key findings inline in your response (the user must see this without expanding anything).
 
 Ask:
 > **Review the recommendation. Specifically:**

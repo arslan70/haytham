@@ -107,7 +107,7 @@ After the agent completes, read `.haytham/session/phase-1-why/research-brief.md`
 
 ### Step 4: Founder Review
 
-Read `.haytham/session/phase-1-why/research-brief.md` and present it to the user.
+Read `.haytham/session/phase-1-why/research-brief.md` and output its full contents inline so the user can see it without expanding anything. Do NOT just reference the file — print the entire brief text in your response.
 
 Ask:
 > **Review the brief above. Specifically:**
@@ -142,7 +142,7 @@ After the agent completes, read `.haytham/session/phase-1-why/validation-report.
 ### Step 6: Gate 1
 
 Read `.haytham/session/phase-1-why/validation-report.json` and extract the recommendation.
-Read `.haytham/session/phase-1-why/validation-report.md` and present the key findings to the user.
+Read `.haytham/session/phase-1-why/validation-report.md` and output the key findings inline in your response. The user must be able to see the findings without expanding anything.
 
 Present the recommendation:
 - **GO**: "The analysis recommends proceeding. [Summary of why]"
@@ -231,7 +231,7 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 
 ### Step 9: Gate 2
 
-Read `.haytham/session/phase-2-what/capabilities.json` and present the capabilities summary to the user. Show functional and non-functional capabilities with their traceability.
+Read `.haytham/session/phase-2-what/capabilities.json` and output the capabilities summary inline in your response. Show functional and non-functional capabilities with their traceability. The user must be able to see this without expanding anything.
 
 Ask:
 > **Review the MVP specification. Specifically:**
@@ -350,7 +350,7 @@ After the agent completes, read `.haytham/session/phase-4-stories/execution-cont
 
 ### Step 13: Final Review
 
-Read `.haytham/session/phase-4-stories/execution-contract.json` and present to the user:
+Read `.haytham/session/phase-4-stories/execution-contract.json` and output the following inline in your response (the user must see this without expanding anything):
 - Total story count and layer breakdown
 - Dependency graph (which stories depend on which)
 - Coverage check (all capabilities and decisions covered)

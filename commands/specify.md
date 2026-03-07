@@ -71,7 +71,7 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 
 ## Step 3: Gate 2
 
-Read `.haytham/session/phase-2-what/capabilities.json` and present:
+Read `.haytham/session/phase-2-what/capabilities.json` and output the following inline in your response (the user must see this without expanding anything):
 - Functional capabilities with traceability to scope items
 - Non-functional capabilities
 - System traits classification
