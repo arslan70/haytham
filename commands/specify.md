@@ -42,7 +42,15 @@ Tell the user:
 Launch an **mvp-scoper** agent with this task:
 > Read the validation report from `.haytham/session/phase-1-why/validation-report.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Define the MVP scope. Write to `.haytham/session/phase-2-what/mvp-scope.md`.
 
-After the agent completes, read the output and present to the user: The One Thing, IN/OUT scope table, user flows, appetite.
+After the agent completes, read `.haytham/session/phase-2-what/mvp-scope.md` and present a structured digest:
+
+> **MVP scope defined.** Here's the shape of your MVP:
+>
+> - **The One Thing:** [The single sentence MVP purpose]
+> - **IN scope:** [List the key items that are in]
+> - **OUT scope:** [List the key items explicitly excluded]
+> - **Appetite:** [Time/effort budget]
+> - **Core flow:** [One-line description of the primary user journey]
 
 ## Step 2: Capability Model & System Traits
 
@@ -52,8 +60,14 @@ Tell the user:
 Launch a **capability-modeler** agent with this task:
 > Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis, and concept anchor. Produce the capability model and system traits. Write to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
 
-After the agent completes, read `.haytham/session/phase-2-what/capabilities.json` and tell the user:
-> Capability model complete. [One-line summary: number of functional and non-functional capabilities extracted.]
+After the agent completes, read `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json` and present a structured digest:
+
+> **Capability model complete.**
+>
+> - **Functional capabilities:** [Count] — [list capability names]
+> - **Non-functional capabilities:** [Count] — [list capability names]
+> - **System traits:** [List key traits like auth model, data sensitivity, etc.]
+> - **Traceability:** Each capability traces to [IN SCOPE items / problems from Phase 1]
 
 ## Step 3: Gate 2
 

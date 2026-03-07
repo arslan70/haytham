@@ -47,8 +47,16 @@ Launch an **idea-analyst** agent with this task:
 
 If the agent writes `.haytham/session/phase-1-why/idea-clarification.md`, read it and present the questions/suggestions to the user. Wait for their response, update `.haytham/project.yaml`, and re-run.
 
-After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` and tell the user:
-> Idea analysis complete. [One-line summary of the core concept from the analysis.]
+After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` and present a structured digest:
+
+> **Idea analysis complete.** Here's what we extracted:
+>
+> - **Core concept:** [One-line summary of what this product does]
+> - **Top problems:** [List the top 2-3 problems identified, one line each]
+> - **Primary segment:** [The primary user segment and their defining behavior]
+> - **UVP:** [The unique value proposition as written]
+> - **Concept health:** Pain Clarity: [X], Trigger Strength: [X], WTP Signal: [X]
+>
 > Proceeding to market research. (You can steer by responding, e.g., "focus on competitor X" or "skip research, I know the market", or let it continue.)
 
 ## Step 2: Market Research
@@ -63,8 +71,15 @@ Tell the user:
 Launch a **market-researcher** agent with this task:
 > Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Research the market and competitors. Write results to `.haytham/session/phase-1-why/market-research.md`.
 
-After the agent completes, read `.haytham/session/phase-1-why/market-research.md` and tell the user:
-> Market research complete. [One-line summary: number of competitors found, estimated market size if available.]
+After the agent completes, read `.haytham/session/phase-1-why/market-research.md` and present a structured digest:
+
+> **Market research complete.** Here's what we found:
+>
+> - **Market:** [Primary category], TAM: [X], SAM: [X], SOM: [X]
+> - **Competitors:** [List each competitor name + one-line description]
+> - **User sentiment:** [One key "love" and one key "hate" quote from real users]
+> - **Key gap:** [The most significant gap or unmet need found]
+> - **Top risk:** [The biggest market-structural risk or challenge]
 
 ## Step 3: Research Brief
 
@@ -74,8 +89,16 @@ Tell the user:
 Launch a **research-briefer** agent with this task:
 > Read idea analysis and market research from `.haytham/session/phase-1-why/`. Compile a neutral research brief. Write to `.haytham/session/phase-1-why/research-brief.md`.
 
-After the agent completes, tell the user:
-> Research brief compiled. Here's what we found. Check if this matches your understanding of the market.
+After the agent completes, read `.haytham/session/phase-1-why/research-brief.md` and present a structured digest:
+
+> **Research brief compiled.** Quick summary before you review:
+>
+> - **Our read of your idea:** [One-line problem + audience from the brief]
+> - **Market size:** [TAM/SAM/SOM figures from the brief]
+> - **Competitors found:** [Number] — [list names]
+> - **Data gaps:** [Key things we couldn't verify]
+>
+> Full brief below for your review.
 
 ## Step 4: Founder Review
 
@@ -98,8 +121,16 @@ Tell the user:
 Launch a **report-synthesizer** agent with this task:
 > Read all Phase 1 files and produce the validation report. Write to `.haytham/session/phase-1-why/validation-report.md` and `.haytham/session/phase-1-why/validation-report.json`.
 
-After the agent completes, read `.haytham/session/phase-1-why/validation-report.json` and tell the user:
-> Validation report complete. [One-line summary: the recommendation and primary reason.]
+After the agent completes, read `.haytham/session/phase-1-why/validation-report.json` and `.haytham/session/phase-1-why/validation-report.md` and present a structured digest:
+
+> **Validation report complete.**
+>
+> - **Recommendation:** [GO/PIVOT/NO-GO] — [recommendation_reasoning from JSON]
+> - **Composite score:** [X.X/5.0]
+> - **Risk level:** [HIGH/MEDIUM/LOW]
+> - **Strongest point:** [strongest_point from JSON]
+> - **Competitive snapshot:** [competitive_snapshot from JSON]
+> - **What to do next:** [closing_remark from JSON]
 
 ## Step 6: Gate 1
 

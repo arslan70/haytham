@@ -39,8 +39,14 @@ Tell the user:
 Launch a **story-planner** agent with this task:
 > Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, system traits from `.haytham/session/phase-2-what/system-traits.json`, architecture decisions from `.haytham/session/phase-3-how/architecture-decisions.json`, build/buy analysis from `.haytham/session/phase-3-how/build-buy.json`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Generate story skeletons, detail specs, and the execution contract. Write to `.haytham/session/phase-4-stories/stories.json` and `.haytham/session/phase-4-stories/execution-contract.json`.
 
-After the agent completes, read `.haytham/session/phase-4-stories/execution-contract.json` and tell the user:
-> Story planning complete. [One-line summary: total story count and layer breakdown.]
+After the agent completes, read `.haytham/session/phase-4-stories/execution-contract.json` and `.haytham/session/phase-4-stories/stories.json` and present a structured digest:
+
+> **Story planning complete.**
+>
+> - **Total stories:** [Count]
+> - **Layer breakdown:** [e.g., Infrastructure: X, Backend: X, Frontend: X, Integration: X]
+> - **Critical path:** [The first 2-3 stories that must be built first]
+> - **Coverage:** [All capabilities covered? Any gaps?]
 
 ## Step 2: Review
 

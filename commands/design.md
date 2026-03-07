@@ -39,8 +39,15 @@ Tell the user:
 Launch an **architect** agent with this task:
 > Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, and system traits from `.haytham/session/phase-2-what/system-traits.json`. Produce build/buy analysis and architecture decisions. Write to `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json`.
 
-After the agent completes, tell the user:
-> Architecture decisions complete. [One-line summary: number of build/buy decisions made.]
+After the agent completes, read `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json` and present a structured digest:
+
+> **Architecture designed.** Here's the technical plan:
+>
+> - **Stack:** [Key technologies chosen]
+> - **Build vs Buy:** [Summary of what's built custom vs. third-party services]
+> - **Key decisions:** [List the 2-3 most important architecture decisions]
+> - **Estimated monthly cost:** [Cost range]
+> - **Integration effort:** [Effort estimate]
 
 ## Step 2: Review
 
