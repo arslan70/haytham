@@ -1,6 +1,7 @@
 ---
 description: Run Phase 2 (WHAT) - Define MVP scope and capability model from a validated idea
 argument-hint: (no arguments - uses existing Phase 1 output)
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 ---
 
 # Haytham: MVP Specification (Phase 2 - WHAT)

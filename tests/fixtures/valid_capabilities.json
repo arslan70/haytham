@@ -1,0 +1,16 @@
+{
+  "summary": "Capability model for gym leaderboard",
+  "capabilities": {
+    "functional": [
+      {
+        "id": "CAP-001",
+        "name": "User Registration",
+        "serves_scope_item": "IN-001",
+        "user_flow": "Flow 1"
+      }
+    ],
+    "non_functional": []
+  },
+  "traceability": {},
+  "metadata": {}
+}

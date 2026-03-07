@@ -92,12 +92,20 @@ Edit the agent's markdown file in `agents/`. The file has YAML frontmatter (name
 
 ### Adding a New Command
 
-1. Create `commands/your-command.md` with frontmatter (`description`, `argument-hint`)
+1. Create `commands/your-command.md` with frontmatter (`description`, `argument-hint`, `allowed-tools`)
 2. The command becomes available as `/haytham:your-command`
 
 ### Testing
 
-Run the plugin against a test idea and check output files in `.haytham/session/`:
+**Sanity tests (CI):** Run before every commit:
+
+```bash
+python3 -m pytest tests/test_plugin_sanity.py -v
+```
+
+Tests cover: frontmatter validation (agents + commands), script syntax, cross-reference integrity (agents referenced in commands exist, hook script paths valid), schema validation logic, and marketplace JSON structure.
+
+**Functional testing:** Run the plugin against a test idea and check output files in `.haytham/session/`:
 
 ```
 /haytham "a gym community leaderboard with anonymous handles"
@@ -158,3 +166,44 @@ Pass known values (e.g., GO/NO-GO recommendation, concept anchors) explicitly to
 ### PITFALL: Evidence Must Match Evaluation
 
 Don't create scoring dimensions in agent prompts that the upstream evidence can't populate. If you can't name the specific data source that populates a score, delete the score. Hallucinated scoring dimensions produce confident-sounding but unfounded analysis.
+
+---
+
+## Plugin Marketplace Standards
+
+Patterns derived from scanning `anthropics/claude-plugins-official` and external plugins (Stripe, etc.).
+
+### Agent Frontmatter (Required)
+
+Every agent in `agents/` must have `name` and `description` in YAML frontmatter. CI validates this. The `description` field should explain what the agent does and when to use it.
+
+```yaml
+---
+name: your-agent
+description: What it does and when to use it.
+tools: Read, Write
+model: sonnet
+---
+```
+
+### Command Frontmatter (Required)
+
+Every command in `commands/` must have `description` and `allowed-tools`. The `allowed-tools` field pre-approves tools for the command's execution so users don't get permission prompts for every file read/write during a run.
+
+```yaml
+---
+description: What this command does
+argument-hint: [optional argument description]
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent
+---
+```
+
+**Tool selection per command:** Include the union of tools the orchestrating command and all its subagents need. Commands that launch agents using `WebSearch`/`WebFetch` (validate, design, haytham) must include those. Commands that only launch file-based agents (specify, plan) omit them.
+
+### marketplace.json
+
+Located at `.claude-plugin/marketplace.json`. Must include `$schema` for validation. Valid categories: `development`, `productivity`, `security`, `testing`, `design`, `database`, `monitoring`, `deployment`, `learning`.
+
+### Submission
+
+Submit to Anthropic's official marketplace via the form at `claude.ai/settings/plugins/submit` or `platform.claude.com/plugins/submit`. PRs to the `anthropics/claude-plugins-official` repo are auto-closed.

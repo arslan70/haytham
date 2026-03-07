@@ -1,0 +1,14 @@
+{
+  "stories": [
+    {
+      "id": "STORY-001",
+      "title": "Setup project",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-002",
+      "title": "User registration",
+      "depends_on": ["STORY-001"]
+    }
+  ]
+}

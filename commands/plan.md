@@ -1,6 +1,7 @@
 ---
 description: Run Phase 4 (STORIES) - Generate implementation-ready stories with dependency ordering
 argument-hint: (no arguments - uses existing Phase 3 output)
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 ---
 
 # Haytham: Story Planning (Phase 4 - STORIES)

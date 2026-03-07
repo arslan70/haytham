@@ -1,0 +1,15 @@
+{
+  "summary": "Capability model",
+  "capabilities": {
+    "functional": [
+      {
+        "id": "CAP-001",
+        "name": "User Registration",
+        "user_flow": "Flow 99"
+      }
+    ],
+    "non_functional": []
+  },
+  "traceability": {},
+  "metadata": {}
+}

@@ -1,6 +1,7 @@
 ---
 description: Run Phase 1 (WHY) - Validate a startup idea with market research and produce a GO/PIVOT/NO-GO recommendation
 argument-hint: [startup idea]
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 ---
 
 # Haytham: Idea Validation (Phase 1 - WHY)

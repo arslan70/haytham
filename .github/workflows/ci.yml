@@ -12,26 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate plugin manifest
-        run: python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Validate hooks config
-        run: python3 -c "import json; json.load(open('hooks/hooks.json'))"
+      - name: Install test dependencies
+        run: pip install pytest
 
-      - name: Check agent files exist
-        run: |
-          for agent in idea-analyst market-researcher research-briefer report-synthesizer mvp-scoper capability-modeler architect story-planner; do
-            test -f "agents/${agent}.md" || (echo "Missing agent: ${agent}.md" && exit 1)
-          done
-
-      - name: Check command files exist
-        run: |
-          for cmd in haytham validate specify design plan; do
-            test -f "commands/${cmd}.md" || (echo "Missing command: ${cmd}.md" && exit 1)
-          done
-
-      - name: Check script files exist
-        run: |
-          test -f scripts/check_phase_prereqs.sh
-          test -f scripts/validate_schema.py
-          test -f scripts/validate_som.py
+      - name: Run plugin sanity tests
+        run: pytest tests/test_plugin_sanity.py -v

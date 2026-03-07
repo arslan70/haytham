@@ -1,6 +1,7 @@
 ---
 description: Run Phase 3 (HOW) - Produce build/buy analysis and architecture decisions
 argument-hint: (no arguments - uses existing Phase 2 output)
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 ---
 
 # Haytham: Technical Design (Phase 3 - HOW)

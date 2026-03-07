@@ -1,0 +1,12 @@
+{
+  "recommendation": "GO",
+  "executive_summary": {
+    "idea_in_one_line": "A gym leaderboard app",
+    "strongest_point": "Clear target market",
+    "recommendation_summary": "Proceed with MVP",
+    "recommendation_reasoning": "Market gap exists",
+    "competitive_snapshot": "Few direct competitors",
+    "closing_remark": "Worth building"
+  },
+  "report": "The SOM is estimated at $5M based on a TAM of $500M. The SOM of $5M reflects a conservative 1% capture rate."
+}

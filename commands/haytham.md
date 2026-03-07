@@ -1,6 +1,7 @@
 ---
 description: Validate a startup idea and produce an implementation-ready specification
 argument-hint: [startup idea]
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 ---
 
 # Haytham: Startup Idea Validation & Specification
