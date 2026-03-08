@@ -12,10 +12,9 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 
 ## Setup
 
-1. Read `.claude-plugin/marketplace.json` and extract the `version` field from the first entry in `plugins`. Store it as `PLUGIN_VERSION` for use in phase roadmaps.
-2. Create `.haytham/` directory if it doesn't exist
-3. Create `.haytham/session/phase-1-why/`, `.haytham/session/phase-2-what/`, `.haytham/session/phase-3-how/`, `.haytham/session/phase-4-stories/` directories
-4. Write the user's startup idea to `.haytham/project.yaml`:
+1. Create `.haytham/` directory if it doesn't exist
+2. Create `.haytham/session/phase-1-why/`, `.haytham/session/phase-2-what/`, `.haytham/session/phase-3-how/`, `.haytham/session/phase-4-stories/` directories
+3. Write the user's startup idea to `.haytham/project.yaml`:
    ```yaml
    idea: |
      [The user's startup idea exactly as provided]
@@ -28,9 +27,9 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 
 **Goal:** Understand the idea, research the market, and produce a GO/PIVOT/NO-GO recommendation.
 
-Before launching any agents, tell the user:
+Before launching any agents, read `.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
 
-> **Phase 1: Idea Validation** (haytham v`PLUGIN_VERSION`)
+> **Phase 1: Idea Validation** (haytham vVERSION)
 >
 > This will run 6 steps:
 > 1. Idea Analysis — expand and classify your idea (~1 min)

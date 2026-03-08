@@ -12,7 +12,7 @@
       "name": "haytham",
       "source": "./",
       "description": "Validate startup ideas and generate implementation-ready specifications",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "repository": "https://github.com/arslan70/haytham",
       "license": "AGPL-3.0",
       "keywords": [

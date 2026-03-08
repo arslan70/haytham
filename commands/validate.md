@@ -12,9 +12,8 @@ You are running Phase 1 of the Haytham validation workflow. This phase analyzes 
 
 ## Setup
 
-1. Read `.claude-plugin/marketplace.json` and extract the `version` field from the first entry in `plugins`. Store it as `PLUGIN_VERSION` for use in the roadmap.
-2. Create `.haytham/` and `.haytham/session/phase-1-why/` directories if they don't exist
-3. Write the user's startup idea to `.haytham/project.yaml`:
+1. Create `.haytham/` and `.haytham/session/phase-1-why/` directories if they don't exist
+2. Write the user's startup idea to `.haytham/project.yaml`:
    ```yaml
    idea: |
      [The user's startup idea exactly as provided]
@@ -23,9 +22,9 @@ You are running Phase 1 of the Haytham validation workflow. This phase analyzes 
 
 ## Roadmap
 
-Before launching any agents, tell the user:
+Before launching any agents, read `.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
 
-> **Phase 1: Idea Validation** (haytham v`PLUGIN_VERSION`)
+> **Phase 1: Idea Validation** (haytham vVERSION)
 >
 > This will run 6 steps:
 > 1. Idea Analysis — expand and classify your idea (~1 min)
