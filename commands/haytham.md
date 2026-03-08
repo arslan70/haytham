@@ -94,20 +94,9 @@ Tell the user:
 Launch a **research-briefer** agent with this task:
 > Read idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and market research from `.haytham/session/phase-1-why/market-research.md`. Compile a neutral research brief. Write to `.haytham/session/phase-1-why/research-brief.md`.
 
-After the agent completes, read `.haytham/session/phase-1-why/research-brief.md` and present a structured digest:
-
-> **Research brief compiled.** Quick summary before you review:
->
-> - **Our read of your idea:** [One-line problem + audience from the brief]
-> - **Market size:** [TAM/SAM/SOM figures from the brief]
-> - **Competitors found:** [Number] — [list names]
-> - **Data gaps:** [Key things we couldn't verify]
->
-> Full brief below for your review.
+After the agent completes, read `.haytham/session/phase-1-why/research-brief.md` and output its FULL contents inline in your response. The user must be able to read the entire brief without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line.
 
 ### Step 4: Founder Review
-
-Read `.haytham/session/phase-1-why/research-brief.md` and output its full contents inline so the user can see it without expanding anything. Do NOT just reference the file — print the entire brief text in your response.
 
 Ask:
 > **Review the brief above. Specifically:**
@@ -128,34 +117,20 @@ Tell the user:
 Launch a **report-synthesizer** agent with this task:
 > Read all Phase 1 files and produce the validation report. Write to `.haytham/session/phase-1-why/validation-report.md` and `.haytham/session/phase-1-why/validation-report.json`.
 
-After the agent completes, read `.haytham/session/phase-1-why/validation-report.json` and `.haytham/session/phase-1-why/validation-report.md` and present a structured digest:
+After the agent completes, read `.haytham/session/phase-1-why/validation-report.md` and output its FULL contents inline in your response. The user must be able to read the entire report without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line of the report.
 
-> **Validation report complete.**
->
-> - **Recommendation:** [GO/PIVOT/NO-GO] — [recommendation_reasoning from JSON]
-> - **Composite score:** [X.X/5.0]
-> - **Risk level:** [HIGH/MEDIUM/LOW]
-> - **Strongest point:** [strongest_point from JSON]
-> - **Competitive snapshot:** [competitive_snapshot from JSON]
-> - **What to do next:** [closing_remark from JSON]
+After the full report, tell the user:
+> Full report saved to `.haytham/session/phase-1-why/validation-report.md`
 
 ### Step 6: Gate 1
 
-Read `.haytham/session/phase-1-why/validation-report.json` and extract the recommendation.
-Read `.haytham/session/phase-1-why/validation-report.md` and output the key findings inline in your response. The user must be able to see the findings without expanding anything.
-
-Present the recommendation:
-- **GO**: "The analysis recommends proceeding. [Summary of why]"
-- **PIVOT**: "The analysis suggests pivoting. [Pivot direction]"
-- **NO-GO**: "The analysis recommends against proceeding. [Key reasons]"
-
 Ask:
-> **Review the recommendation. Specifically:**
+> **Review the report above. Specifically:**
 > - Does the evidence support the verdict?
 > - Are there risks the report missed?
 > - Do you agree with the recommended direction?
 >
-> Approve to proceed to MVP specification, or explain why you disagree.
+> You can ask questions about the report, request changes, or say "approve" to proceed to MVP specification.
 
 - If **NO-GO** and user agrees: Stop and explain the key reasons.
 - If **PIVOT** and user agrees: Note the pivot direction, update `.haytham/project.yaml` with the pivoted idea, and restart from Step 1.
