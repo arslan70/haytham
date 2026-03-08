@@ -1,6 +1,6 @@
 ---
 description: Run Phase 1 (WHY) - Validate a startup idea with market research and produce a GO/PIVOT/NO-GO recommendation
-argument-hint: [startup idea]
+argument-hint: [startup idea] or [--from N] to resume from step N
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 ---
 
@@ -10,15 +10,39 @@ You are running Phase 1 of the Haytham validation workflow. This phase analyzes 
 
 **IMPORTANT:** Always read agent output from files, not from conversation history.
 
-## Setup
+## Setup & Resume Detection
 
-1. Create `.haytham/` and `.haytham/session/phase-1-why/` directories if they don't exist
-2. Write the user's startup idea to `.haytham/project.yaml`:
-   ```yaml
-   idea: |
-     [The user's startup idea exactly as provided]
-   created_at: [current ISO timestamp]
-   ```
+First, check if the user passed `--from N` as the argument (e.g., `/haytham:validate --from 5`). If so, set START_STEP to N.
+
+Otherwise, check if `.haytham/project.yaml` exists and contains a `state` section. If it does, read it and check `state.phase_1.last_completed_step`:
+
+- If `last_completed_step` exists and is between 1 and 5, tell the user:
+  > **Resuming Phase 1.** Found previous progress:
+  > - Last completed step: [N] ([step name])
+  > - Starting from step: [N+1]
+  >
+  > To restart from scratch, run `/haytham:validate [your idea]` with a new idea.
+  > To resume from a different step, run `/haytham:validate --from N`.
+
+  Set START_STEP to last_completed_step + 1. Verify the required input files for that step exist before proceeding.
+
+- If no state exists or a new idea was provided as the argument (not `--from`), start fresh from step 1:
+  1. Create `.haytham/` and `.haytham/session/phase-1-why/` directories if they don't exist
+  2. Write the user's startup idea to `.haytham/project.yaml`:
+     ```yaml
+     idea: |
+       [The user's startup idea exactly as provided]
+     created_at: [current ISO timestamp]
+     state:
+       phase_1:
+         last_completed_step: 0
+         updated_at: [current ISO timestamp]
+     ```
+  Set START_STEP to 1.
+
+## State Updates
+
+After each step completes successfully, update `.haytham/project.yaml` to set `state.phase_1.last_completed_step` to the step number and `state.phase_1.updated_at` to the current timestamp. Use the Edit tool to update only the state section, preserving the rest of the file.
 
 ## Roadmap
 
@@ -35,6 +59,11 @@ Before launching any agents, read `.claude-plugin/marketplace.json` and extract 
 > 6. Gate Decision — you approve or reject
 >
 > Step 2 is the heaviest step (runs web searches). Estimated total: ~7 minutes.
+
+If resuming (START_STEP > 1), show which steps will be skipped:
+> Skipping steps 1–[START_STEP - 1] (already completed). Starting from step [START_STEP].
+
+**Skip to the section for START_STEP.** Do not run steps before START_STEP.
 
 ## Step 1: Idea Analysis
 
@@ -59,6 +88,8 @@ After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` 
 >
 > Proceeding to market research. (You can steer by responding, e.g., "focus on competitor X" or "skip research, I know the market", or let it continue.)
 
+Update state: `last_completed_step: 1`.
+
 ## Step 2: Market Research
 
 Verify `.haytham/session/phase-1-why/idea-analysis.md` exists. Read it and extract the domain/category.
@@ -81,6 +112,8 @@ After the agent completes, read `.haytham/session/phase-1-why/market-research.md
 > - **Key gap:** [The most significant gap or unmet need found]
 > - **Top risk:** [The biggest market-structural risk or challenge]
 
+Update state: `last_completed_step: 2`.
+
 ## Step 3: Research Brief
 
 Tell the user:
@@ -91,6 +124,8 @@ Launch a **research-briefer** agent with this task:
 
 After the agent completes, read `.haytham/session/phase-1-why/research-brief.md` and output its FULL contents inline in your response. The user must be able to read the entire brief without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line.
 
+Update state: `last_completed_step: 3`.
+
 ## Step 4: Founder Review
 
 Ask:
@@ -100,6 +135,8 @@ Ask:
 > - Is the market size in the right ballpark?
 >
 > Reply with corrections, or say "looks good" to continue to the validation report.
+
+Update state: `last_completed_step: 4`.
 
 ## Step 5: Validation Report
 
@@ -114,6 +151,8 @@ After the agent completes, read `.haytham/session/phase-1-why/validation-report.
 
 After the full report, tell the user:
 > Full report saved to `.haytham/session/phase-1-why/validation-report.md`
+
+Update state: `last_completed_step: 5`.
 
 ## Step 6: Gate 1
 
@@ -135,5 +174,7 @@ Write gate decision to `.haytham/session/phase-1-why/gate-decision.json`:
   "decided_at": "[ISO timestamp]"
 }
 ```
+
+Update state: `last_completed_step: 6`.
 
 Tell the user: "Phase 1 complete. Ran 4 agents across 6 steps. Run `/haytham:specify` to proceed to MVP specification (Phase 2), or `/haytham:haytham` to run the full workflow."

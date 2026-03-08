@@ -19,7 +19,15 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
    idea: |
      [The user's startup idea exactly as provided]
    created_at: [current ISO timestamp]
+   state:
+     phase_1:
+       last_completed_step: 0
+       updated_at: [current ISO timestamp]
    ```
+
+## State Updates
+
+After each step completes successfully, update `.haytham/project.yaml` to set the appropriate `state.phase_N.last_completed_step` and `updated_at`. Use the Edit tool to update only the state section.
 
 ---
 
@@ -64,6 +72,8 @@ After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` 
 >
 > Proceeding to market research. (You can steer by responding, e.g., "focus on competitor X" or "skip research, I know the market", or let it continue.)
 
+Update state: `last_completed_step: 1`.
+
 ### Step 2: Market Research
 
 Read `.haytham/session/phase-1-why/idea-analysis.md` to confirm it exists. Extract the domain/category.
@@ -86,6 +96,8 @@ After the agent completes, read `.haytham/session/phase-1-why/market-research.md
 > - **Key gap:** [The most significant gap or unmet need found]
 > - **Top risk:** [The biggest market-structural risk or challenge]
 
+Update state: `last_completed_step: 2`.
+
 ### Step 3: Research Brief
 
 Tell the user:
@@ -95,6 +107,8 @@ Launch a **research-briefer** agent with this task:
 > Read idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and market research from `.haytham/session/phase-1-why/market-research.md`. Compile a neutral research brief. Write to `.haytham/session/phase-1-why/research-brief.md`.
 
 After the agent completes, read `.haytham/session/phase-1-why/research-brief.md` and output its FULL contents inline in your response. The user must be able to read the entire brief without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line.
+
+Update state: `last_completed_step: 3`.
 
 ### Step 4: Founder Review
 
@@ -107,6 +121,8 @@ Ask:
 > Reply with corrections, or say "looks good" to continue to the validation report.
 
 If the user has corrections, update the relevant files and re-run the affected steps.
+
+Update state: `last_completed_step: 4`.
 
 ### Step 5: Validation Report
 
@@ -121,6 +137,8 @@ After the agent completes, read `.haytham/session/phase-1-why/validation-report.
 
 After the full report, tell the user:
 > Full report saved to `.haytham/session/phase-1-why/validation-report.md`
+
+Update state: `last_completed_step: 5`.
 
 ### Step 6: Gate 1
 
