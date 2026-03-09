@@ -4,7 +4,7 @@
 
 Haytham is a specification-driven control plane for software systems.
 
-It turns a business intent into a validated specification (traced capabilities, architecture decisions, ordered stories) and then orchestrates execution agents to build and maintain the result. The specification is the differentiator: it gives every downstream agent (a hosted coding agent, a cloud provider's service agent, an MCP-native tool) the context to act with purpose rather than guess.
+It turns a business intent into a validated specification (traced capabilities, architecture decisions, OpenSpec requirements) and then orchestrates execution agents to build and maintain the result. The specification is the differentiator: it gives every downstream agent (a hosted coding agent, a cloud provider's service agent, an MCP-native tool) the context to act with purpose rather than guess.
 
 The journey has three milestones:
 
@@ -30,20 +30,20 @@ Haytham compresses this into a structured, evidence-based process:
 2. **Specify**: What exactly should the MVP include?
 3. **Design**: How should each capability be built?
 4. **Plan**: What are the implementation tasks?
-5. **Execute**: Hand stories to coding agents for implementation
+5. **Execute**: Hand specs to coding agents for implementation
 6. **Verify**: Validate implemented capabilities against the specification
 
 Each phase is staffed by specialist AI agents. Each phase produces reviewable, structured output. Each phase ends with a human approval gate.
 
-The output of Phases 1–4 is a complete specification: validated assumptions, scoped MVP, architecture decisions, and ordered user stories. This specification is not just documentation; it is the execution context that Phases 5-6 feed to coding agents, design agents, and service agents to produce a working system.
+The output of Phases 1–4 is a complete specification: validated assumptions, scoped MVP, architecture decisions, and an OpenSpec specification. This specification is not just documentation; it is the execution context that Phases 5-6 feed to coding agents, design agents, and service agents to produce a working system.
 
 ### Current State
 
-Phases 1-4 are delivered as a Claude Code plugin. Install with `/plugin marketplace add arslan70/haytham` then `/plugin install haytham@haytham`, run with `/haytham "your idea"`. The planning intelligence was validated end-to-end with a gym leaderboard idea that produced 10 implementation-ready stories, executed into a working Next.js application. The standalone system (Burr + Strands + Streamlit) was archived in favor of the plugin for zero-setup distribution. See [System Evolution](docs/system-evolution.md) for the full journey.
+Phases 1-4 are delivered as a Claude Code plugin. Install with `/plugin marketplace add arslan70/haytham` then `/plugin install haytham@haytham`, run with `/haytham "your idea"`. The planning intelligence was validated end-to-end with a gym leaderboard idea that produced an implementation-ready OpenSpec, executed into a working Next.js application. The standalone system (Burr + Strands + Streamlit) was archived in favor of the plugin for zero-setup distribution. See [System Evolution](docs/system-evolution.md) for the full journey.
 
 ### What Remains
 
-- **Phase 5 (Implementation)**: The plugin hands the execution contract directly to Claude Code for implementation in the same session
+- **Phase 5 (Implementation)**: The plugin hands the OpenSpec directly to Claude Code for implementation in the same session
 - **Phase 6 (Validation)**: Implemented capabilities are validated against the specification
 
 Genesis is complete when: idea in, working validated MVP out.
@@ -56,24 +56,24 @@ Genesis is complete when: idea in, working validated MVP out.
 
 Software is never "done." After launch, users request features, bugs surface, requirements shift, and technical debt accumulates. Traditional development requires returning to an expensive, manual process for every change.
 
-Haytham's traceability makes this tractable. Because every story traces to a capability, every capability to a need, and every decision to a rationale, the system can understand what exists and why, then generate targeted changes without a full rewrite.
+Haytham's traceability makes this tractable. Because every requirement traces to a capability, every capability to a need, and every decision to a rationale, the system can understand what exists and why, then generate targeted changes without a full rewrite.
 
 When a change is needed, Haytham:
 
 1. **Understands** the existing system from its specification
 2. **Analyzes** the change request and its impact
-3. **Generates** targeted stories (not a full rewrite)
+3. **Generates** targeted specs (not a full rewrite)
 4. **Implements** changes via coding agent
 5. **Validates** against existing and new capabilities
 6. **Ensures** no regression in existing functionality
 
 ### Examples
 
-**"Add PDF export to reports"**: Haytham identifies the affected capability, analyzes the current architecture, recommends build-vs-buy for PDF generation, generates implementation stories, and validates that existing report functionality is unchanged.
+**"Add PDF export to reports"**: Haytham identifies the affected capability, analyzes the current architecture, recommends build-vs-buy for PDF generation, generates implementation specs, and validates that existing report functionality is unchanged.
 
-**"Login fails on Safari"**: Haytham traces the issue to the authentication capability, retrieves the implementation context, diagnoses the root cause, generates a fix story, and validates the fix across browsers.
+**"Login fails on Safari"**: Haytham traces the issue to the authentication capability, retrieves the implementation context, diagnoses the root cause, generates a fix spec, and validates the fix across browsers.
 
-**"Payment code is getting complex, refactor it"**: Haytham identifies the affected capabilities, proposes a refactoring approach, generates stories with clear before/after expectations, and validates that all payment functionality still works.
+**"Payment code is getting complex, refactor it"**: Haytham identifies the affected capabilities, proposes a refactoring approach, generates specs with clear before/after expectations, and validates that all payment functionality still works.
 
 ### Success Criteria
 
@@ -95,7 +95,7 @@ Sentience closes the final loop. The system monitors its own production behavior
 
 - **Detect**: Monitor error rates, usage patterns, performance metrics, and business KPIs
 - **Analyze**: Correlate signals with capabilities, code paths, and recent changes
-- **Propose**: Generate improvement stories with evidence and expected impact
+- **Propose**: Generate improvement specs with evidence and expected impact
 - **Execute**: Implement changes within approved policy bounds
 - **Validate**: Confirm the improvement achieved its goal
 
@@ -153,8 +153,8 @@ flowchart LR
 
 Generic orchestrators (LangGraph, CrewAI, AutoGen) route messages between agents. They solve the *plumbing* problem. Haytham solves a different problem: **what should the agents be doing, and how do we know they did it right?**
 
-- **Specification first.** Agents receive validated, scoped work items, not open-ended instructions. A coding agent implementing a story knows the capability it serves, the architecture decisions that constrain it, and the acceptance criteria it must satisfy.
-- **Traceability throughout.** Whether a capability is implemented by generated code, a hosted coding agent, or a cloud service agent, the traceability chain (story → capability → decision → rationale) is preserved. This is what makes Evolution and Sentience possible.
+- **Specification first.** Agents receive validated, scoped work items, not open-ended instructions. A coding agent implementing a requirement knows the capability it serves, the architecture decisions that constrain it, and the acceptance criteria it must satisfy.
+- **Traceability throughout.** Whether a capability is implemented by generated code, a hosted coding agent, or a cloud service agent, the traceability chain (requirement → capability → decision → rationale) is preserved. This is what makes Evolution and Sentience possible.
 - **Human gates at phase boundaries.** Agents execute within human-approved scope. The founder approves the business case. The product owner approves the MVP scope. The architect approves the technical decisions. Only then do execution agents receive work.
 
 ### Why APIs Aren't Enough
@@ -181,7 +181,7 @@ Haytham operates at the layer where this distinction matters most: the boundary 
 
 ### Implications per Milestone
 
-- **Genesis** already benefits. Phase 5 dispatches stories to coding agents with full specification context. Phase 6 validates the result against the capability model. The spec isn't just documentation; it's the execution contract.
+- **Genesis** already benefits. Phase 5 dispatches specs to coding agents with full specification context. Phase 6 validates the result against the capability model. The spec isn't just documentation; it's the execution contract.
 - **Evolution** benefits most immediately. Instead of generating integration code for every change, Haytham can delegate to service agents that already understand their domain. A "switch from email to SMS notifications" change request becomes a delegation from one communication service agent to another, with Haytham maintaining the traceability.
 - **Sentience** becomes tractable. A self-improving system that can negotiate directly with infrastructure agents to optimize costs, scale resources, or rotate failing dependencies is more plausible than one that must generate, test, and deploy code for every operational adjustment.
 
@@ -209,7 +209,7 @@ Autonomy expands gradually as the system proves reliable:
 
 ### Trace Everything
 
-Every artifact traces to its origin: story to capability, implementation to story, test to capability, change to requirement. Traceability enables Evolution and Sentience. Without it, the system becomes a black box.
+Every artifact traces to its origin: requirement to capability, implementation to requirement, test to capability, change to requirement. Traceability enables Evolution and Sentience. Without it, the system becomes a black box.
 
 ### Stay Lean
 

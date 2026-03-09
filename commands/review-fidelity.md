@@ -25,7 +25,7 @@ If any of these three files is missing, stop and say:
 5. `.haytham/session/phase-2-what/mvp-scope.md`
 6. `.haytham/session/phase-2-what/capabilities.json`
 7. `.haytham/session/phase-3-how/architecture-decisions.json`
-8. `.haytham/session/phase-4-stories/stories.json`
+8. `.haytham/session/phase-4-specs/openspec/`
 
 Read each optional file that exists. For files that don't exist, skip the checks that depend on them. Do NOT guess what missing files might contain.
 
@@ -81,13 +81,13 @@ Do architecture decisions serve the specific needs of this idea, or are they gen
 - PARTIAL: Some decisions are idea-specific, others are generic defaults
 - FAIL: Architecture is a generic template with no connection to the specific idea
 
-### 7. Story Fidelity (if stories.json exists)
+### 7. Specification Fidelity (if phase-4-specs/openspec/ exists)
 
-Do the implementation stories, when read together, describe building the product the founder envisioned?
+Do the SHALL statements and Gherkin scenarios describe building the product the founder envisioned? Check that domain groupings reflect the founder's emphasis, SHALL statements preserve the idea's distinctive features, and config.yaml traits match the concept anchor.
 
-- PASS: Stories collectively describe the founder's product
-- PARTIAL: Stories describe the product but have drifted from the original emphasis
-- FAIL: Stories describe a different product, or are so generic they could apply to any similar project
+- PASS: Specs collectively describe the founder's product
+- PARTIAL: Specs describe the product but domain emphasis has drifted from the original
+- FAIL: Specs describe a generic product, or are so template-like they could apply to any similar project
 
 ## Output Format
 

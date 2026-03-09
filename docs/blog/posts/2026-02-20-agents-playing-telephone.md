@@ -21,7 +21,7 @@ description: "Multi-agent pipelines lose your intent one handoff at a time. Here
 
 ## The Case for Decomposition
 
-There are good reasons to split a complex task across multiple agents. A single agent trying to research a market, design an architecture, and write stories all at once will hit context limits, lose focus, and give you no chance to review between phases.
+There are good reasons to split a complex task across multiple agents. A single agent trying to research a market, design an architecture, and write specs all at once will hit context limits, lose focus, and give you no chance to review between phases.
 
 Decomposition buys you three things: specialization (each agent does one thing well), decision gates (you review before the next phase runs), and cost control (change one phase without re-running everything).
 
@@ -107,9 +107,9 @@ This is the one people push back on, because it feels like you're not "trusting"
 The LLM's job is qualitative judgment: evaluating trade-offs, assessing feasibility, writing prose. The system's job is enforcing hard rules derived from those judgments.
 
 ```python
-# Budget constraint: if timeline is "2 weeks", cap stories at 8
-if timeline_weeks <= 2 and len(stories) > MAX_STORIES_SHORT:
-    stories = prioritize_and_trim(stories, MAX_STORIES_SHORT)
+# Budget constraint: if timeline is "2 weeks", cap requirements at 10
+if timeline_weeks <= 2 and len(requirements) > MAX_REQUIREMENTS_SHORT:
+    requirements = prioritize_and_trim(requirements, MAX_REQUIREMENTS_SHORT)
 ```
 
 No agent can override this. One agent might write an ambitious plan with 40 stories. The system trims it to what fits the stated constraint. The code always wins.

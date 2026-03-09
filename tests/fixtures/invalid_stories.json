@@ -1,9 +1,0 @@
-{
-  "stories": [
-    {
-      "id": "STORY-001",
-      "title": "Setup project",
-      "depends_on": ["STORY-999"]
-    }
-  ]
-}

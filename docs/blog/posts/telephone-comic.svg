@@ -74,13 +74,13 @@
   <rect x="556" y="99" width="42" height="13" class="ghost"/>
   <text x="577" y="109" text-anchor="middle" style="font-size:8px; fill:#999;">invite-only</text>
 
-  <!-- ====== AGENT N: Stories ====== -->
+  <!-- ====== AGENT N: Specs ====== -->
   <circle cx="614" cy="66" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
   <line x1="614" y1="76" x2="614" y2="100" stroke="#333" stroke-width="1.5"/>
   <line x1="601" y1="86" x2="627" y2="86" stroke="#333" stroke-width="1.5"/>
   <line x1="614" y1="100" x2="603" y2="116" stroke="#333" stroke-width="1.5"/>
   <line x1="614" y1="100" x2="625" y2="116" stroke="#333" stroke-width="1.5"/>
-  <text x="614" y="132" text-anchor="middle" class="label" style="font-weight:bold;">Stories</text>
+  <text x="614" y="132" text-anchor="middle" class="label" style="font-weight:bold;">Specs</text>
 
   <!-- Speech bubble 3 -->
   <rect x="634" y="44" width="130" height="52" class="bubble" rx="8"/>

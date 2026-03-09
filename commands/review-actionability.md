@@ -18,8 +18,8 @@ This review requires Phases 2-4 to be complete. Before evaluating anything, veri
 3. `.haytham/session/phase-2-what/system-traits.json`
 4. `.haytham/session/phase-3-how/build-buy.json`
 5. `.haytham/session/phase-3-how/architecture-decisions.json`
-6. `.haytham/session/phase-4-stories/stories.json`
-7. `.haytham/session/phase-4-stories/execution-contract.json`
+6. `.haytham/session/phase-4-specs/openspec/config.yaml`
+7. `.haytham/session/phase-4-specs/openspec/project.md`
 
 If any file is missing, stop and tell the user exactly which files are missing:
 > "Cannot run actionability review. Missing: [list files]. This review requires a complete run through Phase 4. Run the missing phases first:
@@ -65,42 +65,37 @@ Read `architecture-decisions.json` and `build-buy.json`. Are technology choices 
 - PARTIAL: Named technologies but rationale is generic ("industry standard", "popular choice")
 - FAIL: Only categories named ("a database", "an auth provider") with no specific technology selected
 
-### 5. Story Completeness
+### 5. SHALL Precision
 
-Read `stories.json`. For each story, check whether it has enough detail for a developer to start work.
+Statements use bare infinitive verbs, are specific (not vague "manage content"), and are individually testable.
 
-Evaluate a random sample of 3-5 stories. Each story should have:
-- A clear description of what to build
-- Acceptance criteria that are testable (not "works correctly" but "returns 200 with user object when valid token provided")
-- Dependencies that make sense (doesn't depend on unrelated stories)
+- PASS: All SHALL statements are specific, use bare infinitive verbs, and describe a single testable behavior
+- PARTIAL: Most are specific, but some are vague categories rather than testable behaviors
+- FAIL: Statements are generic or use third-person verb forms
 
-- PASS: Sampled stories all have clear descriptions, testable acceptance criteria, and sensible dependencies
-- PARTIAL: Some stories are well-specified, others have vague acceptance criteria or missing detail
-- FAIL: Most stories are high-level placeholders without testable acceptance criteria
+### 6. Scenario Completeness
 
-### 6. Acceptance Criteria Testability
+Every requirement has at least one happy-path and one error/edge-case scenario. Scenarios use concrete values, not placeholders.
 
-Across the sampled stories, are acceptance criteria written as verifiable conditions?
+- PASS: Every requirement has happy-path and error scenarios with concrete values
+- PARTIAL: Some requirements missing error scenarios, or scenarios use placeholder values
+- FAIL: Most requirements have only a single generic scenario
 
-- PASS: Criteria use concrete, testable language ("user sees error message when password is under 8 characters")
-- PARTIAL: Mix of testable and vague criteria ("system handles errors gracefully")
-- FAIL: Criteria are subjective or untestable ("good user experience", "performant")
+### 7. Architecture Completeness
 
-### 7. Dependency Chain Viability
+`project.md` covers all DEC-* decisions with rationale. Build/Buy table is complete. Dependencies list is specific (named packages with versions).
 
-Read `execution-contract.json`. Does the dependency ordering make practical sense? Could a developer follow Layer 0 → Layer 1 → ... and build the system incrementally?
+- PASS: All decisions documented with rationale, dependencies are specific
+- PARTIAL: Some decisions lack rationale or dependencies are vague
+- FAIL: Major gaps in architecture documentation
 
-- PASS: Layer 0 stories set up foundations (infra, auth, data models), subsequent layers build on them logically
-- PARTIAL: Ordering is mostly sensible but some stories seem misplaced (a UI story before its API dependency)
-- FAIL: Ordering is illogical, or layers have circular-feeling dependencies that would require parallel development
+### 8. Agent Readability
 
-### 8. Appetite Compliance
+A coding agent can pick up `openspec/` and start implementing without ambiguity. `config.yaml` provides enough context to bootstrap the project. Spec files are self-contained per domain.
 
-Read `execution-contract.json` metadata. Is the total story count reasonable for the stated appetite in `mvp-scope.md`?
-
-- PASS: Story count is within or near the appetite constraint, and stories are right-sized
-- PARTIAL: Slightly over appetite but stories are reasonable in scope
-- FAIL: Significantly over appetite (a 6-week appetite with 40+ stories), or stories are so large they're epics in disguise
+- PASS: A coding agent could start implementing from the spec alone
+- PARTIAL: Some cross-domain dependencies are unclear or config is incomplete
+- FAIL: Significant ambiguity that would require human clarification
 
 ## Output Format
 
@@ -114,15 +109,15 @@ Read `execution-contract.json` metadata. Is the total story count reasonable for
 
 **Score: X/8 PASS, Y/8 PARTIAL, Z/8 FAIL**
 
-### Stories Sampled
+### Domains Reviewed
 
-List which stories you evaluated for criteria 5-6:
-> Reviewed: STORY-001, STORY-004, STORY-007, STORY-012
+List which domain specs were evaluated:
+> Reviewed: specs/identity/spec.md, specs/leaderboard/spec.md, specs/community/spec.md
 
 ### Suggested Improvements
 
 For each PARTIAL or FAIL, state:
 1. What was observed (quote the output)
 2. What a developer would need to know that's missing
-3. Which agent prompt needs the fix (`agents/mvp-scoper.md`, `agents/capability-modeler.md`, `agents/architect.md`, or `agents/story-planner.md`)
+3. Which agent prompt needs the fix (`agents/mvp-scoper.md`, `agents/capability-modeler.md`, `agents/architect.md`, or `agents/spec-generator.md`)
 4. Whether it's a **missing instruction**, **weak instruction**, or **structural gap**

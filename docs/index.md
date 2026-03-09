@@ -43,11 +43,11 @@ Haytham validates your idea with real market research, then generates a complete
 
     Build-vs-buy analysis and architecture decisions. Each linked to the capabilities it serves.
 
--   :material-format-list-checks:{ .lg .middle } **What are the tasks?**
+-   :material-format-list-checks:{ .lg .middle } **What are the specs?**
 
     ---
 
-    Ordered user stories with acceptance criteria, dependency ordering, and full traceability. Ready for a developer or coding agent.
+    OpenSpec with SHALL requirements and Gherkin scenarios. Ready for a developer or coding agent.
 
 </div>
 
@@ -63,11 +63,11 @@ flowchart TD
         P2 -->|MVP Spec| G2{{"Product Owner"}}
         G2 -->|APPROVED| P3["How to build it?"]
         P3 -->|Architecture| G3{{"Architect Review"}}
-        G3 -->|APPROVED| P4["What are the tasks?"]
+        G3 -->|APPROVED| P4["What are the specs?"]
     end
 
     G1 -.->|NO-GO| stop(("Stop"))
-    P4 -->|Stories| backlog["Implementation-Ready Backlog"]
+    P4 -->|Specs| openspec["Implementation-Ready OpenSpec"]
 ```
 
 ---
@@ -92,7 +92,7 @@ flowchart TD
 
     ---
 
-    Functional and non-functional capabilities, each traceable to a user need. The traceability chain runs from idea to story.
+    Functional and non-functional capabilities, each traceable to a user need. The traceability chain runs from idea to requirement.
 
 -   :material-cog: **Architecture decisions**
 
@@ -100,11 +100,11 @@ flowchart TD
 
     Build-vs-buy analysis, technology choices, and trade-offs. Each decision linked to the capabilities it serves.
 
--   :material-format-list-bulleted-square: **Ordered user stories**
+-   :material-format-list-bulleted-square: **OpenSpec specification**
 
     ---
 
-    Acceptance criteria in Gherkin format, dependency ordering, and full traceability. Hand these to a developer or a coding agent.
+    SHALL requirements with Gherkin scenarios, grouped by domain, with full traceability. Hand these to a developer or a coding agent.
 
 -   :material-export:{ .lg .middle } **Agent-ready output**
 

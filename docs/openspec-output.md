@@ -1,8 +1,8 @@
 # OpenSpec Output
 
-After the STORIES phase completes, Haytham can export the full specification as [OpenSpec](https://github.com/Fission-AI/OpenSpec), a lightweight, capability-oriented format designed for AI coding agents.
+Phase 4 produces the full specification as [OpenSpec](https://github.com/Fission-AI/OpenSpec), a lightweight, capability-oriented format designed for AI coding agents.
 
-## What Gets Exported
+## What Gets Produced
 
 Every Haytham artifact maps to a specific location in the OpenSpec output.
 

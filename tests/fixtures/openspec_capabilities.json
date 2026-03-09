@@ -1,0 +1,31 @@
+{
+  "summary": "Capability model for openspec validation test",
+  "capabilities": {
+    "functional": [
+      {
+        "id": "CAP-001",
+        "name": "View Leaderboard",
+        "serves_scope_item": "IN-001",
+        "user_flow": "Flow 1"
+      },
+      {
+        "id": "CAP-002",
+        "name": "Submit Workout",
+        "serves_scope_item": "IN-001",
+        "user_flow": "Flow 1"
+      }
+    ],
+    "non_functional": [
+      {
+        "id": "CAP-NF-01",
+        "name": "Response Time"
+      },
+      {
+        "id": "CAP-NF-02",
+        "name": "Data Privacy"
+      }
+    ]
+  },
+  "traceability": {},
+  "metadata": {}
+}

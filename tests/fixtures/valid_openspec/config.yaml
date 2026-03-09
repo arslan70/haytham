@@ -1,0 +1,13 @@
+name: gym-leaderboard
+description: A gym community leaderboard with anonymous handles
+appetite: Small
+generated_at: "2026-03-09T12:00:00Z"
+traits:
+  interface: [browser]
+  auth: multi_user
+  deployment: [cloud_hosted]
+  data_layer: remote_db
+  realtime: false
+  communication: none
+  payments: none
+  scheduling: none
