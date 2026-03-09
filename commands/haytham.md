@@ -167,6 +167,8 @@ Write gate decision:
 }
 ```
 
+Update state: `last_completed_step: 6`.
+
 ---
 
 ## Phase 2: WHAT (MVP Specification)
@@ -205,6 +207,8 @@ After the agent completes, read `.haytham/session/phase-2-what/mvp-scope.md` and
 > - **OUT scope:** [List the key items explicitly excluded]
 > - **Appetite:** [Time/effort budget]
 > - **Core flow:** [One-line description of the primary user journey]
+
+Update state: `last_completed_step: 7`.
 
 ### Step 8: Scope Review
 
@@ -247,6 +251,8 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 > - **System traits:** [List key traits like auth model, data sensitivity, etc.]
 > - **Traceability:** Each capability traces to [IN SCOPE items / problems from Phase 1]
 
+Update state: `last_completed_step: 9`.
+
 ### Step 10: Gate 2
 
 Read `.haytham/session/phase-2-what/capabilities.json` and output the following inline in your response (the user must see this without expanding anything):
@@ -282,6 +288,8 @@ Ask:
 ```
 
 Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections.
+
+Update state: `last_completed_step: 10`.
 
 ---
 
@@ -321,6 +329,8 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json` an
 > - **Estimated monthly cost:** [Cost range]
 > - **Integration effort:** [Effort estimate]
 
+Update state: `last_completed_step: 11`.
+
 ### Step 12: Gate 3
 
 Ask:
@@ -341,6 +351,8 @@ Write gate decision:
   "decided_at": "[ISO timestamp]"
 }
 ```
+
+Update state: `last_completed_step: 12`.
 
 ---
 
@@ -387,6 +399,8 @@ Then read the generated files and present a structured digest:
 > - **Architecture decisions:** [count] documented in project.md
 > - **Coverage:** All [N] functional + [M] non-functional capabilities covered
 
+Update state: `last_completed_step: 13`.
+
 ### Step 14: Final Review
 
 Read the OpenSpec files and output the following inline in your response (the user must see this without expanding anything):
@@ -401,6 +415,8 @@ Ask:
 > - Are the scenarios testable?
 >
 > Say "looks good" or request changes.
+
+Update state: `last_completed_step: 14`.
 
 ### Completion
 

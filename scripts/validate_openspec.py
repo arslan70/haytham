@@ -25,7 +25,8 @@ from pathlib import Path
 
 # Known bad third-person verbs after SHALL. A suffix-based rule (rejecting
 # words ending in -s) would false-positive on bare infinitives like "process",
-# "address", "access".
+# "address", "access". Extend this set as new violations are observed in
+# production runs.
 BAD_SHALL_VERBS = {
     "ensures",
     "provides",
@@ -41,6 +42,24 @@ BAD_SHALL_VERBS = {
     "requires",
     "allows",
     "enables",
+    "generates",
+    "processes",
+    "deletes",
+    "updates",
+    "sends",
+    "stores",
+    "retrieves",
+    "enforces",
+    "prevents",
+    "accepts",
+    "rejects",
+    "notifies",
+    "tracks",
+    "logs",
+    "renders",
+    "redirects",
+    "authenticates",
+    "authorizes",
 }
 
 REQUIRED_CONFIG_KEYS = {"name", "description", "appetite", "traits", "generated_at"}
@@ -125,21 +144,18 @@ def validate_specs_exist(openspec_dir: Path) -> list[str]:
     return warnings
 
 
-def validate_shall_grammar(spec_files: list[Path]) -> list[str]:
+def validate_shall_grammar(spec_files: list[Path], openspec_dir: Path) -> list[str]:
     """Check that SHALL statements use bare infinitive verbs."""
     warnings = []
     pattern = re.compile(r"SHALL\s+(\w+)", re.IGNORECASE)
 
     for spec_file in spec_files:
         text = spec_file.read_text()
+        rel_path = spec_file.relative_to(openspec_dir)
         for i, line in enumerate(text.splitlines(), 1):
             for match in pattern.finditer(line):
                 verb = match.group(1).lower()
                 if verb in BAD_SHALL_VERBS:
-                    try:
-                        rel_path = spec_file.relative_to(spec_file.parents[2])
-                    except (ValueError, IndexError):
-                        rel_path = spec_file.name
                     warnings.append(
                         f"SHALL grammar: '{match.group(0)}' in {rel_path}:{i} "
                         f"(use '{verb.rstrip('s')}' instead of '{verb}')"
@@ -148,17 +164,14 @@ def validate_shall_grammar(spec_files: list[Path]) -> list[str]:
     return warnings
 
 
-def validate_gherkin(spec_files: list[Path]) -> list[str]:
+def validate_gherkin(spec_files: list[Path], openspec_dir: Path) -> list[str]:
     """Check that every Scenario block has Given, When, Then."""
     warnings = []
 
     for spec_file in spec_files:
         text = spec_file.read_text()
         lines = text.splitlines()
-        try:
-            rel_path = spec_file.relative_to(spec_file.parents[2])
-        except (ValueError, IndexError):
-            rel_path = spec_file.name
+        rel_path = spec_file.relative_to(openspec_dir)
 
         # Find scenario blocks
         scenario_starts = []
@@ -255,8 +268,8 @@ def main():
     # Content checks (only if spec files exist)
     spec_files = find_spec_files(openspec_dir)
     if spec_files:
-        warnings.extend(validate_shall_grammar(spec_files))
-        warnings.extend(validate_gherkin(spec_files))
+        warnings.extend(validate_shall_grammar(spec_files, openspec_dir))
+        warnings.extend(validate_gherkin(spec_files, openspec_dir))
 
     # Coverage check (optional)
     if capabilities_path and spec_files:

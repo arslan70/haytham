@@ -7,17 +7,16 @@ categories:
   - Architecture
 tags:
   - openspec
-  - spec-kit
   - coding-agents
-  - exports
-description: "Go from a raw startup idea to a validated OpenSpec or Spec Kit export in 20 minutes. No hand-writing specs."
+  - specs
+description: "Go from a raw startup idea to a validated OpenSpec in 20 minutes. No hand-writing specs."
 ---
 
 # From Startup Idea to Agent-Ready Spec in 20 Minutes
 
-You type a startup idea into a text box. Twenty minutes later, you download a zip file containing a validated OpenSpec or Spec Kit directory tree, complete with SHALL requirements, Gherkin acceptance criteria, and architecture decisions. No hand-writing specs. No prompt engineering. You unzip it into a project folder, point Claude Code (or Cursor, or Copilot) at it, and start building.
+You describe a startup idea. Twenty minutes later, you have a validated OpenSpec directory tree, complete with SHALL requirements, Gherkin acceptance criteria, and architecture decisions. No hand-writing specs. No prompt engineering. Point Claude Code (or Cursor, or Copilot) at it and start building.
 
-That's the workflow we shipped this week with Haytham's new export layer. This post is about why it matters and what the output actually looks like.
+That's the workflow Haytham delivers. This post is about why it matters and what the output actually looks like.
 
 <!-- more -->
 
@@ -73,22 +72,18 @@ email/password login and session management.
 
 That's a real SHALL statement generated from the capability model, with a Gherkin scenario generated from the capability model. A coding agent can parse this directly: the requirement tells it what to build, the scenario tells it how to verify it works.
 
-The Spec Kit export goes further. It produces a `.specify/` directory with numbered feature folders, each containing `spec.md`, `plan.md`, `tasks.md`, and (where applicable) `data-model.md` and `contracts/api.md`. It also generates a `constitution.md` that maps system traits to architectural principles, like "Article 1: Interface Principle" declaring the frontend framework choice, or quality attributes derived from non-functional capabilities. The constitution gives a coding agent the project-wide constraints it needs before it touches any individual feature.
-
-None of this is LLM prose. The export pipeline is pure Python string formatting over structured JSON. The LLMs did their work upstream (research, scoping, architecture). The export is a deterministic transformation of their validated output.
-
 ## How to try it
 
-```bash
-git clone https://github.com/arslan70/haytham.git
-cd haytham
-uv sync                    # or: uv sync --extra anthropic
-cp .env.example .env       # configure your provider
-make run                   # opens at localhost:8501
+Haytham is now a Claude Code plugin. Install it and run:
+
+```
+/plugin marketplace add arslan70/haytham
+/plugin install haytham@haytham
+/haytham "your startup idea here"
 ```
 
-Haytham works with AWS Bedrock (tested), Anthropic, OpenAI, and Ollama (free, local). After the SPECS phase completes, the OpenSpec directory is ready at `.haytham/session/phase-4-specs/openspec/`. Point your coding agent at the directory.
+After the SPECS phase completes, the OpenSpec directory is ready at `.haytham/session/phase-4-specs/openspec/`. Point your coding agent at the directory.
 
 ## What's next
 
-The export layer makes Haytham's output consumable by any coding agent, but you still have to manually download the zip, extract it, and point your agent at the files. The next step is Phase 5: Coding Agent Integration, where a traced story from the export feeds directly into Claude Code or a similar agent for automated implementation, with validation against the acceptance criteria. **Update (March 2026):** Haytham is now a [Claude Code plugin](../posts/2026-03-03-build-where-developers-already-are.md), which makes this handoff automatic.
+The next step is Phase 5: Coding Agent Integration, where a traced requirement from the OpenSpec feeds directly into Claude Code for automated implementation, with validation against the Gherkin scenarios. **Update (March 2026):** Haytham is now a [Claude Code plugin](../posts/2026-03-03-build-where-developers-already-are.md), which makes the handoff seamless.
