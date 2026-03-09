@@ -35,7 +35,7 @@ After each step completes successfully, update `.haytham/project.yaml` to set th
 
 **Goal:** Understand the idea, research the market, and produce a GO/PIVOT/NO-GO recommendation.
 
-Before launching any agents, read `.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
+Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
 
 > **Phase 1: Idea Validation** (haytham vVERSION)
 >

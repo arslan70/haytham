@@ -46,7 +46,7 @@ After each step completes successfully, update `.haytham/project.yaml` to set `s
 
 ## Roadmap
 
-Before launching any agents, read `.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
+Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
 
 > **Phase 1: Idea Validation** (haytham vVERSION)
 >
