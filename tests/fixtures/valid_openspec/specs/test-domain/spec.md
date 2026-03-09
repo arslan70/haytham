@@ -4,7 +4,7 @@
 
 Core leaderboard functionality allowing gym members to view rankings and submit workout results under anonymous handles.
 
-### Requirement: View Leaderboard [CAP-001]
+### Requirement: View Leaderboard [CAP-F-001]
 
 The system SHALL display a ranked leaderboard of gym members sorted by workout score.
 
@@ -20,7 +20,7 @@ The system SHALL display a ranked leaderboard of gym members sorted by workout s
 - **When** a user navigates to the leaderboard page
 - **Then** the system displays an empty state with a prompt to submit the first workout
 
-### Requirement: Submit Workout [CAP-002]
+### Requirement: Submit Workout [CAP-F-002]
 
 The system SHALL allow authenticated members to submit workout results that update their leaderboard position.
 

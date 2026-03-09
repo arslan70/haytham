@@ -136,7 +136,10 @@ def validate_shall_grammar(spec_files: list[Path]) -> list[str]:
             for match in pattern.finditer(line):
                 verb = match.group(1).lower()
                 if verb in BAD_SHALL_VERBS:
-                    rel_path = spec_file.relative_to(spec_file.parents[2])
+                    try:
+                        rel_path = spec_file.relative_to(spec_file.parents[2])
+                    except (ValueError, IndexError):
+                        rel_path = spec_file.name
                     warnings.append(
                         f"SHALL grammar: '{match.group(0)}' in {rel_path}:{i} "
                         f"(use '{verb.rstrip('s')}' instead of '{verb}')"
@@ -152,7 +155,10 @@ def validate_gherkin(spec_files: list[Path]) -> list[str]:
     for spec_file in spec_files:
         text = spec_file.read_text()
         lines = text.splitlines()
-        rel_path = spec_file.relative_to(spec_file.parents[2])
+        try:
+            rel_path = spec_file.relative_to(spec_file.parents[2])
+        except (ValueError, IndexError):
+            rel_path = spec_file.name
 
         # Find scenario blocks
         scenario_starts = []

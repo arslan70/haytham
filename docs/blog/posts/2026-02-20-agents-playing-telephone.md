@@ -112,7 +112,7 @@ if timeline_weeks <= 2 and len(requirements) > MAX_REQUIREMENTS_SHORT:
     requirements = prioritize_and_trim(requirements, MAX_REQUIREMENTS_SHORT)
 ```
 
-No agent can override this. One agent might write an ambitious plan with 40 stories. The system trims it to what fits the stated constraint. The code always wins.
+No agent can override this. One agent might write an ambitious plan with 40 requirements. The system trims it to what fits the stated constraint. The code always wins.
 
 Keep this boundary sharp. Every time you let LLM-generated text override a deterministic rule, you're adding another player to the telephone game.
 

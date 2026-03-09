@@ -127,4 +127,4 @@ Ask:
 
 Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections. This tracks how much steering was needed.
 
-Tell the user: "Phase 2 complete. Ran [N] agents across 4 steps. Run `/haytham:design` to proceed to technical design (Phase 3)."
+Tell the user: "Phase 2 complete. Run `/haytham:design` to proceed to technical design (Phase 3)."
