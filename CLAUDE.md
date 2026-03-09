@@ -14,7 +14,7 @@ Haytham transforms startup ideas into self-improving autonomous systems via thre
 2. **Stay Lean**: Minimum viable implementation. No gold-plating. No premature optimization
 3. **Challenge Distractions**: If it doesn't advance the roadmap, push back. Defer polish, config options, UI enhancements, and premature abstractions
 4. **Close the Loop**: Partial solutions have no value. Complete the feedback loop
-5. **Trace Everything**: Every story traces to a capability. Every capability traces to a user need
+5. **Trace Everything**: Every requirement traces to a capability. Every capability traces to a user need
 
 Before starting work, ask: Does this advance the current milestone? Is it the minimum viable implementation? Can it be deferred? If so, challenge the request. See [VISION.md](./VISION.md).
 
@@ -63,7 +63,7 @@ agents/                          # 8 specialist agents (markdown with frontmatte
   mvp-scoper.md                  # Scope definition, boundaries, core flows
   capability-modeler.md          # Capability extraction + system trait classification
   architect.md                   # Build/buy analysis + architecture decisions
-  story-planner.md               # Story generation, validation, dependency ordering
+  spec-generator.md              # OpenSpec generation with SHALL statements and Gherkin scenarios
 
 commands/                        # User-facing commands
   haytham.md                     # Full 4-phase workflow (/haytham <idea>)

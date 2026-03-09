@@ -29,8 +29,6 @@ SCHEMAS = {
         "recommended_stack",
     ],
     "architecture-decisions.json": ["decisions", "coverage_check", "summary"],
-    "stories.json": ["stories"],
-    "execution-contract.json": ["metadata", "system_traits", "stories"],
     "gate-decision.json": ["phase", "user_decision"],
 }
 
@@ -128,19 +126,6 @@ def validate_file(file_path: str) -> list[str]:
             if flow and flow not in ("Flow 1", "Flow 2", "Flow 3"):
                 cap_id = cap.get("id", "unknown")
                 warnings.append(f"Capability {cap_id} has invalid flow ref: {flow}")
-
-    # Special validation for stories.json
-    if basename == "stories.json":
-        stories = data.get("stories", [])
-        story_ids = {s.get("id") for s in stories}
-        for story in stories:
-            deps = story.get("depends_on", [])
-            for dep in deps:
-                if dep not in story_ids:
-                    warnings.append(
-                        f"Story {story.get('id')} depends on {dep} "
-                        "which doesn't exist"
-                    )
 
     return warnings
 

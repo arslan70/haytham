@@ -1,12 +1,12 @@
 ---
-description: Run Phase 4 (STORIES) - Generate implementation-ready stories with dependency ordering
+description: Run Phase 4 (SPECS) - Generate implementation-ready OpenSpec
 argument-hint: (no arguments - uses existing Phase 3 output)
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 ---
 
-# Haytham: Story Planning (Phase 4 - STORIES)
+# Haytham: Specification Generation (Phase 4 - SPECS)
 
-You are running Phase 4 of the Haytham validation workflow. This phase generates implementation-ready stories with full detail specs and dependency ordering.
+You are running Phase 4 of the Haytham validation workflow. This phase generates an implementation-ready OpenSpec that a coding agent can use to build the system.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history.
 
@@ -19,58 +19,65 @@ Verify `.haytham/session/phase-3-how/gate-decision.json` exists. If it doesn't, 
 
 Before launching any agents, tell the user:
 
-> **Phase 4: Implementation Plan**
+> **Phase 4: Specification Generation**
 >
 > This will run 3 steps:
-> 1. Story Planning — generate stories with dependencies and acceptance criteria (~2 min)
-> 2. Review — you review the implementation plan
-> 3. Detail Review — drill into specific stories if needed
+> 1. OpenSpec Generation — produce SHALL requirements with Gherkin scenarios (~2 min)
+> 2. Review — you review the specification
+> 3. Detail Review — drill into specific domains if needed
 >
 > Estimated total: ~3 minutes.
 
-## Step 1: Story Planning
+## Step 1: OpenSpec Generation
 
-Create `.haytham/session/phase-4-stories/` directory if it doesn't exist.
+Create `.haytham/session/phase-4-specs/` directory if it doesn't exist.
 
 Tell the user:
-> **Step 1/3: Story Planning**
-> Turning capabilities and architecture decisions into implementation-ready stories with dependencies.
+> **Step 1/3: OpenSpec Generation**
+> Turning capabilities and architecture decisions into a complete specification with SHALL requirements and testable scenarios.
 
-Launch a **story-planner** agent with this task:
-> Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, system traits from `.haytham/session/phase-2-what/system-traits.json`, architecture decisions from `.haytham/session/phase-3-how/architecture-decisions.json`, build/buy analysis from `.haytham/session/phase-3-how/build-buy.json`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Generate story skeletons, detail specs, and the execution contract. Write to `.haytham/session/phase-4-stories/stories.json` and `.haytham/session/phase-4-stories/execution-contract.json`.
+Launch a **spec-generator** agent with this task:
+> Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, system traits from `.haytham/session/phase-2-what/system-traits.json`, architecture decisions from `.haytham/session/phase-3-how/architecture-decisions.json`, build/buy analysis from `.haytham/session/phase-3-how/build-buy.json`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Generate the OpenSpec directory tree. Write to `.haytham/session/phase-4-specs/openspec/` (config.yaml, project.md, and specs/*/spec.md).
 
-After the agent completes, read `.haytham/session/phase-4-stories/execution-contract.json` and `.haytham/session/phase-4-stories/stories.json` and present a structured digest:
+After the agent completes, run validation:
+```bash
+python3 scripts/validate_openspec.py .haytham/session/phase-4-specs/openspec/ .haytham/session/phase-2-what/capabilities.json
+```
 
-> **Story planning complete.**
+If validation produces warnings, report them to the user before the digest.
+
+Then read the generated files and present a structured digest:
+
+> **OpenSpec generated.** Here's what was produced:
 >
-> - **Total stories:** [Count]
-> - **Layer breakdown:** [e.g., Infrastructure: X, Backend: X, Frontend: X, Integration: X]
-> - **Critical path:** [The first 2-3 stories that must be built first]
-> - **Coverage:** [All capabilities covered? Any gaps?]
+> - **Domains:** [count] — [list domain names]
+> - **Requirements:** [count] SHALL statements across all domains
+> - **Scenarios:** [count] Gherkin scenarios
+> - **Architecture decisions:** [count] documented in project.md
+> - **Coverage:** All [N] functional + [M] non-functional capabilities covered
 
 ## Step 2: Review
 
-Read `.haytham/session/phase-4-stories/execution-contract.json` and output the following inline in your response (the user must see this without expanding anything):
+Read the OpenSpec files and output the following inline in your response (the user must see this without expanding anything):
 
-- **Story Count**: Total stories and breakdown by layer
-- **Appetite Compliance**: Whether story count fits within the appetite constraint
-- **Dependency Graph**: Which stories depend on which (show as a readable list)
+- **Domains**: List each domain with its requirement count
 - **Coverage Check**: All capabilities (CAP-*) and decisions (DEC-*) covered
-- **Layer Distribution**: How many stories per layer
+- **System Traits**: config.yaml traits summary
+- **Architecture**: Key decisions from project.md
 
-For each story, show a one-line summary:
+For each domain, show a summary:
 ```
-[STORY-ID] (Layer N) [Title] - implements [CAP/DEC references]
-  depends on: [dependencies or "none"]
+specs/{domain-slug}/ — [N] requirements
+  [CAP-ID] {Requirement title} — [M] scenarios
 ```
 
 ## Step 3: Detail Review
 
 Ask:
-> **Your implementation plan is ready.**
-> Would you like to drill into any specific stories? Enter story IDs (e.g., STORY-001, STORY-005), or say "looks good" to finish.
+> **Your specification is ready.**
+> Would you like to drill into any specific domains? Enter domain names (e.g., user-authentication, leaderboard-management), or say "looks good" to finish.
 
-If the user requests specific stories, read them from `.haytham/session/phase-4-stories/stories.json` and output the full detail spec inline in your response.
+If the user requests specific domains, read the corresponding `specs/{domain}/spec.md` and output the full content inline in your response.
 
 ## Completion
 
@@ -93,9 +100,11 @@ Phase 3 (HOW): .haytham/session/phase-3-how/
   - build-buy.json - Infrastructure decisions
   - architecture-decisions.json - Architecture choices
 
-Phase 4 (STORIES): .haytham/session/phase-4-stories/
-  - stories.json - All stories with detail specs
-  - execution-contract.json - Implementation contract
+Phase 4 (SPECS): .haytham/session/phase-4-specs/openspec/
+  - config.yaml - Project metadata and system traits
+  - project.md - Tech stack, architecture decisions, build/buy
+  - specs/*/spec.md - Domain requirements with Gherkin scenarios
+  - specs/cross-cutting/spec.md - Non-functional requirements
 ```
 
-Tell the user: "Your implementation plan is ready. Ran 1 agent across 3 steps. Stories are ordered by dependency and can be implemented sequentially starting from Layer 0."
+Tell the user: "Your specification is ready. Ran 1 agent across 3 steps. The OpenSpec in `.haytham/session/phase-4-specs/openspec/` can be consumed directly by a coding agent."

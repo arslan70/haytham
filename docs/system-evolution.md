@@ -18,7 +18,7 @@ How Haytham got here. 29 ADRs from Jan 2025 to Mar 2026 documented a standalone 
 
 ### 1. Four-Phase Workflow (ADR-016)
 
-The workflow has four phases: WHY (validate the idea), WHAT (scope the MVP), HOW (architecture decisions), STORIES (implementation plan). Each phase ends with a human approval gate. The gate after WHY is the most important: it produces a GO/PIVOT/NO-GO recommendation backed by evidence.
+The workflow has four phases: WHY (validate the idea), WHAT (scope the MVP), HOW (architecture decisions), SPECS (specification generation). Each phase ends with a human approval gate. The gate after WHY is the most important: it produces a GO/PIVOT/NO-GO recommendation backed by evidence.
 
 Why four and not three: early versions combined validation and scoping. This consistently produced MVPs that included unvalidated assumptions. Separating "is this worth building" from "what should the MVP include" forces the evidence to exist before scoping begins.
 
@@ -38,7 +38,7 @@ Multi-agent IS justified when agents need different tools (web search vs. analys
 
 ### 4. System Traits Over Categories (ADR-019)
 
-Don't classify ideas into categories (e.g., "marketplace," "SaaS," "social"). Categories are mutually exclusive and miss hybrid ideas. Instead, detect traits: has_user_auth, has_payments, has_real_time, has_marketplace_dynamics, needs_mobile. Traits compose. A gym leaderboard has user_auth + real_time + social_features. A freelance marketplace has user_auth + payments + marketplace_dynamics. The architecture and story generation respond to traits, not categories.
+Don't classify ideas into categories (e.g., "marketplace," "SaaS," "social"). Categories are mutually exclusive and miss hybrid ideas. Instead, detect traits: has_user_auth, has_payments, has_real_time, has_marketplace_dynamics, needs_mobile. Traits compose. A gym leaderboard has user_auth + real_time + social_features. A freelance marketplace has user_auth + payments + marketplace_dynamics. The architecture and spec generation respond to traits, not categories.
 
 ### 5. Evidence Must Match Evaluation (ADR-023)
 
@@ -68,7 +68,7 @@ Fallback if the trade-offs prove too costly: run the workflow engine as an MCP s
 
 ### 10. Export Format: OpenSpec (ADR-029 addendum)
 
-OpenSpec over SpecKit. 1:1 mapping between capabilities and output artifacts. No workflow metadata redundancy. Native change management for the Evolution milestone (diff a capability, generate targeted stories, implement, validate).
+OpenSpec over SpecKit. 1:1 mapping between capabilities and output artifacts. No workflow metadata redundancy. Native change management for the Evolution milestone (diff a capability, generate targeted specs, implement, validate).
 
 ## What Was Tried and Abandoned
 

@@ -13,7 +13,7 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 ## Setup
 
 1. Create `.haytham/` directory if it doesn't exist
-2. Create `.haytham/session/phase-1-why/`, `.haytham/session/phase-2-what/`, `.haytham/session/phase-3-how/`, `.haytham/session/phase-4-stories/` directories
+2. Create `.haytham/session/phase-1-why/`, `.haytham/session/phase-2-what/`, `.haytham/session/phase-3-how/`, `.haytham/session/phase-4-specs/` directories
 3. Write the user's startup idea to `.haytham/project.yaml`:
    ```yaml
    idea: |
@@ -167,6 +167,8 @@ Write gate decision:
 }
 ```
 
+Update state: `last_completed_step: 6`.
+
 ---
 
 ## Phase 2: WHAT (MVP Specification)
@@ -177,23 +179,24 @@ Before launching any agents, tell the user:
 
 > **Phase 2: MVP Specification**
 >
-> This will run 3 steps:
+> This will run 4 steps:
 > 1. MVP Scope — define what's in, what's out, and the core flows (~1 min)
-> 2. Capability Model — extract capabilities and system traits (~1 min)
-> 3. Gate 2 — you approve the specification ← YOU DECIDE HERE
+> 2. Scope Review — you shape the scope before capabilities are derived ← YOU STEER HERE
+> 3. Capability Model — extract capabilities and system traits from your approved scope (~1 min)
+> 4. Gate 2 — you approve the final capabilities ← YOU DECIDE HERE
 >
-> Estimated total: ~3 minutes.
+> Estimated total: ~4 minutes.
 
 ### Step 7: MVP Scope
 
 Verify `.haytham/session/phase-1-why/gate-decision.json` exists.
 
 Tell the user:
-> **Step 1/3: MVP Scope**
+> **Step 1/4: MVP Scope**
 > Translating the validated idea into a concrete MVP definition. What's in, what's out, and what the core user flow looks like.
 
 Launch an **mvp-scoper** agent with this task:
-> Read the validation report, idea analysis, and concept anchor. Define the MVP scope. Write to `.haytham/session/phase-2-what/mvp-scope.md`.
+> Read the validation report from `.haytham/session/phase-1-why/validation-report.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Define the MVP scope. Write to `.haytham/session/phase-2-what/mvp-scope.md`.
 
 After the agent completes, read `.haytham/session/phase-2-what/mvp-scope.md` and present a structured digest:
 
@@ -205,13 +208,39 @@ After the agent completes, read `.haytham/session/phase-2-what/mvp-scope.md` and
 > - **Appetite:** [Time/effort budget]
 > - **Core flow:** [One-line description of the primary user journey]
 
-### Step 8: Capability Model
+Update state: `last_completed_step: 7`.
+
+### Step 8: Scope Review
+
+This is a refinement loop. The user must approve the scope BEFORE capabilities are derived from it.
+
+Ask:
+> **Review the MVP scope above. Specifically:**
+> - Is "The One Thing" right? Does it capture what matters?
+> - Are the IN/OUT scope boundaries correct?
+> - Is the appetite realistic?
+> - Are the core flows right?
+>
+> Say "looks good" to proceed to capability extraction, or tell me what to change.
+
+**If the user requests changes:**
+1. Re-launch the **mvp-scoper** agent with this task:
+   > Read the current MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, the validation report from `.haytham/session/phase-1-why/validation-report.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. The user reviewed the scope and requested these changes: [PASTE THE USER'S EXACT CORRECTIONS HERE]. Revise the MVP scope to incorporate these changes. Write the updated scope to `.haytham/session/phase-2-what/mvp-scope.md`.
+2. Read the updated `.haytham/session/phase-2-what/mvp-scope.md` and present the revised digest
+3. Ask the user to review again. **Repeat until the user approves.**
+
+**If the user approves:** Proceed to Step 9.
+
+Update state: `last_completed_step: 8`.
+
+### Step 9: Capability Model
 
 Tell the user:
-> Scope is set. Now extracting the specific capabilities your MVP needs and classifying system traits.
+> **Step 3/4: Capability Model**
+> Scope approved. Now extracting the specific capabilities your MVP needs from the scope you just approved.
 
 Launch a **capability-modeler** agent with this task:
-> Read the MVP scope, idea analysis, and concept anchor. Produce the capability model and system traits. Write to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
+> Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Produce the capability model and system traits. Write to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
 
 After the agent completes, read `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json` and present a structured digest:
 
@@ -222,28 +251,45 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 > - **System traits:** [List key traits like auth model, data sensitivity, etc.]
 > - **Traceability:** Each capability traces to [IN SCOPE items / problems from Phase 1]
 
-### Step 9: Gate 2
+Update state: `last_completed_step: 9`.
 
-Read `.haytham/session/phase-2-what/capabilities.json` and output the capabilities summary inline in your response. Show functional and non-functional capabilities with their traceability. The user must be able to see this without expanding anything.
+### Step 10: Gate 2
+
+Read `.haytham/session/phase-2-what/capabilities.json` and output the following inline in your response (the user must see this without expanding anything):
+- Functional capabilities with traceability to scope items
+- Non-functional capabilities
+- System traits classification
 
 Ask:
-> **Review the MVP specification. Specifically:**
-> - Does the IN/OUT scope match your vision?
-> - Are the core capabilities right?
-> - Is there anything critical missing?
+> **Review the capabilities. Specifically:**
+> - Are the capabilities the right decomposition of the scope?
+> - Are there capabilities that should be merged, split, or removed?
+> - Are the non-functional requirements right for this type of product?
 >
 > Approve to proceed to technical design, or request changes.
 
-Write gate decision:
+**If the user requests changes:**
+1. Re-launch the **capability-modeler** agent with this task:
+   > Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`, and the current capabilities from `.haytham/session/phase-2-what/capabilities.json`. The user reviewed the capabilities and requested these changes: [PASTE THE USER'S EXACT CORRECTIONS HERE]. Revise the capability model to incorporate these changes. Write updated files to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
+2. Read the updated files and present the revised digest
+3. Ask the user to review again. **Repeat until the user approves.**
+
+**When the user approves**, write gate decision:
 ```json
 // .haytham/session/phase-2-what/gate-decision.json
 {
   "phase": 2,
   "user_decision": "approved|rejected",
+  "scope_revisions": 0,
+  "capability_revisions": 0,
   "notes": "Any user feedback",
   "decided_at": "[ISO timestamp]"
 }
 ```
+
+Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections.
+
+Update state: `last_completed_step: 10`.
 
 ---
 
@@ -262,7 +308,7 @@ Before launching any agents, tell the user:
 >
 > Estimated total: ~3 minutes.
 
-### Step 10: Architecture
+### Step 11: Architecture
 
 Verify `.haytham/session/phase-2-what/gate-decision.json` exists.
 
@@ -283,7 +329,9 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json` an
 > - **Estimated monthly cost:** [Cost range]
 > - **Integration effort:** [Effort estimate]
 
-### Step 11: Gate 3
+Update state: `last_completed_step: 11`.
+
+### Step 12: Gate 3
 
 Ask:
 > **Review the technical design. Specifically:**
@@ -291,7 +339,7 @@ Ask:
 > - Are the build/buy decisions reasonable?
 > - Is the estimated cost acceptable?
 >
-> Approve to proceed to story planning, or request changes.
+> Approve to proceed to specification generation, or request changes.
 
 Write gate decision:
 ```json
@@ -304,57 +352,71 @@ Write gate decision:
 }
 ```
 
+Update state: `last_completed_step: 12`.
+
 ---
 
-## Phase 4: STORIES (Implementation Plan)
+## Phase 4: SPECS (OpenSpec Generation)
 
-**Goal:** Generate implementation-ready stories with dependency ordering.
+**Goal:** Generate an implementation-ready OpenSpec that a coding agent can use to build the system.
 
 Before launching any agents, tell the user:
 
-> **Phase 4: Implementation Plan**
+> **Phase 4: Specification Generation**
 >
 > This will run 3 steps:
-> 1. Story Planning — generate stories with dependencies and acceptance criteria (~2 min)
-> 2. Review — you review the implementation plan
-> 3. Detail Review — drill into specific stories if needed ← YOU DECIDE HERE
+> 1. OpenSpec Generation — produce SHALL requirements with Gherkin scenarios (~2 min)
+> 2. Review — you review the specification
+> 3. Detail Review — drill into specific domains if needed ← YOU DECIDE HERE
 >
 > Estimated total: ~3 minutes.
 
-### Step 12: Story Planning
+### Step 13: OpenSpec Generation
 
 Verify `.haytham/session/phase-3-how/gate-decision.json` exists.
 
 Tell the user:
-> **Step 1/3: Story Planning**
-> Turning capabilities and architecture decisions into implementation-ready stories with dependencies.
+> **Step 1/3: OpenSpec Generation**
+> Turning capabilities and architecture decisions into a complete specification with SHALL requirements and testable scenarios.
 
-Launch a **story-planner** agent with this task:
-> Read all Phase 2 and Phase 3 outputs plus the concept anchor. Generate story skeletons, detail specs, and the execution contract. Write to `.haytham/session/phase-4-stories/stories.json` and `.haytham/session/phase-4-stories/execution-contract.json`.
+Launch a **spec-generator** agent with this task:
+> Read all Phase 2 and Phase 3 outputs plus the concept anchor. Generate the OpenSpec directory tree. Write to `.haytham/session/phase-4-specs/openspec/` (config.yaml, project.md, and specs/*/spec.md).
 
-After the agent completes, read `.haytham/session/phase-4-stories/execution-contract.json` and `.haytham/session/phase-4-stories/stories.json` and present a structured digest:
+After the agent completes, run validation:
+```bash
+python3 scripts/validate_openspec.py .haytham/session/phase-4-specs/openspec/ .haytham/session/phase-2-what/capabilities.json
+```
 
-> **Story planning complete.**
+If validation produces warnings, report them to the user before the digest.
+
+Then read the generated files and present a structured digest:
+
+> **OpenSpec generated.** Here's what was produced:
 >
-> - **Total stories:** [Count]
-> - **Layer breakdown:** [e.g., Infrastructure: X, Backend: X, Frontend: X, Integration: X]
-> - **Critical path:** [The first 2-3 stories that must be built first]
-> - **Coverage:** [All capabilities covered? Any gaps?]
+> - **Domains:** [count] — [list domain names]
+> - **Requirements:** [count] SHALL statements across all domains
+> - **Scenarios:** [count] Gherkin scenarios
+> - **Architecture decisions:** [count] documented in project.md
+> - **Coverage:** All [N] functional + [M] non-functional capabilities covered
 
-### Step 13: Final Review
+Update state: `last_completed_step: 13`.
 
-Read `.haytham/session/phase-4-stories/execution-contract.json` and output the following inline in your response (the user must see this without expanding anything):
-- Total story count and layer breakdown
-- Dependency graph (which stories depend on which)
+### Step 14: Final Review
+
+Read the OpenSpec files and output the following inline in your response (the user must see this without expanding anything):
+- Domain list with requirement counts per domain
 - Coverage check (all capabilities and decisions covered)
+- config.yaml traits summary
 
 Ask:
-> **Review the implementation plan. Specifically:**
-> - Is the story breakdown granular enough to start building?
-> - Are the dependencies in the right order?
-> - Is anything missing from the coverage check?
+> **Review the specification. Specifically:**
+> - Are the domain groupings right?
+> - Do the SHALL statements capture what matters?
+> - Are the scenarios testable?
 >
 > Say "looks good" or request changes.
+
+Update state: `last_completed_step: 14`.
 
 ### Completion
 
@@ -362,6 +424,6 @@ Summarize what was produced:
 - `.haytham/session/phase-1-why/` - Validation report with recommendation
 - `.haytham/session/phase-2-what/` - MVP scope and capability model
 - `.haytham/session/phase-3-how/` - Architecture and build/buy decisions
-- `.haytham/session/phase-4-stories/` - Implementation stories and execution contract
+- `.haytham/session/phase-4-specs/openspec/` - Implementation-ready OpenSpec
 
 Tell the user: "Your specification is complete. Ran 8 agents across 4 phases. All output files are in `.haytham/session/`. You can use `/haytham:validate`, `/haytham:specify`, `/haytham:design`, or `/haytham:plan` to re-run individual phases."

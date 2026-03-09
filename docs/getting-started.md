@@ -28,7 +28,7 @@ Or run individual phases:
 | `/haytham:validate` | WHY | Market research, competitor analysis, GO/NO-GO/PIVOT verdict |
 | `/haytham:specify` | WHAT | MVP scope, capability model, system traits |
 | `/haytham:design` | HOW | Build-vs-buy analysis, architecture decisions |
-| `/haytham:plan` | STORIES | Dependency-ordered stories with acceptance criteria |
+| `/haytham:plan` | SPECS | OpenSpec with SHALL requirements and Gherkin scenarios |
 
 ## What to Expect
 
@@ -41,7 +41,7 @@ Each phase runs specialist agents, writes structured output to `.haytham/session
     phase-1-why/                   # Validation findings and verdict
     phase-2-what/                  # MVP scope and capabilities
     phase-3-how/                   # Architecture decisions
-    phase-4-stories/               # Implementation-ready stories
+    phase-4-specs/                 # Implementation-ready OpenSpec
 ```
 
 A full 4-phase run takes approximately 15-20 minutes.

@@ -256,22 +256,6 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("invalid flow ref" in w for w in warnings)
 
-    def test_valid_stories(self, tmp_path):
-        src = FIXTURES_DIR / "valid_stories.json"
-        dst = tmp_path / ".haytham" / "session" / "phase-4-stories" / "stories.json"
-        dst.parent.mkdir(parents=True)
-        dst.write_text(src.read_text())
-        warnings = validate_file(str(dst))
-        assert not warnings, f"Unexpected warnings: {warnings}"
-
-    def test_invalid_stories_broken_dependency(self, tmp_path):
-        src = FIXTURES_DIR / "invalid_stories.json"
-        dst = tmp_path / ".haytham" / "session" / "phase-4-stories" / "stories.json"
-        dst.parent.mkdir(parents=True)
-        dst.write_text(src.read_text())
-        warnings = validate_file(str(dst))
-        assert any("doesn't exist" in w for w in warnings)
-
     def test_non_session_file_skipped(self, tmp_path):
         dst = tmp_path / "random.json"
         dst.write_text('{"foo": "bar"}')
@@ -284,6 +268,43 @@ class TestSchemaValidation:
         dst.write_text("# Report")
         warnings = validate_file(str(dst))
         assert not warnings
+
+
+class TestOpenSpecValidation:
+    def test_valid_openspec(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "validate_openspec.py"),
+             str(FIXTURES_DIR / "valid_openspec")],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"Unexpected warnings: {result.stderr}"
+
+    def test_valid_openspec_with_coverage(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "validate_openspec.py"),
+             str(FIXTURES_DIR / "valid_openspec"),
+             str(FIXTURES_DIR / "openspec_capabilities.json")],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, f"Unexpected warnings: {result.stderr}"
+
+    def test_invalid_openspec_bad_shall(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "validate_openspec.py"),
+             str(FIXTURES_DIR / "invalid_openspec")],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1
+        assert "SHALL grammar" in result.stderr
+
+    def test_invalid_openspec_missing_traits(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "validate_openspec.py"),
+             str(FIXTURES_DIR / "invalid_openspec")],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1
+        assert "traits" in result.stderr
 
 
 class TestSomValidation:

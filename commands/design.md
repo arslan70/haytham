@@ -65,7 +65,7 @@ Ask:
 > - Are the build/buy decisions reasonable?
 > - Is the estimated cost acceptable?
 >
-> Approve to proceed to story planning, or request changes.
+> Approve to proceed to specification generation, or request changes.
 
 Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 ```json
@@ -77,4 +77,4 @@ Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 }
 ```
 
-Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Run `/haytham:plan` to proceed to story planning (Phase 4)."
+Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Run `/haytham:plan` to proceed to specification generation (Phase 4)."

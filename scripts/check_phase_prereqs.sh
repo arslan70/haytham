@@ -49,7 +49,7 @@ if echo "$DESCRIPTION_LOWER" | grep -qE '(architect)'; then
 fi
 
 # Phase 4 agents require Phase 3 gate decision
-if echo "$DESCRIPTION_LOWER" | grep -qE '(story-planner)'; then
+if echo "$DESCRIPTION_LOWER" | grep -qE '(spec-generator)'; then
     check_prereq ".haytham/session/phase-3-how/gate-decision.json" "Phase 3 (HOW)"
 fi
 

@@ -84,7 +84,7 @@ the coding agent what was tried, what failed, and what to preserve.
 ### 1. Four-Phase Workflow (ADR-016)
 
 The workflow has four phases: WHY (validate the idea), WHAT (scope the MVP),
-HOW (architecture decisions), STORIES (implementation plan). Each phase ends
+HOW (architecture decisions), SPECS (specification generation). Each phase ends
 with a human approval gate. The gate after WHY is the most important: it
 produces a GO/PIVOT/NO-GO recommendation backed by evidence.
 
@@ -130,7 +130,7 @@ Categories are mutually exclusive and miss hybrid ideas. Instead, detect traits:
 has_user_auth, has_payments, has_real_time, has_marketplace_dynamics,
 needs_mobile. Traits compose. A gym leaderboard has user_auth + real_time +
 social_features. A freelance marketplace has user_auth + payments +
-marketplace_dynamics. The architecture and story generation respond to traits,
+marketplace_dynamics. The architecture and spec generation respond to traits,
 not categories.
 
 ### 5. Evidence Must Match Evaluation (ADR-023)
@@ -193,7 +193,7 @@ keeping the plugin UX.
 
 OpenSpec over SpecKit. 1:1 mapping between capabilities and output artifacts.
 No workflow metadata redundancy. Native change management for the Evolution
-milestone (diff a capability, generate targeted stories, implement, validate).
+milestone (diff a capability, generate targeted specs, implement, validate).
 
 ## What Was Tried and Abandoned
 

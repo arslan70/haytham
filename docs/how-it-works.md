@@ -7,7 +7,7 @@ Haytham processes a startup idea through four sequential phases, each answering 
 - **Structure over speed.** Good systems require good decisions. Haytham enforces the questions experienced architects ask (problem framing, scope boundaries, build-vs-buy trade-offs, capability traceability) before any code is written.
 - **Honesty over flattery.** If the idea doesn't hold up, the system says NO-GO and tells you why. Only validated ideas proceed to specification.
 - **Human over automation.** Every decision is surfaced for review. Each phase output is a conversation. Disagree with the architecture, challenge the scope, refine the verdict.
-- **Traceability over magic.** Every story traces to a capability, every capability to a validated need, every decision to the capabilities it serves. When stories reach a developer or coding agent, they carry full context.
+- **Traceability over magic.** Every requirement traces to a capability, every capability to a validated need, every decision to the capabilities it serves. When specs reach a developer or coding agent, they carry full context.
 
 ---
 
@@ -38,13 +38,13 @@ flowchart TD
     end
 
     build_buy --> gate3{Gate 3: Architect}
-    gate3 -->|Approved| stories
+    gate3 -->|Approved| specs
 
-    subgraph stories_phase["STORIES: Tasks"]
-        stories[Story Planner]
+    subgraph specs_phase["SPECS: Specification"]
+        specs[Spec Generator]
     end
 
-    stories --> output[Implementation-Ready Backlog]
+    specs --> output[Implementation-Ready OpenSpec]
 ```
 
 ---
@@ -85,7 +85,7 @@ The **Report Synthesizer** applies a Stage-Gate scorecard with three knockout cr
 
 Define a focused, achievable first version. The **MVP Scoper** uses Shape Up appetite-based scoping to right-size the first version. It identifies the core value proposition, defines a single primary user segment, in/out-of-scope boundaries, success criteria, and core user flows.
 
-The **Capability Modeler** decomposes the scope into functional and non-functional capabilities using standard capability mapping, each traced to the user flows that justify it. It also classifies system traits (interface type, auth model, deployment targets, data layer) to inform downstream architecture. Without this classification, story generation defaults to web-app patterns regardless of whether the product is a CLI tool, an API service, or a mobile app.
+The **Capability Modeler** decomposes the scope into functional and non-functional capabilities using standard capability mapping, each traced to the user flows that justify it. It also classifies system traits (interface type, auth model, deployment targets, data layer) to inform downstream architecture. Without this classification, spec generation defaults to web-app patterns regardless of whether the product is a CLI tool, an API service, or a mobile app.
 
 ### Gate 2: Product Owner Review
 
@@ -100,18 +100,18 @@ The **Architect** evaluates each capability for build-vs-buy using a weighted sc
 
 ### Gate 3: Architect Review
 
-- **Approved**: Architecture locked, proceed to story generation
+- **Approved**: Architecture locked, proceed to specification generation
 - **Revise**: Adjust technology or integration decisions
 
 ---
 
-## Phase 4: What Are the Tasks?
+## Phase 4: What Are the Specifications?
 
-The **Story Planner** generates user stories in standard Agile format with acceptance criteria in Gherkin (Given/When/Then). BUILD capabilities get implementation stories, BUY capabilities get integration stories, each tagged `implements:CAP-*`. It verifies every capability is covered, validates against INVEST criteria, and resolves dependencies into a directed acyclic graph ordered across architecture layers: Foundation, Auth, Integrations, Core, UI, Real-time.
+The **Spec Generator** produces an OpenSpec directory tree: `config.yaml` for project metadata and system traits, `project.md` for architecture decisions and build/buy analysis, and domain-grouped `spec.md` files with SHALL requirements and Gherkin scenarios. Functional capabilities become SHALL statements grouped by domain, non-functional capabilities go into `specs/cross-cutting/spec.md`. Every requirement traces to a capability, and every architecture decision is documented with rationale.
 
 ### Final Output
 
-Every story links to the capability it implements (`implements:CAP-F-001`), the decisions it depends on (`uses:DEC-001`), and the entities it touches (`touches:ENT-001`). This specification is the execution contract. Whether the executor is a human developer or a coding agent, they receive the same traced context.
+The OpenSpec in `.haytham/session/phase-4-specs/openspec/` is a complete, self-contained specification. Whether the executor is a human developer or a coding agent, they receive the same traced context.
 
 ---
 
@@ -126,13 +126,13 @@ Every story links to the capability it implements (`implements:CAP-F-001`), the 
 | MVP Scoper | WHAT | Scope definition, boundaries, core flows | sonnet |
 | Capability Modeler | WHAT | Capability extraction and system trait classification | sonnet |
 | Architect | HOW | Build/buy analysis and architecture decisions | sonnet |
-| Story Planner | STORIES | Story generation, validation, and dependency ordering | opus |
+| Spec Generator | SPECS | OpenSpec generation with SHALL statements and Gherkin scenarios | opus |
 
 ---
 
 ## State Management
 
-Each phase writes structured output to `.haytham/session/`. Phases read upstream context from these files, not from conversation history. This means context compaction doesn't lose critical references (CAP-*, DEC-*, story IDs).
+Each phase writes structured output to `.haytham/session/`. Phases read upstream context from these files, not from conversation history. This means context compaction doesn't lose critical references (CAP-*, DEC-*, requirement IDs).
 
 ```
 .haytham/session/
@@ -153,8 +153,9 @@ Each phase writes structured output to `.haytham/session/`. Phases read upstream
     build-buy.json                # BUILD/BUY/HYBRID per capability
     architecture-decisions.json   # DEC-* decisions
     gate-decision.json
-  phase-4-stories/
-    stories.json                  # Ordered stories
-    execution-contract.json       # Execution contract
-    gate-decision.json
+  phase-4-specs/
+    openspec/
+      config.yaml                 # Project metadata, system traits
+      project.md                  # Architecture decisions, build/buy
+      specs/*/spec.md             # Domain requirements with scenarios
 ```

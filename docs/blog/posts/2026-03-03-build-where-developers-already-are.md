@@ -15,7 +15,7 @@ description: "Haytham is now a Claude Code plugin. One command to install, no AW
 
 # Haytham Is Now a Claude Code Plugin
 
-Haytham turns a startup idea into a validated, implementation-ready specification. Market research with live web search, MVP scoping, architecture decisions, dependency-ordered stories with acceptance criteria. Four phases, each with a human approval gate before the next one starts.
+Haytham turns a startup idea into a validated, implementation-ready specification. Market research with live web search, MVP scoping, architecture decisions, SHALL requirements with Gherkin acceptance criteria. Four phases, each with a human approval gate before the next one starts.
 
 Starting today, you can install it inside Claude Code:
 
@@ -46,7 +46,7 @@ I originally built Haytham as a standalone system. Strands SDK for agent orchest
 
 Nine steps before any value. Steps 4 through 7 are where everyone dropped off. People would star the repo, maybe clone it, then disappear. Zero issues filed, zero discussions opened. Nobody was getting past the setup.
 
-The system worked. I proved it end-to-end by generating a spec for a gym leaderboard app and building the whole thing from the generated stories. The planning intelligence was real. The distribution was broken.
+The system worked. I proved it end-to-end by generating a spec for a gym leaderboard app and building the whole thing from the generated spec. The planning intelligence was real. The distribution was broken.
 
 ## Why a plugin
 
@@ -59,6 +59,8 @@ The agent prompts port to subagent markdown files. The phased workflow becomes s
 The Bedrock credential wall deserves its own mention. AWS builds for enterprises with procurement teams and infrastructure budgets. That's a fine business. But it means an individual developer who wants to experiment with an open-source AI tool hits a wall of IAM roles, model access requests, and region-specific configurations before they write a single prompt.
 
 Anthropic's direct API has the same models with a credit card and an API key. Claude Code goes further: plugin users don't need *any* credentials. The developer experience gap between "configure AWS Bedrock" and "install a plugin" is enormous. For solo founders and small teams building on these models, AWS is creating friction that pushes builders toward platforms with lower barriers. That's an audience worth competing for.
+
+There's a cost angle too. Every test run of the pipeline against Bedrock costs real money, and during development you run it a lot. Moving to a plugin means all that testing happens under your existing Claude Code subscription. The Bedrock bill goes to zero.
 
 ## What I'm giving up
 
@@ -85,6 +87,6 @@ For other solo founders building AI-powered developer tools: start on a platform
 /plugin install haytham@haytham
 ```
 
-Once installed, start with `/haytham` and paste your startup idea. The workflow runs through four phases (validate, specify, design, plan), each with a gate where you review findings and decide whether to continue. At the end, you get an execution contract that Claude Code can implement directly.
+Once installed, start with `/haytham` and paste your startup idea. The workflow runs through four phases (validate, specify, design, plan), each with a gate where you review findings and decide whether to continue. At the end, you get an OpenSpec that Claude Code can implement directly.
 
 The [system evolution doc](https://github.com/arslan70/haytham/blob/main/docs/system-evolution.md) covers the lessons and trade-offs in detail. The [Haytham repo](https://github.com/arslan70/haytham) is open source. If you hit problems or have ideas, [open an issue](https://github.com/arslan70/haytham/issues).

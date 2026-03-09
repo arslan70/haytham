@@ -31,8 +31,9 @@ If any Phase 1 file is missing, stop and say:
 9. `.haytham/session/phase-3-how/architecture-decisions.json`
 
 **Phase 4 (optional, enables more checks):**
-10. `.haytham/session/phase-4-stories/stories.json`
-11. `.haytham/session/phase-4-stories/execution-contract.json`
+10. `.haytham/session/phase-4-specs/openspec/config.yaml`
+11. `.haytham/session/phase-4-specs/openspec/project.md`
+12. `.haytham/session/phase-4-specs/openspec/specs/*/spec.md`
 
 Read each file that exists. For files that don't exist, note "Phase N not yet completed" and skip the checks that depend on those files. Do NOT guess what missing files might contain.
 
@@ -108,21 +109,21 @@ Read `build-buy.json`. Check that the `recommended_stack` entries are internally
 
 ## Phase 4 Checks (if Phase 4 files exist)
 
-### 9. Story Coverage
+### 9. Spec Coverage
 
-Read `stories.json` and `execution-contract.json`. Check that stories collectively cover all capabilities from `capabilities.json` and all decisions from `architecture-decisions.json`.
+Read all `specs/*/spec.md` files. Check that every CAP-F-* and CAP-NF-* from `capabilities.json` appears as a SHALL requirement in at least one spec file.
 
-- PASS: Full coverage, every capability and decision referenced by at least one story
+- PASS: Full coverage, every capability referenced by at least one requirement
 - PARTIAL: 1-2 gaps in coverage
-- FAIL: Multiple capabilities or decisions have no implementing story
+- FAIL: Multiple capabilities have no corresponding requirement
 
-### 10. Dependency Integrity
+### 10. Cross-Reference Integrity
 
-Read `stories.json`. Check that all `depends_on` references point to stories that exist, and that there are no circular dependencies.
+Read `project.md`. Check that all DEC-* IDs referenced match entries in `architecture-decisions.json`, and that `config.yaml` traits match `system-traits.json`.
 
-- PASS: All dependencies resolve, no cycles
-- PARTIAL: All dependencies resolve but ordering seems questionable
-- FAIL: Broken references or circular dependencies
+- PASS: All cross-references resolve correctly
+- PARTIAL: Minor inconsistencies (e.g., a trait value differs)
+- FAIL: Missing decision references or major trait mismatches
 
 ## Output Format
 
