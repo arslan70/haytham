@@ -26,7 +26,7 @@ Read these files:
 
 Before analyzing components, check whether the product could leverage an existing platform as its runtime instead of building standalone.
 
-Read `strategic_signals` from the concept anchor. If `distribution` is `plugin_or_extension`, this assessment is mandatory. Otherwise, perform it if the target audience is developers or the product is a tool that could extend an existing ecosystem.
+Read `strategic_signals` from the concept anchor (if present). If `distribution` is `plugin_or_extension`, this assessment is mandatory. Otherwise, perform it if the target audience is developers or the product is a tool that could extend an existing ecosystem. If `strategic_signals` is absent from the concept anchor, skip this section and proceed to Part 1.
 
 **Evaluate:**
 1. Does the target audience already use a platform that provides needed infrastructure? (e.g., Claude Code for AI dev tools, VS Code for developer tools, Shopify for e-commerce tools, Slack for team tools)

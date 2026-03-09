@@ -69,6 +69,52 @@ def validate_file(file_path: str) -> list[str]:
         elif data[key] is None or data[key] == "" or data[key] == []:
             warnings.append(f"Empty required field '{key}' in {basename}")
 
+    # Special validation for concept-anchor.json
+    if basename == "concept-anchor.json":
+        # Validate founder_profile enums
+        fp = data.get("founder_profile")
+        if isinstance(fp, dict):
+            tl = fp.get("technical_level", "")
+            if tl and tl not in ("technical", "semi-technical", "non-technical"):
+                warnings.append(
+                    f"Invalid founder_profile.technical_level '{tl}' in {basename}. "
+                    "Must be technical, semi-technical, or non-technical."
+                )
+            de = fp.get("domain_expertise", "")
+            if de and de not in ("high", "medium", "low"):
+                warnings.append(
+                    f"Invalid founder_profile.domain_expertise '{de}' in {basename}. "
+                    "Must be high, medium, or low."
+                )
+
+        # Validate strategic_signals enums
+        ss = data.get("strategic_signals")
+        if isinstance(ss, dict):
+            valid_enums = {
+                "business_model": {
+                    "open-source", "saas", "freemium", "marketplace",
+                    "agency", "unknown",
+                },
+                "success_metric": {
+                    "revenue", "community_adoption", "usage",
+                    "enterprise_contracts", "unknown",
+                },
+                "competitive_stance": {
+                    "direct_competitor", "complementary", "greenfield", "unknown",
+                },
+                "distribution": {
+                    "standalone", "plugin_or_extension", "hosted",
+                    "marketplace_listing", "unknown",
+                },
+            }
+            for field, allowed in valid_enums.items():
+                val = ss.get(field, "")
+                if val and val not in allowed:
+                    warnings.append(
+                        f"Invalid strategic_signals.{field} '{val}' in {basename}. "
+                        f"Must be one of: {sorted(allowed)}"
+                    )
+
     # Special validation for validation-report.json
     if basename == "validation-report.json":
         # Check recommendation value

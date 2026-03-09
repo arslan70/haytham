@@ -1,0 +1,32 @@
+{
+  "archetype": "developer_tool",
+  "intent": {
+    "goal": "Build a tool",
+    "explicit_constraints": [],
+    "non_goals": []
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "open",
+      "source": "stated",
+      "confidence": 0.9
+    }
+  ],
+  "identity": {
+    "features": ["Fast"],
+    "why_distinctive": "Speed"
+  },
+  "founder_profile": {
+    "technical_level": "advanced",
+    "domain_expertise": "expert",
+    "inference_basis": "Guess"
+  },
+  "strategic_signals": {
+    "business_model": "advertising",
+    "success_metric": "vibes",
+    "competitive_stance": "friendly",
+    "distribution": "carrier_pigeon",
+    "inference_notes": "Made up"
+  }
+}

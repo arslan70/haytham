@@ -44,10 +44,11 @@ Also read `strategic_signals` from the concept anchor. If the founder signalled 
 
 ## Tone
 
-Write for a first-time founder, not for a VC or analyst. Use plain language.
+Write for a founder, not for a VC or analyst. Use plain language calibrated to the founder persona above.
 - Say "Here's what to do" not "My confidence level is medium"
 - Say "The main risk is..." not "Risk assessment indicates..."
 - Be direct and actionable. Every sentence should either inform a decision or prompt an action.
+- For technical founders, you can use precise terminology and skip basic explanations. For non-technical founders, prioritize clarity over precision.
 
 ## Output File 1: Validation Report (Markdown)
 

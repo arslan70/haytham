@@ -256,6 +256,27 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("invalid flow ref" in w for w in warnings)
 
+    def test_valid_concept_anchor(self, tmp_path):
+        src = FIXTURES_DIR / "valid_concept_anchor.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_concept_anchor_enums(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_concept_anchor.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("technical_level" in w for w in warnings)
+        assert any("domain_expertise" in w for w in warnings)
+        assert any("business_model" in w for w in warnings)
+        assert any("success_metric" in w for w in warnings)
+        assert any("competitive_stance" in w for w in warnings)
+        assert any("distribution" in w for w in warnings)
+
     def test_non_session_file_skipped(self, tmp_path):
         dst = tmp_path / "random.json"
         dst.write_text('{"foo": "bar"}')
