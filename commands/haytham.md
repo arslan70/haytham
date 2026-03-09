@@ -86,10 +86,10 @@ Then read `strategic_signals` and `founder_profile` from `concept-anchor.json` a
 > - **Competitive stance:** [competitive_stance]
 > - **Distribution:** [distribution]
 >
-> **What you can do now:**
-> - Correct any strategic assumptions above (these shape how we research competitors and frame the report)
-> - Steer research, e.g., "focus on competitor X" or "skip research, I know the market"
-> - Say "looks good" or "let's continue" to proceed to market research
+> **What next?**
+> 1. Looks good, continue to market research
+> 2. I need to correct some assumptions (say which ones and what they should be)
+> 3. I want to steer research toward specific competitors or topics
 
 If the user corrects any strategic signals, update `concept-anchor.json` using the Edit tool to reflect their corrections before proceeding.
 
@@ -134,14 +134,16 @@ Update state: `last_completed_step: 3`.
 ### Step 4: Founder Review
 
 Ask:
-> **Review the brief above. Specifically:**
-> - Is the problem statement right?
-> - Are we missing any key competitors?
-> - Is the market size in the right ballpark?
-> - Is the competitive positioning right? (Are you a direct competitor to the players listed, complementary, or serving a different segment?)
-> - Does the business model assumption match your intent?
+> **Review the brief above.** Check these dimensions:
+> - **Problem statement** — is this the right problem?
+> - **Competitors** — are we missing anyone, or including wrong ones?
+> - **Market size** — in the right ballpark?
+> - **Competitive positioning** — are you a direct competitor, complementary, or serving a different segment?
+> - **Business model** — does the assumption match your intent?
 >
-> Reply with corrections, or say "looks good" to continue to the validation report.
+> **What next?**
+> 1. Looks good, continue to the validation report
+> 2. I have corrections (say which dimensions and what to change)
 
 If the user provides corrections, write them to `.haytham/session/phase-1-why/founder-corrections.json`:
 ```json
