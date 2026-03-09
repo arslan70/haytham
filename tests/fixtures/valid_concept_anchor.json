@@ -1,0 +1,44 @@
+{
+  "archetype": "developer_tool",
+  "intent": {
+    "goal": "Build a CLI tool for developers",
+    "explicit_constraints": ["Must work offline"],
+    "non_goals": ["Not a GUI app"]
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "open",
+      "source": "CLI tool for anyone",
+      "confidence": 0.9
+    },
+    {
+      "property": "interaction_model",
+      "value": "command-line",
+      "source": "CLI tool",
+      "confidence": 0.95
+    },
+    {
+      "property": "session_medium",
+      "value": "terminal",
+      "source": "CLI tool",
+      "confidence": 0.95
+    }
+  ],
+  "identity": {
+    "features": ["Offline-first", "Fast startup"],
+    "why_distinctive": "Works without internet"
+  },
+  "founder_profile": {
+    "technical_level": "technical",
+    "domain_expertise": "high",
+    "inference_basis": "Describes system architecture and multi-agent pipelines"
+  },
+  "strategic_signals": {
+    "business_model": "open-source",
+    "success_metric": "community_adoption",
+    "competitive_stance": "complementary",
+    "distribution": "standalone",
+    "inference_notes": "Founder explicitly mentions open source and community growth"
+  }
+}

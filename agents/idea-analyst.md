@@ -145,11 +145,34 @@ Output a JSON object with:
   "identity": {
     "features": ["What makes this idea distinctive"],
     "why_distinctive": "Why these features matter"
+  },
+  "founder_profile": {
+    "technical_level": "technical | semi-technical | non-technical",
+    "domain_expertise": "high | medium | low",
+    "inference_basis": "One sentence explaining how you inferred this from the idea description"
+  },
+  "strategic_signals": {
+    "business_model": "open-source | saas | freemium | marketplace | agency | unknown",
+    "success_metric": "revenue | community_adoption | usage | enterprise_contracts | unknown",
+    "competitive_stance": "direct_competitor | complementary | greenfield | unknown",
+    "distribution": "standalone | plugin_or_extension | hosted | marketplace_listing | unknown",
+    "inference_notes": "Brief explanation of what signals in the idea led to these classifications. If most are 'unknown', that's fine -- the founder will clarify at review."
   }
 }
 ```
 
 **Required invariants:** access_model, interaction_model, session_medium (at minimum).
+
+**Founder profile inference rules:**
+- If the idea describes system architecture, multi-agent pipelines, API design, or implementation phases: `technical`
+- If it references specific technologies or frameworks but not architecture: `semi-technical`
+- If it describes only the user problem and desired outcome: `non-technical`
+
+**Strategic signal inference rules:**
+- Only classify as non-`unknown` when the idea EXPLICITLY states or STRONGLY implies the signal
+- "open source" in the idea means `open-source` business model
+- "plugin for X" in the idea means `plugin_or_extension` distribution
+- Absence of signal means `unknown` (the founder review step will clarify)
 
 **Confidence scoring:**
 - 0.9-1.0: Explicitly stated by founder

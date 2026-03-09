@@ -18,6 +18,24 @@ Read these files:
 - `.haytham/session/phase-2-what/capabilities.json`
 - `.haytham/session/phase-2-what/mvp-scope.md`
 - `.haytham/session/phase-2-what/system-traits.json`
+- `.haytham/session/phase-1-why/concept-anchor.json` (for strategic signals)
+
+---
+
+## Part 0: Platform Opportunity Assessment
+
+Before analyzing components, check whether the product could leverage an existing platform as its runtime instead of building standalone.
+
+Read `strategic_signals` from the concept anchor (if present). If `distribution` is `plugin_or_extension`, this assessment is mandatory. Otherwise, perform it if the target audience is developers or the product is a tool that could extend an existing ecosystem. If `strategic_signals` is absent from the concept anchor, skip this section and proceed to Part 1.
+
+**Evaluate:**
+1. Does the target audience already use a platform that provides needed infrastructure? (e.g., Claude Code for AI dev tools, VS Code for developer tools, Shopify for e-commerce tools, Slack for team tools)
+2. Would building as a platform extension eliminate a significant portion of BUILD components? (auth, hosting, distribution, CLI framework, etc.)
+3. Does the MVP scope fit within the platform's extension model?
+
+**If a platform model is viable**, add a `PLATFORM` recommendation category alongside BUILD/BUY/HYBRID in Part 1. PLATFORM means the platform provides the capability for free as part of its runtime. This can dramatically reduce integration effort.
+
+**If no platform model applies**, skip this section and proceed to Part 1.
 
 ---
 
@@ -66,6 +84,7 @@ Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
 
 ### Decision Framework
 
+- **Default to PLATFORM**: If Part 0 identified a viable platform, components provided by that platform
 - **Default to BUY**: Security-critical, time-consuming, requires maintenance, commodity
 - **Default to BUILD**: Core differentiator, simple enough for hours/days, needs deep customization
 - **HYBRID**: Service foundation + custom business logic
@@ -86,7 +105,7 @@ Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
     {
       "name": "Service Name",
       "category": "category",
-      "recommendation": "BUILD | BUY | HYBRID",
+      "recommendation": "BUILD | BUY | HYBRID | PLATFORM",
       "rationale": "Why this specific service",
       "capabilities_served": ["CAP-F-001"],
       "free_tier": "Description of free tier if applicable",
@@ -182,6 +201,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 - `.haytham/session/phase-2-what/capabilities.json`
 - `.haytham/session/phase-2-what/mvp-scope.md`
 - `.haytham/session/phase-2-what/system-traits.json`
+- `.haytham/session/phase-1-why/concept-anchor.json`
 
 **Write to:**
 - `.haytham/session/phase-3-how/build-buy.json`

@@ -80,6 +80,15 @@ Market-structural risks only. NOT competitor-level threats. Tag each as [validat
 
 ## Part 2: Competitor Analysis
 
+### Competitive Framing
+
+Before deep-diving into competitors, read `strategic_signals` from the concept anchor (`concept-anchor.json`). If `strategic_signals` is absent from the concept anchor, use standard competitive analysis (treat as `competitive_stance: direct_competitor`). Otherwise, this affects how you frame competition:
+
+- If `competitive_stance: complementary` or `distribution: plugin_or_extension`: The product may not compete head-to-head with incumbents. Research the ECOSYSTEM it plugs into, not just direct competitors. Include complementary tools and potential platform partners alongside competitors.
+- If `competitive_stance: direct_competitor`: Standard competitive analysis applies.
+- If `competitive_stance: greenfield` or `unknown`: Research both direct competitors AND adjacent categories. Present 2-3 possible competitive frames in section 6 (e.g., "Frame A: competing in X market" vs "Frame B: complementary to Y tools") so the founder can steer at review.
+- If `business_model: open-source`: Include open-source alternatives and community-driven tools alongside commercial competitors. Note adoption metrics (GitHub stars, contributors) not just revenue/funding.
+
 ### Research Approach
 
 Use WebSearch for competitor discovery (budget: 8-10 searches for competitor analysis).

@@ -18,10 +18,11 @@ Read the inputs and produce two output files: a validation report (markdown) and
 Read these files:
 - `.haytham/session/phase-1-why/idea-analysis.md` - the concept expansion
 - `.haytham/session/phase-1-why/market-research.md` - market intelligence and competitor analysis
-- `.haytham/session/phase-1-why/concept-anchor.json` - invariants from the founder's idea
+- `.haytham/session/phase-1-why/concept-anchor.json` - invariants, founder profile, and strategic signals
 - `.haytham/project.yaml` - the original startup idea
+- `.haytham/session/phase-1-why/founder-corrections.json` (if it exists) - corrections the founder made at the research brief review
 
-The founder has already reviewed the research brief, so treat the research as authoritative.
+The founder has already reviewed the research brief, so treat the research as authoritative. If `founder-corrections.json` exists, treat the corrections as HIGH-PRIORITY context. These are explicit reframings from the founder (e.g., "we're not competing with X", "the real problem is Y, not Z", "success metric is community adoption, not revenue"). The report MUST reflect these corrections. Do not contradict them.
 
 ## Concept Anchor
 
@@ -29,17 +30,25 @@ If a concept anchor is provided, treat its invariants as hard constraints. Do no
 
 ## Founder Persona
 
-Assume the founder is a first-time, non-technical founder unless the idea says otherwise.
-- Frame technical complexity honestly but accessibly
-- Highlight where they will need technical help
-- Prioritize low-cost validation over building
+Read `founder_profile` from the concept anchor (`concept-anchor.json`). Adapt your tone and framing accordingly:
+
+- **technical founder** (`technical_level: technical`): Frame risks as engineering trade-offs. Skip basic technical explanations. Focus on architecture feasibility, scaling concerns, and build-vs-buy decisions. Assume they can evaluate technical recommendations directly.
+- **semi-technical founder** (`technical_level: semi-technical`): Explain technical trade-offs briefly. Highlight where they'll need specialist help (e.g., DevOps, security). Balance accessibility with precision.
+- **non-technical founder** (default if `founder_profile` is missing or `technical_level: non-technical`): Frame technical complexity honestly but accessibly. Highlight where they will need technical help. Prioritize low-cost validation over building.
+
+Also read `strategic_signals` from the concept anchor. If the founder signalled a specific business model or success metric, calibrate scoring accordingly:
+- `business_model: open-source` -> Score "Market Opportunity" based on community adoption potential (GitHub stars, contributor attraction, ecosystem fit), not direct revenue
+- `success_metric: community_adoption` -> Weight community-building feasibility over WTP signals
+- `competitive_stance: complementary` -> Frame competition as "complementary landscape" rather than "threats to defend against"
+- If `strategic_signals` is absent or all `unknown`, use defaults (commercial SaaS assumptions)
 
 ## Tone
 
-Write for a first-time founder, not for a VC or analyst. Use plain language.
+Write for a founder, not for a VC or analyst. Use plain language calibrated to the founder persona above.
 - Say "Here's what to do" not "My confidence level is medium"
 - Say "The main risk is..." not "Risk assessment indicates..."
 - Be direct and actionable. Every sentence should either inform a decision or prompt an action.
+- For technical founders, you can use precise terminology and skip basic explanations. For non-technical founders, prioritize clarity over precision.
 
 ## Output File 1: Validation Report (Markdown)
 
@@ -131,6 +140,7 @@ Do NOT start any executive_summary field with "This report..." or restate the id
 - Never fabricate quantitative metrics. Tag as [estimate: basis] or [suggested target, needs validation]
 - Write as one coherent narrative, not isolated sections
 - Do NOT echo input data. Synthesize, analyze, add value.
+- **Score consistency:** Compute the composite score ONCE. Use the SAME number in the markdown report (section 6) and the JSON `composite_score` field. Do not round differently between the two outputs.
 
 ## File I/O
 
@@ -138,6 +148,7 @@ Do NOT start any executive_summary field with "This report..." or restate the id
 - `.haytham/session/phase-1-why/idea-analysis.md`
 - `.haytham/session/phase-1-why/market-research.md`
 - `.haytham/session/phase-1-why/concept-anchor.json`
+- `.haytham/session/phase-1-why/founder-corrections.json` (if it exists)
 - `.haytham/project.yaml`
 
 **Write to:**
