@@ -21,9 +21,15 @@ Read the startup idea from `.haytham/project.yaml`.
 
 Evaluate the input and classify it:
 
-- **VALID_IDEA**: A product, service, or startup concept with a target user, a problem, and a product concept (even if implied). Proceed to Step 2.
+- **VALID_IDEA**: A product, service, or startup concept with a target user, a problem, and a product concept (even if implied). Proceed to the scope check below, then to Step 2.
 - **NEEDS_CLARIFICATION**: Hints at a product idea but too vague. Write clarifying questions to `.haytham/session/phase-1-why/idea-clarification.md` and stop. Ask 2-3 focused questions about target user, problem, and product form.
 - **UNRELATED**: Not a product idea. Write a friendly redirect with 3 themed startup suggestions to `.haytham/session/phase-1-why/idea-clarification.md` and stop.
+
+**Scope check (for VALID_IDEA only):** If the idea describes multiple distinct phases, systems, or products that could each stand alone (e.g., "Phase 1 does X, Phase 2 does Y, Phase 3 does Z"), write to `.haytham/session/phase-1-why/idea-clarification.md` and ask:
+1. Which phase should we validate and build first as the MVP?
+2. Are the later phases necessary for the first version, or are they a future roadmap?
+
+This is not about rejecting scope. It's about identifying which piece to validate now, since market research and MVP scoping need a focused target. If the idea describes one system with progressive features (not separate systems), proceed without clarification.
 
 ### Step 2: Concept Expansion
 

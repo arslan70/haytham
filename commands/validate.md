@@ -78,10 +78,17 @@ If the agent writes `.haytham/session/phase-1-why/idea-clarification.md`, read i
 
 After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` and `.haytham/session/phase-1-why/concept-anchor.json`. Present a structured digest:
 
-> **Idea analysis complete.** Here's what we extracted:
+> **Step 1 complete.** We analyzed your idea and saved two files:
+> - `idea-analysis.md` — problem analysis, target segments, UVP, and concept health
+> - `concept-anchor.json` — invariants that keep downstream agents faithful to your idea
+>
+> Here's the summary:
 >
 > - **Core concept:** [One-line summary of what this product does]
-> - **Top problems:** [List the top 2-3 problems identified, one line each]
+> - **Top problems:**
+>   a. [Problem 1] (Pain: [intensity])
+>   b. [Problem 2] (Pain: [intensity])
+>   c. [Problem 3] (Pain: [intensity])
 > - **Primary segment:** [The primary user segment and their defining behavior]
 > - **UVP:** [The unique value proposition as written]
 > - **Concept health:** Pain Clarity: [X], Trigger Strength: [X], WTP Signal: [X]
@@ -95,7 +102,10 @@ Then read `strategic_signals` and `founder_profile` from `concept-anchor.json` a
 > - **Competitive stance:** [competitive_stance]
 > - **Distribution:** [distribution]
 >
-> These shape how we research competitors and frame the report. Correct anything that's off, or say "let's continue" to proceed to market research. (You can also steer research, e.g., "focus on competitor X" or "skip research, I know the market".)
+> **What you can do now:**
+> - Correct any strategic assumptions above (these shape how we research competitors and frame the report)
+> - Steer research, e.g., "focus on competitor X" or "skip research, I know the market"
+> - Say "looks good" or "let's continue" to proceed to market research
 
 If the user corrects any strategic signals, update `concept-anchor.json` using the Edit tool to reflect their corrections before proceeding.
 
