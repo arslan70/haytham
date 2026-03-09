@@ -60,7 +60,7 @@ Launch an **idea-analyst** agent with this task:
 
 If the agent writes `.haytham/session/phase-1-why/idea-clarification.md`, read it and present the clarification questions or suggestions to the user. Wait for their response, update `.haytham/project.yaml` with the refined idea, and re-run Step 1.
 
-After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` and present a structured digest:
+After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` and `.haytham/session/phase-1-why/concept-anchor.json`. Present a structured digest:
 
 > **Idea analysis complete.** Here's what we extracted:
 >
@@ -69,8 +69,19 @@ After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` 
 > - **Primary segment:** [The primary user segment and their defining behavior]
 > - **UVP:** [The unique value proposition as written]
 > - **Concept health:** Pain Clarity: [X], Trigger Strength: [X], WTP Signal: [X]
+
+Then read `strategic_signals` and `founder_profile` from `concept-anchor.json` and present them:
+
+> **Strategic assumptions** (inferred from your idea, correct anything wrong):
+> - **Founder profile:** [technical_level] ([inference_basis])
+> - **Business model:** [business_model]
+> - **Success metric:** [success_metric]
+> - **Competitive stance:** [competitive_stance]
+> - **Distribution:** [distribution]
 >
-> Proceeding to market research. (You can steer by responding, e.g., "focus on competitor X" or "skip research, I know the market", or let it continue.)
+> These shape how we research competitors and frame the report. Correct anything that's off, or say "let's continue" to proceed to market research. (You can also steer research, e.g., "focus on competitor X" or "skip research, I know the market".)
+
+If the user corrects any strategic signals, update `concept-anchor.json` using the Edit tool to reflect their corrections before proceeding.
 
 Update state: `last_completed_step: 1`.
 
@@ -117,10 +128,25 @@ Ask:
 > - Is the problem statement right?
 > - Are we missing any key competitors?
 > - Is the market size in the right ballpark?
+> - Is the competitive positioning right? (Are you a direct competitor to the players listed, complementary, or serving a different segment?)
+> - Does the business model assumption match your intent?
 >
 > Reply with corrections, or say "looks good" to continue to the validation report.
 
-If the user has corrections, update the relevant files and re-run the affected steps.
+If the user provides corrections, write them to `.haytham/session/phase-1-why/founder-corrections.json`:
+```json
+{
+  "corrections": [
+    {
+      "dimension": "problem | competition | market_size | positioning | business_model | other",
+      "correction": "What the founder said, verbatim or close paraphrase"
+    }
+  ],
+  "updated_at": "[ISO timestamp]"
+}
+```
+
+Then update the relevant upstream files (re-run affected steps if factual corrections, or note the strategic corrections for the report-synthesizer). If the corrections are primarily about framing or positioning (not factual errors), you do NOT need to re-run research. Instead, proceed to Step 5 and the report-synthesizer will read the corrections file.
 
 Update state: `last_completed_step: 4`.
 
