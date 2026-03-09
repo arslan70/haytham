@@ -30,6 +30,7 @@ SCHEMAS = {
     ],
     "architecture-decisions.json": ["decisions", "coverage_check", "summary"],
     "gate-decision.json": ["phase", "user_decision"],
+    "founder-corrections.json": ["corrections", "updated_at"],
 }
 
 
@@ -113,6 +114,31 @@ def validate_file(file_path: str) -> list[str]:
                     warnings.append(
                         f"Invalid strategic_signals.{field} '{val}' in {basename}. "
                         f"Must be one of: {sorted(allowed)}"
+                    )
+
+    # Special validation for founder-corrections.json
+    if basename == "founder-corrections.json":
+        valid_dimensions = {
+            "problem", "competition", "market_size",
+            "positioning", "business_model", "other",
+        }
+        corrections = data.get("corrections", [])
+        if isinstance(corrections, list):
+            for i, entry in enumerate(corrections):
+                if not isinstance(entry, dict):
+                    warnings.append(
+                        f"corrections[{i}] is not an object in {basename}"
+                    )
+                    continue
+                dim = entry.get("dimension", "")
+                if dim and dim not in valid_dimensions:
+                    warnings.append(
+                        f"Invalid corrections[{i}].dimension '{dim}' in {basename}. "
+                        f"Must be one of: {sorted(valid_dimensions)}"
+                    )
+                if not entry.get("correction"):
+                    warnings.append(
+                        f"Missing/empty corrections[{i}].correction in {basename}"
                     )
 
     # Special validation for validation-report.json

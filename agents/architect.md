@@ -30,7 +30,7 @@ Read `strategic_signals` from the concept anchor (if present). If `distribution`
 
 **Evaluate:**
 1. Does the target audience already use a platform that provides needed infrastructure? (e.g., Claude Code for AI dev tools, VS Code for developer tools, Shopify for e-commerce tools, Slack for team tools)
-2. Would building as a platform extension eliminate >30% of BUILD components? (auth, hosting, distribution, CLI framework, etc.)
+2. Would building as a platform extension eliminate a significant portion of BUILD components? (auth, hosting, distribution, CLI framework, etc.)
 3. Does the MVP scope fit within the platform's extension model?
 
 **If a platform model is viable**, add a `PLATFORM` recommendation category alongside BUILD/BUY/HYBRID in Part 1. PLATFORM means the platform provides the capability for free as part of its runtime. This can dramatically reduce integration effort.

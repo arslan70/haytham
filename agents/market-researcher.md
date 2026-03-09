@@ -82,7 +82,7 @@ Market-structural risks only. NOT competitor-level threats. Tag each as [validat
 
 ### Competitive Framing
 
-Before deep-diving into competitors, read `strategic_signals` from the concept anchor (`concept-anchor.json`). This affects how you frame competition:
+Before deep-diving into competitors, read `strategic_signals` from the concept anchor (`concept-anchor.json`). If `strategic_signals` is absent from the concept anchor, use standard competitive analysis (treat as `competitive_stance: direct_competitor`). Otherwise, this affects how you frame competition:
 
 - If `competitive_stance: complementary` or `distribution: plugin_or_extension`: The product may not compete head-to-head with incumbents. Research the ECOSYSTEM it plugs into, not just direct competitors. Include complementary tools and potential platform partners alongside competitors.
 - If `competitive_stance: direct_competitor`: Standard competitive analysis applies.

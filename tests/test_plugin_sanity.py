@@ -277,6 +277,33 @@ class TestSchemaValidation:
         assert any("competitive_stance" in w for w in warnings)
         assert any("distribution" in w for w in warnings)
 
+    def test_valid_founder_corrections(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "founder-corrections.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(json.dumps({
+            "corrections": [
+                {"dimension": "competition", "correction": "We complement X, not compete"},
+                {"dimension": "business_model", "correction": "Open source, not SaaS"}
+            ],
+            "updated_at": "2026-03-09T12:00:00Z"
+        }))
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_founder_corrections(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "founder-corrections.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(json.dumps({
+            "corrections": [
+                {"dimension": "vibes", "correction": "We're chill"},
+                {"dimension": "competition", "correction": ""}
+            ],
+            "updated_at": "2026-03-09T12:00:00Z"
+        }))
+        warnings = validate_file(str(dst))
+        assert any("dimension" in w and "vibes" in w for w in warnings)
+        assert any("correction" in w and "empty" in w.lower() for w in warnings)
+
     def test_non_session_file_skipped(self, tmp_path):
         dst = tmp_path / "random.json"
         dst.write_text('{"foo": "bar"}')

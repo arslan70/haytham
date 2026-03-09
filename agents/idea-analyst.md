@@ -170,9 +170,9 @@ Output a JSON object with:
 
 **Strategic signal inference rules:**
 - Only classify as non-`unknown` when the idea EXPLICITLY states or STRONGLY implies the signal
-- "open source" in the idea -> `open-source` business model
-- "plugin for X" in the idea -> `plugin_or_extension` distribution
-- Absence of signal -> `unknown` (the founder review step will clarify)
+- "open source" in the idea means `open-source` business model
+- "plugin for X" in the idea means `plugin_or_extension` distribution
+- Absence of signal means `unknown` (the founder review step will clarify)
 
 **Confidence scoring:**
 - 0.9-1.0: Explicitly stated by founder
