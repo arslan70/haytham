@@ -1,0 +1,18 @@
+{
+  "system_summary": "Test system",
+  "infrastructure_requirements": [
+    {"category": "orchestration", "need": "Pipeline", "capabilities_served": ["CAP-F-001"]}
+  ],
+  "recommended_stack": [
+    {
+      "name": "Custom",
+      "category": "orchestration",
+      "recommendation": "MAGIC",
+      "rationale": "Because",
+      "capabilities_served": ["CAP-F-001"]
+    }
+  ],
+  "stack_rationale": "Test",
+  "total_integration_effort": "1 day",
+  "estimated_monthly_cost": "$0"
+}

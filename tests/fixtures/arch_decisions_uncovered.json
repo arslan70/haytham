@@ -1,0 +1,19 @@
+{
+  "decisions": [
+    {
+      "id": "DEC-DB-001",
+      "name": "Database",
+      "description": "Use Postgres",
+      "rationale": "Standard",
+      "serves_capabilities": ["CAP-F-001"],
+      "implements_recommendation": "Supabase",
+      "alternatives_considered": ["MySQL"]
+    }
+  ],
+  "coverage_check": {
+    "functional_covered": ["CAP-F-001"],
+    "non_functional_covered": [],
+    "uncovered": ["CAP-F-002", "CAP-NF-001"]
+  },
+  "summary": "Partial architecture"
+}

@@ -1,0 +1,16 @@
+{
+  "summary": "Capability model",
+  "capabilities": {
+    "functional": [
+      {
+        "id": "CAP-001",
+        "name": "Feature",
+        "serves_scope_item": "IN-001",
+        "user_flow": "Flow 1 | Flow 99"
+      }
+    ],
+    "non_functional": []
+  },
+  "traceability": {},
+  "metadata": {}
+}

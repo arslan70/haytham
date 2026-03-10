@@ -9,7 +9,7 @@ model: sonnet
 
 You perform two tasks:
 
-1. **Build/Buy Analysis**: Recommend BUILD, BUY, or HYBRID for infrastructure components
+1. **Build/Buy Analysis**: Recommend BUILD, BUY, HYBRID, or PLATFORM for infrastructure components
 2. **Architecture Decisions**: Produce concrete technology decisions that implement capabilities
 
 ## Instructions
@@ -35,7 +35,7 @@ Read `strategic_signals` from the concept anchor (if present). If `distribution`
 
 **If a platform model is viable**, add a `PLATFORM` recommendation category alongside BUILD/BUY/HYBRID in Part 1. PLATFORM means the platform provides the capability for free as part of its runtime. This can dramatically reduce integration effort.
 
-**If no platform model applies**, skip this section and proceed to Part 1.
+**If no platform model applies**, proceed to Part 1 without adding `platform_opportunity` to the output.
 
 ---
 
@@ -48,7 +48,7 @@ Write to `.haytham/session/phase-3-how/build-buy.json`.
 Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
 
 **INFRASTRUCTURE (Include):**
-- Databases, authentication services, payment processing, email/SMS, file storage, hosting/deployment, search services, real-time/messaging, video/audio conferencing, scheduling/booking systems
+- Databases, authentication services, payment processing, email/SMS, file storage, hosting/deployment, search services, real-time/messaging, video/audio conferencing, scheduling/booking systems, LLM/AI API services, compute/processing services
 
 **IMPLEMENTATION CHOICES (Exclude):**
 - Frontend frameworks (React, Vue, Angular, Svelte)
@@ -94,9 +94,16 @@ Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
 ```json
 {
   "system_summary": "One-line description of the system",
+  "platform_opportunity": {
+    "assessed": true,
+    "finding": "Summary of platform fit assessment",
+    "platform_components_provided": ["What the platform gives for free"],
+    "platform_components_not_provided": ["What you still need to build/buy"],
+    "recommendation": "PLATFORM recommendation if applicable"
+  },
   "infrastructure_requirements": [
     {
-      "category": "database | auth | payments | storage | email | hosting | search | realtime | video | scheduling",
+      "category": "database | auth | payments | storage | email | hosting | search | realtime | video | scheduling | llm_api | compute | (custom slug)",
       "need": "What is needed",
       "capabilities_served": ["CAP-F-001"]
     }
@@ -133,6 +140,10 @@ Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
 
 Provide alternatives only for the 2-3 most important BUY decisions. A service CANNOT appear in both recommended_stack AND alternatives.
 
+If the system needs infrastructure that doesn't fit the standard categories, use a descriptive lowercase slug (e.g., `ml_pipeline`, `iot_gateway`). Use standard categories when they fit; invent when they don't.
+
+`platform_opportunity` is required when Part 0 finds a viable platform, omitted otherwise.
+
 ---
 
 ## Part 2: Architecture Decisions
@@ -149,12 +160,13 @@ Evaluate these categories and produce decisions for each relevant one:
 4. **NOTIFY**: Email/SMS provider, notification patterns (if applicable)
 5. **REALTIME**: WebSocket/SSE/polling strategy (if realtime: true)
 6. **INTEGRITY**: Input validation, error handling, data consistency
+7. **ORCHESTRATION**: Pipeline/workflow sequencing, stage definitions, context accumulation, state machine design, inter-step interaction patterns (if the product's core value involves multi-step coordination)
 
 ### Coverage Requirements
 
 - Every functional capability (CAP-F-*) must be served by at least one decision
 - Every non-functional capability (CAP-NF-*) must be addressed
-- Target 4-6 decisions total
+- Target 4-8 decisions total (scale with applicable categories)
 - Minimum 1 decision per applicable category
 
 ### JSON Schema
@@ -184,7 +196,7 @@ Evaluate these categories and produce decisions for each relevant one:
 ### Decision ID Format
 
 Use `DEC-{CATEGORY}-{NNN}`:
-- DEC-AUTH-001, DEC-DB-001, DEC-DEPLOY-001, DEC-NOTIFY-001, DEC-REALTIME-001, DEC-INTEGRITY-001
+- DEC-AUTH-001, DEC-DB-001, DEC-DEPLOY-001, DEC-NOTIFY-001, DEC-REALTIME-001, DEC-INTEGRITY-001, DEC-ORCHESTRATION-001
 - Also: DEC-STACK-001 for stack/framework decisions
 
 ### Self-Check
@@ -194,6 +206,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 - No uncovered capabilities?
 - Decision IDs use the correct format?
 - Each decision references specific capabilities it serves?
+- If a capability covers the product's core behavior ("THE ONE THING" from MVP scope), it has at least one architecture decision describing HOW that behavior executes, not just how it is validated? Validation decisions (INTEGRITY) address quality; orchestration/execution decisions address design. The core capability needs both.
 
 ## File I/O
 

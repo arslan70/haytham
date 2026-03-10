@@ -256,6 +256,16 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("invalid flow ref" in w for w in warnings)
 
+    def test_invalid_capabilities_bad_flow_part(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_capabilities_bad_flow_part.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "capabilities.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("invalid flow ref" in w and "Flow 99" in w for w in warnings)
+        # Flow 1 part should NOT trigger a warning
+        assert not any("Flow 1" in w for w in warnings)
+
     def test_valid_concept_anchor(self, tmp_path):
         src = FIXTURES_DIR / "valid_concept_anchor.json"
         dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
@@ -303,6 +313,105 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("dimension" in w and "vibes" in w for w in warnings)
         assert any("correction" in w and "empty" in w.lower() for w in warnings)
+
+    def test_valid_system_traits(self, tmp_path):
+        src = FIXTURES_DIR / "valid_system_traits.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "system-traits.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_system_traits_boolean_explanation(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_system_traits.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "system-traits.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("realtime" in w and "not a string" in w for w in warnings)
+
+    def test_valid_build_buy(self, tmp_path):
+        src = FIXTURES_DIR / "valid_build_buy.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "build-buy.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_build_buy_bad_category(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_build_buy.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "build-buy.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("orchestration" in w and "category" in w for w in warnings)
+
+    def test_invalid_build_buy_bad_recommendation(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_build_buy.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "build-buy.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("MAGIC" in w and "recommendation" in w for w in warnings)
+
+    def test_capabilities_mega_capability_detected(self, tmp_path):
+        src = FIXTURES_DIR / "capabilities_mega.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "capabilities.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("multiple scope items" in w for w in warnings)
+
+    def test_capabilities_count_mismatch(self, tmp_path):
+        src = FIXTURES_DIR / "capabilities_count_mismatch.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "capabilities.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("differs from" in w and "scope items" in w for w in warnings)
+
+    def test_valid_arch_decisions(self, tmp_path):
+        src = FIXTURES_DIR / "valid_arch_decisions.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "architecture-decisions.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_arch_decisions_uncovered(self, tmp_path):
+        src = FIXTURES_DIR / "arch_decisions_uncovered.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "architecture-decisions.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("uncovered capabilities" in w for w in warnings)
+
+    def test_arch_decisions_bad_id_format(self, tmp_path):
+        src = FIXTURES_DIR / "arch_decisions_bad_id.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "architecture-decisions.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        # DEC-BANANA-001 has valid format but non-standard category
+        assert any("BANANA" in w and "Non-standard" in w for w in warnings)
+        # DECISION-DB-1 has invalid format entirely
+        assert any("Invalid decision ID format" in w and "DECISION-DB-1" in w for w in warnings)
+
+    def test_arch_decisions_coverage_cross_check(self, tmp_path):
+        # Set up capabilities.json in phase-2-what
+        caps_src = FIXTURES_DIR / "capabilities_for_cross_check.json"
+        caps_dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "capabilities.json"
+        caps_dst.parent.mkdir(parents=True)
+        caps_dst.write_text(caps_src.read_text())
+        # Set up architecture-decisions.json in phase-3-how (claims coverage of F-001, F-002 only)
+        arch_src = FIXTURES_DIR / "arch_decisions_coverage_mismatch.json"
+        arch_dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "architecture-decisions.json"
+        arch_dst.parent.mkdir(parents=True)
+        arch_dst.write_text(arch_src.read_text())
+        warnings = validate_file(str(arch_dst))
+        # Should detect CAP-F-003 and CAP-NF-001 are missing from coverage_check
+        assert any("CAP-F-003" in w for w in warnings)
+        assert any("CAP-NF-001" in w for w in warnings)
 
     def test_non_session_file_skipped(self, tmp_path):
         dst = tmp_path / "random.json"

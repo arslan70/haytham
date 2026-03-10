@@ -89,11 +89,13 @@ Output ONLY valid JSON to `.haytham/session/phase-2-what/capabilities.json`.
 
 ### Guidelines
 
-**Functional Capabilities (3-5 max):**
+**Functional Capabilities (one per IN SCOPE item, typically 3-5):**
 - One capability per IN SCOPE item
 - WHAT not HOW ("Users can log workouts" not "POST /api/workouts")
 - Testable criteria
 - Valid flow reference only
+
+A mega-capability that bundles multiple distinct scope items into one loses traceability downstream: the architect cannot distinguish which decisions serve which scope items. Prefer one capability per distinct scope item over consolidation.
 
 **Non-Functional Capabilities (2-4 max):**
 - Product-specific, not generic "300ms latency"
@@ -108,6 +110,9 @@ Common scope creep patterns to REJECT:
 - "Analytics/Reporting" (usually v2+)
 - "Notifications" (often deferrable)
 - "Settings/Preferences" (minimal for MVP)
+- Cross-cutting mechanisms already covered as acceptance criteria of another capability (e.g., "context passing" that only enables "pipeline coherence" is a criterion of the pipeline capability, not a standalone capability)
+
+**Write `capabilities.json` now, before starting Part 2.** Part 2 is an independent classification task. Do not reference Part 1 output when writing Part 2.
 
 ---
 
@@ -182,16 +187,22 @@ Anchor -> Trait Mapping:
 
 If input provides no signal: interface: ["browser"], auth: multi_user, deployment: ["cloud_hosted"], data_layer: remote_db, realtime: false, communication: none, payments: none, scheduling: none.
 
-## Self-Check
+## Part 1 Self-Check
 
-Before outputting:
+Before writing capabilities.json:
 - Every capability's serves_scope_item quotes an actual IN SCOPE item?
 - Every flow reference exists in the MVP Scope input?
 - Capability count within +/-2 of IN SCOPE count?
 - No features added that aren't in IN SCOPE?
+
+## Part 2 Self-Check
+
+Before writing system-traits.json:
 - All 8 traits present?
 - Anchor invariants correctly mapped to traits?
 - Multi-select traits use arrays, single-select use strings?
+- Every value in the `explanations` object is a string (not boolean, not number, not null)?
+- Each explanation is a sentence explaining WHY, not a copy of the trait value?
 
 ## File I/O
 

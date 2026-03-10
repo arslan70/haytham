@@ -1,0 +1,32 @@
+{
+  "summary": {
+    "system_name": "Test",
+    "system_purpose": "Test system",
+    "primary_user_segment": "Testers",
+    "input_method": "Manual",
+    "mvp_scope_respected": true
+  },
+  "capabilities": {
+    "functional": [
+      {
+        "id": "CAP-F-001",
+        "name": "Mega Feature",
+        "description": "Does everything",
+        "serves_scope_item": "Scope Item A | Scope Item B | Scope Item C",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": ["Works"],
+        "rationale": "Needed"
+      }
+    ],
+    "non_functional": []
+  },
+  "traceability": {
+    "scope_items_covered": ["Scope Item A", "Scope Item B", "Scope Item C"],
+    "scope_items_not_covered": [],
+    "flows_covered": ["Flow 1"]
+  },
+  "metadata": {
+    "functional_count": 1,
+    "non_functional_count": 0
+  }
+}

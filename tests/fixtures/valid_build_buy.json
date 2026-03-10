@@ -1,0 +1,26 @@
+{
+  "system_summary": "Test system",
+  "infrastructure_requirements": [
+    {"category": "database", "need": "Persistence", "capabilities_served": ["CAP-F-001"]},
+    {"category": "llm_api", "need": "AI inference", "capabilities_served": ["CAP-F-002"]}
+  ],
+  "recommended_stack": [
+    {
+      "name": "Supabase",
+      "category": "database",
+      "recommendation": "BUY",
+      "rationale": "All-in-one",
+      "capabilities_served": ["CAP-F-001"]
+    },
+    {
+      "name": "OpenAI API",
+      "category": "llm_api",
+      "recommendation": "BUY",
+      "rationale": "Best models",
+      "capabilities_served": ["CAP-F-002"]
+    }
+  ],
+  "stack_rationale": "Simple stack",
+  "total_integration_effort": "2-3 days",
+  "estimated_monthly_cost": "$0-$50"
+}
