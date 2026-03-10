@@ -211,8 +211,8 @@ def validate_file(file_path: str) -> list[str]:
         caps = data.get("capabilities", {})
         func_caps = caps.get("functional", [])
         for cap in func_caps:
+            cap_id = cap.get("id", "unknown")
             if not cap.get("serves_scope_item"):
-                cap_id = cap.get("id", "unknown")
                 warnings.append(
                     f"Capability {cap_id} has no serves_scope_item traceability"
                 )
@@ -221,14 +221,12 @@ def validate_file(file_path: str) -> list[str]:
                 parts = [p.strip() for p in flow.split("|")]
                 for part in parts:
                     if part not in valid_flows:
-                        cap_id = cap.get("id", "unknown")
                         warnings.append(
                             f"Capability {cap_id} has invalid flow ref: {part}"
                         )
             # Mega-capability detection: serves_scope_item should be a single item
             scope_item = cap.get("serves_scope_item", "")
             if scope_item and (" | " in scope_item or ", " in scope_item):
-                cap_id = cap.get("id", "unknown")
                 warnings.append(
                     f"Capability {cap_id} serves multiple scope items: "
                     f"'{scope_item}'. Split into one capability per scope item."
@@ -272,9 +270,9 @@ def validate_file(file_path: str) -> list[str]:
                 )
             elif match.group(1) not in valid_dec_categories:
                 warnings.append(
-                    f"Non-standard decision category '{match.group(1)}' in "
-                    f"{dec_id} in {basename}. "
-                    f"Standard: {sorted(valid_dec_categories)}"
+                    f"Custom decision category '{match.group(1)}' in "
+                    f"{dec_id} in {basename} (not in default set: "
+                    f"{sorted(valid_dec_categories)})"
                 )
 
         # Cross-file: verify claimed coverage matches actual capabilities
@@ -317,9 +315,9 @@ def validate_file(file_path: str) -> list[str]:
                     cat = item.get("category", "")
                     if cat and cat not in valid_categories:
                         warnings.append(
-                            f"Non-standard infrastructure_requirements[{i}].category "
-                            f"'{cat}' in {basename}. "
-                            f"Standard categories: {sorted(valid_categories)}"
+                            f"Custom infrastructure_requirements[{i}].category "
+                            f"'{cat}' in {basename} (not in default set: "
+                            f"{sorted(valid_categories)})"
                         )
         stack = data.get("recommended_stack", [])
         if isinstance(stack, list):

@@ -330,6 +330,14 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("realtime" in w and "not a string" in w for w in warnings)
 
+    def test_invalid_system_traits_unknown_trait(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_system_traits_unknown.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "system-traits.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("telepathy" in w and "Unknown trait" in w for w in warnings)
+
     def test_valid_build_buy(self, tmp_path):
         src = FIXTURES_DIR / "valid_build_buy.json"
         dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "build-buy.json"
@@ -344,7 +352,7 @@ class TestSchemaValidation:
         dst.parent.mkdir(parents=True)
         dst.write_text(src.read_text())
         warnings = validate_file(str(dst))
-        assert any("orchestration" in w and "category" in w for w in warnings)
+        assert any("orchestration" in w and "Custom infrastructure" in w for w in warnings)
 
     def test_invalid_build_buy_bad_recommendation(self, tmp_path):
         src = FIXTURES_DIR / "invalid_build_buy.json"
@@ -393,9 +401,19 @@ class TestSchemaValidation:
         dst.write_text(src.read_text())
         warnings = validate_file(str(dst))
         # DEC-BANANA-001 has valid format but non-standard category
-        assert any("BANANA" in w and "Non-standard" in w for w in warnings)
+        assert any("BANANA" in w and "Custom decision category" in w for w in warnings)
         # DECISION-DB-1 has invalid format entirely
         assert any("Invalid decision ID format" in w and "DECISION-DB-1" in w for w in warnings)
+
+    def test_arch_decisions_cross_check_no_caps_file(self, tmp_path):
+        """Cross-check gracefully skips when capabilities.json doesn't exist."""
+        src = FIXTURES_DIR / "valid_arch_decisions.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "architecture-decisions.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        # No phase-2-what/capabilities.json created
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
 
     def test_arch_decisions_coverage_cross_check(self, tmp_path):
         # Set up capabilities.json in phase-2-what
