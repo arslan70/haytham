@@ -1,0 +1,28 @@
+{
+  "decisions": [
+    {
+      "id": "DEC-BANANA-001",
+      "name": "Fruit Decision",
+      "description": "Use bananas",
+      "rationale": "Yellow",
+      "serves_capabilities": ["CAP-F-001"],
+      "implements_recommendation": "Chiquita",
+      "alternatives_considered": ["Apples"]
+    },
+    {
+      "id": "DECISION-DB-1",
+      "name": "Database",
+      "description": "Use Postgres",
+      "rationale": "Standard",
+      "serves_capabilities": ["CAP-F-002"],
+      "implements_recommendation": "Supabase",
+      "alternatives_considered": ["MySQL"]
+    }
+  ],
+  "coverage_check": {
+    "functional_covered": ["CAP-F-001", "CAP-F-002"],
+    "non_functional_covered": [],
+    "uncovered": []
+  },
+  "summary": "Test architecture"
+}

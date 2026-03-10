@@ -1,0 +1,28 @@
+{
+  "decisions": [
+    {
+      "id": "DEC-DB-001",
+      "name": "Database",
+      "description": "Use Postgres",
+      "rationale": "Standard",
+      "serves_capabilities": ["CAP-F-001"],
+      "implements_recommendation": "Supabase",
+      "alternatives_considered": ["MySQL"]
+    },
+    {
+      "id": "DEC-AUTH-001",
+      "name": "Auth",
+      "description": "Use Supabase Auth",
+      "rationale": "Integrated",
+      "serves_capabilities": ["CAP-F-002"],
+      "implements_recommendation": "Supabase Auth",
+      "alternatives_considered": ["Clerk"]
+    }
+  ],
+  "coverage_check": {
+    "functional_covered": ["CAP-F-001", "CAP-F-002"],
+    "non_functional_covered": ["CAP-NF-001"],
+    "uncovered": []
+  },
+  "summary": "Simple architecture"
+}

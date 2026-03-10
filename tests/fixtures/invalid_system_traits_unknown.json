@@ -1,0 +1,17 @@
+{
+  "traits": {
+    "interface": ["browser"],
+    "auth": "multi_user",
+    "deployment": ["cloud_hosted"],
+    "data_layer": "remote_db",
+    "realtime": false,
+    "communication": "none",
+    "payments": "none",
+    "scheduling": "none"
+  },
+  "explanations": {
+    "interface": "Web app",
+    "auth": "Multiple users",
+    "telepathy": "Mind-reading capability"
+  }
+}

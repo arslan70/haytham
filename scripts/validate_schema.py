@@ -11,6 +11,7 @@ Outputs warnings to stderr (non-blocking). Exit 0 always.
 
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -184,20 +185,151 @@ def validate_file(file_path: str) -> list[str]:
             except (subprocess.TimeoutExpired, OSError):
                 pass
 
+    # Special validation for system-traits.json
+    if basename == "system-traits.json":
+        valid_trait_names = {
+            "interface", "auth", "deployment", "data_layer",
+            "realtime", "communication", "payments", "scheduling",
+        }
+        explanations = data.get("explanations", {})
+        if isinstance(explanations, dict):
+            for key, value in explanations.items():
+                if key not in valid_trait_names:
+                    warnings.append(
+                        f"Unknown trait '{key}' in explanations in {basename}. "
+                        f"Must be one of: {sorted(valid_trait_names)}"
+                    )
+                if not isinstance(value, str):
+                    warnings.append(
+                        f"explanations.{key} is {type(value).__name__}, "
+                        f"not a string in {basename}"
+                    )
+
     # Special validation for capabilities.json
     if basename == "capabilities.json":
+        valid_flows = {"Flow 1", "Flow 2", "Flow 3"}
         caps = data.get("capabilities", {})
         func_caps = caps.get("functional", [])
         for cap in func_caps:
+            cap_id = cap.get("id", "unknown")
             if not cap.get("serves_scope_item"):
-                cap_id = cap.get("id", "unknown")
                 warnings.append(
                     f"Capability {cap_id} has no serves_scope_item traceability"
                 )
             flow = cap.get("user_flow", "")
-            if flow and flow not in ("Flow 1", "Flow 2", "Flow 3"):
-                cap_id = cap.get("id", "unknown")
-                warnings.append(f"Capability {cap_id} has invalid flow ref: {flow}")
+            if flow:
+                parts = [p.strip() for p in flow.split("|")]
+                for part in parts:
+                    if part not in valid_flows:
+                        warnings.append(
+                            f"Capability {cap_id} has invalid flow ref: {part}"
+                        )
+            # Mega-capability detection: serves_scope_item should be a single item
+            scope_item = cap.get("serves_scope_item", "")
+            if scope_item and (" | " in scope_item or ", " in scope_item):
+                warnings.append(
+                    f"Capability {cap_id} serves multiple scope items: "
+                    f"'{scope_item}'. Split into one capability per scope item."
+                )
+
+        # Capability count vs scope items covered
+        traceability = data.get("traceability", {})
+        scope_items = traceability.get("scope_items_covered", [])
+        if scope_items and func_caps:
+            diff = abs(len(func_caps) - len(scope_items))
+            if diff > 2:
+                warnings.append(
+                    f"Capability count ({len(func_caps)}) differs from "
+                    f"scope items covered ({len(scope_items)}) by {diff} "
+                    f"in {basename}. Expected roughly 1:1 mapping."
+                )
+
+    # Special validation for architecture-decisions.json
+    if basename == "architecture-decisions.json":
+        # Check uncovered capabilities
+        coverage = data.get("coverage_check", {})
+        uncovered = coverage.get("uncovered", [])
+        if uncovered:
+            warnings.append(
+                f"Architecture has uncovered capabilities: "
+                f"{uncovered} in {basename}"
+            )
+
+        # Validate decision ID format
+        valid_dec_categories = {
+            "AUTH", "DB", "DEPLOY", "NOTIFY", "REALTIME",
+            "INTEGRITY", "ORCHESTRATION", "STACK",
+        }
+        for decision in data.get("decisions", []):
+            dec_id = decision.get("id", "")
+            match = re.match(r"^DEC-([A-Z]+)-(\d{3})$", dec_id)
+            if not match:
+                warnings.append(
+                    f"Invalid decision ID format '{dec_id}' in {basename}. "
+                    f"Expected DEC-CATEGORY-NNN."
+                )
+            elif match.group(1) not in valid_dec_categories:
+                warnings.append(
+                    f"Custom decision category '{match.group(1)}' in "
+                    f"{dec_id} in {basename} (not in default set: "
+                    f"{sorted(valid_dec_categories)})"
+                )
+
+        # Cross-file: verify claimed coverage matches actual capabilities
+        session_dir = os.path.dirname(os.path.dirname(file_path))
+        caps_path = os.path.join(session_dir, "phase-2-what", "capabilities.json")
+        if os.path.exists(caps_path):
+            try:
+                with open(caps_path) as cf:
+                    caps_data = json.load(cf)
+                all_cap_ids = set()
+                for cap in caps_data.get("capabilities", {}).get("functional", []):
+                    all_cap_ids.add(cap.get("id", ""))
+                for cap in caps_data.get("capabilities", {}).get(
+                    "non_functional", []
+                ):
+                    all_cap_ids.add(cap.get("id", ""))
+                covered = set(coverage.get("functional_covered", []))
+                covered.update(coverage.get("non_functional_covered", []))
+                actually_uncovered = all_cap_ids - covered
+                if actually_uncovered:
+                    warnings.append(
+                        f"Architecture claims full coverage but these "
+                        f"capabilities from capabilities.json are not in "
+                        f"coverage_check: {sorted(actually_uncovered)}"
+                    )
+            except (json.JSONDecodeError, KeyError):
+                pass
+
+    # Special validation for build-buy.json
+    if basename == "build-buy.json":
+        valid_categories = {
+            "database", "auth", "payments", "storage", "email", "hosting",
+            "search", "realtime", "video", "scheduling", "llm_api", "compute",
+        }
+        valid_recommendations = {"BUILD", "BUY", "HYBRID", "PLATFORM"}
+        infra = data.get("infrastructure_requirements", [])
+        if isinstance(infra, list):
+            for i, item in enumerate(infra):
+                if isinstance(item, dict):
+                    cat = item.get("category", "")
+                    if cat and cat not in valid_categories:
+                        warnings.append(
+                            f"Custom infrastructure_requirements[{i}].category "
+                            f"'{cat}' in {basename} (not in default set: "
+                            f"{sorted(valid_categories)})"
+                        )
+        stack = data.get("recommended_stack", [])
+        if isinstance(stack, list):
+            for i, item in enumerate(stack):
+                if isinstance(item, dict):
+                    rec = item.get("recommendation", "")
+                    if rec and rec not in valid_recommendations:
+                        warnings.append(
+                            f"Invalid recommended_stack[{i}].recommendation "
+                            f"'{rec}' in {basename}. "
+                            f"Must be one of: {sorted(valid_recommendations)}"
+                        )
 
     return warnings
 

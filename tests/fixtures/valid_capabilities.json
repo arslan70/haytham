@@ -7,6 +7,12 @@
         "name": "User Registration",
         "serves_scope_item": "IN-001",
         "user_flow": "Flow 1"
+      },
+      {
+        "id": "CAP-002",
+        "name": "Workout Logging",
+        "serves_scope_item": "IN-002",
+        "user_flow": "Flow 1 | Flow 2"
       }
     ],
     "non_functional": []
