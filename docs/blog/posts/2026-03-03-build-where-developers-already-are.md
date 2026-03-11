@@ -15,16 +15,12 @@ description: "Nine setup steps. Zero users. So I deleted the infrastructure and 
 
 # Why You Should Ship Your Agentic Workflow as a Claude Code Plugin
 
-Haytham takes a startup idea and stress-tests it: is the market real, what's the MVP, how should you build it? You review the findings at each step. At the end, you get a spec detailed enough to hand straight to a coding agent.
+I'm building an agentic workflow that takes a startup idea does market research, drafts a MVP, and generates a spec detailed enough to hand straight to a coding agent.
 
 I started out with a full-fledged agentic framework (Strands SDK). That gives you a lot of flexibility and control over the agents, but it also comes with a lot of overhead. If the overhead was on the system only, it would have been fine, but it was on the user too.
 
 My goal was to validate the idea from users, which ironically is the product I was building. In my test runs it worked great, but I didn't realise that the setup was a deal breaker for most people. This made me rethink my approach, and I decided to sacrifice the bells and whistles for something that can be tested with one prompt (if you already have Claude Code).
 
-> Starting today, you can install it inside Claude Code:
-
-
-No Python. No AWS credentials. No Streamlit. Your existing Claude Code subscription handles everything.
 
 ### If you're building AI-powered developer tools, the trade-offs below might save you some time.
 
