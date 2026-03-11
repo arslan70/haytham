@@ -19,22 +19,18 @@ Haytham takes a startup idea and stress-tests it: is the market real, what's the
 
 I started out with a full-fledged agentic framework (Strands SDK). That gives you a lot of flexibility and control over the agents, but it also comes with a lot of overhead. If the overhead was on the system only, it would have been fine, but it was on the user too.
 
-My goal was to validate the idea from users, which ironically is the product I was building. In my test runs it worked great, but I didn't realise that the setup was a deal breaker for most people. This made me rethink my approach, and I decided to sacrifice the bells and whistles for something that can be tested with one prompt, if you already have Claude Code.
+My goal was to validate the idea from users, which ironically is the product I was building. In my test runs it worked great, but I didn't realise that the setup was a deal breaker for most people. This made me rethink my approach, and I decided to sacrifice the bells and whistles for something that can be tested with one prompt (if you already have Claude Code).
 
-Starting today, you can install it inside Claude Code:
+> Starting today, you can install it inside Claude Code:
 
-```
-/plugin marketplace add arslan70/haytham
-/plugin install haytham@haytham
-```
 
 No Python. No AWS credentials. No Streamlit. Your existing Claude Code subscription handles everything.
 
-If you're building AI-powered developer tools, the trade-offs below might save you some time.
+### If you're building AI-powered developer tools, the trade-offs below might save you some time.
 
 <!-- more -->
 
-## The setup that killed adoption
+#### The setup that killed adoption
 
 This is what the setup looked like before the plugin:
 
@@ -48,7 +44,7 @@ This is what the setup looked like before the plugin:
 8. Run `make run` to start Streamlit
 9. Open a browser, paste an idea, and wait
 
-Nine steps before any value. Steps 4 through 7 are where everyone dropped off. People would star the repo, maybe clone it, then disappear. Zero issues filed, zero discussions opened. The Bedrock credential wall alone (IAM roles, model access requests, region-specific config) was enough to kill adoption for anyone without an enterprise AWS setup.
+Nine steps before any value. No one has time for that. The Bedrock credential wall alone (IAM roles, model access requests, region-specific config) was enough to kill adoption for anyone without an enterprise AWS setup.
 
 As a solo founder, I spent most of my time on the engineering and assumed that was the hard part. Getting someone to actually run it and tell me what's broken turned out to be much harder. I proved the intelligence end-to-end by generating a spec for a gym leaderboard app and building the whole thing from the output. But that was just me testing my own assumptions. Without real users hitting real edges, I had no idea if any of it actually held up.
 
