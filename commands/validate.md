@@ -217,4 +217,4 @@ Write gate decision to `.haytham/session/phase-1-why/gate-decision.json`:
 
 Update state: `last_completed_step: 6`.
 
-Tell the user: "Phase 1 complete. Ran 4 agents across 6 steps. Run `/haytham:specify` to proceed to MVP specification (Phase 2), or `/haytham:haytham` to run the full workflow."
+Tell the user: "Phase 1 complete. Ran 4 agents across 6 steps. Output saved to `.haytham/session/phase-1-why/`. Run `/haytham:specify` to proceed to Phase 2."

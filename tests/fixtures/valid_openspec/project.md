@@ -36,3 +36,34 @@
 | next | ^14.0.0 | Web framework | false |
 | @supabase/supabase-js | ^2.0.0 | Database and auth client | false |
 | typescript | ^5.0.0 | Type checking | true |
+
+## Project Structure
+
+```
+src/
+  app/
+    page.tsx
+    layout.tsx
+  lib/
+    supabase.ts
+```
+
+## Data Schemas
+
+```json
+{
+  "workouts": {
+    "id": "uuid",
+    "member_id": "uuid",
+    "type": "string",
+    "score": "number"
+  }
+}
+```
+
+## Component Map
+
+| Component | Reads | Writes | External Dependencies |
+|-----------|-------|--------|----------------------|
+| Leaderboard Page | workouts table | - | Supabase |
+| Workout Form | - | workouts table | Supabase |

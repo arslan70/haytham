@@ -10,6 +10,21 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 
 **IMPORTANT:** Always read agent output from files, not from conversation history. Before each phase, verify previous phase output files exist by reading them.
 
+## Upstream Dependencies
+
+| Phase | Agent | Reads From |
+|-------|-------|------------|
+| 1 | idea-analyst | `.haytham/project.yaml` (user input) |
+| 1 | market-researcher | `phase-1-why/idea-analysis.md`, `phase-1-why/concept-anchor.json` |
+| 1 | research-briefer | `phase-1-why/idea-analysis.md`, `phase-1-why/market-research.md` |
+| 1 | report-synthesizer | `phase-1-why/research-brief.md`, `phase-1-why/concept-anchor.json`, `phase-1-why/founder-corrections.json` (if exists) |
+| 2 | mvp-scoper | `phase-1-why/validation-report.md`, `phase-1-why/idea-analysis.md`, `phase-1-why/concept-anchor.json` |
+| 2 | capability-modeler | `phase-2-what/mvp-scope.md`, `phase-1-why/idea-analysis.md`, `phase-1-why/concept-anchor.json` |
+| 3 | architect | `phase-2-what/capabilities.json`, `phase-2-what/system-traits.json`, `phase-2-what/mvp-scope.md` |
+| 4 | spec-generator | `phase-2-what/capabilities.json`, `phase-2-what/mvp-scope.md`, `phase-2-what/system-traits.json`, `phase-3-how/architecture-decisions.json`, `phase-3-how/build-buy.json`, `phase-1-why/concept-anchor.json` |
+
+All paths relative to `.haytham/session/`.
+
 ## Setup
 
 1. Create `.haytham/` directory if it doesn't exist
@@ -459,9 +474,13 @@ Update state: `last_completed_step: 14`.
 ### Completion
 
 Summarize what was produced:
-- `.haytham/session/phase-1-why/` - Validation report with recommendation
-- `.haytham/session/phase-2-what/` - MVP scope and capability model
-- `.haytham/session/phase-3-how/` - Architecture and build/buy decisions
-- `.haytham/session/phase-4-specs/openspec/` - Implementation-ready OpenSpec
 
-Tell the user: "Your specification is complete. Ran 8 agents across 4 phases. All output files are in `.haytham/session/`. You can use `/haytham:validate`, `/haytham:specify`, `/haytham:design`, or `/haytham:plan` to re-run individual phases."
+```
+Command               Output Directory
+/haytham:validate  →  .haytham/session/phase-1-why/
+/haytham:specify   →  .haytham/session/phase-2-what/
+/haytham:design    →  .haytham/session/phase-3-how/
+/haytham:plan      →  .haytham/session/phase-4-specs/openspec/
+```
+
+Tell the user: "Your specification is complete. Ran 8 agents across 4 phases. All output files are in `.haytham/session/`. Run `/haytham:build` to set up your project for implementation with OpenSpec."

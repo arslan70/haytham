@@ -77,4 +77,4 @@ Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 }
 ```
 
-Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Run `/haytham:plan` to proceed to specification generation (Phase 4)."
+Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Output saved to `.haytham/session/phase-3-how/`. Run `/haytham:plan` to proceed to Phase 4."

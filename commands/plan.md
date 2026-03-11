@@ -107,4 +107,8 @@ Phase 4 (SPECS): .haytham/session/phase-4-specs/openspec/
   - specs/cross-cutting/spec.md - Non-functional requirements
 ```
 
-Tell the user: "Your specification is ready. Ran 1 agent across 3 steps. The OpenSpec in `.haytham/session/phase-4-specs/openspec/` can be consumed directly by a coding agent."
+Tell the user:
+
+> **Your specification is ready.** Ran 1 agent across 3 steps. Output saved to `.haytham/session/phase-4-specs/openspec/`.
+>
+> **Next:** Run `/haytham:build` to set up your project for implementation with OpenSpec.

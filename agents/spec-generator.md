@@ -97,11 +97,41 @@ From architecture decisions: framework, language, database, hosting.
 | next | ^14.0.0 | Web framework | false |
 ```
 
+After the Dependencies table, add these three sections:
+
+```markdown
+## Project Structure
+
+{Directory tree showing the file/folder layout the build agent should create.
+Derive from architecture decisions: DEC-STACK determines the framework structure,
+DEC-DB determines data files/migrations, DEC-DEPLOY determines CI/config files.
+Show every file that a build agent must create to have a working project.}
+
+## Data Schemas
+
+{For every structured data file referenced in the specs or architecture decisions
+(JSON configs, state files, database models, API payloads), provide the schema
+inline. Use JSON with field names, types, and a one-line description per field.
+If the architecture uses a database, show the table/collection schemas.
+If the system writes JSON sidecar files, show their structure.}
+
+## Component Map
+
+| Component | Reads | Writes | External Dependencies |
+|-----------|-------|--------|----------------------|
+| {component name} | {files or data it consumes} | {files or data it produces} | {APIs, services, tools it needs} |
+```
+
+The Component Map must cover every functional capability. A build agent reading this table should know the data flow through the entire system without reading the domain specs.
+
 Rules:
 - Every DEC-* from `architecture-decisions.json` must appear as a `### DEC-*` subsection
 - Every entry from `build-buy.json` recommended_stack must appear in the Build/Buy table
 - Dependencies must list specific packages with version ranges, derived from the architecture decisions and build/buy analysis
 - Each decision must include **Decision:**, **Rationale:**, and **Trade-offs:** lines
+- Project Structure must show every file/directory needed for a working project
+- Data Schemas must cover every structured data file mentioned in architecture decisions or specs
+- Component Map must cover every functional capability (CAP-F-*)
 
 ---
 
@@ -114,6 +144,8 @@ Source: `capabilities.json` (functional capabilities), `mvp-scope.md` (domain gr
 ### Domain Grouping
 
 Group functional capabilities into domains using the IN SCOPE items from `mvp-scope.md` as domain boundaries. Each IN SCOPE item becomes a domain. Use lowercase hyphenated slugs for directory names (e.g., `user-authentication`, `leaderboard-management`).
+
+**Deduplication rule:** If a capability (CAP-F-*) has already been assigned to a prior domain, do not repeat it in a subsequent domain. Each capability must appear in exactly one domain spec. If two IN SCOPE items overlap, assign the capability to the domain that is the closest semantic fit and reference the authoritative domain from the other.
 
 ### Domain Spec Format
 
@@ -139,6 +171,13 @@ The system SHALL {bare infinitive verb} {what the system does}.
 - **Given** {precondition}
 - **When** {invalid action}
 - **Then** {error handling}
+
+#### Output Format (include only when the requirement produces a structured artifact)
+
+{If the requirement says the system writes a file, emits a record, or produces structured output,
+define the format here. Show required fields/headings, types, and a one-line description per field.
+This tells the build agent exactly what to produce, not just that something should exist.
+Omit this section for requirements that describe behavior without a persistent artifact.}
 ```
 
 ### Cross-Cutting Spec
@@ -217,14 +256,18 @@ The appetite is a HARD CONSTRAINT from `mvp-scope.md`. If you cannot fit coverag
 ## Self-Check
 
 Before writing output files, verify:
-- Every CAP-F-* from `capabilities.json` appears as a SHALL requirement in at least one domain spec
+- Every CAP-F-* from `capabilities.json` appears as a SHALL requirement in exactly one domain spec (no duplicates across domains)
 - Every CAP-NF-* from `capabilities.json` appears as a SHALL requirement in `specs/cross-cutting/spec.md`
 - Every SHALL statement uses a bare infinitive verb (not third-person)
 - Every `#### Scenario:` block has Given, When, and Then
 - Domain count, requirement count, and scenarios per requirement are within appetite limits
 - `config.yaml` has all required fields: name, description, appetite, traits, generated_at
-- `project.md` has all required sections: Tech Stack, Architecture Decisions, Build/Buy Analysis, Dependencies
+- `project.md` has all required sections: Tech Stack, Architecture Decisions, Build/Buy Analysis, Dependencies, Project Structure, Data Schemas, Component Map
 - All DEC-* IDs from `architecture-decisions.json` appear in `project.md`
+- Project Structure in `project.md` shows a complete file/directory tree
+- Data Schemas in `project.md` covers every structured data file mentioned in architecture decisions or specs
+- Component Map in `project.md` has a row for every functional capability (CAP-F-*)
+- Requirements that produce structured artifacts (files, records, configs) include an Output Format section
 
 ## Concept Anchor Verification
 

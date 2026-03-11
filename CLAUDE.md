@@ -125,11 +125,15 @@ Tests cover: frontmatter validation (agents + commands), script syntax, cross-re
 
 ### Blog Writing Style
 
-These apply to posts in `docs/blog/`.
+These apply to posts in `docs/blog/`. Write for a human taking a 5 minute coffee break.
 
-**Voice:** Write like you're explaining something to a colleague. Conversational, not academic. Use active voice. Say "we found" and "I've seen", not "it was observed that."
+**Voice:** Write like you're explaining something to a colleague. Conversational, not academic. Use active voice. Say "we found" and "I've seen", not "it was observed that." Think out loud. Show the reasoning that led to the conclusion, not just the conclusion itself.
 
-**Structure:** Prose paragraphs over bullet lists. Bullets are for genuinely parallel items (steps, options), not for decomposing an argument into fragments. Keep paragraphs to 2-4 sentences. Short paragraphs pull the reader forward.
+**Framing:** Describe what the user experiences, not what the system contains. Features are for READMEs. Blog posts are for people.
+
+**Perspective:** Write about what the reader will learn, not what you did. The reader's question is always "why should I care?", not "what did you do?"
+
+**Structure:** Prose paragraphs over bullet lists. Bullets are for genuinely parallel items (steps, options), not for decomposing an argument into fragments. Keep paragraphs to 2-4 sentences. Short paragraphs pull the reader forward. Every sentence should move the story forward. If a sentence only exists to sound good, cut it.
 
 **Emphasis:** Bold only when introducing an unfamiliar term or for rare high-impact moments. Overusing bold destroys its power. Use italics where you'd stress the word if reading aloud.
 
@@ -137,7 +141,9 @@ These apply to posts in `docs/blog/`.
 
 **Endings:** Point forward (further reading, open questions, what to try next). Don't restate what was just said.
 
-**Credibility:** Write from real experience, not hypotheticals. Say when something does NOT work, not just when it does. Contra-indications build more trust than sales pitches.
+**Rhythm:** Mix short and long sentences. A paragraph of uniformly long sentences puts readers to sleep. A short sentence after a complex one lands harder. Read paragraphs back and listen for monotony. Let thoughts connect the way they would in speech. Don't chop a flowing argument into dramatic fragments for effect.
+
+**Credibility:** Write from real experience, not hypotheticals. Say when something does NOT work, not just when it does. Contra-indications build more trust than sales pitches. When you are speculating or lack data, say so explicitly ("I haven't tested this, but...", "Without more evidence, my guess is..."). Flagging uncertainty builds trust; pretending to know destroys it.
 
 **Read aloud test:** If a sentence sounds awkward spoken, rewrite it.
 

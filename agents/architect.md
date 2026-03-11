@@ -33,7 +33,16 @@ Read `strategic_signals` from the concept anchor (if present). If `distribution`
 2. Would building as a platform extension eliminate a significant portion of BUILD components? (auth, hosting, distribution, CLI framework, etc.)
 3. Does the MVP scope fit within the platform's extension model?
 
-**If a platform model is viable**, add a `PLATFORM` recommendation category alongside BUILD/BUY/HYBRID in Part 1. PLATFORM means the platform provides the capability for free as part of its runtime. This can dramatically reduce integration effort.
+**If a platform model is viable**, research the platform's developer documentation before making any stack or architecture decisions:
+
+1. Use WebSearch to find the platform's plugin/extension developer guide (e.g., search "[platform name] plugin developer documentation" or "[platform name] extension SDK reference")
+2. Use WebFetch to read the most relevant result
+3. Extract: what language/format plugins use, what the runtime provides, how plugins are distributed, and what APIs are available
+4. Record your findings in `platform_opportunity.developer_model` in the build-buy output
+
+Do not guess implementation details (language, distribution mechanism, file format) for a platform you haven't researched. If the search returns nothing useful, note the gap in `developer_model.source` and state your assumptions explicitly.
+
+Then add a `PLATFORM` recommendation category alongside BUILD/BUY/HYBRID in Part 1. PLATFORM means the platform provides the capability for free as part of its runtime. This can dramatically reduce integration effort.
 
 **If no platform model applies**, proceed to Part 1 without adding `platform_opportunity` to the output.
 
@@ -97,6 +106,12 @@ Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
   "platform_opportunity": {
     "assessed": true,
     "finding": "Summary of platform fit assessment",
+    "developer_model": {
+      "source": "URL of the developer docs consulted (or 'not found')",
+      "plugin_format": "What plugins are made of (e.g., markdown files, TypeScript modules, Python packages)",
+      "runtime_provides": ["What the host platform gives you for free"],
+      "distribution_mechanism": "How plugins are installed by end users"
+    },
     "platform_components_provided": ["What the platform gives for free"],
     "platform_components_not_provided": ["What you still need to build/buy"],
     "recommendation": "PLATFORM recommendation if applicable"
@@ -152,11 +167,13 @@ Write to `.haytham/session/phase-3-how/architecture-decisions.json`.
 
 ### Architecture Decision Categories
 
-Evaluate these categories and produce decisions for each relevant one:
+Evaluate these categories and produce decisions for each relevant one.
+
+**If `developer_model` was populated in Part 0**, DEC-STACK and DEC-DEPLOY decisions MUST use the researched `plugin_format` and `distribution_mechanism` values. Do not default to conventional assumptions (e.g., TypeScript + npm) when the platform's documented model differs.
 
 1. **AUTH**: Authentication provider, session management, role/permission model
 2. **DB**: Database type, schema approach, access control (RLS, policies)
-3. **DEPLOY**: Hosting, CI/CD, environment management
+3. **DEPLOY**: Hosting, CI/CD, environment management. If `developer_model.distribution_mechanism` was populated, use it.
 4. **NOTIFY**: Email/SMS provider, notification patterns (if applicable)
 5. **REALTIME**: WebSocket/SSE/polling strategy (if realtime: true)
 6. **INTEGRITY**: Input validation, error handling, data consistency
@@ -207,6 +224,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 - Decision IDs use the correct format?
 - Each decision references specific capabilities it serves?
 - If a capability covers the product's core behavior ("THE ONE THING" from MVP scope), it has at least one architecture decision describing HOW that behavior executes, not just how it is validated? Validation decisions (INTEGRITY) address quality; orchestration/execution decisions address design. The core capability needs both.
+- If `developer_model` was populated in Part 0, do DEC-STACK and DEC-DEPLOY decisions match the researched `plugin_format` and `distribution_mechanism`? Do not prescribe a language, build tool, or distribution channel that contradicts the platform's documented plugin model.
 
 ## File I/O
 

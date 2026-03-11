@@ -127,4 +127,4 @@ Ask:
 
 Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections. This tracks how much steering was needed.
 
-Tell the user: "Phase 2 complete. Run `/haytham:design` to proceed to technical design (Phase 3)."
+Tell the user: "Phase 2 complete. Output saved to `.haytham/session/phase-2-what/`. Run `/haytham:design` to proceed to Phase 3."

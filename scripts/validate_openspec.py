@@ -63,7 +63,13 @@ BAD_SHALL_VERBS = {
 }
 
 REQUIRED_CONFIG_KEYS = {"name", "description", "appetite", "traits", "generated_at"}
-REQUIRED_PROJECT_SECTIONS = {"## Tech Stack", "## Architecture Decisions"}
+REQUIRED_PROJECT_SECTIONS = {
+    "## Tech Stack",
+    "## Architecture Decisions",
+    "## Project Structure",
+    "## Data Schemas",
+    "## Component Map",
+}
 
 
 def parse_yaml_keys(text: str) -> set[str]:
@@ -140,6 +146,30 @@ def validate_specs_exist(openspec_dir: Path) -> list[str]:
     cross_cutting = openspec_dir / "specs" / "cross-cutting" / "spec.md"
     if not cross_cutting.is_file():
         warnings.append("Missing specs/cross-cutting/spec.md")
+
+    return warnings
+
+
+def validate_no_duplicate_caps(spec_files: list[Path], openspec_dir: Path) -> list[str]:
+    """Check that no CAP-F-* ID appears in more than one domain spec."""
+    warnings = []
+    cap_pattern = re.compile(r"CAP-F-\d+")
+    # Map: cap_id -> list of domain spec paths
+    cap_locations: dict[str, list[str]] = {}
+
+    for spec_file in spec_files:
+        text = spec_file.read_text()
+        rel_path = str(spec_file.relative_to(openspec_dir))
+        for cap_id in cap_pattern.findall(text):
+            cap_locations.setdefault(cap_id, []).append(rel_path)
+
+    for cap_id, locations in sorted(cap_locations.items()):
+        unique = sorted(set(locations))
+        if len(unique) > 1:
+            warnings.append(
+                f"Duplicate capability: {cap_id} appears in multiple domain specs: "
+                f"{', '.join(unique)}"
+            )
 
     return warnings
 
@@ -268,6 +298,7 @@ def main():
     # Content checks (only if spec files exist)
     spec_files = find_spec_files(openspec_dir)
     if spec_files:
+        warnings.extend(validate_no_duplicate_caps(spec_files, openspec_dir))
         warnings.extend(validate_shall_grammar(spec_files, openspec_dir))
         warnings.extend(validate_gherkin(spec_files, openspec_dir))
 

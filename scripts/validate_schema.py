@@ -303,6 +303,27 @@ def validate_file(file_path: str) -> list[str]:
 
     # Special validation for build-buy.json
     if basename == "build-buy.json":
+        # Validate developer_model when platform_opportunity is assessed
+        platform = data.get("platform_opportunity")
+        if isinstance(platform, dict) and platform.get("assessed"):
+            dev_model = platform.get("developer_model")
+            if not isinstance(dev_model, dict):
+                warnings.append(
+                    f"platform_opportunity.assessed is true but "
+                    f"developer_model is missing in {basename}. "
+                    f"The architect should research the platform's "
+                    f"developer docs before making stack decisions."
+                )
+            else:
+                for field in ("source", "plugin_format",
+                              "runtime_provides", "distribution_mechanism"):
+                    val = dev_model.get(field)
+                    if not val or val == []:
+                        warnings.append(
+                            f"Empty/missing developer_model.{field} "
+                            f"in {basename}"
+                        )
+
         valid_categories = {
             "database", "auth", "payments", "storage", "email", "hosting",
             "search", "realtime", "video", "scheduling", "llm_api", "compute",

@@ -481,6 +481,25 @@ class TestOpenSpecValidation:
         assert result.returncode == 1
         assert "traits" in result.stderr
 
+    def test_invalid_openspec_missing_project_sections(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "validate_openspec.py"),
+             str(FIXTURES_DIR / "invalid_openspec")],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1
+        assert "Project Structure" in result.stderr
+
+    def test_duplicate_capabilities_detected(self):
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "validate_openspec.py"),
+             str(FIXTURES_DIR / "openspec_duplicate_caps")],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 1
+        assert "Duplicate capability" in result.stderr
+        assert "CAP-F-001" in result.stderr
+
 
 class TestSomValidation:
     def test_consistent_som_no_warnings(self):

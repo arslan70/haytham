@@ -10,12 +10,16 @@ tags:
   - solo-founder
   - agentic-frameworks
   - claude-code
-description: "Haytham is now a Claude Code plugin. One command to install, no AWS, no Python. Here's why I rebuilt it and what I learned."
+description: "Nine setup steps. Zero users. So I deleted the infrastructure and shipped it as a Claude Code plugin. Here's why and what I learned."
 ---
 
-# Haytham Is Now a Claude Code Plugin
+# Why You Should Ship Your Agentic Workflow as a Claude Code Plugin
 
-Haytham turns a startup idea into a validated, implementation-ready specification. Market research with live web search, MVP scoping, architecture decisions, SHALL requirements with Gherkin acceptance criteria. Four phases, each with a human approval gate before the next one starts.
+Haytham takes a startup idea and stress-tests it: is the market real, what's the MVP, how should you build it? You review the findings at each step. At the end, you get a spec detailed enough to hand straight to a coding agent.
+
+I started out with a full-fledged agentic framework (Strands SDK). That gives you a lot of flexibility and control over the agents, but it also comes with a lot of overhead. If the overhead was on the system only, it would have been fine, but it was on the user too.
+
+My goal was to validate the idea from users, which ironically is the product I was building. In my test runs it worked great, but I didn't realise that the setup was a deal breaker for most people. This made me rethink my approach, and I decided to sacrifice the bells and whistles for something that can be tested with one prompt, if you already have Claude Code.
 
 Starting today, you can install it inside Claude Code:
 
@@ -26,13 +30,13 @@ Starting today, you can install it inside Claude Code:
 
 No Python. No AWS credentials. No Streamlit. Your existing Claude Code subscription handles everything.
 
-This post is about why I rebuilt it this way, what I gave up, and what I think it means for developer tools.
+If you're building AI-powered developer tools, the trade-offs below might save you some time.
 
 <!-- more -->
 
-## How I got here
+## The setup that killed adoption
 
-I originally built Haytham as a standalone system. Strands SDK for agent orchestration, Burr for a deterministic workflow engine, Streamlit for the UI, OTEL with Jaeger for tracing. Each choice was individually reasonable. Together, they created a setup process that looked like this:
+This is what the setup looked like before the plugin:
 
 1. Clone the repo
 2. Install Python and UV
@@ -44,41 +48,31 @@ I originally built Haytham as a standalone system. Strands SDK for agent orchest
 8. Run `make run` to start Streamlit
 9. Open a browser, paste an idea, and wait
 
-Nine steps before any value. Steps 4 through 7 are where everyone dropped off. People would star the repo, maybe clone it, then disappear. Zero issues filed, zero discussions opened. Nobody was getting past the setup.
+Nine steps before any value. Steps 4 through 7 are where everyone dropped off. People would star the repo, maybe clone it, then disappear. Zero issues filed, zero discussions opened. The Bedrock credential wall alone (IAM roles, model access requests, region-specific config) was enough to kill adoption for anyone without an enterprise AWS setup.
 
-The system worked. I proved it end-to-end by generating a spec for a gym leaderboard app and building the whole thing from the generated spec. The planning intelligence was real. The distribution was broken.
+As a solo founder, I spent most of my time on the engineering and assumed that was the hard part. Getting someone to actually run it and tell me what's broken turned out to be much harder. I proved the intelligence end-to-end by generating a spec for a gym leaderboard app and building the whole thing from the output. But that was just me testing my own assumptions. Without real users hitting real edges, I had no idea if any of it actually held up.
 
-## Why a plugin
+## Why a plugin changes things
 
-Developers already have a coding agent in their terminal. They're already paying for the subscription. If the planning workflow lives *inside* that tool, the setup cost drops to zero and something else becomes possible: the specification pipeline can hand off directly to code implementation in the same session. The spec stops being documentation you copy into a coding agent. It becomes the direct input, in the same conversation. Idea in, working code out, one tool.
+I noticed that the developers I wanted to reach already had a coding agent in their terminal and were already paying for the subscription. So the question became: what if the planning workflow just lived inside that tool? The setup cost drops to zero, and you also get something I hadn't thought about initially. The specification pipeline can hand off directly to code implementation in the same session. The spec isn't documentation you copy into a coding agent anymore, it's the direct input in the same conversation. You go from idea to working code without leaving the terminal.
 
-The agent prompts port to subagent markdown files. The phased workflow becomes skill instructions. Decision gates use Claude Code's built-in question prompts. Session state writes to files. The intelligence survives. The scaffolding gets deleted.
+The port turned out to be surprisingly clean. Agent prompts became subagent markdown files, the phased workflow became skill instructions, and decision gates mapped to Claude Code's built-in question prompts. Session state just writes to files. The planning logic all carried over, and I was able to throw out the rest of the infrastructure.
 
-## AWS is leaving the door open
+## What this costs
 
-The Bedrock credential wall deserves its own mention. AWS builds for enterprises with procurement teams and infrastructure budgets. That's a fine business. But it means an individual developer who wants to experiment with an open-source AI tool hits a wall of IAM roles, model access requests, and region-specific configurations before they write a single prompt.
+There are real trade-offs, and I want to be honest about them because you'll hit the same ones if you go down this path.
 
-Anthropic's direct API has the same models with a credit card and an API key. Claude Code goes further: plugin users don't need *any* credentials. The developer experience gap between "configure AWS Bedrock" and "install a plugin" is enormous. For solo founders and small teams building on these models, AWS is creating friction that pushes builders toward platforms with lower barriers. That's an audience worth competing for.
+Burr's state machine guaranteed phases ran in order. In a plugin, that relies on Claude following instructions, which is probabilistic, and you lose OTEL tracing entirely. Multi-model routing becomes a coarser choice of sonnet, opus, or haiku per agent. The upside is that every test run against Bedrock used to cost real money, and during development you run the pipeline a lot. That bill goes to zero.
 
-There's a cost angle too. Every test run of the pipeline against Bedrock costs real money, and during development you run it a lot. Moving to a plugin means all that testing happens under your existing Claude Code subscription. The Bedrock bill goes to zero.
+The one that worries me most is **structured output**. With Strands, agent output gets validated against Pydantic models at generation time, so the schema is enforced as the tokens are produced. In Claude Code, agents return text. You can validate with hook scripts after the output is written, but that's a weaker guarantee. If a market analysis agent returns malformed JSON, you catch it after it's already in the session state, not before. For a pipeline where each phase builds on the last, that means errors can propagate further before they're caught. I don't have a clean answer for this yet.
 
-## What I'm giving up
-
-I'm trading real capabilities for distribution, and I want to be specific about what's lost.
-
-Burr's state machine guaranteed phases ran in order. In a plugin, I'm relying on Claude following instructions, which is probabilistic. OTEL tracing is gone. Multi-model routing becomes a coarser choice of sonnet, opus, or haiku per agent.
-
-The loss I worry about most is **structured output**. Strands validates agent output against Pydantic models at generation time. The schema is enforced as the tokens are produced. In Claude Code, agents return text. I can validate with hook scripts after the output is written, but that's a fundamentally weaker guarantee. If a market analysis agent returns malformed JSON, I catch it after it's already in the session state, not before. For a pipeline where each phase builds on the last, late validation means errors propagate further before they're caught. I don't have a clean answer for this yet. It's the biggest open risk.
-
-If the loss proves too costly, there's a fallback: run the workflow engine as an MCP server that Claude Code calls, keeping deterministic enforcement while still distributing as a plugin. I'd rather not need it.
+If that loss proves too costly, there's a fallback I've been thinking about: running the workflow engine as an MCP server that Claude Code calls into. That would keep deterministic enforcement while still distributing as a plugin. I'd rather not need it, but it's good to know the option exists.
 
 ## The bigger bet
 
-The Claude Code plugin marketplace feels like the early days of mobile app stores. The catalog is small. The platform APIs are still evolving. Discovery is basic. If you squint, it looks like the App Store in 2008: a few hundred apps, obvious gaps everywhere, and a platform owner still figuring out what developers need.
+The Claude Code plugin marketplace is early. The catalog is small, platform APIs are still evolving, and discovery is basic. I'm betting that Anthropic keeps investing in the extension model, things like richer subagent capabilities, structured output support, and a proper marketplace with reviews and rankings. If that happens, this could become a real distribution channel for developer tools. That's a big "if," and I know I'm building on a platform I don't control. But the alternative was maintaining my own infrastructure stack while nobody used it, and that felt like a worse bet.
 
-If Anthropic keeps investing in the extension model (richer subagent capabilities, structured output support, a proper marketplace with reviews and rankings), this could become the distribution channel for developer tools the way app stores became the channel for mobile software. That's a big "if," and building on it is a bet. I'm making that bet because the alternative, maintaining my own infrastructure stack while nobody uses it, is a worse one.
-
-For other solo founders building AI-powered developer tools: start on a platform. You get distribution, LLM costs handled, and tool integration without building any of it yourself. Optimize for the feedback loop. A messy version that 100 people try is worth more than an elegant one nobody runs. And don't count your agents. Nobody cares how many you have. They care whether the output is good.
+If you're building something similar, I'd say focus on whether the output is actually good. Nobody's going to care about your architecture if the results aren't useful.
 
 ## Try it
 
@@ -87,6 +81,6 @@ For other solo founders building AI-powered developer tools: start on a platform
 /plugin install haytham@haytham
 ```
 
-Once installed, start with `/haytham` and paste your startup idea. The workflow runs through four phases (validate, specify, design, plan), each with a gate where you review findings and decide whether to continue. At the end, you get an OpenSpec that Claude Code can implement directly.
+Once installed, run `/haytham` and paste your startup idea. The workflow goes through four phases (validate, specify, design, plan), and each one has a gate where you review findings and decide whether to keep going. At the end you get an OpenSpec that Claude Code can implement directly.
 
 The [system evolution doc](https://github.com/arslan70/haytham/blob/main/docs/system-evolution.md) covers the lessons and trade-offs in detail. The [Haytham repo](https://github.com/arslan70/haytham) is open source. If you hit problems or have ideas, [open an issue](https://github.com/arslan70/haytham/issues).
