@@ -284,7 +284,6 @@ class TestSchemaValidation:
         assert any("domain_expertise" in w for w in warnings)
         assert any("business_model" in w for w in warnings)
         assert any("success_metric" in w for w in warnings)
-        assert any("competitive_stance" in w for w in warnings)
         assert any("distribution" in w for w in warnings)
 
     def test_valid_founder_corrections(self, tmp_path):
@@ -430,6 +429,116 @@ class TestSchemaValidation:
         # Should detect CAP-F-003 and CAP-NF-001 are missing from coverage_check
         assert any("CAP-F-003" in w for w in warnings)
         assert any("CAP-NF-001" in w for w in warnings)
+
+    def test_valid_scope_risk(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(json.dumps({
+            "archetype": "developer_tool",
+            "intent": {"goal": "Build a tool", "explicit_constraints": [], "non_goals": []},
+            "invariants": [
+                {"property": "access_model", "value": "open", "source": "stated",
+                 "confidence": 0.9, "scope_risk": "high"},
+                {"property": "interaction_model", "value": "cli", "source": "stated",
+                 "confidence": 0.9, "scope_risk": "low"},
+                {"property": "session_medium", "value": "terminal", "source": "stated",
+                 "confidence": 0.9},
+            ],
+            "identity": {"features": ["Fast"], "why_distinctive": "Speed"},
+            "founder_profile": {"technical_level": "technical", "domain_expertise": "high",
+                                "inference_basis": "Describes architecture"},
+            "strategic_signals": {"business_model": "open-source", "success_metric": "community_adoption",
+                                  "distribution": "standalone", "inference_notes": "Explicit"},
+        }))
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_valid_concept_anchor_with_term_flags(self, tmp_path):
+        src = FIXTURES_DIR / "valid_concept_anchor_with_term_flags.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_term_flags_missing_fields(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_concept_anchor_term_flags.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        # Empty required fields on first flag
+        assert any("term_flags[0].term" in w and "Missing/empty" in w for w in warnings)
+        assert any("term_flags[0].chosen_interpretation" in w for w in warnings)
+        # Empty alternatives array
+        assert any("term_flags[0].alternatives" in w and "non-empty array" in w for w in warnings)
+
+    def test_invalid_term_flags_bad_invariant_refs(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_concept_anchor_term_flags.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("nonexistent_property" in w and "not in invariants" in w for w in warnings)
+
+    def test_term_flags_consistency_low_confidence_unflagged(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_concept_anchor_term_flags.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        # interaction_model has confidence 0.6 but no term_flags entry references it
+        assert any("interaction_model" in w and "confidence < 0.7" in w for w in warnings)
+
+    def test_term_flags_absent_is_valid(self, tmp_path):
+        """Concept anchor without term_flags field is still valid."""
+        src = FIXTURES_DIR / "valid_concept_anchor.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_scope_risk(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(json.dumps({
+            "archetype": "developer_tool",
+            "intent": {"goal": "Build a tool", "explicit_constraints": [], "non_goals": []},
+            "invariants": [
+                {"property": "access_model", "value": "open", "source": "stated",
+                 "confidence": 0.9, "scope_risk": "extreme"},
+            ],
+            "identity": {"features": ["Fast"], "why_distinctive": "Speed"},
+        }))
+        warnings = validate_file(str(dst))
+        assert any("scope_risk" in w and "extreme" in w for w in warnings)
+
+    def test_uvp_validation_valid(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "idea-analysis.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text("## 1. Problem Analysis\n\nStuff.\n\n"
+                       "## 2. Target User Segments\n\nSegments.\n\n"
+                       "## 3. Unique Value Proposition\n\n"
+                       "Solo builders can go from idea to spec in under 10 minutes.\n\n"
+                       "## 4. Solution Concept\n\nConcept.")
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_uvp_validation_too_long(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "idea-analysis.md"
+        dst.parent.mkdir(parents=True)
+        long_uvp = "A" * 141
+        dst.write_text(f"## 3. Unique Value Proposition\n\n{long_uvp}\n\n## 4. Solution Concept")
+        warnings = validate_file(str(dst))
+        assert any("exceeds 140 chars" in w for w in warnings)
+
+    def test_uvp_validation_missing_format(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "idea-analysis.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text("## 3. Unique Value Proposition\n\nJust a random statement here.\n\n## 4. Solution Concept")
+        warnings = validate_file(str(dst))
+        assert any("does not match" in w for w in warnings)
 
     def test_non_session_file_skipped(self, tmp_path):
         dst = tmp_path / "random.json"

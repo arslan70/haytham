@@ -36,9 +36,11 @@ Does the idea analysis articulate a clear problem statement with a specific targ
 - PARTIAL: Names a user segment but pain point is generic ("users struggle with...")
 - FAIL: No clear problem statement, or problem is just the absence of the proposed solution
 
-### 2. Competitor Evidence (market-research.md)
+### 2. Competitor Evidence (competitor-research.md)
 
 Are competitors described with specific details (features, pricing, user counts, funding), or just listed by name?
+
+If `competitor-research.md` does not exist, fall back to `market-research.md` for this criterion.
 
 - PASS: 3+ competitors with at least 2 concrete data points each (pricing, user count, funding, key features)
 - PARTIAL: Competitors listed with some details but data is sparse or inconsistent across entries
@@ -52,9 +54,11 @@ Is market sizing grounded in cited sources or methodology, or is it an unsupport
 - PARTIAL: Figures given with vague sourcing ("industry estimates suggest") or methodology not explained
 - FAIL: Market size stated as a bare number with no source or methodology
 
-### 4. Sentiment and Demand Signals (market-research.md)
+### 4. Sentiment and Demand Signals (competitor-research.md)
 
 Does the research include evidence of user demand or dissatisfaction with existing solutions?
+
+If `competitor-research.md` does not exist, fall back to `market-research.md` for this criterion.
 
 - PASS: Cites specific signals (forum posts, app reviews, survey data, search trends, waitlist numbers)
 - PARTIAL: Mentions demand exists but without specific evidence

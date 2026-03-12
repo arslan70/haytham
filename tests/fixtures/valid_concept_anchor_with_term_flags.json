@@ -1,0 +1,59 @@
+{
+  "archetype": "developer_tool",
+  "intent": {
+    "goal": "Build a spec generation tool",
+    "explicit_constraints": ["Must produce open spec output"],
+    "non_goals": []
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "open",
+      "source": "CLI tool for anyone",
+      "confidence": 0.9
+    },
+    {
+      "property": "interaction_model",
+      "value": "command-line",
+      "source": "CLI tool",
+      "confidence": 0.95
+    },
+    {
+      "property": "session_medium",
+      "value": "terminal",
+      "source": "CLI tool",
+      "confidence": 0.95
+    },
+    {
+      "property": "output_format",
+      "value": "OpenSpec",
+      "source": "produce standardised specs (either open spec or speckit)",
+      "confidence": 0.6
+    }
+  ],
+  "identity": {
+    "features": ["Spec generation", "AI-powered"],
+    "why_distinctive": "Automated spec generation for coding agents"
+  },
+  "term_flags": [
+    {
+      "term": "open spec",
+      "source_quote": "produce standardised specs (either open spec or speckit)",
+      "chosen_interpretation": "OpenSpec (AI coding agent spec format)",
+      "alternatives": ["OpenAPI (REST API specification standard)"],
+      "impact": "Changes product category: AI agent tooling vs API documentation",
+      "invariant_refs": ["output_format"]
+    }
+  ],
+  "founder_profile": {
+    "technical_level": "technical",
+    "domain_expertise": "high",
+    "inference_basis": "Describes system architecture and multi-agent pipelines"
+  },
+  "strategic_signals": {
+    "business_model": "open-source",
+    "success_metric": "community_adoption",
+    "distribution": "standalone",
+    "inference_notes": "Founder explicitly mentions open source"
+  }
+}

@@ -78,6 +78,7 @@ The concept anchor contains invariants, non-goals, and identity features. These 
 2. **Non-Goals -> OUT SCOPE:** Anchor non-goals MUST be in OUT OF SCOPE
 3. **Never contradict the anchor:** If the anchor says "synchronous gatherings", do not scope "async messaging"
 4. **Simplify within constraints:** Cut features not in the anchor, but NEVER cut anchor invariants
+5. **Scope risk awareness:** If an invariant has `scope_risk: high`, it is a candidate for phased delivery. The founder wants it (high confidence), but it may dominate MVP effort. Consider whether it can be delivered as a simplified version in v1 with full implementation deferred. Flag high-risk invariants in the MVP boundaries table with a note.
 
 ### 5. MVP BOUNDARIES
 

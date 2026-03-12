@@ -99,33 +99,57 @@ Then read `strategic_signals` and `founder_profile` from `concept-anchor.json` a
 > - **Founder profile:** [technical_level] ([inference_basis])
 > - **Business model:** [business_model]
 > - **Success metric:** [success_metric]
-> - **Competitive stance:** [competitive_stance]
 > - **Distribution:** [distribution]
+
+Then check if `concept-anchor.json` contains a non-empty `term_flags` array. If so, present them:
+
+> **Ambiguous terms** (we picked an interpretation, check these):
 >
+> - **"[term]"** — Interpreted as: [chosen_interpretation]
+>   - Alternative: [each alternative on its own line]
+>   - Why it matters: [impact]
+
+(Repeat for each flag.)
+
+Then present options. If term_flags were shown, use 4 options; otherwise use 3:
+
 > **What next?**
 > 1. Looks good, continue to market research
 > 2. I need to correct some assumptions (say which ones and what they should be)
 > 3. I want to steer research toward specific competitors or topics
+> 4. A term interpretation above is wrong (say which term and the correct meaning)
+
+(Option 4 only appears when term_flags are present.)
 
 If the user corrects any strategic signals, update `concept-anchor.json` using the Edit tool to reflect their corrections before proceeding.
 
+**If the user picks option 4 (term correction):** Update `.haytham/project.yaml` by adding a `term_clarifications` section with the user's correction. Then re-launch the **idea-analyst** agent with this task:
+> Read the startup idea from `.haytham/project.yaml`. The user clarified the following term(s): [paste user's correction]. Use the clarified meaning. Analyze it following your instructions. Write idea analysis to `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor to `.haytham/session/phase-1-why/concept-anchor.json`.
+
+After the agent completes, read the updated files and present the revised digest (same format as above). The corrected term should no longer appear in `term_flags`.
+
 Update state: `last_completed_step: 1`.
 
-## Step 2: Market Research
+## Step 2: Market & Competitor Research
 
 Verify `.haytham/session/phase-1-why/idea-analysis.md` exists. Read it and extract the domain/category.
 
 Tell the user:
-> **Step 2/6: Market Research**
-> Checking if anyone else is solving this, and how big the opportunity is. Searching for competitors, market sizing, and user sentiment in [domain from idea analysis].
+> **Step 2/6: Market & Competitor Research**
+> Checking if anyone else is solving this, and how big the opportunity is. Running two research tracks in parallel: market intelligence and competitor analysis in [domain from idea analysis].
 > This is the longest step (~3 min) because it runs web searches.
 
-Launch a **market-researcher** agent with this task:
-> Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Research the market and competitors. Write results to `.haytham/session/phase-1-why/market-research.md`.
+Launch BOTH agents in parallel:
 
-After the agent completes, read `.haytham/session/phase-1-why/market-research.md` and present a structured digest:
+1. A **market-researcher** agent with this task:
+   > Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Research the market. Write results to `.haytham/session/phase-1-why/market-research.md`.
 
-> **Market research complete.** Here's what we found:
+2. A **competitor-researcher** agent with this task:
+   > Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. Research competitors. Write results to `.haytham/session/phase-1-why/competitor-research.md`.
+
+After both agents complete, read `.haytham/session/phase-1-why/market-research.md` and `.haytham/session/phase-1-why/competitor-research.md` and present a structured digest:
+
+> **Market & competitor research complete.** Here's what we found:
 >
 > - **Market:** [Primary category], TAM: [X], SAM: [X], SOM: [X]
 > - **Competitors:** [List each competitor name + one-line description]
@@ -141,7 +165,7 @@ Tell the user:
 > Research gathered. Compiling a neutral summary for your review. No scores or judgments, just facts.
 
 Launch a **research-briefer** agent with this task:
-> Read idea analysis and market research from `.haytham/session/phase-1-why/`. Compile a neutral research brief. Write to `.haytham/session/phase-1-why/research-brief.md`.
+> Read idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, market research from `.haytham/session/phase-1-why/market-research.md`, and competitor research from `.haytham/session/phase-1-why/competitor-research.md`. Compile a neutral research brief. Write to `.haytham/session/phase-1-why/research-brief.md`.
 
 After the agent completes, read `.haytham/session/phase-1-why/research-brief.md` and output its FULL contents inline in your response. The user must be able to read the entire brief without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line.
 
@@ -185,7 +209,7 @@ Tell the user:
 > Weighing the evidence to produce a GO, PIVOT, or NO-GO recommendation.
 
 Launch a **report-synthesizer** agent with this task:
-> Read all Phase 1 files and produce the validation report. Write to `.haytham/session/phase-1-why/validation-report.md` and `.haytham/session/phase-1-why/validation-report.json`.
+> Read all Phase 1 files (idea-analysis.md, market-research.md, competitor-research.md, concept-anchor.json, founder-corrections.json if it exists, project.yaml) and industry benchmarks from `${CLAUDE_PLUGIN_ROOT}/references/benchmarks.md`. Produce the validation report. Write to `.haytham/session/phase-1-why/validation-report.md` and `.haytham/session/phase-1-why/validation-report.json`.
 
 After the agent completes, read `.haytham/session/phase-1-why/validation-report.md` and output its FULL contents inline in your response. The user must be able to read the entire report without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line of the report.
 

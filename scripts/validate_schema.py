@@ -35,6 +35,43 @@ SCHEMAS = {
 }
 
 
+def validate_markdown(file_path: str) -> list[str]:
+    """Validate markdown files in .haytham/session/. Returns warnings."""
+    warnings = []
+    basename = os.path.basename(file_path)
+
+    if basename != "idea-analysis.md":
+        return warnings
+
+    try:
+        with open(file_path) as f:
+            content = f.read()
+    except FileNotFoundError:
+        return warnings
+
+    # Extract UVP section
+    uvp_match = re.search(
+        r"## 3\. Unique Value Proposition.*?\n\n(.+?)(?:\n\n|$)",
+        content,
+        re.DOTALL,
+    )
+    if not uvp_match:
+        warnings.append("idea-analysis.md: UVP section (## 3) not found")
+        return warnings
+
+    uvp_text = uvp_match.group(1).strip()
+    if len(uvp_text) > 140:
+        warnings.append(
+            f"idea-analysis.md: UVP exceeds 140 chars ({len(uvp_text)} chars)"
+        )
+    if " can " not in uvp_text.lower():
+        warnings.append(
+            "idea-analysis.md: UVP does not match '[Target] can [outcome]' format"
+        )
+
+    return warnings
+
+
 def validate_file(file_path: str) -> list[str]:
     """Validate a JSON file against its schema. Returns warnings."""
     warnings = []
@@ -42,6 +79,10 @@ def validate_file(file_path: str) -> list[str]:
     # Only validate files in .haytham/session/
     if ".haytham/session/" not in file_path:
         return warnings
+
+    # Validate markdown files
+    if file_path.endswith(".md"):
+        return validate_markdown(file_path)
 
     # Only validate JSON files
     if not file_path.endswith(".json"):
@@ -89,6 +130,93 @@ def validate_file(file_path: str) -> list[str]:
                     "Must be high, medium, or low."
                 )
 
+        # Validate scope_risk on invariants
+        invariants = data.get("invariants", [])
+        valid_scope_risks = {"low", "medium", "high"}
+        if isinstance(invariants, list):
+            for i, inv in enumerate(invariants):
+                if isinstance(inv, dict):
+                    sr = inv.get("scope_risk")
+                    if sr is not None and sr not in valid_scope_risks:
+                        warnings.append(
+                            f"Invalid invariants[{i}].scope_risk '{sr}' in "
+                            f"{basename}. Must be low, medium, or high (or null/omitted)."
+                        )
+
+        # Validate term_flags structure
+        term_flags = data.get("term_flags")
+        if term_flags is not None:
+            if not isinstance(term_flags, list):
+                warnings.append(
+                    f"term_flags must be an array in {basename}"
+                )
+            else:
+                invariant_props = set()
+                if isinstance(invariants, list):
+                    for inv in invariants:
+                        if isinstance(inv, dict):
+                            prop = inv.get("property", "")
+                            if prop:
+                                invariant_props.add(prop)
+
+                low_confidence_props = set()
+                if isinstance(invariants, list):
+                    for inv in invariants:
+                        if isinstance(inv, dict):
+                            conf = inv.get("confidence")
+                            if isinstance(conf, (int, float)) and conf < 0.7:
+                                prop = inv.get("property", "")
+                                if prop:
+                                    low_confidence_props.add(prop)
+
+                flagged_invariant_refs = set()
+                for i, flag in enumerate(term_flags):
+                    if not isinstance(flag, dict):
+                        warnings.append(
+                            f"term_flags[{i}] is not an object in {basename}"
+                        )
+                        continue
+                    for req_field in ("term", "chosen_interpretation",
+                                      "alternatives", "impact"):
+                        val = flag.get(req_field)
+                        if not val:
+                            warnings.append(
+                                f"Missing/empty term_flags[{i}].{req_field} "
+                                f"in {basename}"
+                            )
+                    alts = flag.get("alternatives")
+                    if alts is not None and (
+                        not isinstance(alts, list) or len(alts) == 0
+                    ):
+                        warnings.append(
+                            f"term_flags[{i}].alternatives must be a "
+                            f"non-empty array in {basename}"
+                        )
+                    inv_refs = flag.get("invariant_refs")
+                    if inv_refs is not None:
+                        if not isinstance(inv_refs, list):
+                            warnings.append(
+                                f"term_flags[{i}].invariant_refs must be "
+                                f"an array in {basename}"
+                            )
+                        else:
+                            for ref in inv_refs:
+                                flagged_invariant_refs.add(ref)
+                                if ref not in invariant_props:
+                                    warnings.append(
+                                        f"term_flags[{i}].invariant_refs "
+                                        f"references '{ref}' which is not in "
+                                        f"invariants in {basename}"
+                                    )
+
+                # Consistency: warn if low-confidence invariants lack term flags
+                unflagged_low_conf = low_confidence_props - flagged_invariant_refs
+                for prop in sorted(unflagged_low_conf):
+                    warnings.append(
+                        f"Invariant '{prop}' has confidence < 0.7 but is not "
+                        f"referenced by any term_flags entry in {basename}"
+                    )
+
         # Validate strategic_signals enums
         ss = data.get("strategic_signals")
         if isinstance(ss, dict):
@@ -100,9 +228,6 @@ def validate_file(file_path: str) -> list[str]:
                 "success_metric": {
                     "revenue", "community_adoption", "usage",
                     "enterprise_contracts", "unknown",
-                },
-                "competitive_stance": {
-                    "direct_competitor", "complementary", "greenfield", "unknown",
                 },
                 "distribution": {
                     "standalone", "plugin_or_extension", "hosted",

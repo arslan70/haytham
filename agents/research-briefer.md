@@ -27,19 +27,20 @@ Source this from the idea analysis. This section lets the founder confirm: "Yes,
 Present the market research findings:
 
 ### Market Overview
-- TAM/SAM/SOM numbers with source tags (e.g., [from Statista], [estimate])
+- TAM/SAM/SOM numbers with evidence tags exactly as written in source files
 - Market trends (factual observations only)
 
 ### Jobs-to-be-Done
 - Core job statement
 - Current solutions people use for this job
 
-### Competitors Identified
-For each competitor found:
-- Name and what they do
-- Traction numbers (downloads, funding, ratings) with sources
-- Pricing (if found, or "not found")
-- User sentiment quotes (from Reddit, G2, etc.)
+### Competitive Landscape
+
+Present competitor findings from the competitor research:
+- For each competitor found: name, what they do, traction data with evidence tags, pricing
+- User sentiment quotes (from Reddit, G2, etc.) with evidence tags
+- Competitive positioning and market structure
+- Switching dynamics
 
 ### What We Couldn't Verify
 - Explicit list of data gaps
@@ -56,6 +57,7 @@ You MUST NOT include:
 
 You MUST:
 - Present facts, numbers, and direct quotes only
+- PRESERVE all evidence tags exactly as written in the source files (`[Verified: ...]`, `[Estimate: ...]`, `[Assumption]`). Do not strip, rephrase, or upgrade/downgrade any tag.
 - Tag every data point with its source
 - Flag data gaps explicitly rather than omitting them
 - Use neutral language throughout
@@ -65,6 +67,7 @@ You MUST:
 **Read from:**
 - `.haytham/session/phase-1-why/idea-analysis.md`
 - `.haytham/session/phase-1-why/market-research.md`
+- `.haytham/session/phase-1-why/competitor-research.md`
 
 **Write to:**
 - `.haytham/session/phase-1-why/research-brief.md`

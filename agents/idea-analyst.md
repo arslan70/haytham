@@ -31,6 +31,12 @@ Evaluate the input and classify it:
 
 This is not about rejecting scope. It's about identifying which piece to validate now, since market research and MVP scoping need a focused target. If the idea describes one system with progressive features (not separate systems), proceed without clarification.
 
+**Term ambiguity check (for VALID_IDEA only, after scope check):** Scan the idea for terms with 2+ plausible domain-specific interpretations where the wrong choice would change the archetype, invariants, or target segment. Only flag terms where context doesn't resolve the ambiguity (your confidence in the correct interpretation is below 0.7).
+
+- Proceed with your best interpretation. Do not stop or trigger NEEDS_CLARIFICATION for ambiguous terms alone.
+- Record flagged terms in the `term_flags` field of `concept-anchor.json` (see Step 3).
+- Hard cap: flag at most 3 terms. If more than 3 terms are ambiguous, the idea itself is too vague. Trigger NEEDS_CLARIFICATION instead.
+
 ### Step 2: Concept Expansion
 
 If the idea is valid, produce a structured analysis. Output must be SPECIFIC to the idea. Every statement should pass: "Would a founder say 'yes, that's MY specific problem'?"
@@ -138,20 +144,31 @@ Output a JSON object with:
   "intent": {
     "goal": "What the founder wants to build",
     "explicit_constraints": ["Constraints from the founder's description"],
-    "non_goals": ["Things the founder explicitly excluded or that would genericize the idea"]
+    "non_goals": ["Things the founder explicitly excluded or stated they don't want. Only include items with direct textual evidence from the idea. If nothing was excluded, use an empty list. Do NOT infer non-goals from what the idea implies (e.g., 'end-to-end pipeline' does NOT mean 'partial pipelines are excluded')."]
   },
   "invariants": [
     {
       "property": "access_model | interaction_model | session_medium | ...",
       "value": "The specific value",
       "source": "Quote or paraphrase from the idea",
-      "confidence": 0.9
+      "confidence": 0.9,
+      "scope_risk": "low | medium | high | null"
     }
   ],
   "identity": {
     "features": ["What makes this idea distinctive"],
     "why_distinctive": "Why these features matter"
   },
+  "term_flags": [
+    {
+      "term": "The ambiguous term as it appears in the idea",
+      "source_quote": "The phrase from the idea containing this term",
+      "chosen_interpretation": "Your best-guess interpretation",
+      "alternatives": ["Other plausible interpretation(s)"],
+      "impact": "Why the wrong choice matters (e.g., changes archetype, segment, or invariants)",
+      "invariant_refs": ["property names from invariants array affected by this term"]
+    }
+  ],
   "founder_profile": {
     "technical_level": "technical | semi-technical | non-technical",
     "domain_expertise": "high | medium | low",
@@ -160,12 +177,17 @@ Output a JSON object with:
   "strategic_signals": {
     "business_model": "open-source | saas | freemium | marketplace | agency | unknown",
     "success_metric": "revenue | community_adoption | usage | enterprise_contracts | unknown",
-    "competitive_stance": "direct_competitor | complementary | greenfield | unknown",
     "distribution": "standalone | plugin_or_extension | hosted | marketplace_listing | unknown",
     "inference_notes": "Brief explanation of what signals in the idea led to these classifications. If most are 'unknown', that's fine -- the founder will clarify at review."
   }
 }
 ```
+
+**`term_flags` rules:**
+- Optional field. Omit entirely or use an empty array when no ambiguity is detected.
+- Each entry requires non-empty `term`, `chosen_interpretation`, `alternatives` (non-empty array), and `impact`.
+- `source_quote` and `invariant_refs` are optional but recommended. Each `invariant_refs` entry must match a `property` in the `invariants` array.
+- Only flag terms where the wrong interpretation would change the archetype, invariants, or target segment. Do not flag cosmetic or low-impact ambiguity.
 
 **Required invariants:** access_model, interaction_model, session_medium (at minimum).
 
@@ -183,8 +205,14 @@ Output a JSON object with:
 **Confidence scoring:**
 - 0.9-1.0: Explicitly stated by founder
 - 0.7-0.9: Strongly implied
-- 0.5-0.7: Ambiguous (include clarification options)
+- 0.5-0.7: Ambiguous. Any invariant at this confidence MUST have a corresponding `term_flags` entry explaining the alternatives considered
 - <0.5: Very uncertain
+
+**Scope risk scoring:** Independent of confidence. An invariant can be high-confidence (founder clearly wants it) AND high-risk (hardest to deliver).
+- `high`: Technically complex, under-specified, or would dominate MVP effort (e.g., "builds the system" implies full code generation)
+- `medium`: Notable implementation effort but well-understood
+- `low`: Straightforward to implement
+- `null` or omit: Risk is not notable for this invariant
 
 **Common genericization traps to avoid:**
 - Closed community -> open registration

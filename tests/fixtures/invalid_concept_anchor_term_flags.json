@@ -1,0 +1,58 @@
+{
+  "archetype": "developer_tool",
+  "intent": {
+    "goal": "Build a tool",
+    "explicit_constraints": [],
+    "non_goals": []
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "open",
+      "source": "stated",
+      "confidence": 0.9
+    },
+    {
+      "property": "interaction_model",
+      "value": "command-line",
+      "source": "stated",
+      "confidence": 0.6
+    },
+    {
+      "property": "session_medium",
+      "value": "terminal",
+      "source": "stated",
+      "confidence": 0.95
+    }
+  ],
+  "identity": {
+    "features": ["Fast"],
+    "why_distinctive": "Speed"
+  },
+  "term_flags": [
+    {
+      "term": "",
+      "chosen_interpretation": "",
+      "alternatives": [],
+      "impact": "Some impact",
+      "invariant_refs": ["nonexistent_property"]
+    },
+    {
+      "term": "valid term",
+      "chosen_interpretation": "good interpretation",
+      "alternatives": ["alt one"],
+      "impact": "real impact"
+    }
+  ],
+  "founder_profile": {
+    "technical_level": "technical",
+    "domain_expertise": "high",
+    "inference_basis": "Describes architecture"
+  },
+  "strategic_signals": {
+    "business_model": "open-source",
+    "success_metric": "community_adoption",
+    "distribution": "standalone",
+    "inference_notes": "Explicit"
+  }
+}

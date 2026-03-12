@@ -17,10 +17,12 @@ Read the inputs and produce two output files: a validation report (markdown) and
 
 Read these files:
 - `.haytham/session/phase-1-why/idea-analysis.md` - the concept expansion
-- `.haytham/session/phase-1-why/market-research.md` - market intelligence and competitor analysis
+- `.haytham/session/phase-1-why/market-research.md` - market intelligence
+- `.haytham/session/phase-1-why/competitor-research.md` - competitor analysis
 - `.haytham/session/phase-1-why/concept-anchor.json` - invariants, founder profile, and strategic signals
 - `.haytham/project.yaml` - the original startup idea
 - `.haytham/session/phase-1-why/founder-corrections.json` (if it exists) - corrections the founder made at the research brief review
+- `${CLAUDE_PLUGIN_ROOT}/references/benchmarks.md` - industry benchmark data for grounding projections
 
 The founder has already reviewed the research brief, so treat the research as authoritative. If `founder-corrections.json` exists, treat the corrections as HIGH-PRIORITY context. These are explicit reframings from the founder (e.g., "we're not competing with X", "the real problem is Y, not Z", "success metric is community adoption, not revenue"). The report MUST reflect these corrections. Do not contradict them.
 
@@ -39,8 +41,12 @@ Read `founder_profile` from the concept anchor (`concept-anchor.json`). Adapt yo
 Also read `strategic_signals` from the concept anchor. If the founder signalled a specific business model or success metric, calibrate scoring accordingly:
 - `business_model: open-source` -> Score "Market Opportunity" based on community adoption potential (GitHub stars, contributor attraction, ecosystem fit), not direct revenue
 - `success_metric: community_adoption` -> Weight community-building feasibility over WTP signals
-- `competitive_stance: complementary` -> Frame competition as "complementary landscape" rather than "threats to defend against"
 - If `strategic_signals` is absent or all `unknown`, use defaults (commercial SaaS assumptions)
+
+Read the **Competitive Stance Determination** (section 7) from `.haytham/session/phase-1-why/competitor-research.md`. Use this research-derived stance to frame competition:
+- `complementary` -> Frame competition as "complementary landscape" rather than "threats to defend against"
+- `direct_competitor` -> Standard competitive framing
+- `greenfield` -> Emphasize market creation risks and adjacent category threats
 
 ## Tone
 
@@ -86,6 +92,12 @@ Synthesize key competitors. What do they collectively tell us about this market?
 
 **Network dependency detection (CRITICAL):** If the idea requires multiple concurrent users, calculate minimum viable user count and assess whether distribution channels can reach that threshold.
 
+**Evidence quality weighting:** When synthesizing risk assessments, weight evidence by its tag:
+- `[Verified: <source>]` -- treat as fact; high confidence
+- `[Estimate: <basis>]` -- treat as reasonable; moderate confidence
+- `[Assumption]` -- treat as unverified; low confidence
+Flag any conclusion in the Risk Profile that rests primarily on `[Assumption]`-tagged evidence.
+
 **Dealbreaker check:** Problem Reality, Channel Access, Regulatory/Ethical. If any answer is "no" with evidence, recommendation MUST be NO-GO.
 
 End with: **Overall Risk Level:** HIGH, MEDIUM, or LOW
@@ -96,6 +108,11 @@ End with: **Overall Risk Level:** HIGH, MEDIUM, or LOW
 - MVP build cost range (order of magnitude)
 - 2-3 revenue model options in a comparison table (Model, Pricing, Year 1 Revenue, Best For) + detailed math
 - Break-even scenario with calculation
+
+**Benchmark Grounding:** Read the archetype from `concept-anchor.json` and select the matching section from `references/benchmarks.md`. Use the benchmark ranges as sanity checks:
+- Compare projected churn, LTV/CAC, margins, conversion rates, etc. against the benchmark ranges
+- Flag any projection that falls outside the benchmark range with an explanation of why it's plausible or a risk
+- If the idea spans multiple archetypes, use the primary archetype's benchmarks
 
 ### PART 4: THE PATH FORWARD
 
@@ -147,9 +164,11 @@ Do NOT start any executive_summary field with "This report..." or restate the id
 **Read from:**
 - `.haytham/session/phase-1-why/idea-analysis.md`
 - `.haytham/session/phase-1-why/market-research.md`
+- `.haytham/session/phase-1-why/competitor-research.md`
 - `.haytham/session/phase-1-why/concept-anchor.json`
 - `.haytham/session/phase-1-why/founder-corrections.json` (if it exists)
 - `.haytham/project.yaml`
+- `${CLAUDE_PLUGIN_ROOT}/references/benchmarks.md`
 
 **Write to:**
 - `.haytham/session/phase-1-why/validation-report.md`
