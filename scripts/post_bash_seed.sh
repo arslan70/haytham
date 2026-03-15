@@ -54,7 +54,9 @@ if [ ! -d "$SESSION_DIR/phase-4-specs/openspec/specs" ]; then
   exit 0
 fi
 
-# Fix config.yaml quoting
+# Fix config.yaml quoting: openspec init generates unquoted YAML values.
+# User-provided fields (name, description) may contain colons, which break
+# YAML parsing. Only fix those fields to limit blast radius.
 CONFIG="$PROJECT_DIR/openspec/config.yaml"
 if [ -f "$CONFIG" ]; then
   python3 - "$CONFIG" <<'PYEOF' 2>/dev/null || true
@@ -64,7 +66,7 @@ lines = open(config_path).readlines()
 fixed = []
 for line in lines:
     m = re.match(r'^(\w+): (.+)$', line)
-    if m and ': ' in m.group(2) and not m.group(2).startswith('"'):
+    if m and m.group(1) in ('name', 'description') and ': ' in m.group(2) and not m.group(2).startswith('"'):
         fixed.append(f'{m.group(1)}: "{m.group(2)}"\n')
     else:
         fixed.append(line)
@@ -75,6 +77,13 @@ fi
 # Create the change and seed it (all in a subshell so cd doesn't leak)
 (
   cd "$PROJECT_DIR" || exit 0
+
+  # Skip seeding if the change already exists (prevents overwriting manual edits on re-run)
+  if [ -d "openspec/changes/initial-mvp" ]; then
+    echo "[haytham] WARNING: initial-mvp change already exists, skipping seed" >&2
+    exit 0
+  fi
+
   openspec new change initial-mvp > /dev/null 2>&1 || true
 
   if [ ! -d "openspec/changes/initial-mvp" ]; then
