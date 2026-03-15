@@ -1,12 +1,12 @@
 ---
-description: Set up a new project from Phase 4 specs, ready for OpenSpec implementation
+description: Set up a new project from Phase 4 specs, ready for implementation
 argument-hint: <project-directory>
-allowed-tools: Read, Bash, Glob
+allowed-tools: Read, Write, Bash, Glob
 ---
 
 # Haytham: Build Setup (Phase 5 - BUILD)
 
-You are setting up a new project directory from Haytham's Phase 4 OpenSpec output, ready for implementation with OpenSpec.
+You are setting up a new project directory from Haytham's Phase 4 OpenSpec output. Implementation happens in a SEPARATE Claude Code session to ensure the code is generated purely from specs, not from the current plugin context.
 
 ## Prerequisites
 
@@ -15,71 +15,61 @@ Verify `.haytham/session/phase-4-specs/openspec/config.yaml` exists. If it doesn
 
 Check that the user provided a project directory argument. If not, read `.haytham/session/phase-4-specs/openspec/config.yaml`, extract the `name` field, and use it as the directory name.
 
-## Step 1: Check OpenSpec CLI
-
-Run:
+Verify the OpenSpec CLI is installed:
 ```bash
 command -v openspec
 ```
 
-If not found, tell the user:
-> OpenSpec CLI is not installed. Install it with:
-> ```
-> npm install -g @fission-ai/openspec@latest
-> ```
-> Then re-run `/haytham:build`.
+If not found, tell the user to install it with `npm install -g @fission-ai/openspec@latest` and re-run `/haytham:build`. Stop here.
 
-Stop here if openspec is not installed. Do not proceed.
+## Build
 
-## Step 2: Create Project
+1. Check if the project directory already exists. If it does, ask the user if they want to overwrite.
 
-Using the project directory argument (or the name from config.yaml):
-
-1. Check if the directory already exists. If it does, ask the user if they want to overwrite.
-2. Create the directory:
+2. Create the directory and initialize OpenSpec:
    ```bash
-   mkdir -p <project-directory>
-   ```
-3. Copy the OpenSpec output into it:
-   ```bash
-   cp -r .haytham/session/phase-4-specs/openspec/ <project-directory>/openspec/
+   mkdir -p <project-directory> && cd <project-directory> && openspec init --tools claude
    ```
 
-Tell the user:
-> **Project created.** Copied OpenSpec to `<project-directory>/openspec/`.
+3. Copy project context: copy `.haytham/session/phase-4-specs/openspec/project.md` to `<project-directory>/openspec/project.md`, overwriting the default.
 
-## Step 3: Initialize OpenSpec
+4. Copy domain specs: copy all spec directories from `.haytham/session/phase-4-specs/openspec/specs/` into `<project-directory>/openspec/specs/`. Preserve the directory structure (each `{domain}/spec.md`).
 
-Run:
-```bash
-cd <project-directory> && openspec init --tools claude
-```
-
-Tell the user:
-> **OpenSpec initialized.** Claude Code skills and commands are set up.
+A PostToolUse hook automatically creates the `initial-mvp` change, copies specs into it, and seeds `design.md` with research directives when it detects `openspec init`. Check that `<project-directory>/openspec/changes/initial-mvp/` exists after the init completes.
 
 ## Completion
 
 Tell the user:
 
-> **Build setup complete.**
+> **Build setup complete.** Your project is ready at `<project-directory>/`.
 >
-> Your project is ready at `<project-directory>/`. To start building:
+> The change `initial-mvp` has been pre-seeded with your specs and research context. OpenSpec will skip the `done` artifacts (specs, design) and only generate the remaining ones.
 >
-> 1. Open a new Claude Code session in the project directory:
->    ```
->    cd <project-directory>
->    claude
->    ```
-> 2. Generate implementation tasks:
->    ```
->    /opsx:propose
->    ```
-> 3. Implement task by task:
->    ```
->    /opsx:apply
->    ```
-> 4. Verify against the spec:
->    ```
->    /opsx:verify
->    ```
+> To implement, open a new Claude Code session in the project directory:
+>
+> ```
+> cd <project-directory>
+> claude
+> ```
+>
+> Then run:
+>
+> ```
+> /opsx:propose initial-mvp
+> ```
+>
+> When it asks what you want to build, say:
+>
+> ```
+> Build the full initial MVP from scratch. All requirements are already defined in the existing specs and design. Implement every domain.
+> ```
+>
+> OpenSpec will find the existing change, skip the `done` artifacts (specs, design), and generate `proposal.md` and `tasks.md`. Then run `/opsx:apply initial-mvp` to implement task by task.
+>
+> This runs in a clean session so the implementation is generated purely from your specs.
+>
+> For future changes after the initial build:
+>
+> ```
+> /opsx:propose <change-name>
+> ```

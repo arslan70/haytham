@@ -23,6 +23,7 @@ You are orchestrating a 4-phase startup validation workflow. Follow each phase i
 | 2 | capability-modeler | `phase-2-what/mvp-scope.md`, `phase-1-why/idea-analysis.md`, `phase-1-why/concept-anchor.json` |
 | 3 | architect | `phase-2-what/capabilities.json`, `phase-2-what/system-traits.json`, `phase-2-what/mvp-scope.md` |
 | 4 | spec-generator | `phase-2-what/capabilities.json`, `phase-2-what/mvp-scope.md`, `phase-2-what/system-traits.json`, `phase-3-how/architecture-decisions.json`, `phase-3-how/build-buy.json`, `phase-1-why/concept-anchor.json` |
+| 5 | build (command) | `phase-4-specs/openspec/`, `phase-3-how/research-directives.json` |
 
 All paths relative to `.haytham/session/`.
 
@@ -395,15 +396,16 @@ Tell the user:
 > Deciding what to build, what to buy, and how the pieces fit together.
 
 Launch an **architect** agent with this task:
-> Read the capabilities, MVP scope, and system traits. Produce build/buy analysis and architecture decisions. Write to `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json`.
+> Read the capabilities, MVP scope, and system traits. Produce build/buy analysis, architecture decisions, and research directives. Write to `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json`.
 
-After the agent completes, read `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json` and present a structured digest:
+After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` and present a structured digest:
 
 > **Architecture designed.** Here's the technical plan:
 >
 > - **Stack:** [Key technologies chosen]
 > - **Build vs Buy:** [Summary of what's built custom vs. third-party services]
 > - **Key decisions:** [List the 2-3 most important architecture decisions]
+> - **Research directives:** [N] capabilities flagged ([list classifications used])
 > - **Estimated monthly cost:** [Cost range]
 > - **Integration effort:** [Effort estimate]
 

@@ -1,0 +1,36 @@
+{
+  "directives": [
+    {
+      "capability_id": "CAP-F-001",
+      "capability_name": "User Registration",
+      "classifications": ["standard"],
+      "research_required": false,
+      "questions": []
+    },
+    {
+      "capability_id": "CAP-F-002",
+      "capability_name": "Smart Matching",
+      "classifications": ["llm_dependent"],
+      "research_required": true,
+      "questions": [
+        "What prompt structure produces consistent matching scores?",
+        "How should the system handle ambiguous or incomplete profiles?"
+      ]
+    },
+    {
+      "capability_id": "CAP-F-003",
+      "capability_name": "Leaderboard Ranking",
+      "classifications": ["algorithm_dependent"],
+      "research_required": true,
+      "questions": [
+        "What ranking algorithm handles ties and recent-activity weighting?",
+        "How should the algorithm decay stale entries over time?"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "requiring_research": 2,
+    "classifications_used": ["standard", "llm_dependent", "algorithm_dependent"]
+  }
+}

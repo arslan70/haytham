@@ -32,6 +32,7 @@ SCHEMAS = {
     "architecture-decisions.json": ["decisions", "coverage_check", "summary"],
     "gate-decision.json": ["phase", "user_decision"],
     "founder-corrections.json": ["corrections", "updated_at"],
+    "research-directives.json": ["directives", "summary"],
 }
 
 
@@ -476,6 +477,123 @@ def validate_file(file_path: str) -> list[str]:
                             f"'{rec}' in {basename}. "
                             f"Must be one of: {sorted(valid_recommendations)}"
                         )
+
+    # Special validation for research-directives.json
+    if basename == "research-directives.json":
+        valid_classifications = {
+            "llm_dependent", "algorithm_dependent",
+            "integration_dependent", "domain_dependent", "standard",
+        }
+        directives = data.get("directives", [])
+        research_count = 0
+        if isinstance(directives, list):
+            for i, directive in enumerate(directives):
+                if not isinstance(directive, dict):
+                    warnings.append(
+                        f"directives[{i}] is not an object in {basename}"
+                    )
+                    continue
+
+                cap_id = directive.get("capability_id", "")
+                classifications = directive.get("classifications", [])
+                research_req = directive.get("research_required", False)
+                questions = directive.get("questions", [])
+
+                # Validate classifications
+                if not isinstance(classifications, list) or not classifications:
+                    warnings.append(
+                        f"directives[{i}] ({cap_id}): classifications must be "
+                        f"a non-empty array in {basename}"
+                    )
+                else:
+                    for cls in classifications:
+                        if cls not in valid_classifications:
+                            warnings.append(
+                                f"directives[{i}] ({cap_id}): invalid "
+                                f"classification '{cls}' in {basename}. "
+                                f"Must be one of: "
+                                f"{sorted(valid_classifications)}"
+                            )
+                    # standard is exclusive
+                    if "standard" in classifications and len(classifications) > 1:
+                        warnings.append(
+                            f"directives[{i}] ({cap_id}): 'standard' "
+                            f"classification must be exclusive (cannot mix "
+                            f"with other classifications) in {basename}"
+                        )
+
+                # research_required consistency
+                if research_req:
+                    research_count += 1
+                    if "standard" in (classifications if isinstance(classifications, list) else []):
+                        warnings.append(
+                            f"directives[{i}] ({cap_id}): research_required "
+                            f"is true but classifications includes 'standard' "
+                            f"in {basename}"
+                        )
+                    if not isinstance(questions, list) or not questions:
+                        warnings.append(
+                            f"directives[{i}] ({cap_id}): research_required "
+                            f"is true but questions is empty in {basename}"
+                        )
+                else:
+                    if not isinstance(classifications, list) or classifications != ["standard"]:
+                        warnings.append(
+                            f"directives[{i}] ({cap_id}): research_required "
+                            f"is false but classifications is not "
+                            f"['standard'] in {basename}"
+                        )
+
+        # Summary validation
+        summary = data.get("summary", {})
+        if isinstance(summary, dict):
+            total = summary.get("total", 0)
+            requiring = summary.get("requiring_research", 0)
+            if total != len(directives):
+                warnings.append(
+                    f"summary.total ({total}) does not match "
+                    f"len(directives) ({len(directives)}) in {basename}"
+                )
+            if requiring != research_count:
+                warnings.append(
+                    f"summary.requiring_research ({requiring}) does not "
+                    f"match actual count ({research_count}) in {basename}"
+                )
+
+        # Cross-file: verify capability IDs exist in capabilities.json
+        session_dir = os.path.dirname(os.path.dirname(file_path))
+        caps_path = os.path.join(session_dir, "phase-2-what", "capabilities.json")
+        if os.path.exists(caps_path):
+            try:
+                with open(caps_path) as cf:
+                    caps_data = json.load(cf)
+                func_cap_ids = set()
+                for cap in caps_data.get("capabilities", {}).get(
+                    "functional", []
+                ):
+                    func_cap_ids.add(cap.get("id", ""))
+
+                directive_cap_ids = set()
+                for directive in directives:
+                    if isinstance(directive, dict):
+                        cap_id = directive.get("capability_id", "")
+                        if cap_id:
+                            directive_cap_ids.add(cap_id)
+                            if cap_id not in func_cap_ids:
+                                warnings.append(
+                                    f"Directive references '{cap_id}' which "
+                                    f"does not exist in capabilities.json"
+                                )
+
+                # Every CAP-F-* should have a directive
+                missing = func_cap_ids - directive_cap_ids
+                if missing:
+                    warnings.append(
+                        f"Capabilities missing from directives: "
+                        f"{sorted(missing)}"
+                    )
+            except (json.JSONDecodeError, KeyError):
+                pass
 
     return warnings
 
