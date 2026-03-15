@@ -37,23 +37,27 @@ Tell the user:
 > Deciding what to build, what to buy, and how the pieces fit together.
 
 Launch an **architect** agent with this task:
-> Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, and system traits from `.haytham/session/phase-2-what/system-traits.json`. Produce build/buy analysis and architecture decisions. Write to `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json`.
+> Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, and system traits from `.haytham/session/phase-2-what/system-traits.json`. Produce build/buy analysis, architecture decisions, and research directives. Write to `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json`.
 
-After the agent completes, read `.haytham/session/phase-3-how/build-buy.json` and `.haytham/session/phase-3-how/architecture-decisions.json` and present a structured digest:
+After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` and present a structured digest:
 
 > **Architecture designed.** Here's the technical plan:
 >
 > - **Stack:** [Key technologies chosen]
 > - **Build vs Buy:** [Summary of what's built custom vs. third-party services]
 > - **Key decisions:** [List the 2-3 most important architecture decisions]
+> - **Research directives:** [N] capabilities flagged ([list classifications used])
 > - **Estimated monthly cost:** [Cost range]
 > - **Integration effort:** [Effort estimate]
 
 ## Step 2: Review
 
-Read both output files and output the following inline in your response (the user must see this without expanding anything):
+Read all three output files and output the following inline in your response (the user must see this without expanding anything):
 - **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
 - **Architecture Decisions**: ID, name, what it covers, capabilities served
+- **Research Directives:** [N] of [M] capabilities require pre-implementation research
+  - CAP-F-NNN (Capability Name): classification(s) — N questions
+  - (Repeat for each non-standard capability)
 - **Integration Effort**: Estimated days
 - **Monthly Cost**: Estimated range
 
@@ -77,4 +81,4 @@ Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 }
 ```
 
-Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Output saved to `.haytham/session/phase-3-how/`. Run `/haytham:plan` to proceed to Phase 4."
+Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Output saved to `.haytham/session/phase-3-how/` (`build-buy.json`, `architecture-decisions.json`, `research-directives.json`). Run `/haytham:plan` to proceed to Phase 4."

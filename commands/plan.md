@@ -99,6 +99,7 @@ Phase 2 (WHAT): .haytham/session/phase-2-what/
 Phase 3 (HOW): .haytham/session/phase-3-how/
   - build-buy.json - Infrastructure decisions
   - architecture-decisions.json - Architecture choices
+  - research-directives.json - Pre-implementation research questions
 
 Phase 4 (SPECS): .haytham/session/phase-4-specs/openspec/
   - config.yaml - Project metadata and system traits

@@ -1,0 +1,37 @@
+{
+  "directives": [
+    {
+      "capability_id": "CAP-F-001",
+      "capability_name": "Bad Classification",
+      "classifications": ["telekinetic"],
+      "research_required": true,
+      "questions": ["How?"]
+    },
+    {
+      "capability_id": "CAP-F-002",
+      "capability_name": "Empty Questions",
+      "classifications": ["llm_dependent"],
+      "research_required": true,
+      "questions": []
+    },
+    {
+      "capability_id": "CAP-F-003",
+      "capability_name": "Standard Mixed",
+      "classifications": ["standard", "algorithm_dependent"],
+      "research_required": false,
+      "questions": []
+    },
+    {
+      "capability_id": "CAP-F-004",
+      "capability_name": "False But Not Standard",
+      "classifications": ["llm_dependent"],
+      "research_required": false,
+      "questions": []
+    }
+  ],
+  "summary": {
+    "total": 99,
+    "requiring_research": 99,
+    "classifications_used": ["telekinetic"]
+  }
+}

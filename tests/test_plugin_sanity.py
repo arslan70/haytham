@@ -540,6 +540,86 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("does not match" in w for w in warnings)
 
+    def test_valid_research_directives(self, tmp_path):
+        src = FIXTURES_DIR / "valid_research_directives.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "research-directives.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_research_directives_bad_classification(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_research_directives.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "research-directives.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("telekinetic" in w and "invalid classification" in w for w in warnings)
+
+    def test_invalid_research_directives_empty_questions(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_research_directives.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "research-directives.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("research_required is true but questions is empty" in w for w in warnings)
+
+    def test_invalid_research_directives_standard_mixed(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_research_directives.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "research-directives.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("'standard' classification must be exclusive" in w for w in warnings)
+
+    def test_invalid_research_directives_summary_mismatch(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_research_directives.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "research-directives.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("summary.total (99) does not match" in w for w in warnings)
+        assert any("summary.requiring_research (99) does not match" in w for w in warnings)
+
+    def test_research_directives_cross_check(self, tmp_path):
+        """Cross-check: directives reference valid capabilities, all CAP-F-* covered."""
+        caps_dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "capabilities.json"
+        caps_dst.parent.mkdir(parents=True)
+        caps_dst.write_text(json.dumps({
+            "summary": {"system_name": "T", "system_purpose": "T",
+                        "primary_user_segment": "T", "input_method": "T",
+                        "mvp_scope_respected": True},
+            "capabilities": {
+                "functional": [
+                    {"id": "CAP-F-001", "name": "A", "description": "A",
+                     "serves_scope_item": "X", "user_flow": "Flow 1",
+                     "acceptance_criteria": ["OK"], "rationale": "OK"},
+                    {"id": "CAP-F-002", "name": "B", "description": "B",
+                     "serves_scope_item": "Y", "user_flow": "Flow 1",
+                     "acceptance_criteria": ["OK"], "rationale": "OK"},
+                ],
+                "non_functional": []
+            },
+            "traceability": {"scope_items_covered": ["X", "Y"],
+                             "scope_items_not_covered": [], "flows_covered": ["Flow 1"]},
+            "metadata": {"functional_count": 2, "non_functional_count": 0}
+        }))
+        # Directives only cover CAP-F-001 and reference a nonexistent CAP-F-999
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "research-directives.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(json.dumps({
+            "directives": [
+                {"capability_id": "CAP-F-001", "capability_name": "A",
+                 "classifications": ["standard"], "research_required": False, "questions": []},
+                {"capability_id": "CAP-F-999", "capability_name": "Ghost",
+                 "classifications": ["standard"], "research_required": False, "questions": []},
+            ],
+            "summary": {"total": 2, "requiring_research": 0}
+        }))
+        warnings = validate_file(str(dst))
+        assert any("CAP-F-999" in w and "does not exist" in w for w in warnings)
+        assert any("CAP-F-002" in w and "missing" in w.lower() for w in warnings)
+
     def test_non_session_file_skipped(self, tmp_path):
         dst = tmp_path / "random.json"
         dst.write_text('{"foo": "bar"}')
