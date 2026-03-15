@@ -411,7 +411,16 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `
 
 Update state: `last_completed_step: 11`.
 
-### Step 12: Gate 3
+### Step 12: Review & Gate 3
+
+Read all three output files and output the following inline in your response (the user must see this without expanding anything):
+- **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
+- **Architecture Decisions**: ID, name, what it covers, capabilities served
+- **Research Directives:** [N] of [M] capabilities require pre-implementation research
+  - CAP-F-NNN (Capability Name): classification(s) — N questions
+  - (Repeat for each non-standard capability)
+- **Integration Effort**: Estimated days
+- **Monthly Cost**: Estimated range
 
 Ask:
 > **Review the technical design. Specifically:**

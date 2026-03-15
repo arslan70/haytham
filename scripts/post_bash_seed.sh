@@ -57,39 +57,42 @@ fi
 # Fix config.yaml quoting
 CONFIG="$PROJECT_DIR/openspec/config.yaml"
 if [ -f "$CONFIG" ]; then
-  python3 -c "
-import re
-lines = open('$CONFIG').readlines()
+  python3 - "$CONFIG" <<'PYEOF' 2>/dev/null || true
+import re, sys
+config_path = sys.argv[1]
+lines = open(config_path).readlines()
 fixed = []
 for line in lines:
     m = re.match(r'^(\w+): (.+)$', line)
-    if m and ': ' in m.group(2) and not m.group(2).startswith('\"'):
-        fixed.append(f'{m.group(1)}: \"{m.group(2)}\"\n')
+    if m and ': ' in m.group(2) and not m.group(2).startswith('"'):
+        fixed.append(f'{m.group(1)}: "{m.group(2)}"\n')
     else:
         fixed.append(line)
-open('$CONFIG', 'w').writelines(fixed)
-" 2>/dev/null || true
+open(config_path, 'w').writelines(fixed)
+PYEOF
 fi
 
-# Create the change (suppress output)
-cd "$PROJECT_DIR"
-openspec new change initial-mvp > /dev/null 2>&1 || true
+# Create the change and seed it (all in a subshell so cd doesn't leak)
+(
+  cd "$PROJECT_DIR" || exit 0
+  openspec new change initial-mvp > /dev/null 2>&1 || true
 
-if [ ! -d "openspec/changes/initial-mvp" ]; then
-  echo "[haytham] WARNING: Failed to create initial-mvp change" >&2
-  exit 0
-fi
+  if [ ! -d "openspec/changes/initial-mvp" ]; then
+    echo "[haytham] WARNING: Failed to create initial-mvp change" >&2
+    exit 0
+  fi
 
-# Copy specs into the change
-mkdir -p "openspec/changes/initial-mvp/specs"
-cp -r openspec/specs/* "openspec/changes/initial-mvp/specs/" 2>/dev/null || true
+  # Copy specs into the change
+  mkdir -p "openspec/changes/initial-mvp/specs"
+  cp -r openspec/specs/* "openspec/changes/initial-mvp/specs/" 2>/dev/null || true
 
-# Generate design.md from research directives
-DIRECTIVES="$SESSION_DIR/phase-3-how/research-directives.json"
-python3 -c "
+  # Generate design.md from research directives
+  DIRECTIVES="$SESSION_DIR/phase-3-how/research-directives.json"
+  python3 - "$DIRECTIVES" <<'PYEOF' || echo "[haytham] WARNING: Failed to generate design.md from research directives" >&2
 import json, sys
 
-with open('$DIRECTIVES') as f:
+directives_path = sys.argv[1]
+with open(directives_path) as f:
     data = json.load(f)
 
 directives = [d for d in data.get('directives', []) if d.get('research_required')]
@@ -130,7 +133,8 @@ with open(design_path, 'w') as f:
     f.write('\n'.join(lines))
 
 print(f'[haytham] Seeded design.md with {len(directives)} research directives', file=sys.stderr)
-" 2>/dev/null || true
+PYEOF
+)
 
 cat >&2 <<'HOOKEOF'
 [haytham] Created initial-mvp change with specs and research directives.

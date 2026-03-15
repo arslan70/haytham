@@ -18,11 +18,11 @@ Haytham transforms startup ideas into self-improving autonomous systems via thre
 
 Before starting work, ask: Does this advance the current milestone? Is it the minimum viable implementation? Can it be deferred? If so, challenge the request. See [VISION.md](./VISION.md).
 
-6. **Fix the Root Cause**:
+6. **Fix the Root Cause**: When a problem surfaces, fix the underlying issue, not the symptom. Before proposing a workaround or patch, ask: why does this problem exist? Can the root cause be eliminated? A sync test between two files is a patch; putting the data in one file is the fix. Read the relevant documentation before adding scaffolding.
 
 7. **Control Plane, Not Data Plane**: Haytham is an orchestrator, not an executor. When choosing between approaches, prefer the one where Haytham declares intent and delegates execution over the one where Haytham does the work itself. Haytham classifies, directs, and validates. Build agents, spec tools, and downstream systems execute. If a proposed change has Haytham doing something a downstream tool should do, push back. The test: "Is Haytham deciding WHAT needs to happen, or doing the work?" If the latter, delegate it.
 
-   This principle compounds across milestones. GENESIS delegates build execution. EVOLUTION delegates change execution. SENTIENCE delegates improvement execution. Each milestone adds a new loop, but Haytham stays the control plane in all of them. A design decision that couples Haytham to execution in GENESIS will block delegation in EVOLUTION and autonomy in SENTIENCE. When a problem surfaces, fix the underlying issue, not the symptom. Before proposing a workaround or patch, ask: why does this problem exist? Can the root cause be eliminated? A sync test between two files is a patch; putting the data in one file is the fix. Read the relevant documentation before adding scaffolding.
+   This principle compounds across milestones. GENESIS delegates build execution. EVOLUTION delegates change execution. SENTIENCE delegates improvement execution. Each milestone adds a new loop, but Haytham stays the control plane in all of them. A design decision that couples Haytham to execution in GENESIS will block delegation in EVOLUTION and autonomy in SENTIENCE.
 
 ### Meta-System Design
 
