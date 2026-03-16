@@ -375,7 +375,33 @@ class TestSchemaValidation:
         dst.parent.mkdir(parents=True)
         dst.write_text(src.read_text())
         warnings = validate_file(str(dst))
-        assert any("differs from" in w and "scope items" in w for w in warnings)
+        assert any("Fewer capabilities" in w and "scope items" in w for w in warnings)
+
+    def test_capabilities_over_decomposition(self, tmp_path):
+        """Warn when capability count exceeds 4x scope items."""
+        data = {
+            "summary": {"system_name": "T", "system_purpose": "T",
+                         "primary_user_segment": "T", "input_method": "M",
+                         "mvp_scope_respected": True},
+            "capabilities": {
+                "functional": [
+                    {"id": f"CAP-F-{i:03d}", "name": f"F{i}", "description": "D",
+                     "serves_scope_item": "S", "user_flow": "Flow 1",
+                     "acceptance_criteria": ["OK"], "rationale": "OK"}
+                    for i in range(1, 22)
+                ],
+                "non_functional": []
+            },
+            "traceability": {"scope_items_covered": ["A", "B", "C", "D", "E"],
+                             "scope_items_not_covered": [],
+                             "flows_covered": ["Flow 1"]},
+            "metadata": {"functional_count": 21, "non_functional_count": 0}
+        }
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "capabilities.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(json.dumps(data))
+        warnings = validate_file(str(dst))
+        assert any("more than 4x" in w for w in warnings)
 
     def test_valid_arch_decisions(self, tmp_path):
         src = FIXTURES_DIR / "valid_arch_decisions.json"

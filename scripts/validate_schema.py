@@ -362,12 +362,17 @@ def validate_file(file_path: str) -> list[str]:
         traceability = data.get("traceability", {})
         scope_items = traceability.get("scope_items_covered", [])
         if scope_items and func_caps:
-            diff = abs(len(func_caps) - len(scope_items))
-            if diff > 2:
+            if len(func_caps) < len(scope_items):
                 warnings.append(
-                    f"Capability count ({len(func_caps)}) differs from "
-                    f"scope items covered ({len(scope_items)}) by {diff} "
-                    f"in {basename}. Expected roughly 1:1 mapping."
+                    f"Fewer capabilities ({len(func_caps)}) than scope items "
+                    f"({len(scope_items)}) in {basename}. Every IN SCOPE item "
+                    f"needs at least one capability."
+                )
+            elif len(func_caps) > len(scope_items) * 4:
+                warnings.append(
+                    f"Capability count ({len(func_caps)}) is more than 4x scope "
+                    f"items ({len(scope_items)}) in {basename}. Check for scope "
+                    f"creep or over-decomposition."
                 )
 
     # Special validation for architecture-decisions.json

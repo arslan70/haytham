@@ -241,15 +241,40 @@ All spec files must follow this heading hierarchy:
 
 ---
 
-## Appetite-Bound Limits (MANDATORY)
+## Capability Decomposition (Fallback)
 
-| Appetite | Max Domains | Max Requirements | Max Scenarios per Req |
-|----------|-------------|------------------|-----------------------|
-| Small (1-2 weeks) | 3 | 10 | 3 |
-| Medium (3-4 weeks) | 5 | 20 | 4 |
-| Large (5-6 weeks) | 8 | 35 | 5 |
+Upstream decomposition in the capability modeler should produce fine-grained
+capabilities. In most cases, one requirement per capability is sufficient.
 
-The appetite is a HARD CONSTRAINT from `mvp-scope.md`. If you cannot fit coverage within the limits, COMBINE requirements into broader domain specs rather than adding more.
+If a capability still covers multiple distinct behaviors after upstream
+decomposition (detectable by: two scenarios within one requirement describe
+behaviors with different inputs, different outputs, or different error
+conditions), decompose it into multiple requirements that all reference the
+same parent capability ID [CAP-F-NNN].
+
+When this happens, add a self-check note: "Decomposed CAP-F-NNN into N
+requirements at spec layer. Upstream capability may be too coarse." This
+signals that the capability modeler's decomposition heuristic may need tuning.
+
+## Scenario Limits
+
+Each requirement may have at most 8 scenarios. This prevents verbosity while
+giving enough room for quality, error, and edge-case coverage.
+
+If you cannot cover a requirement's behavior in 8 scenarios, the upstream
+capability is too coarse. Flag this in your self-check output rather than
+exceeding the cap.
+
+## Scenario Discipline
+
+Within the 8-scenario cap, apply these rules:
+
+- Every scenario must test a distinct behavior. If two scenarios would pass or fail together, merge them.
+- Allocate scenario depth proportional to implementation complexity. A CRUD operation needs 2-3 scenarios. An LLM-orchestrated behavior needs enough scenarios to capture its classification logic, quality constraints, and error handling.
+- Do not pad with obvious scenarios (e.g., "Given valid input, When processed, Then output is produced" adds nothing if a more specific scenario already covers the happy path).
+- Do not over-specify non-differentiating features. Authentication, deployment, and infrastructure that the build/buy analysis marked as BUY need minimal scenarios (the bought service handles the complexity).
+
+**Soft ceiling:** If your total scenario count across all domain specs exceeds 100, review each scenario for redundancy before writing output. Look for scenarios that restate another scenario's behavior in different words, scenarios that test framework defaults rather than application logic, and scenarios for BUY components that restate the service's own documentation.
 
 ---
 
@@ -260,7 +285,8 @@ Before writing output files, verify:
 - Every CAP-NF-* from `capabilities.json` appears as a SHALL requirement in `specs/cross-cutting/spec.md`
 - Every SHALL statement uses a bare infinitive verb (not third-person)
 - Every `#### Scenario:` block has Given, When, and Then
-- Domain count, requirement count, and scenarios per requirement are within appetite limits
+- No requirement exceeds 8 scenarios
+- If total scenario count exceeds 100, each scenario has been reviewed for redundancy
 - `config.yaml` has all required fields: name, description, appetite, traits, generated_at
 - `project.md` has all required sections: Tech Stack, Architecture Decisions, Build/Buy Analysis, Dependencies, Project Structure, Data Schemas, Component Map
 - All DEC-* IDs from `architecture-decisions.json` appear in `project.md`

@@ -89,13 +89,37 @@ Output ONLY valid JSON to `.haytham/session/phase-2-what/capabilities.json`.
 
 ### Guidelines
 
-**Functional Capabilities (one per IN SCOPE item, typically 3-5):**
-- One capability per IN SCOPE item
+**Functional Capabilities (one per distinct behavior, typically 3-8):**
+- One capability per distinct user-observable behavior
+- A single IN SCOPE item that describes one behavior produces one capability
+- A single IN SCOPE item that describes multiple distinct behaviors (e.g., a
+  multi-step pipeline, a process with classification AND analysis AND output
+  generation) produces one capability per behavior, each with the same
+  serves_scope_item value
 - WHAT not HOW ("Users can log workouts" not "POST /api/workouts")
 - Testable criteria
 - Valid flow reference only
 
 A mega-capability that bundles multiple distinct scope items into one loses traceability downstream: the architect cannot distinguish which decisions serve which scope items. Prefer one capability per distinct scope item over consolidation.
+
+**Decomposition test:** if two acceptance criteria within one capability describe
+behaviors with different inputs, different outputs, or different error conditions,
+they should be separate capabilities. For example, "upload a document" and "extract
+key terms from a document" have different inputs (a file vs. parsed content),
+different outputs (a stored file vs. a term list), and different error conditions
+(invalid file format vs. extraction failure). They are two capabilities, not one.
+
+**When NOT to decompose:** Do not decompose steps that are inseparable in the user's
+mental model. "Log in with email" and "log in with password" are one capability
+(authentication), not two. The test: would a user describe these as separate features?
+If not, keep them together.
+
+**IMPORTANT:** Look carefully at each IN SCOPE item before deciding it is a single
+behavior. An item like "Order processing with inventory check, payment, and shipping
+label generation" describes MULTIPLE distinct behaviors: inventory verification,
+payment processing, label generation. Each has different inputs, different outputs,
+and different error conditions. These should be separate capabilities, all with the
+same serves_scope_item.
 
 **Non-Functional Capabilities (2-4 max):**
 - Product-specific, not generic "300ms latency"
@@ -192,7 +216,9 @@ If input provides no signal: interface: ["browser"], auth: multi_user, deploymen
 Before writing capabilities.json:
 - Every capability's serves_scope_item quotes an actual IN SCOPE item?
 - Every flow reference exists in the MVP Scope input?
-- Capability count within +/-2 of IN SCOPE count?
+- Every IN SCOPE item has at least one capability?
+- No capability lacks a serves_scope_item referencing an actual IN SCOPE item?
+- No capability bundles behaviors with different inputs, outputs, or error conditions?
 - No features added that aren't in IN SCOPE?
 
 ## Part 2 Self-Check
