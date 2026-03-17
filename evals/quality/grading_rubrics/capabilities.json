@@ -1,0 +1,53 @@
+{
+  "name": "Capabilities Quality",
+  "session_files": [
+    "phase-2-what/capabilities.json",
+    "phase-2-what/mvp-scope.md"
+  ],
+  "criteria": [
+    {
+      "id": "fidelity-5",
+      "name": "Capability Fidelity",
+      "source_review": "review-fidelity",
+      "grading_prompt": "Do the extracted capabilities serve the founder's idea, or do they describe a generic version of the product category?",
+      "anchors": {
+        "PASS": "Capabilities are specific to this idea's unique angle, not generic category features",
+        "PARTIAL": "Mix of idea-specific and generic capabilities",
+        "FAIL": "Capabilities could describe any product in this category, nothing specific to the founder's vision"
+      }
+    },
+    {
+      "id": "actionability-1",
+      "name": "Scope Clarity",
+      "source_review": "review-actionability",
+      "grading_prompt": "Can a developer read The One Thing and the IN/OUT table and know unambiguously what to build and what not to build?",
+      "anchors": {
+        "PASS": "The One Thing is a single clear sentence. IN/OUT items are specific enough to make decisions against ('User profile pages' not 'user management')",
+        "PARTIAL": "The One Thing is clear but some IN/OUT items are vague categories rather than specific features",
+        "FAIL": "The One Thing is abstract, or IN/OUT items are so vague that a developer would need to make significant interpretation calls"
+      }
+    },
+    {
+      "id": "actionability-2",
+      "name": "User Flow Specificity",
+      "source_review": "review-actionability",
+      "grading_prompt": "Does each user flow describe concrete steps a user takes, or just name the flow?",
+      "anchors": {
+        "PASS": "Flows describe step-by-step user actions with entry point, key interactions, and end state",
+        "PARTIAL": "Flows describe the general purpose but steps are vague ('user interacts with the feature')",
+        "FAIL": "Flows are just names ('onboarding flow', 'main flow') with no step detail"
+      }
+    },
+    {
+      "id": "actionability-3",
+      "name": "Capability Precision",
+      "source_review": "review-actionability",
+      "grading_prompt": "Are functional capabilities specific enough to implement, or would a developer need to make major design decisions?",
+      "anchors": {
+        "PASS": "Each capability describes a specific behavior with clear inputs and outputs or user-visible result",
+        "PARTIAL": "Most capabilities are specific, but some are high-level categories ('manage content') rather than behaviors",
+        "FAIL": "Capabilities are abstract categories that could mean many different things"
+      }
+    }
+  ]
+}

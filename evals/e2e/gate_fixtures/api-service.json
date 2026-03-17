@@ -1,0 +1,8 @@
+{
+  "idea": "An API service that receives webhook events from multiple SaaS tools and routes them to the right team channel in Slack with smart deduplication",
+  "archetype": "api_service",
+  "gate_responses": {
+    "research_brief_review": "looks good",
+    "validation_gate": "proceed"
+  }
+}

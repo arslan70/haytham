@@ -1,0 +1,31 @@
+{
+  "name": "Idea Analysis Quality",
+  "session_files": [
+    "phase-1-why/idea-analysis.md",
+    "phase-1-why/concept-anchor.json"
+  ],
+  "criteria": [
+    {
+      "id": "depth-1",
+      "name": "Problem Articulation",
+      "source_review": "review-depth",
+      "grading_prompt": "Does the idea analysis articulate a clear problem statement with a specific target user, or is it vague?",
+      "anchors": {
+        "PASS": "Names a specific user segment and a concrete pain point",
+        "PARTIAL": "Names a user segment but pain point is generic ('users struggle with...')",
+        "FAIL": "No clear problem statement, or problem is just the absence of the proposed solution"
+      }
+    },
+    {
+      "id": "fidelity-2",
+      "name": "Analysis Expansion vs. Invention",
+      "source_review": "review-fidelity",
+      "grading_prompt": "Compare the original idea with the idea analysis. The analysis should expand and clarify the idea, not invent new features or pivot the concept.",
+      "anchors": {
+        "PASS": "Analysis elaborates on what the founder said without introducing new product concepts",
+        "PARTIAL": "Mostly faithful but suggests features or user segments the founder didn't mention, presented as part of the idea rather than as suggestions",
+        "FAIL": "Analysis describes a materially different product than what the founder stated"
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "idea": "A gym community leaderboard where members compete on workout consistency using anonymous handles, with weekly challenges and opt-in social features",
+  "archetype": "web_app",
+  "gate_responses": {
+    "research_brief_review": "looks good",
+    "validation_gate": "proceed"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Competitor Research Quality",
+  "session_files": [
+    "phase-1-why/competitor-research.md",
+    "phase-1-why/market-research.md"
+  ],
+  "criteria": [
+    {
+      "id": "depth-2",
+      "name": "Competitor Evidence",
+      "source_review": "review-depth",
+      "grading_prompt": "Are competitors described with specific details (features, pricing, user counts, funding), or just listed by name? If competitor-research.md does not exist, fall back to market-research.md.",
+      "anchors": {
+        "PASS": "3+ competitors with at least 2 concrete data points each (pricing, user count, funding, key features)",
+        "PARTIAL": "Competitors listed with some details but data is sparse or inconsistent across entries",
+        "FAIL": "Competitors listed by name only, or fewer than 2 competitors identified"
+      }
+    },
+    {
+      "id": "depth-4",
+      "name": "Sentiment and Demand Signals",
+      "source_review": "review-depth",
+      "grading_prompt": "Does the research include evidence of user demand or dissatisfaction with existing solutions? If competitor-research.md does not exist, fall back to market-research.md.",
+      "anchors": {
+        "PASS": "Cites specific signals (forum posts, app reviews, survey data, search trends, waitlist numbers)",
+        "PARTIAL": "Mentions demand exists but without specific evidence",
+        "FAIL": "No demand/sentiment analysis, or only generic statements ('there is growing demand')"
+      }
+    }
+  ]
+}

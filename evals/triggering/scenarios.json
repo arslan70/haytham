@@ -1,0 +1,630 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Triggering eval scenarios: given a user prompt, which component should handle it?",
+  "scenarios": [
+    {
+      "id": "haytham-direct-1",
+      "prompt": "I have a startup idea for a gym leaderboard app with anonymous handles",
+      "expected_component": "haytham",
+      "type": "direct"
+    },
+    {
+      "id": "haytham-direct-2",
+      "prompt": "Take my idea from concept to implementation spec: a marketplace for freelance tutors",
+      "expected_component": "haytham",
+      "type": "direct"
+    },
+    {
+      "id": "haytham-paraphrase-1",
+      "prompt": "Can you do the full pipeline on my idea? It's a tool for tracking developer productivity",
+      "expected_component": "haytham",
+      "type": "paraphrased"
+    },
+    {
+      "id": "haytham-paraphrase-2",
+      "prompt": "Run everything end to end for this concept: an AI-powered recipe suggestion engine",
+      "expected_component": "haytham",
+      "type": "paraphrased"
+    },
+    {
+      "id": "haytham-edge-1",
+      "prompt": "I want the whole thing done: validate, scope, design, and spec for a pet adoption platform",
+      "expected_component": "haytham",
+      "type": "edge_case"
+    },
+    {
+      "id": "validate-direct-1",
+      "prompt": "Validate my startup idea: a subscription box for indie board games",
+      "expected_component": "validate",
+      "type": "direct"
+    },
+    {
+      "id": "validate-direct-2",
+      "prompt": "Is this idea worth pursuing? A browser extension for summarizing legal documents",
+      "expected_component": "validate",
+      "type": "direct"
+    },
+    {
+      "id": "validate-paraphrase-1",
+      "prompt": "Check if there's a market for a CLI tool that auto-generates changelogs from git history",
+      "expected_component": "validate",
+      "type": "paraphrased"
+    },
+    {
+      "id": "validate-paraphrase-2",
+      "prompt": "Do market research on my idea for a neighborhood tool-sharing app",
+      "expected_component": "validate",
+      "type": "paraphrased"
+    },
+    {
+      "id": "validate-edge-1",
+      "prompt": "Should I build this? A Slack bot that tracks team mood via emoji reactions",
+      "expected_component": "validate",
+      "type": "edge_case"
+    },
+    {
+      "id": "validate-semantic-1",
+      "prompt": "I need to know if my startup concept has legs before I start building",
+      "expected_component": "validate",
+      "type": "semantic"
+    },
+    {
+      "id": "validate-semantic-2",
+      "prompt": "Help me figure out if anyone would pay for a task management app for ADHD users",
+      "expected_component": "validate",
+      "type": "semantic"
+    },
+    {
+      "id": "validate-negative-1",
+      "prompt": "Write me a Python function that validates email addresses",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "validate-negative-2",
+      "prompt": "Can you review my pull request?",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "specify-direct-1",
+      "prompt": "Define the MVP scope for my validated idea",
+      "expected_component": "specify",
+      "type": "direct"
+    },
+    {
+      "id": "specify-direct-2",
+      "prompt": "Run Phase 2 to scope out the MVP and extract capabilities",
+      "expected_component": "specify",
+      "type": "direct"
+    },
+    {
+      "id": "specify-paraphrase-1",
+      "prompt": "What should be in and out of scope for the MVP?",
+      "expected_component": "specify",
+      "type": "paraphrased"
+    },
+    {
+      "id": "specify-paraphrase-2",
+      "prompt": "Break down the validated concept into capabilities and user flows",
+      "expected_component": "specify",
+      "type": "paraphrased"
+    },
+    {
+      "id": "specify-edge-1",
+      "prompt": "I got a GO recommendation, now tell me what to actually build",
+      "expected_component": "specify",
+      "type": "edge_case"
+    },
+    {
+      "id": "specify-semantic-1",
+      "prompt": "What features should the MVP include?",
+      "expected_component": "specify",
+      "type": "semantic"
+    },
+    {
+      "id": "specify-negative-1",
+      "prompt": "Write a specification document for a REST API endpoint",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "design-direct-1",
+      "prompt": "Produce architecture decisions for the MVP",
+      "expected_component": "design",
+      "type": "direct"
+    },
+    {
+      "id": "design-direct-2",
+      "prompt": "Run Phase 3 to decide build vs buy and create architecture decisions",
+      "expected_component": "design",
+      "type": "direct"
+    },
+    {
+      "id": "design-paraphrase-1",
+      "prompt": "What tech stack should we use for the MVP?",
+      "expected_component": "design",
+      "type": "paraphrased"
+    },
+    {
+      "id": "design-paraphrase-2",
+      "prompt": "Figure out which services to build and which to buy for the MVP",
+      "expected_component": "design",
+      "type": "paraphrased"
+    },
+    {
+      "id": "design-edge-1",
+      "prompt": "I have capabilities defined, now decide the architecture",
+      "expected_component": "design",
+      "type": "edge_case"
+    },
+    {
+      "id": "design-semantic-1",
+      "prompt": "How should we architect this system technically?",
+      "expected_component": "design",
+      "type": "semantic"
+    },
+    {
+      "id": "design-negative-1",
+      "prompt": "Design a logo for my company",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "plan-direct-1",
+      "prompt": "Generate the OpenSpec for my MVP",
+      "expected_component": "plan",
+      "type": "direct"
+    },
+    {
+      "id": "plan-direct-2",
+      "prompt": "Run Phase 4 to create implementation-ready specifications",
+      "expected_component": "plan",
+      "type": "direct"
+    },
+    {
+      "id": "plan-paraphrase-1",
+      "prompt": "Create the detailed spec files with SHALL statements and Gherkin scenarios",
+      "expected_component": "plan",
+      "type": "paraphrased"
+    },
+    {
+      "id": "plan-paraphrase-2",
+      "prompt": "Produce the final implementation blueprint from the architecture decisions",
+      "expected_component": "plan",
+      "type": "paraphrased"
+    },
+    {
+      "id": "plan-edge-1",
+      "prompt": "Architecture is done, give me something a coding agent can implement from",
+      "expected_component": "plan",
+      "type": "edge_case"
+    },
+    {
+      "id": "plan-semantic-1",
+      "prompt": "Turn the architecture into buildable specs",
+      "expected_component": "plan",
+      "type": "semantic"
+    },
+    {
+      "id": "plan-negative-1",
+      "prompt": "Plan my vacation to Italy",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "build-direct-1",
+      "prompt": "Set up the project from the OpenSpec output",
+      "expected_component": "build",
+      "type": "direct"
+    },
+    {
+      "id": "build-direct-2",
+      "prompt": "Bootstrap the codebase from the phase 4 specs",
+      "expected_component": "build",
+      "type": "direct"
+    },
+    {
+      "id": "build-paraphrase-1",
+      "prompt": "Create the initial project structure and start implementing from the spec",
+      "expected_component": "build",
+      "type": "paraphrased"
+    },
+    {
+      "id": "build-paraphrase-2",
+      "prompt": "Initialize the repository and scaffold based on the generated specification",
+      "expected_component": "build",
+      "type": "paraphrased"
+    },
+    {
+      "id": "build-edge-1",
+      "prompt": "Specs are ready, time to start coding",
+      "expected_component": "build",
+      "type": "edge_case"
+    },
+    {
+      "id": "review-depth-direct-1",
+      "prompt": "Review the depth of my Phase 1 analysis output",
+      "expected_component": "review-depth",
+      "type": "direct"
+    },
+    {
+      "id": "review-depth-direct-2",
+      "prompt": "Check whether the research and analysis is evidence-backed or superficial",
+      "expected_component": "review-depth",
+      "type": "direct"
+    },
+    {
+      "id": "review-depth-paraphrase-1",
+      "prompt": "Is the market research detailed enough? Check the quality of the analysis",
+      "expected_component": "review-depth",
+      "type": "paraphrased"
+    },
+    {
+      "id": "review-depth-edge-1",
+      "prompt": "The validation report feels thin. Can you check if the evidence is solid?",
+      "expected_component": "review-depth",
+      "type": "edge_case"
+    },
+    {
+      "id": "review-depth-semantic-1",
+      "prompt": "How rigorous is the Phase 1 output?",
+      "expected_component": "review-depth",
+      "type": "semantic"
+    },
+    {
+      "id": "review-fidelity-direct-1",
+      "prompt": "Check if the pipeline stayed faithful to my original idea",
+      "expected_component": "review-fidelity",
+      "type": "direct"
+    },
+    {
+      "id": "review-fidelity-direct-2",
+      "prompt": "Review concept fidelity across all phases",
+      "expected_component": "review-fidelity",
+      "type": "direct"
+    },
+    {
+      "id": "review-fidelity-paraphrase-1",
+      "prompt": "Did the system drift from what I originally described?",
+      "expected_component": "review-fidelity",
+      "type": "paraphrased"
+    },
+    {
+      "id": "review-fidelity-edge-1",
+      "prompt": "The spec doesn't look like my idea anymore. What happened?",
+      "expected_component": "review-fidelity",
+      "type": "edge_case"
+    },
+    {
+      "id": "review-fidelity-semantic-1",
+      "prompt": "Has concept drift crept in during the pipeline?",
+      "expected_component": "review-fidelity",
+      "type": "semantic"
+    },
+    {
+      "id": "review-consistency-direct-1",
+      "prompt": "Check cross-stage consistency of the outputs",
+      "expected_component": "review-consistency",
+      "type": "direct"
+    },
+    {
+      "id": "review-consistency-direct-2",
+      "prompt": "Review whether outputs across pipeline stages agree with each other",
+      "expected_component": "review-consistency",
+      "type": "direct"
+    },
+    {
+      "id": "review-consistency-paraphrase-1",
+      "prompt": "Are the capabilities traced correctly to scope items? Do architecture decisions cover everything?",
+      "expected_component": "review-consistency",
+      "type": "paraphrased"
+    },
+    {
+      "id": "review-consistency-edge-1",
+      "prompt": "Something feels off between the scope and the spec. Can you verify traceability?",
+      "expected_component": "review-consistency",
+      "type": "edge_case"
+    },
+    {
+      "id": "review-consistency-semantic-1",
+      "prompt": "Do all the phase outputs link up properly?",
+      "expected_component": "review-consistency",
+      "type": "semantic"
+    },
+    {
+      "id": "review-actionability-direct-1",
+      "prompt": "Review whether the spec is detailed enough to implement",
+      "expected_component": "review-actionability",
+      "type": "direct"
+    },
+    {
+      "id": "review-actionability-direct-2",
+      "prompt": "Check specification actionability",
+      "expected_component": "review-actionability",
+      "type": "direct"
+    },
+    {
+      "id": "review-actionability-paraphrase-1",
+      "prompt": "Could a developer actually build from this spec without guessing?",
+      "expected_component": "review-actionability",
+      "type": "paraphrased"
+    },
+    {
+      "id": "review-actionability-edge-1",
+      "prompt": "The SHALL statements seem vague. Are they specific enough to test?",
+      "expected_component": "review-actionability",
+      "type": "edge_case"
+    },
+    {
+      "id": "review-actionability-semantic-1",
+      "prompt": "Is this spec implementation-ready or does it need more detail?",
+      "expected_component": "review-actionability",
+      "type": "semantic"
+    },
+    {
+      "id": "ux-review-direct-1",
+      "prompt": "Review the UX of this Haytham run transcript",
+      "expected_component": "ux-review",
+      "type": "direct"
+    },
+    {
+      "id": "ux-review-direct-2",
+      "prompt": "Analyze this transcript for UX guideline compliance",
+      "expected_component": "ux-review",
+      "type": "direct"
+    },
+    {
+      "id": "ux-review-paraphrase-1",
+      "prompt": "Was the user experience good during this run? Check the transcript",
+      "expected_component": "ux-review",
+      "type": "paraphrased"
+    },
+    {
+      "id": "ux-review-edge-1",
+      "prompt": "The run felt confusing. Can you check if it followed the UX standards?",
+      "expected_component": "ux-review",
+      "type": "edge_case"
+    },
+    {
+      "id": "ux-review-semantic-1",
+      "prompt": "Did the pipeline communicate well with the user during the run?",
+      "expected_component": "ux-review",
+      "type": "semantic"
+    },
+    {
+      "id": "idea-analyst-direct-1",
+      "prompt": "Analyze my startup idea and extract the concept anchor",
+      "expected_component": "idea-analyst",
+      "type": "direct"
+    },
+    {
+      "id": "idea-analyst-paraphrase-1",
+      "prompt": "Break down this idea into problems, segments, and value proposition",
+      "expected_component": "idea-analyst",
+      "type": "paraphrased"
+    },
+    {
+      "id": "idea-analyst-edge-1",
+      "prompt": "What are the invariants of this idea?",
+      "expected_component": "idea-analyst",
+      "type": "edge_case"
+    },
+    {
+      "id": "idea-analyst-semantic-1",
+      "prompt": "Help me understand the core structure of my idea",
+      "expected_component": "idea-analyst",
+      "type": "semantic"
+    },
+    {
+      "id": "idea-analyst-negative-1",
+      "prompt": "Analyze this CSV dataset for trends",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "market-researcher-direct-1",
+      "prompt": "Research the market for my idea",
+      "expected_component": "market-researcher",
+      "type": "direct"
+    },
+    {
+      "id": "market-researcher-paraphrase-1",
+      "prompt": "What's the market size and are there trends I should know about?",
+      "expected_component": "market-researcher",
+      "type": "paraphrased"
+    },
+    {
+      "id": "market-researcher-edge-1",
+      "prompt": "How big is the opportunity for a scheduling app for dog walkers?",
+      "expected_component": "market-researcher",
+      "type": "edge_case"
+    },
+    {
+      "id": "market-researcher-semantic-1",
+      "prompt": "Size the TAM/SAM/SOM for this concept",
+      "expected_component": "market-researcher",
+      "type": "semantic"
+    },
+    {
+      "id": "market-researcher-negative-1",
+      "prompt": "Research the best restaurants in San Francisco",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "competitor-researcher-direct-1",
+      "prompt": "Find competitors for my startup idea",
+      "expected_component": "competitor-researcher",
+      "type": "direct"
+    },
+    {
+      "id": "competitor-researcher-paraphrase-1",
+      "prompt": "Who else is solving this problem and how are they doing?",
+      "expected_component": "competitor-researcher",
+      "type": "paraphrased"
+    },
+    {
+      "id": "competitor-researcher-edge-1",
+      "prompt": "What alternatives exist for users who want anonymous gym leaderboards?",
+      "expected_component": "competitor-researcher",
+      "type": "edge_case"
+    },
+    {
+      "id": "competitor-researcher-semantic-1",
+      "prompt": "Map the competitive landscape for this concept",
+      "expected_component": "competitor-researcher",
+      "type": "semantic"
+    },
+    {
+      "id": "competitor-researcher-negative-1",
+      "prompt": "Compare Python and JavaScript for web development",
+      "expected_component": "_none",
+      "type": "negative"
+    },
+    {
+      "id": "report-synthesizer-direct-1",
+      "prompt": "Synthesize the validation report from the research findings",
+      "expected_component": "report-synthesizer",
+      "type": "direct"
+    },
+    {
+      "id": "report-synthesizer-paraphrase-1",
+      "prompt": "Give me a GO or NO-GO recommendation based on the research",
+      "expected_component": "report-synthesizer",
+      "type": "paraphrased"
+    },
+    {
+      "id": "report-synthesizer-edge-1",
+      "prompt": "The founder reviewed the brief. Now produce the verdict",
+      "expected_component": "report-synthesizer",
+      "type": "edge_case"
+    },
+    {
+      "id": "report-synthesizer-semantic-1",
+      "prompt": "Should I proceed with this idea based on the evidence?",
+      "expected_component": "report-synthesizer",
+      "type": "semantic"
+    },
+    {
+      "id": "mvp-scoper-direct-1",
+      "prompt": "Define the MVP scope for my validated idea",
+      "expected_component": "mvp-scoper",
+      "type": "direct"
+    },
+    {
+      "id": "mvp-scoper-paraphrase-1",
+      "prompt": "What's in scope and what's out for the first version?",
+      "expected_component": "mvp-scoper",
+      "type": "paraphrased"
+    },
+    {
+      "id": "mvp-scoper-edge-1",
+      "prompt": "We got a GO. Now figure out what the smallest shippable product looks like",
+      "expected_component": "mvp-scoper",
+      "type": "edge_case"
+    },
+    {
+      "id": "mvp-scoper-semantic-1",
+      "prompt": "What's the one thing this MVP needs to nail?",
+      "expected_component": "mvp-scoper",
+      "type": "semantic"
+    },
+    {
+      "id": "capability-modeler-direct-1",
+      "prompt": "Extract capabilities from the MVP scope",
+      "expected_component": "capability-modeler",
+      "type": "direct"
+    },
+    {
+      "id": "capability-modeler-paraphrase-1",
+      "prompt": "Turn the scope into a structured list of functional and non-functional capabilities",
+      "expected_component": "capability-modeler",
+      "type": "paraphrased"
+    },
+    {
+      "id": "capability-modeler-edge-1",
+      "prompt": "The scope is defined. What capabilities does the system need?",
+      "expected_component": "capability-modeler",
+      "type": "edge_case"
+    },
+    {
+      "id": "capability-modeler-semantic-1",
+      "prompt": "What can this system do? Break it down into discrete capabilities",
+      "expected_component": "capability-modeler",
+      "type": "semantic"
+    },
+    {
+      "id": "architect-direct-1",
+      "prompt": "Make build vs buy decisions for the MVP",
+      "expected_component": "architect",
+      "type": "direct"
+    },
+    {
+      "id": "architect-paraphrase-1",
+      "prompt": "Which parts should we build custom and which should we use off-the-shelf?",
+      "expected_component": "architect",
+      "type": "paraphrased"
+    },
+    {
+      "id": "architect-edge-1",
+      "prompt": "Capabilities are modeled. Now decide the tech stack",
+      "expected_component": "architect",
+      "type": "edge_case"
+    },
+    {
+      "id": "architect-semantic-1",
+      "prompt": "What's the right architecture for this MVP?",
+      "expected_component": "architect",
+      "type": "semantic"
+    },
+    {
+      "id": "spec-generator-direct-1",
+      "prompt": "Generate the OpenSpec from the architecture decisions",
+      "expected_component": "spec-generator",
+      "type": "direct"
+    },
+    {
+      "id": "spec-generator-paraphrase-1",
+      "prompt": "Write SHALL statements and Gherkin scenarios for each capability",
+      "expected_component": "spec-generator",
+      "type": "paraphrased"
+    },
+    {
+      "id": "spec-generator-edge-1",
+      "prompt": "Architecture is done. Create the implementation spec a coding agent can use",
+      "expected_component": "spec-generator",
+      "type": "edge_case"
+    },
+    {
+      "id": "spec-generator-semantic-1",
+      "prompt": "Produce the final buildable spec from all upstream work",
+      "expected_component": "spec-generator",
+      "type": "semantic"
+    },
+    {
+      "id": "research-briefer-direct-1",
+      "prompt": "Compile the research findings into a neutral brief",
+      "expected_component": "research-briefer",
+      "type": "direct"
+    },
+    {
+      "id": "research-briefer-paraphrase-1",
+      "prompt": "Summarize what the market and competitor research found, without editorializing",
+      "expected_component": "research-briefer",
+      "type": "paraphrased"
+    },
+    {
+      "id": "research-briefer-edge-1",
+      "prompt": "Research is done. Put together a factual summary for the founder to review",
+      "expected_component": "research-briefer",
+      "type": "edge_case"
+    },
+    {
+      "id": "research-briefer-semantic-1",
+      "prompt": "Give me the facts from the research without any recommendations",
+      "expected_component": "research-briefer",
+      "type": "semantic"
+    }
+  ]
+}

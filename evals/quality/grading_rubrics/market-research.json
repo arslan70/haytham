@@ -1,0 +1,19 @@
+{
+  "name": "Market Research Quality",
+  "session_files": [
+    "phase-1-why/market-research.md"
+  ],
+  "criteria": [
+    {
+      "id": "depth-3",
+      "name": "Market Sizing Basis",
+      "source_review": "review-depth",
+      "grading_prompt": "Is market sizing grounded in cited sources or methodology, or is it an unsupported number?",
+      "anchors": {
+        "PASS": "TAM/SAM/SOM figures with named sources or explained methodology (top-down from industry report, bottom-up from user count * ARPU)",
+        "PARTIAL": "Figures given with vague sourcing ('industry estimates suggest') or methodology not explained",
+        "FAIL": "Market size stated as a bare number with no source or methodology"
+      }
+    }
+  ]
+}
