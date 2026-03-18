@@ -17,8 +17,11 @@ DEFAULT_CLASSIFICATION_MODEL = "sonnet"
 # Maps full API model IDs to CLI aliases for backward compatibility.
 _MODEL_ALIASES = {
     "claude-opus-4-20250514": "opus",
+    "claude-opus-4-6-20260318": "opus",
     "claude-sonnet-4-20250514": "sonnet",
+    "claude-sonnet-4-6-20260318": "sonnet",
     "claude-haiku-3-5-20241022": "haiku",
+    "claude-haiku-4-5-20251001": "haiku",
 }
 
 
@@ -66,22 +69,23 @@ def extract_json(text: str) -> dict | None:
     """Extract the first JSON object from LLM response text.
 
     Returns the parsed dict, or None if no valid JSON found.
-    Uses a bracket-depth approach to avoid greedy regex issues.
+    Tries progressively larger substrings starting from each '{' to
+    handle braces inside quoted strings correctly.
     """
-    start = text.find("{")
-    if start == -1:
-        return None
-    depth = 0
-    for i in range(start, len(text)):
-        if text[i] == "{":
-            depth += 1
-        elif text[i] == "}":
-            depth -= 1
-            if depth == 0:
+    pos = 0
+    while pos < len(text):
+        start = text.find("{", pos)
+        if start == -1:
+            return None
+        # Try json.loads on substrings ending at each '}' from the end
+        # Working backwards finds the correct closing brace efficiently
+        for end in range(len(text) - 1, start, -1):
+            if text[end] == "}":
                 try:
-                    return json.loads(text[start:i + 1])
+                    return json.loads(text[start:end + 1])
                 except json.JSONDecodeError:
-                    return None
+                    continue
+        pos = start + 1
     return None
 
 
