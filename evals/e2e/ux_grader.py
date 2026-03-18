@@ -9,12 +9,12 @@ Usage:
 
 import argparse
 import json
-import re
 import sys
 import time
 from pathlib import Path
 
-import anthropic
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from shared import DEFAULT_GRADING_MODEL, claude_call, extract_json
 
 EVALS_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = EVALS_DIR / "results"
@@ -93,7 +93,7 @@ UX_CRITERIA = [
 ]
 
 
-def grade_ux(client: anthropic.Anthropic, transcript: str, model: str) -> list:
+def grade_ux(transcript: str, model: str) -> list:
     """Grade a transcript against all UX criteria."""
     results = []
 
@@ -118,18 +118,13 @@ def grade_ux(client: anthropic.Anthropic, transcript: str, model: str) -> list:
             f"### Transcript\n\n{transcript}"
         )
 
-        response = client.messages.create(
-            model=model, max_tokens=500, system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        text = response.content[0].text.strip()
+        text = claude_call(user, system_prompt=system, model=model)
         try:
             result = json.loads(text)
         except json.JSONDecodeError:
-            match = re.search(r'\{.*\}', text, re.DOTALL)
-            result = json.loads(match.group()) if match else {
-                "grade": "ERROR", "evidence": text, "reasoning": "Parse error"
-            }
+            result = extract_json(text)
+            if result is None:
+                result = {"grade": "ERROR", "evidence": text, "reasoning": "Parse error"}
 
         results.append({
             "id": criterion["id"],
@@ -147,7 +142,7 @@ def main():
     parser = argparse.ArgumentParser(description="Grade transcript UX")
     parser.add_argument("--transcript", required=True,
                         help="Path to transcript file")
-    parser.add_argument("--model", default="claude-opus-4-20250514",
+    parser.add_argument("--model", default=DEFAULT_GRADING_MODEL,
                         help="Model to use for grading")
     args = parser.parse_args()
 
@@ -157,10 +152,9 @@ def main():
         sys.exit(1)
 
     transcript = transcript_path.read_text()
-    client = anthropic.Anthropic()
 
     print(f"Grading UX for transcript: {transcript_path}")
-    results = grade_ux(client, transcript, args.model)
+    results = grade_ux(transcript, args.model)
 
     counts = {"PASS": 0, "PARTIAL": 0, "FAIL": 0, "ERROR": 0}
     for r in results:

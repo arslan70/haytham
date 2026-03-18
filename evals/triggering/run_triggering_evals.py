@@ -16,12 +16,10 @@ import sys
 import time
 from pathlib import Path
 
-import anthropic
-
 EVALS_DIR = Path(__file__).resolve().parent
 ROOT = EVALS_DIR.parent.parent
 sys.path.insert(0, str(EVALS_DIR.parent))
-from shared import load_component_descriptions
+from shared import DEFAULT_CLASSIFICATION_MODEL, claude_call, load_component_descriptions
 
 RESULTS_DIR = EVALS_DIR / "results"
 SCENARIOS_FILE = EVALS_DIR / "scenarios.json"
@@ -43,16 +41,14 @@ def build_system_prompt(components: dict) -> str:
     return "\n".join(lines)
 
 
-def run_single(client: anthropic.Anthropic, system_prompt: str,
-               scenario: dict, model: str) -> dict:
+def run_single(system_prompt: str, scenario: dict, model: str) -> dict:
     """Run a single triggering scenario and return the result."""
-    response = client.messages.create(
-        model=model,
-        max_tokens=50,
-        system=system_prompt,
-        messages=[{"role": "user", "content": scenario["prompt"]}],
+    response_text = claude_call(
+        scenario["prompt"], system_prompt=system_prompt, model=model,
     )
-    predicted = response.content[0].text.strip().lower()
+    # Take first line only, strip backticks and whitespace the model may add
+    first_line = response_text.strip().splitlines()[0] if response_text else ""
+    predicted = first_line.strip().strip("`").lower()
     expected = scenario["expected_component"].lower()
     passed = predicted == expected
 
@@ -70,7 +66,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run triggering evals")
     parser.add_argument("--component", help="Only test scenarios for this component")
     parser.add_argument("--type", help="Only test scenarios of this type")
-    parser.add_argument("--model", default="claude-sonnet-4-20250514",
+    parser.add_argument("--model", default=DEFAULT_CLASSIFICATION_MODEL,
                         help="Model to use for classification")
     args = parser.parse_args()
 
@@ -88,12 +84,11 @@ def main():
 
     components = load_component_descriptions()
     system_prompt = build_system_prompt(components)
-    client = anthropic.Anthropic()
 
     print(f"Running {len(scenarios)} triggering scenarios with {args.model}...")
     results = []
     for i, scenario in enumerate(scenarios):
-        result = run_single(client, system_prompt, scenario, args.model)
+        result = run_single(system_prompt, scenario, args.model)
         results.append(result)
         status = "PASS" if result["passed"] else "FAIL"
         print(f"  [{i+1}/{len(scenarios)}] {status} {result['id']}: "

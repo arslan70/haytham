@@ -19,7 +19,7 @@ The plan focuses on (1). Skill-creator evals are noted but deferred since Haytha
 **Approach:** A Python test script sends user prompts to the Claude API with Haytham's plugin loaded, then checks which command or agent was triggered. Each test case is a prompt + expected activation pair.
 
 **Files to create:**
-- `evals/triggering/scenarios.yaml` - test scenarios for all 9 agents + 11 commands
+- `evals/triggering/scenarios.json` - test scenarios for all 9 agents + 11 commands
 - `evals/triggering/run_triggering_evals.py` - sends prompts via Anthropic Messages API, checks tool_use responses for expected agent/command activation
 - `evals/triggering/results/` - .gitignored, stores JSON results per run
 
@@ -58,13 +58,13 @@ python3 evals/triggering/run_triggering_evals.py --component validate  # single 
 | `review-consistency` | 10 | cross-phase (deterministic where possible) |
 | `review-actionability` | 8 | capabilities, architecture, openspec |
 
-Note: `review-depth` criteria 2 (Competitor Evidence) and 4 (Sentiment and Demand Signals) primarily target `competitor-research.md` with fallback to `market-research.md`. The `competitor-research.yaml` rubric must encode this fallback.
+Note: `review-depth` criteria 2 (Competitor Evidence) and 4 (Sentiment and Demand Signals) primarily target `competitor-research.md` with fallback to `market-research.md`. The `competitor-research.json` rubric must encode this fallback.
 
 **ux-review (deferred):** The `ux-review` command evaluates runtime UX (roadmap shown, pre/post-agent framing, soft checkpoints) from a conversation transcript, not from session files. Automating it requires capturing or simulating a full interactive run and extracting the user-facing messages. This is deferred to Phase 3, where the e2e pipeline runner can capture transcripts and grade them against `ux-review` criteria.
 
 **Files to create:**
-- `evals/quality/reference_ideas.yaml` - 4 test ideas (web app, CLI tool, API service, marketplace per CLAUDE.md requirement)
-- `evals/quality/grading_rubrics/` - one YAML per agent output, criteria extracted from review commands
+- `evals/quality/reference_ideas.json` - 4 test ideas (web app, CLI tool, API service, marketplace per CLAUDE.md requirement)
+- `evals/quality/grading_rubrics/` - one JSON per agent output, criteria extracted from review commands
 - `evals/quality/run_quality_evals.py` - orchestrator that loads rubrics, runs grading calls via Anthropic Messages API, writes results
 - `evals/quality/results/` - .gitignored, stores JSON results per run
 
@@ -103,7 +103,7 @@ python3 evals/quality/run_quality_evals.py --all  # all 4 ideas
 
 The pipeline has interactive gates (founder review at phase boundaries). For automated runs:
 
-1. **Fixture file per idea:** `evals/e2e/gate_fixtures/web-app.yaml` contains pre-canned responses for each gate (e.g., research brief approval: "looks good", MVP scope review: "looks good"). Fixtures simulate a founder who approves without changes, testing the happy path.
+1. **Fixture file per idea:** `evals/e2e/gate_fixtures/web-app.json` contains pre-canned responses for each gate (e.g., research brief approval: "looks good", MVP scope review: "looks good"). Fixtures simulate a founder who approves without changes, testing the happy path.
 2. **Environment flag:** `run_e2e_eval.py` sets `HAYTHAM_EVAL_MODE=true`. Command files check this flag and read gate responses from the fixture file instead of prompting.
 3. **Limitation acknowledged:** Pre-canned gates don't test the "founder requests changes" path. That remains a manual test scenario. The automated run validates that the pipeline produces consistent, quality output when gates are approved.
 
@@ -143,21 +143,21 @@ evals/
   README.md
 
   triggering/                        # Phase 1
-    scenarios.yaml
+    scenarios.json
     run_triggering_evals.py
     results/                         # .gitignored
 
   quality/                           # Phase 2
-    reference_ideas.yaml
+    reference_ideas.json
     grading_rubrics/
-      idea-analysis.yaml
-      competitor-research.yaml       # includes market-research fallback
-      market-research.yaml
-      validation-report.yaml
-      capabilities.yaml
-      architecture.yaml
-      openspec.yaml
-      cross-phase.yaml
+      idea-analysis.json
+      competitor-research.json       # includes market-research fallback
+      market-research.json
+      validation-report.json
+      capabilities.json
+      architecture.json
+      openspec.json
+      cross-phase.json
     run_quality_evals.py
     results/                         # .gitignored
 
@@ -166,10 +166,10 @@ evals/
     run_e2e_eval.py
     ux_grader.py
     gate_fixtures/
-      web-app.yaml
-      cli-tool.yaml
-      api-service.yaml
-      marketplace.yaml
+      web-app.json
+      cli-tool.json
+      api-service.json
+      marketplace.json
     golden_outputs/                  # populated after human review, tagged
       web-app/
       cli-tool/

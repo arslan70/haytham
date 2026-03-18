@@ -20,62 +20,58 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from shared import DEFAULT_GRADING_MODEL
+
 EVALS_DIR = Path(__file__).resolve().parent
 EVALS_ROOT = EVALS_DIR.parent
 RESULTS_DIR = EVALS_DIR / "results"
 
 
+def _run_subprocess(cmd: list[str], results_dir: Path,
+                    glob_pattern: str) -> dict:
+    """Run a subprocess and return parsed results from its output file.
+
+    If the subprocess fails or produces no output file, prints stderr
+    and returns an error dict.
+    """
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if results_dir.exists():
+        files = sorted(results_dir.glob(glob_pattern))
+        if files:
+            return json.loads(files[-1].read_text())
+
+    if result.stderr:
+        print(f"  Subprocess error: {result.stderr.strip()}", file=sys.stderr)
+    return {"error": result.stderr, "returncode": result.returncode}
+
+
 def run_consistency_checks(session_dir: str, llm: bool = False,
-                           model: str = "claude-opus-4-20250514") -> dict:
+                           model: str = DEFAULT_GRADING_MODEL) -> dict:
     """Run consistency checks and return parsed results."""
     cmd = [sys.executable, str(EVALS_DIR / "consistency_checks.py"),
            "--session-dir", session_dir]
     if llm:
         cmd.extend(["--llm", "--model", model])
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    # Find the most recent results file
-    results_dir = EVALS_DIR / "results"
-    if results_dir.exists():
-        files = sorted(results_dir.glob("consistency_*.json"))
-        if files:
-            return json.loads(files[-1].read_text())
-
-    return {"error": result.stderr, "returncode": result.returncode}
+    return _run_subprocess(cmd, EVALS_DIR / "results", "consistency_*.json")
 
 
-def run_quality_evals(session_dir: str, model: str = "claude-opus-4-20250514") -> dict:
+def run_quality_evals(session_dir: str,
+                      model: str = DEFAULT_GRADING_MODEL) -> dict:
     """Run quality evals and return parsed results."""
     cmd = [sys.executable, str(EVALS_ROOT / "quality" / "run_quality_evals.py"),
            "--session-dir", session_dir, "--model", model]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    results_dir = EVALS_ROOT / "quality" / "results"
-    if results_dir.exists():
-        files = sorted(results_dir.glob("quality_*.json"))
-        if files:
-            return json.loads(files[-1].read_text())
-
-    return {"error": result.stderr, "returncode": result.returncode}
+    return _run_subprocess(cmd, EVALS_ROOT / "quality" / "results",
+                           "quality_*.json")
 
 
 def run_ux_grading(transcript_path: str,
-                   model: str = "claude-opus-4-20250514") -> dict:
+                   model: str = DEFAULT_GRADING_MODEL) -> dict:
     """Run UX grading and return parsed results."""
     cmd = [sys.executable, str(EVALS_DIR / "ux_grader.py"),
            "--transcript", transcript_path, "--model", model]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    results_dir = EVALS_DIR / "results"
-    if results_dir.exists():
-        files = sorted(results_dir.glob("ux_*.json"))
-        if files:
-            return json.loads(files[-1].read_text())
-
-    return {"error": result.stderr, "returncode": result.returncode}
+    return _run_subprocess(cmd, EVALS_DIR / "results", "ux_*.json")
 
 
 def main():
@@ -86,7 +82,7 @@ def main():
                         help="Path to transcript file for UX grading")
     parser.add_argument("--full", action="store_true",
                         help="Run all evals including LLM-graded checks")
-    parser.add_argument("--model", default="claude-opus-4-20250514",
+    parser.add_argument("--model", default=DEFAULT_GRADING_MODEL,
                         help="Model for LLM-based grading")
     args = parser.parse_args()
 

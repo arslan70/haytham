@@ -16,6 +16,9 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from shared import DEFAULT_GRADING_MODEL, claude_call, extract_json
+
 EVALS_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = EVALS_DIR / "results"
 
@@ -252,7 +255,7 @@ def check_10_cross_reference_integrity(session_dir: Path) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _llm_grade(client, model: str, check_num: int, name: str,
+def _llm_grade(model: str, check_num: int, name: str,
                prompt: str, anchors: dict) -> dict:
     """Run an LLM-graded consistency check."""
     system = (
@@ -268,18 +271,13 @@ def _llm_grade(client, model: str, check_num: int, name: str,
         f"- PARTIAL: {anchors['PARTIAL']}\n"
         f"- FAIL: {anchors['FAIL']}\n"
     )
-    response = client.messages.create(
-        model=model, max_tokens=500, system=system,
-        messages=[{"role": "user", "content": user}],
-    )
-    text = response.content[0].text.strip()
+    text = claude_call(user, system_prompt=system, model=model)
     try:
         result = json.loads(text)
     except json.JSONDecodeError:
-        match = re.search(r'\{.*\}', text, re.DOTALL)
-        result = json.loads(match.group()) if match else {
-            "grade": "ERROR", "evidence": text, "reasoning": "Parse error"
-        }
+        result = extract_json(text)
+        if result is None:
+            result = {"grade": "ERROR", "evidence": text, "reasoning": "Parse error"}
     return {
         "check": check_num, "name": name,
         "result": result.get("grade", "ERROR"),
@@ -288,7 +286,7 @@ def _llm_grade(client, model: str, check_num: int, name: str,
     }
 
 
-def check_1_concept_anchor_preservation(session_dir: Path, client, model: str) -> dict:
+def check_1_concept_anchor_preservation(session_dir: Path, model: str) -> dict:
     """Check 1: Concept anchor invariants appear in validation report."""
     anchor = load_json(session_dir / "phase-1-why" / "concept-anchor.json")
     report = load_text(session_dir / "phase-1-why" / "validation-report.md")
@@ -304,14 +302,14 @@ def check_1_concept_anchor_preservation(session_dir: Path, client, model: str) -
         f"The validation report says:\n{report[:3000]}\n\n"
         f"Check that the invariants and identity values appear (by meaning, not exact wording) in the report."
     )
-    return _llm_grade(client, model, 1, "Concept Anchor Preservation", prompt, {
+    return _llm_grade(model, 1, "Concept Anchor Preservation", prompt, {
         "PASS": "All invariants from concept anchor are reflected in the report",
         "PARTIAL": "Some invariants present, others not mentioned",
         "FAIL": "Report contradicts an invariant, or invariants are entirely absent",
     })
 
 
-def check_2_recommendation_evidence(session_dir: Path, client, model: str) -> dict:
+def check_2_recommendation_evidence(session_dir: Path, model: str) -> dict:
     """Check 2: Evidence in report supports the GO/PIVOT/NO-GO recommendation."""
     report_json = load_json(session_dir / "phase-1-why" / "validation-report.json")
     report_md = load_text(session_dir / "phase-1-why" / "validation-report.md")
@@ -325,14 +323,14 @@ def check_2_recommendation_evidence(session_dir: Path, client, model: str) -> di
         f"The validation report evidence:\n{report_md[:3000]}\n\n"
         f"Does the evidence support this recommendation?"
     )
-    return _llm_grade(client, model, 2, "Recommendation-Evidence Alignment", prompt, {
+    return _llm_grade(model, 2, "Recommendation-Evidence Alignment", prompt, {
         "PASS": "Evidence clearly supports the stated recommendation",
         "PARTIAL": "Evidence is mixed but recommendation is plausible",
         "FAIL": "Evidence contradicts the recommendation",
     })
 
 
-def check_3_analysis_to_report_continuity(session_dir: Path, client, model: str) -> dict:
+def check_3_analysis_to_report_continuity(session_dir: Path, model: str) -> dict:
     """Check 3: Idea analysis and validation report describe the same concept."""
     analysis = load_text(session_dir / "phase-1-why" / "idea-analysis.md")
     report = load_text(session_dir / "phase-1-why" / "validation-report.md")
@@ -345,14 +343,14 @@ def check_3_analysis_to_report_continuity(session_dir: Path, client, model: str)
         f"Validation report describes:\n{report[:2000]}\n\n"
         f"Are they describing the same concept, target user, and problem?"
     )
-    return _llm_grade(client, model, 3, "Idea Analysis to Report Continuity", prompt, {
+    return _llm_grade(model, 3, "Idea Analysis to Report Continuity", prompt, {
         "PASS": "Same concept, same target user, same problem",
         "PARTIAL": "Same concept but target user or problem has shifted without explanation",
         "FAIL": "Report describes a different concept than what idea analysis produced",
     })
 
 
-def check_4_scope_traces_to_validation(session_dir: Path, client, model: str) -> dict:
+def check_4_scope_traces_to_validation(session_dir: Path, model: str) -> dict:
     """Check 4: Scope items align with validation recommendation."""
     report = load_text(session_dir / "phase-1-why" / "validation-report.md")
     scope = load_text(session_dir / "phase-2-what" / "mvp-scope.md")
@@ -365,14 +363,14 @@ def check_4_scope_traces_to_validation(session_dir: Path, client, model: str) ->
         f"MVP scope:\n{scope[:2000]}\n\n"
         f"Do the IN-scope items align with what the validation recommended focusing on?"
     )
-    return _llm_grade(client, model, 4, "Scope Traces to Validation", prompt, {
+    return _llm_grade(model, 4, "Scope Traces to Validation", prompt, {
         "PASS": "Scope items align with validation findings and recommendation",
         "PARTIAL": "Mostly aligned but some scope items have no connection to validation findings",
         "FAIL": "Scope includes items the validation cautioned against, or excludes critical items",
     })
 
 
-def check_6_system_traits_agreement(session_dir: Path, client, model: str) -> dict:
+def check_6_system_traits_agreement(session_dir: Path, model: str) -> dict:
     """Check 6: System traits consistent with archetype from concept anchor."""
     anchor = load_json(session_dir / "phase-1-why" / "concept-anchor.json")
     traits = load_json(session_dir / "phase-2-what" / "system-traits.json")
@@ -386,7 +384,7 @@ def check_6_system_traits_agreement(session_dir: Path, client, model: str) -> di
         f"System traits: {json.dumps(traits, indent=2)}\n\n"
         f"Are the traits consistent with the archetype and the idea's invariants?"
     )
-    return _llm_grade(client, model, 6, "System Traits Agreement", prompt, {
+    return _llm_grade(model, 6, "System Traits Agreement", prompt, {
         "PASS": "Traits align with archetype and MVP scope",
         "PARTIAL": "Some traits are generic and not clearly derived from the specific idea",
         "FAIL": "Traits contradict the archetype or describe a different kind of system",
@@ -398,8 +396,8 @@ def main():
     parser.add_argument("--session-dir", required=True,
                         help="Path to .haytham/session/ directory")
     parser.add_argument("--llm", action="store_true",
-                        help="Also run LLM-graded checks (requires ANTHROPIC_API_KEY)")
-    parser.add_argument("--model", default="claude-opus-4-20250514",
+                        help="Also run LLM-graded checks (requires claude CLI)")
+    parser.add_argument("--model", default=DEFAULT_GRADING_MODEL,
                         help="Model for LLM checks")
     args = parser.parse_args()
 
@@ -428,8 +426,6 @@ def main():
 
     # LLM-graded checks (optional)
     if args.llm:
-        import anthropic
-        client = anthropic.Anthropic()
         print("\nRunning LLM-graded consistency checks...")
         llm_checks = [
             (check_1_concept_anchor_preservation, 1),
@@ -439,7 +435,7 @@ def main():
             (check_6_system_traits_agreement, 6),
         ]
         for check_fn, _ in llm_checks:
-            result = check_fn(session_dir, client, args.model)
+            result = check_fn(session_dir, args.model)
             results.append(result)
             print(f"  [{result['result']:7s}] Check {result['check']}: {result['name']}")
             if result["result"] in ("PARTIAL", "FAIL"):

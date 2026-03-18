@@ -23,4 +23,10 @@ jobs:
         run: pytest tests/test_plugin_sanity.py -v
 
       - name: Run eval Python syntax checks
-        run: python3 -m py_compile evals/shared.py && python3 -m py_compile evals/triggering/run_triggering_evals.py && python3 -m py_compile evals/quality/run_quality_evals.py && python3 -m py_compile evals/e2e/consistency_checks.py && python3 -m py_compile evals/e2e/run_e2e_eval.py && python3 -m py_compile evals/e2e/ux_grader.py
+        run: |
+          python3 -m py_compile evals/shared.py
+          python3 -m py_compile evals/triggering/run_triggering_evals.py
+          python3 -m py_compile evals/quality/run_quality_evals.py
+          python3 -m py_compile evals/e2e/consistency_checks.py
+          python3 -m py_compile evals/e2e/run_e2e_eval.py
+          python3 -m py_compile evals/e2e/ux_grader.py

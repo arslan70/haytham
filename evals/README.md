@@ -1,17 +1,16 @@
 # Haytham Evaluation Framework
 
-Automated quality evaluation for Haytham pipeline output. Three phases, zero third-party dependencies beyond the Anthropic SDK.
+Automated quality evaluation for Haytham pipeline output. Three phases, zero third-party dependencies. Uses the `claude` CLI for all LLM calls (piggybacks on your Claude Code subscription).
 
-## Setup
+## Prerequisites
 
-```bash
-pip install -r evals/requirements.txt
-export ANTHROPIC_API_KEY=your-key-here
-```
+The `claude` CLI must be installed and authenticated. If you're running Claude Code, you already have it.
 
 ## Phase 1: Triggering Evals
 
-Tests whether the model correctly identifies which component handles a user prompt. 100 scenarios across 20 components with 5 types each (direct, paraphrased, edge_case, negative, semantic).
+Tests whether a model correctly classifies which component should handle a given user prompt. 100 scenarios across 20 components with 5 types each (direct, paraphrased, edge_case, negative, semantic).
+
+Note: This tests classification accuracy using the Messages API with component descriptions as context, not actual plugin activation. It validates "would a model route this correctly?" rather than "does the plugin actually fire?"
 
 ```bash
 # Run all scenarios
@@ -24,7 +23,7 @@ python3 evals/triggering/run_triggering_evals.py --component validate
 python3 evals/triggering/run_triggering_evals.py --type semantic
 ```
 
-Pass threshold: 85%. Costs ~$0.10 per full run (sonnet).
+Pass threshold: 85%. Uses sonnet for classification.
 
 ## Phase 2: Quality Evals
 
@@ -44,7 +43,7 @@ python3 evals/quality/run_quality_evals.py --session-dir .haytham/session/ --com
 python3 evals/quality/run_quality_evals.py --session-dir .haytham/session/ --update-baseline
 ```
 
-Costs ~$1-2 per full run (opus grading 22 criteria).
+Uses opus as grader.
 
 ### Rubric Files
 
@@ -123,6 +122,10 @@ Compare future runs against the baseline:
 python3 evals/quality/run_quality_evals.py --session-dir .haytham/session/ --compare-baseline evals/baselines/baseline_YYYYMMDD.json
 ```
 
+## Gate Fixtures
+
+`evals/e2e/gate_fixtures/` contains pre-canned gate responses for each reference idea (used for future automated pipeline runs). These are scaffolding for when `run_e2e_eval.py` gains live pipeline execution support. Currently, the e2e runner only grades existing session output.
+
 ## CI Integration
 
-The CI workflow runs deterministic consistency checks on every PR (free, no API key needed). API-dependent evals run manually or via a separate workflow with `ANTHROPIC_API_KEY`.
+The CI workflow runs Python syntax checks on all eval files on every PR. LLM-dependent evals require an authenticated `claude` CLI session and are run manually.

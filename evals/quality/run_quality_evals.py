@@ -17,7 +17,8 @@ import sys
 import time
 from pathlib import Path
 
-import anthropic
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from shared import DEFAULT_GRADING_MODEL, claude_call, extract_json
 
 EVALS_DIR = Path(__file__).resolve().parent
 RUBRICS_DIR = EVALS_DIR / "grading_rubrics"
@@ -57,8 +58,8 @@ def load_session_files_for_rubric(session_dir: Path, rubric: dict) -> dict:
     return files
 
 
-def grade_criterion(client: anthropic.Anthropic, criterion: dict,
-                    session_files: dict, model: str) -> dict:
+def grade_criterion(criterion: dict, session_files: dict,
+                    model: str) -> dict:
     """Grade a single criterion against session files."""
     # Build context from available files
     file_context = []
@@ -93,23 +94,13 @@ def grade_criterion(client: anthropic.Anthropic, criterion: dict,
         + "\n".join(file_context)
     )
 
-    response = client.messages.create(
-        model=model,
-        max_tokens=500,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-
-    response_text = response.content[0].text.strip()
+    response_text = claude_call(user_prompt, system_prompt=system_prompt,
+                                model=model)
     try:
         result = json.loads(response_text)
     except json.JSONDecodeError:
-        # Try to extract JSON from response
-        import re
-        match = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if match:
-            result = json.loads(match.group())
-        else:
+        result = extract_json(response_text)
+        if result is None:
             result = {
                 "grade": "ERROR",
                 "evidence": "Failed to parse grader response",
@@ -164,7 +155,7 @@ def main():
     parser.add_argument("--session-dir", required=True,
                         help="Path to .haytham/session/ directory")
     parser.add_argument("--rubric", help="Only run a specific rubric (by name)")
-    parser.add_argument("--model", default="claude-opus-4-20250514",
+    parser.add_argument("--model", default=DEFAULT_GRADING_MODEL,
                         help="Model to use for grading")
     parser.add_argument("--compare-baseline",
                         help="Path to baseline JSON for regression comparison")
@@ -182,7 +173,6 @@ def main():
         p.stem for p in sorted(RUBRICS_DIR.glob("*.json"))
     ]
 
-    client = anthropic.Anthropic()
     all_results = []
     total_counts = {"PASS": 0, "PARTIAL": 0, "FAIL": 0, "SKIP": 0, "ERROR": 0}
 
@@ -207,7 +197,7 @@ def main():
         print(f"\n[GRADING] {rubric['name']} ({len(rubric['criteria'])} criteria)")
         criteria_results = []
         for criterion in rubric["criteria"]:
-            result = grade_criterion(client, criterion, session_files, args.model)
+            result = grade_criterion(criterion, session_files, args.model)
             criteria_results.append(result)
             grade = result["grade"]
             total_counts[grade] = total_counts.get(grade, 0) + 1
