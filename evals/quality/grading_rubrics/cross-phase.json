@@ -1,0 +1,33 @@
+{
+  "name": "Cross-Phase Quality",
+  "session_files": [
+    "phase-1-why/concept-anchor.json",
+    "phase-1-why/idea-analysis.md",
+    "phase-1-why/validation-report.md",
+    "phase-2-what/mvp-scope.md"
+  ],
+  "criteria": [
+    {
+      "id": "fidelity-1",
+      "name": "Anchor Accuracy",
+      "source_review": "review-fidelity",
+      "grading_prompt": "Compare the original idea (from project.yaml) with concept-anchor.json (the extracted invariants). Did the idea-analyst correctly identify what makes this idea THIS idea, or did it impose assumptions?",
+      "anchors": {
+        "PASS": "Invariants and identity match the founder's stated idea without adding or removing core elements",
+        "PARTIAL": "Mostly accurate but one invariant is an assumption not stated in the original idea",
+        "FAIL": "Anchor adds significant elements the founder didn't mention, or drops a core element they did mention"
+      }
+    },
+    {
+      "id": "fidelity-4",
+      "name": "Scope Fidelity",
+      "source_review": "review-fidelity",
+      "grading_prompt": "Does the MVP scope preserve the founder's core intent, or does it reshape the idea into something different 'for MVP purposes'?",
+      "anchors": {
+        "PASS": "The One Thing and IN-scope items are clearly derived from the founder's original idea",
+        "PARTIAL": "Scope is related but has shifted emphasis without acknowledging the trade-off",
+        "FAIL": "Scope describes a different product justified as 'MVP simplification'"
+      }
+    }
+  ]
+}

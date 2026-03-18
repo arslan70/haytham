@@ -1,0 +1,54 @@
+{
+  "name": "OpenSpec Quality",
+  "session_files": [
+    "phase-4-specs/openspec/config.yaml",
+    "phase-4-specs/openspec/project.md",
+    "phase-4-specs/openspec/specs/"
+  ],
+  "criteria": [
+    {
+      "id": "fidelity-7",
+      "name": "Specification Fidelity",
+      "source_review": "review-fidelity",
+      "grading_prompt": "Do the SHALL statements and Gherkin scenarios describe building the product the founder envisioned? Check that domain groupings reflect the founder's emphasis, SHALL statements preserve the idea's distinctive features, and config.yaml traits match the concept anchor.",
+      "anchors": {
+        "PASS": "Specs collectively describe the founder's product",
+        "PARTIAL": "Specs describe the product but domain emphasis has drifted from the original",
+        "FAIL": "Specs describe a generic product, or are so template-like they could apply to any similar project"
+      }
+    },
+    {
+      "id": "actionability-5",
+      "name": "SHALL Precision",
+      "source_review": "review-actionability",
+      "grading_prompt": "Do SHALL statements use bare infinitive verbs, are they specific (not vague 'manage content'), and are they individually testable?",
+      "anchors": {
+        "PASS": "All SHALL statements are specific, use bare infinitive verbs, and describe a single testable behavior",
+        "PARTIAL": "Most are specific, but some are vague categories rather than testable behaviors",
+        "FAIL": "Statements are generic or use third-person verb forms"
+      }
+    },
+    {
+      "id": "actionability-6",
+      "name": "Scenario Completeness",
+      "source_review": "review-actionability",
+      "grading_prompt": "Does every requirement have at least one happy-path and one error/edge-case scenario? Do scenarios use concrete values, not placeholders?",
+      "anchors": {
+        "PASS": "Every requirement has happy-path and error scenarios with concrete values",
+        "PARTIAL": "Some requirements missing error scenarios, or scenarios use placeholder values",
+        "FAIL": "Most requirements have only a single generic scenario"
+      }
+    },
+    {
+      "id": "actionability-8",
+      "name": "Agent Readability",
+      "source_review": "review-actionability",
+      "grading_prompt": "Can a coding agent pick up the openspec directory and start implementing without ambiguity? Does config.yaml provide enough context to bootstrap the project? Are spec files self-contained per domain?",
+      "anchors": {
+        "PASS": "A coding agent could start implementing from the spec alone",
+        "PARTIAL": "Some cross-domain dependencies are unclear or config is incomplete",
+        "FAIL": "Significant ambiguity that would require human clarification"
+      }
+    }
+  ]
+}

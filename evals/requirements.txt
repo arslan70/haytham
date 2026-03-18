@@ -1,0 +1,1 @@
+# No pip dependencies required. LLM calls use the claude CLI.

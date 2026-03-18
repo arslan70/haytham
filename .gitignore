@@ -21,3 +21,9 @@ site/
 
 # Git worktrees (machine-local)
 .worktrees/
+
+# Eval results (generated, not checked in)
+evals/triggering/results/
+evals/quality/results/
+evals/e2e/results/
+__pycache__/

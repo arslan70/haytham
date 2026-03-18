@@ -133,6 +133,8 @@ These apply to posts in `docs/blog/`. Write for a human taking a 5 minute coffee
 
 **Voice:** Write like you're explaining something to a colleague. Conversational, not academic. Use active voice. Say "we found" and "I've seen", not "it was observed that." Think out loud. Show the reasoning that led to the conclusion, not just the conclusion itself.
 
+**Tone:** This is an early-stage project with zero users. Write like someone sharing what they're learning, not someone lecturing from authority. Avoid declarative confidence ("The obvious answer is...", "This proves that...") when the project hasn't been validated by real usage yet. "I found" is better than "this shows." "It seems like" is better than "it's clear that." Don't perform certainty you haven't earned. The reader can tell when confidence outpaces evidence, and it costs credibility.
+
 **Framing:** Describe what the user experiences, not what the system contains. Features are for READMEs. Blog posts are for people.
 
 **Perspective:** Write about what the reader will learn, not what you did. The reader's question is always "why should I care?", not "what did you do?"

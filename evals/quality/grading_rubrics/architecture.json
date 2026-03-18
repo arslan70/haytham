@@ -1,0 +1,42 @@
+{
+  "name": "Architecture Quality",
+  "session_files": [
+    "phase-3-how/architecture-decisions.json",
+    "phase-3-how/build-buy.json"
+  ],
+  "criteria": [
+    {
+      "id": "fidelity-6",
+      "name": "Architecture Fidelity",
+      "source_review": "review-fidelity",
+      "grading_prompt": "Do architecture decisions serve the specific needs of this idea, or are they generic best practices?",
+      "anchors": {
+        "PASS": "Decisions reference specific capabilities and constraints from this idea",
+        "PARTIAL": "Some decisions are idea-specific, others are generic defaults",
+        "FAIL": "Architecture is a generic template with no connection to the specific idea"
+      }
+    },
+    {
+      "id": "actionability-4",
+      "name": "Architecture Specificity",
+      "source_review": "review-actionability",
+      "grading_prompt": "Are technology choices named (specific services, frameworks, libraries), or just categories?",
+      "anchors": {
+        "PASS": "Named technologies with rationale tied to specific capabilities (e.g., 'Supabase for auth because CAP-001 requires social login')",
+        "PARTIAL": "Named technologies but rationale is generic ('industry standard', 'popular choice')",
+        "FAIL": "Only categories named ('a database', 'an auth provider') with no specific technology selected"
+      }
+    },
+    {
+      "id": "actionability-7",
+      "name": "Architecture Completeness",
+      "source_review": "review-actionability",
+      "grading_prompt": "Does project.md cover all DEC-* decisions with rationale? Is the build/buy table complete? Are dependencies specific (named packages with versions)?",
+      "anchors": {
+        "PASS": "All decisions documented with rationale, dependencies are specific",
+        "PARTIAL": "Some decisions lack rationale or dependencies are vague",
+        "FAIL": "Major gaps in architecture documentation"
+      }
+    }
+  ]
+}
