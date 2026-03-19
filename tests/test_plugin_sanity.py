@@ -804,13 +804,16 @@ class TestMarketplaceJson:
                     f"Must be one of: {VALID_CATEGORIES}"
                 )
 
-    def test_version_in_marketplace_only(self):
+    def test_version_consistent(self):
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
         marketplace = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())
-        assert "version" not in plugin, (
-            "Version should be managed in marketplace.json only, not plugin.json. "
-            "See https://code.claude.com/docs/en/plugins-reference#version-management"
+        assert "version" in plugin, (
+            "plugin.json must have a version field"
         )
         assert "version" in marketplace["plugins"][0], (
             "marketplace.json plugins[0] must have a version field"
+        )
+        assert plugin["version"] == marketplace["plugins"][0]["version"], (
+            f"Version mismatch: plugin.json has '{plugin['version']}' "
+            f"but marketplace.json has '{marketplace['plugins'][0]['version']}'"
         )

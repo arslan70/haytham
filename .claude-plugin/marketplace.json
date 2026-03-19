@@ -14,7 +14,7 @@
       "description": "Validate startup ideas and generate implementation-ready specifications",
       "version": "0.3.11",
       "repository": "https://github.com/arslan70/haytham",
-      "license": "AGPL-3.0",
+      "license": "MIT",
       "keywords": [
         "startup",
         "validation",

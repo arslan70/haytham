@@ -1,6 +1,7 @@
 {
   "name": "haytham",
   "description": "Validate startup ideas and generate implementation-ready specifications",
+  "version": "0.3.11",
   "author": {
     "name": "Arslan Mehboob"
   },

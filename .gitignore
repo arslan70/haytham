@@ -22,6 +22,9 @@ site/
 # Git worktrees (machine-local)
 .worktrees/
 
+# GTM execution plan (private)
+docs/gtm-execution-plan.md
+
 # Eval results (generated, not checked in)
 evals/triggering/results/
 evals/quality/results/
