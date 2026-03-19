@@ -519,4 +519,9 @@ Command               Output Directory
 /haytham:plan      →  .haytham/session/phase-4-specs/openspec/
 ```
 
-Tell the user: "Your specification is complete. Ran 8 agents across 4 phases. All output files are in `.haytham/session/`. Run `/haytham:build` to set up your project for implementation with OpenSpec."
+Tell the user:
+
+> Your specification is complete. Ran 8 agents across 4 phases. All output files are in `.haytham/session/`. Run `/haytham:build` to set up your project for implementation with OpenSpec.
+>
+> **How did this go?** We're looking for honest feedback to make this better.
+> Share your experience: https://github.com/arslan70/haytham/discussions
