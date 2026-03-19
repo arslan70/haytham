@@ -1,6 +1,6 @@
 # Haytham
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **You have a startup idea. Before you spend months building it, Haytham tells you if it's worth building, then produces a specification any developer or coding agent can execute.**
 
@@ -132,4 +132,4 @@ Tried Haytham? We want to hear about it.
 
 ## License
 
-[GNU Affero General Public License v3.0](LICENSE)
+[MIT License](LICENSE)
