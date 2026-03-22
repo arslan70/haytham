@@ -2,9 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**You have a startup idea. Before you spend months building it, Haytham tells you if it's worth building, then produces a specification any developer or coding agent can execute.**
+**AI can build your app in minutes. Haytham builds your product for years.**
 
-Run one command inside Claude Code. Get market research, a GO/NO-GO verdict, MVP scope, architecture decisions, and an implementation-ready [OpenSpec](https://github.com/Fission-AI/OpenSpec).
+Lovable, Bolt, and v0 build apps. Haytham builds products: validated, specified, traceable, and evolvable. Run one command inside Claude Code. Get market research, a GO/NO-GO verdict, MVP scope, architecture decisions, an implementation-ready [OpenSpec](https://github.com/Fission-AI/OpenSpec), and a working system. Every requirement traces to a capability. Every capability traces to a validated need.
 
 <p align="center">
   <img src="docs/images/yes-machine-problem.png" alt="The Yes-Machine Problem: AI that builds without validating" width="500"/>

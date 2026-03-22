@@ -1,7 +1,7 @@
 {
   "name": "haytham",
-  "description": "Validate startup ideas and generate implementation-ready specifications",
-  "version": "0.3.11",
+  "description": "Lifecycle control plane for AI-built products — validate, specify, design, build, and evolve",
+  "version": "0.3.12",
   "author": {
     "name": "Arslan Mehboob"
   },

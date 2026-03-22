@@ -2,19 +2,21 @@
 
 ## Executive Summary
 
-Haytham is a specification-driven control plane for software systems.
+Haytham is a lifecycle control plane for AI-built products.
 
-It turns a business intent into a validated specification (traced capabilities, architecture decisions, OpenSpec requirements) and then orchestrates execution agents to build and maintain the result. The specification is the differentiator: it gives every downstream agent (a hosted coding agent, a cloud provider's service agent, an MCP-native tool) the context to act with purpose rather than guess.
+AI made building cheap. Every coding agent, app builder, and design tool optimizes for the same phase: implementation. None of them ask whether the idea is worth building, whether the scope is right, or whether the result can evolve. They build apps. Haytham builds products.
 
-The journey has three milestones:
+The difference: a product is validated, specified, traceable, and evolvable. An app is code that runs. A product is code that runs *for a reason*, with a reasoning graph that connects founder intent to production telemetry: concept anchor → capabilities → architecture decisions → specs → code → telemetry.
 
-| Milestone | Name | Input | Output | Status |
-|-----------|------|-------|--------|--------|
-| M1 | **Genesis** | A startup idea | A validated, implementation-ready specification | Delivered as Claude Code plugin |
-| M2 | **Evolution** | System + change request | Updated system with full traceability | PLANNED |
-| M3 | **Sentience** | Running system + telemetry | Continuous autonomous improvement | VISION |
+Haytham maintains this graph across the full product lifecycle. Three milestones increase autonomy over it:
 
-Each milestone builds on the last. Without Genesis, Evolution has nothing to evolve. Without Evolution, Sentience has nothing to observe.
+| Milestone | Name | Input | Output | Autonomy Level | Status |
+|-----------|------|-------|--------|----------------|--------|
+| M1 | **Genesis** | A startup idea | Working, validated MVP | Human approves all decisions | Delivered |
+| M2 | **Evolution** | System + change request | Targeted update with traceability | Human approves changes, system executes | PLANNED |
+| M3 | **Sentience** | Running system + telemetry | Autonomous improvement | System proposes and executes within policy | VISION |
+
+Each milestone builds on the last. Genesis builds the reasoning graph. Evolution navigates the graph to handle change. Sentience walks the graph autonomously to improve the product. Same graph, increasing autonomy.
 
 ---
 

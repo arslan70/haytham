@@ -2,11 +2,13 @@
 
 ## Constitution
 
-Haytham transforms startup ideas into self-improving autonomous systems via three milestones:
+Haytham is a lifecycle control plane for AI-built products. It maintains a reasoning graph from founder intent to production telemetry, making every decision traceable, every change targeted, and every improvement evidence-grounded. Delivered as a Claude Code plugin, it orchestrates specialist agents across the full product lifecycle: validate, specify, build, deploy, monitor, improve.
 
-1. **GENESIS** (CURRENT FOCUS): Idea to working MVP. Delivered as a Claude Code plugin.
-2. **EVOLUTION** (PLANNED): Existing MVP + change request to updated, validated system.
-3. **SENTIENCE** (VISION): Running MVP with telemetry to continuous autonomous improvement.
+The core asset is the reasoning graph: concept anchor → capabilities → architecture decisions → specs → code → telemetry. Three milestones increase autonomy over this graph:
+
+1. **GENESIS** (CURRENT FOCUS): Idea to working MVP. Builds the reasoning graph. Delivered as a Claude Code plugin.
+2. **EVOLUTION** (PLANNED): System + change request to targeted update. Navigates the graph to handle change without full rewrites.
+3. **SENTIENCE** (VISION): Running system + telemetry to autonomous improvement. Walks the graph to detect, propose, and execute improvements.
 
 ### Guiding Principles
 
@@ -26,7 +28,7 @@ Before starting work, ask: Does this advance the current milestone? Is it the mi
 
 ### Meta-System Design
 
-**Haytham is a factory that produces applications.** It must handle ANY valid startup idea (web app, CLI tool, API service, marketplace), not just specific examples. This means:
+**Haytham is a factory that produces and maintains products, not just applications.** It must handle ANY valid startup idea (web app, CLI tool, API service, marketplace), not just specific examples. This means:
 
 - **Generic prompts**: Enforce principles (traceability, consistency), not prescriptions (use Supabase, limit to 5 items). If a rule wouldn't apply to a CLI AND a web app AND an API, it's too specific.
 - **Test across input classes**: Web app, CLI tool, API service, marketplace. A fix that works for one but breaks another is not a fix.
@@ -35,6 +37,8 @@ Before starting work, ask: Does this advance the current milestone? Is it the mi
 - **Self-checking agents**: Validate output against input constraints.
 
 **Review test**: "Would this work for a CLI tool? An IoT system? A marketplace?" If no, find the generalization.
+
+**Lifecycle test**: "Does this design decision work for build AND deploy AND monitor AND improve?" If it only serves the build phase, it's too narrow. The reasoning graph must support the full lifecycle.
 
 ### System Integrity Traits
 
@@ -51,7 +55,9 @@ When evaluating or making changes, consider these traits critical to the system'
 
 ## Project Overview
 
-Haytham is a Claude Code plugin that validates startup ideas and generates MVP specifications. Eight specialist agents orchestrated through four phases via command and agent markdown files.
+Haytham is a lifecycle control plane for AI-built products, delivered as a Claude Code plugin. It orchestrates specialist agents across the full product lifecycle: validate the idea, specify the MVP, design the architecture, generate implementation specs, and build the system. The current implementation covers validate → specify → build. The roadmap extends to deploy → monitor → improve.
+
+Eight specialist agents across four phases, orchestrated via command and agent markdown files.
 
 ## Plugin Structure
 
@@ -124,6 +130,8 @@ Tests cover: frontmatter validation (agents + commands), script syntax, cross-re
 - Write in plain, human-friendly language. Avoid jargon and verbose AI-sounding prose.
 - Never use em dashes. Use commas, periods, or parentheses instead.
 - Avoid LLM writing patterns: "Not X, but Y" contrasts, theatrical reversals ("That's not magic. It's engineering."), parallel triplets used more than once, and tidy wrap-up sentences that restate what was just said. Just say what the thing is.
+- Don't assume the reader knows niche products, tools, or ecosystems. If you name-drop specific competitors or tools, provide enough context for a reader who has never heard of them. When the names aren't essential to the point, describe the category instead.
+- Match word count to impact. High-impact moments (the key insight, the surprising result) earn more words. Setup, transitions, and supporting details should be tight. If a paragraph has a lot of words but low impact, cut it. If a sentence carries the whole point, give it room to land.
 - Prefer diagrams (mermaid) over long explanatory paragraphs when showing architecture or flows.
 - When editing docs, keep it concise. If the user asks for simplification, go further than you think necessary.
 
