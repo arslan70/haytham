@@ -66,6 +66,18 @@ Reference data for grounding financial projections. Select the archetype that ma
 | Time to first value | <5 minutes | Critical for developer adoption; >15 min is a barrier |
 | Community-to-revenue lag | 6-18 months | Stars/users precede revenue significantly |
 
+## Open Source / Community
+
+| Metric | Benchmark Range | Notes |
+|--------|----------------|-------|
+| GitHub stars growth | 50-300/month (early traction) | Compound signal with downloads for real adoption |
+| Contributor retention (6mo) | 5-15% of first-time contributors | Most contributors are one-time; 15%+ retention is strong |
+| Time to first contribution | <30 minutes setup | Higher friction = lower contributor pipeline |
+| npm/PyPI weekly downloads growth | 20-50% MoM (early) | Package manager downloads are stronger signal than stars |
+| Issue response time | <48 hours | Slower response signals abandoned/understaffed project |
+| Fork-to-star ratio | 0.1-0.3 | Higher ratio suggests utility; lower suggests novelty |
+| Community-to-revenue lag | 12-24 months | Longer than developer tools due to OSS expectations |
+
 ## Internal Tool / Productivity
 
 | Metric | Benchmark Range | Notes |

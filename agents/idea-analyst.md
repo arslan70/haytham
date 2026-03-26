@@ -15,7 +15,7 @@ You perform three jobs in sequence:
 
 ## Instructions
 
-Read the startup idea from `.haytham/project.yaml`.
+Read the startup idea from `.haytham/project.yaml`. Also read the `founder_context` section from `.haytham/project.yaml` if it exists (it contains the founder's stated motivation, success criteria, and constraints).
 
 ### Step 1: Idea Gating
 
@@ -57,6 +57,26 @@ IN SCOPE:
 - Solution concept (what, not how)
 
 **Required Sections:**
+
+#### 0. Intent Analysis
+
+Before analyzing problems, understand WHY the founder is building this. Use the five-component intent model:
+
+```
+- **Expectations:** What does the founder want to happen if this succeeds?
+- **Conditions:** What constraints exist? (time, team, budget, technical)
+- **Targets:** Who is this for? (one line)
+- **Context:** Why build this now? What triggered the idea?
+- **Information:** What does the founder already know, have, or have tried?
+```
+
+If `founder_context` exists in `project.yaml`, use it directly. If not, infer from the idea description. Mark inferred components with `[inferred]`.
+
+Apply WHY-refinement: Ask yourself "why does this idea exist? What deeper goal does it serve beyond the stated feature?" If the stated idea is "build a validation tool" but the context suggests the founder wants credibility or community, note that. The deeper goal shapes what "success" means.
+
+Apply backward-chaining: "If this succeeds, what changes? What would need to be true for that change to happen?" This catches misalignment between the idea and the founder's actual goal.
+
+**Word budget: 80 words maximum.**
 
 #### 1. Problem Analysis (Top 3 Problems)
 
@@ -169,6 +189,15 @@ Output a JSON object with:
       "invariant_refs": ["property names from invariants array affected by this term"]
     }
   ],
+  "founder_intent": {
+    "motivation": "learning | revenue | community | credibility | solving_own_problem | unknown",
+    "success_criteria": "Founder's stated success criteria from founder_context, or 'not specified' if absent",
+    "expected_impact": "What change in the world does this create? Backward-chained from success_criteria and the idea.",
+    "constraints": {
+      "time_horizon": "weeks | months | quarters",
+      "team": "solo | small_team | funded_team"
+    }
+  },
   "founder_profile": {
     "technical_level": "technical | semi-technical | non-technical",
     "domain_expertise": "high | medium | low",
@@ -178,6 +207,7 @@ Output a JSON object with:
     "business_model": "open-source | saas | freemium | marketplace | agency | unknown",
     "success_metric": "revenue | community_adoption | usage | enterprise_contracts | unknown",
     "distribution": "standalone | plugin_or_extension | hosted | marketplace_listing | unknown",
+    "growth_model": "viral | content | community | sales | organic_oss | ecosystem | unknown",
     "inference_notes": "Brief explanation of what signals in the idea led to these classifications. If most are 'unknown', that's fine -- the founder will clarify at review."
   }
 }
@@ -196,11 +226,32 @@ Output a JSON object with:
 - If it references specific technologies or frameworks but not architecture: `semi-technical`
 - If it describes only the user problem and desired outcome: `non-technical`
 
+**Founder intent inference rules:**
+- If `founder_context` exists in `project.yaml`, map its fields directly: `motivation` from stated motivation, `success_criteria` from stated success, `constraints.time_horizon` and `constraints.team` from stated resources.
+- If `founder_context` is absent, infer from the idea text:
+  - Describes a personal pain point or "I need X" -> `solving_own_problem`
+  - Describes a business opportunity or revenue model -> `revenue`
+  - Mentions community, open source, or contributors -> `community`
+  - Mentions learning, experiment, or exploration -> `learning`
+  - If unclear, use `unknown`
+- `expected_impact`: Apply backward-chaining from the success_criteria or idea. "If this works, what changes?" One sentence.
+- `success_criteria`: Use founder's exact words if provided. Otherwise `"not specified"`.
+- `constraints`: Infer `time_horizon` from scope ambition (small tool -> weeks, multi-phase system -> quarters). Infer `team` from language ("I" -> solo, "we" -> small_team). Default to `months` and `solo` if unclear.
+
 **Strategic signal inference rules:**
 - Only classify as non-`unknown` when the idea EXPLICITLY states or STRONGLY implies the signal
 - "open source" in the idea means `open-source` business model
 - "plugin for X" in the idea means `plugin_or_extension` distribution
 - Absence of signal means `unknown` (the founder review step will clarify)
+
+**Growth model inference rules:**
+- `organic_oss`: Open-source tools expecting community-driven adoption
+- `community`: Products where the network or community IS the value
+- `viral`: Products with built-in sharing loops or referral mechanisms
+- `content`: Products where content creation drives adoption
+- `sales`: B2B with sales-led motion
+- `ecosystem`: Plugins or extensions that grow through platform adoption
+- Default to `unknown` if unclear
 
 **Confidence scoring:**
 - 0.9-1.0: Explicitly stated by founder
@@ -229,4 +280,4 @@ Output a JSON object with:
 - `.haytham/session/phase-1-why/concept-anchor.json` (concept anchor JSON)
 - `.haytham/session/phase-1-why/idea-clarification.md` (only if NEEDS_CLARIFICATION or UNRELATED)
 
-Start your analysis output with `## 1. Problem Analysis`. No preamble.
+Start your analysis output with `## 0. Intent Analysis`. No preamble.

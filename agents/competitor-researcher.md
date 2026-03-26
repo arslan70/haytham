@@ -11,7 +11,7 @@ You research the competitive landscape for a startup idea. You run independently
 
 ## Instructions
 
-Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and the concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`.
+Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and the concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. From the concept anchor, extract `strategic_signals` (including `growth_model`), `founder_intent` (if present), and the competitive framing directives below.
 
 Derive JTBD context from the idea analysis's Problem Analysis section. Use the problem statements and target segments to frame your competitor search around what the customer is trying to accomplish, not just the product category.
 
@@ -23,6 +23,8 @@ Read `strategic_signals` from the concept anchor (`concept-anchor.json`). Use `d
 
 - If `distribution: plugin_or_extension`: The product may not compete head-to-head with incumbents. Research the ECOSYSTEM it plugs into, not just direct competitors. Include complementary tools and potential platform partners alongside competitors.
 - If `business_model: open-source`: Include open-source alternatives and community-driven tools alongside commercial competitors. Note adoption metrics (GitHub stars, contributors) not just revenue/funding.
+- If `business_model: open-source` or `growth_model: organic_oss` or `community`: For each competitor, include community health metrics when available (GitHub stars, contributor count, last commit date, release cadence). In section 3 (Competitive Positioning), emphasize adoption patterns and community health over funding and revenue.
+- If `founder_intent.motivation` is `community` or `learning`: In section 5 (Gaps & Challenges), emphasize adoption friction and onboarding gaps over monetization gaps.
 
 **Determine competitive stance from your research.** Do not assume a stance before researching. After completing your competitor analysis, classify the competitive stance in section 6 as one of:
 - `direct_competitor`: The idea competes head-to-head with existing solutions
@@ -77,6 +79,7 @@ For each REAL competitor:
   - Downloads/Users: [number] [evidence tag] OR "not found after search"
   - Funding: $[amount] [evidence tag] OR "not found after search"
   - Rating: [stars] from [number] reviews [evidence tag] OR "not found after search"
+- **Community (if OSS):** [GitHub stars] stars, [contributors] contributors, last release [date] [evidence tag] (omit this line for non-OSS competitors)
 - **Target segment:** Who uses this?
 - **JTBD Match:** [Direct | Adjacent | Unrelated]
 ```

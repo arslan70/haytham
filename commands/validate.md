@@ -50,20 +50,49 @@ Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketpl
 
 > **Phase 1: Idea Validation** (haytham vVERSION)
 >
-> This will run 6 steps:
+> This will run 7 steps:
+> 0. Founder Context — 3 quick questions about your goals (~30 sec) ← YOU ANSWER
 > 1. Idea Analysis — expand and classify your idea (~1 min)
 > 2. Market Research — web search for competitors, sizing, sentiment (~3 min)
 > 3. Research Brief — neutral summary of findings (~1 min)
 > 4. Founder Review — you review and correct ← YOU DECIDE HERE
-> 5. Validation Report — GO/PIVOT/NO-GO analysis (~1 min)
+> 5. Validation Report — GO/PIVOT/NO-GO with strategic analysis (~1 min)
 > 6. Gate Decision — you approve or reject
 >
-> Step 2 is the heaviest step (runs web searches). Estimated total: ~7 minutes.
+> Step 2 is the heaviest step (runs web searches). Estimated total: ~8 minutes.
 
 If resuming (START_STEP > 1), show which steps will be skipped:
 > Skipping steps 1–[START_STEP - 1] (already completed). Starting from step [START_STEP].
 
 **Skip to the section for START_STEP.** Do not run steps before START_STEP.
+
+## Step 0: Founder Context
+
+**Skip this step if resuming from step > 0.** Also skip if `.haytham/project.yaml` already contains a `founder_context` section.
+
+Ask the founder:
+
+> Before we dive in, three quick questions so the analysis matches your goals:
+>
+> 1. **Why are you building this?** (learning / revenue / community growth / credibility / solving your own problem)
+> 2. **What does success look like in 3 months?** (one sentence)
+> 3. **What are you working with?** (solo + bootstrapped / solo + some funding / small team)
+>
+> Quick answers are fine. Say "skip" to let us infer from the idea.
+
+If the user says "skip" or provides no answer, proceed to Step 1 without writing `founder_context`. The idea-analyst will infer what it can.
+
+If the user answers, write the `founder_context` section to `.haytham/project.yaml` using the Edit tool:
+
+```yaml
+founder_context:
+  motivation: [mapped to: learning | revenue | community | credibility | solving_own_problem]
+  success_criteria: "[founder's free text answer]"
+  time_horizon: [inferred: weeks | months | quarters]
+  team: [mapped to: solo | small_team | funded_team]
+```
+
+Map the user's natural language answers to the enum values. If the time horizon is ambiguous, infer from the success criteria (e.g., "launch to 100 users" suggests months; "learn React" suggests weeks).
 
 ## Step 1: Idea Analysis
 
@@ -93,11 +122,18 @@ After the agent completes, read `.haytham/session/phase-1-why/idea-analysis.md` 
 > - **UVP:** [The unique value proposition as written]
 > - **Concept health:** Pain Clarity: [X], Trigger Strength: [X], WTP Signal: [X]
 
-Then read `strategic_signals` and `founder_profile` from `concept-anchor.json` and present them:
+Then read `founder_intent`, `strategic_signals`, and `founder_profile` from `concept-anchor.json` and present them:
+
+> **Founder intent** (from your answers + inference):
+> - **Motivation:** [motivation]
+> - **Success in 3 months:** [success_criteria]
+> - **Expected impact:** [expected_impact]
+> - **Team/resources:** [team] ([time_horizon] horizon)
 
 > **Strategic assumptions** (inferred from your idea, correct anything wrong):
 > - **Founder profile:** [technical_level] ([inference_basis])
 > - **Business model:** [business_model]
+> - **Growth model:** [growth_model]
 > - **Success metric:** [success_metric]
 > - **Distribution:** [distribution]
 
@@ -180,6 +216,7 @@ Ask:
 > - **Market size** — in the right ballpark?
 > - **Competitive positioning** — are you a direct competitor, complementary, or serving a different segment?
 > - **Business model** — does the assumption match your intent?
+> - **Goals & motivation** — does the analysis match what you're trying to achieve?
 >
 > **What next?**
 > 1. Looks good, continue to the validation report
@@ -206,14 +243,21 @@ Update state: `last_completed_step: 4`.
 
 Tell the user:
 > **Step 5/6: Validation Report**
-> Weighing the evidence to produce a GO, PIVOT, or NO-GO recommendation.
+> Weighing the evidence to produce a GO, PIVOT, or NO-GO recommendation with positioning analysis and strategic options.
 
 Launch a **report-synthesizer** agent with this task:
 > Read all Phase 1 files (idea-analysis.md, market-research.md, competitor-research.md, concept-anchor.json, founder-corrections.json if it exists, project.yaml) and industry benchmarks from `${CLAUDE_PLUGIN_ROOT}/references/benchmarks.md`. Produce the validation report. Write to `.haytham/session/phase-1-why/validation-report.md` and `.haytham/session/phase-1-why/validation-report.json`.
 
 After the agent completes, read `.haytham/session/phase-1-why/validation-report.md` and output its FULL contents inline in your response. The user must be able to read the entire report without expanding anything or opening a file. Do NOT summarize or abbreviate — print every line of the report.
 
-After the full report, tell the user:
+After the full report, read `.haytham/session/phase-1-why/validation-report.json` and present key takeaways:
+
+> **Key takeaways:**
+> - **Verdict:** [recommendation] — **Recommended path:** [recommended_path]
+> - **Position:** [positioning.territory] (defensibility: [positioning.defensibility], founder-market fit: [positioning.founder_market_fit])
+> - **Critical assumptions:** [count] load-bearing assumptions ([X] supported, [Y] belief, [Z] untested)
+> - **First action:** [executive_summary.closing_remark]
+>
 > Full report saved to `.haytham/session/phase-1-why/validation-report.md`
 
 Update state: `last_completed_step: 5`.
@@ -223,8 +267,10 @@ Update state: `last_completed_step: 5`.
 Ask:
 > **Review the report above. Specifically:**
 > - Does the evidence support the verdict?
-> - Are there risks the report missed?
-> - Do you agree with the recommended direction?
+> - Is the positioning analysis right? Is the territory you'd actually claim?
+> - Do the strategic options make sense for your situation?
+> - Are there load-bearing assumptions the report missed?
+> - Do you agree with the recommended path?
 >
 > You can ask questions about the report, request changes, or say "approve" to proceed.
 

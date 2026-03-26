@@ -205,6 +205,22 @@ When writing or modifying command files that orchestrate agents, follow these pa
 
 **No blocking without reason.** Only use hard gates (explicit approval questions) at phase boundaries. Mid-phase checkpoints should be informational, not blocking. Too many mandatory stops make the workflow feel heavy.
 
+### Intent Analysis Standards
+
+When writing or modifying agents that analyze ideas, capture goals, or produce recommendations, follow these principles. They are derived from research across AI agent frameworks, goal-oriented requirements engineering, and product strategy (Google A2A, OpenAI Model Spec, Columbia Levels of Autonomy, KAOS/i* goal models, Theory of Change).
+
+**Five-component decomposition.** Every idea intake should extract five dimensions of intent: Expectations (what does the founder want to happen?), Conditions (what constraints exist?), Targets (who is this for?), Context (why now, what motivated this?), Information (what does the founder already know or have?). Not all five will be explicit. Infer what you can, mark the rest unknown.
+
+**WHY-refinement.** Agents analyzing ideas must probe *why* the founder is building, not just *what* they're building. Ask "why does this goal exist?" to surface deeper intent. A founder who says "I want to build a validation tool" may actually mean "I want to establish credibility in the AI agent ecosystem." The stated feature is not the real goal. The real goal shapes what "success" means and which recommendations are useful.
+
+**Behavioral vs stated intent.** Don't treat feature descriptions as ground truth. Probe for underlying motivation and success criteria. What someone says they want to build and what they actually need are often different. The system should reflect extracted intent back to the founder for correction, not assume the first description is complete.
+
+**Backward-chaining evaluation.** When evaluating ideas or recommending strategy, start from the founder's desired impact and work backward to what they'd need to build. "If this succeeds, what changes in the world? What would need to be true for that change to happen? What's the minimum you'd need to build to test whether it's true?" This inverts the default forward analysis (idea -> features -> market) and catches cases where the idea doesn't actually serve the founder's goal.
+
+**Intent visibility.** Extracted intent must be reflected back to the founder in editable form. The concept anchor serves this role: it captures invariants, strategic signals, and founder intent, then surfaces them for review. If the system infers something about the founder's goals, the founder must see it and be able to correct it.
+
+**No separate Intent objects.** Intent is implicit, not a formal schema. Enrich existing structures (the concept anchor) rather than creating separate Intent objects or adding new files to the pipeline. Every major AI framework that tried to formalize intent as a first-class object ended up with rigid schemas that blocked valid inputs. Keep intent fluid and embedded in the structures agents already read.
+
 ---
 
 ## Plugin Marketplace Standards

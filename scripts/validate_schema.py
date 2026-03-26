@@ -234,6 +234,10 @@ def validate_file(file_path: str) -> list[str]:
                     "standalone", "plugin_or_extension", "hosted",
                     "marketplace_listing", "unknown",
                 },
+                "growth_model": {
+                    "viral", "content", "community", "sales",
+                    "organic_oss", "ecosystem", "unknown",
+                },
             }
             for field, allowed in valid_enums.items():
                 val = ss.get(field, "")
@@ -242,6 +246,44 @@ def validate_file(file_path: str) -> list[str]:
                         f"Invalid strategic_signals.{field} '{val}' in {basename}. "
                         f"Must be one of: {sorted(allowed)}"
                     )
+
+        # Validate founder_intent (optional but structured when present)
+        fi = data.get("founder_intent")
+        if fi is not None:
+            if not isinstance(fi, dict):
+                warnings.append(
+                    f"founder_intent must be an object in {basename}"
+                )
+            else:
+                valid_motivations = {
+                    "learning", "revenue", "community", "credibility",
+                    "solving_own_problem", "unknown",
+                }
+                motivation = fi.get("motivation", "")
+                if motivation and motivation not in valid_motivations:
+                    warnings.append(
+                        f"Invalid founder_intent.motivation '{motivation}' "
+                        f"in {basename}. "
+                        f"Must be one of: {sorted(valid_motivations)}"
+                    )
+                constraints = fi.get("constraints")
+                if isinstance(constraints, dict):
+                    valid_horizons = {"weeks", "months", "quarters"}
+                    th = constraints.get("time_horizon", "")
+                    if th and th not in valid_horizons:
+                        warnings.append(
+                            f"Invalid founder_intent.constraints.time_horizon "
+                            f"'{th}' in {basename}. "
+                            f"Must be one of: {sorted(valid_horizons)}"
+                        )
+                    valid_teams = {"solo", "small_team", "funded_team"}
+                    team = constraints.get("team", "")
+                    if team and team not in valid_teams:
+                        warnings.append(
+                            f"Invalid founder_intent.constraints.team "
+                            f"'{team}' in {basename}. "
+                            f"Must be one of: {sorted(valid_teams)}"
+                        )
 
     # Special validation for founder-corrections.json
     if basename == "founder-corrections.json":
@@ -294,6 +336,66 @@ def validate_file(file_path: str) -> list[str]:
                     warnings.append(
                         f"Missing/empty executive_summary.{field} in {basename}"
                     )
+
+        # Validate recommended_path (optional)
+        valid_paths = {
+            "build_mvp", "validate_first", "build_community",
+            "content_first", "experiment", "pivot",
+        }
+        path = data.get("recommended_path", "")
+        if path and path not in valid_paths:
+            warnings.append(
+                f"Invalid recommended_path '{path}' in {basename}. "
+                f"Must be one of: {sorted(valid_paths)}"
+            )
+
+        # Validate positioning (optional)
+        positioning = data.get("positioning")
+        if isinstance(positioning, dict):
+            valid_defensibility = {"weak", "moderate", "strong"}
+            d = positioning.get("defensibility", "")
+            if d and d not in valid_defensibility:
+                warnings.append(
+                    f"Invalid positioning.defensibility '{d}' in {basename}. "
+                    f"Must be one of: {sorted(valid_defensibility)}"
+                )
+            valid_fmf = {"strong", "moderate", "weak"}
+            fmf = positioning.get("founder_market_fit", "")
+            if fmf and fmf not in valid_fmf:
+                warnings.append(
+                    f"Invalid positioning.founder_market_fit '{fmf}' "
+                    f"in {basename}. "
+                    f"Must be one of: {sorted(valid_fmf)}"
+                )
+
+        # Validate assumptions array (optional)
+        assumptions = data.get("assumptions")
+        if assumptions is not None:
+            if not isinstance(assumptions, list):
+                warnings.append(
+                    f"assumptions must be an array in {basename}"
+                )
+            else:
+                valid_evidence = {"supported", "belief", "untested"}
+                for i, a in enumerate(assumptions):
+                    if not isinstance(a, dict):
+                        warnings.append(
+                            f"assumptions[{i}] is not an object "
+                            f"in {basename}"
+                        )
+                        continue
+                    if not a.get("claim"):
+                        warnings.append(
+                            f"Missing/empty assumptions[{i}].claim "
+                            f"in {basename}"
+                        )
+                    el = a.get("evidence_level", "")
+                    if el and el not in valid_evidence:
+                        warnings.append(
+                            f"Invalid assumptions[{i}].evidence_level "
+                            f"'{el}' in {basename}. "
+                            f"Must be one of: {sorted(valid_evidence)}"
+                        )
 
         # Run SOM arithmetic validation
         script_dir = os.path.dirname(os.path.abspath(__file__))
