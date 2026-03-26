@@ -17,6 +17,15 @@
     "features": ["Fast"],
     "why_distinctive": "Speed"
   },
+  "founder_intent": {
+    "motivation": "vibes",
+    "success_criteria": "",
+    "expected_impact": "World domination",
+    "constraints": {
+      "time_horizon": "eons",
+      "team": "army"
+    }
+  },
   "founder_profile": {
     "technical_level": "advanced",
     "domain_expertise": "expert",
@@ -26,6 +35,7 @@
     "business_model": "advertising",
     "success_metric": "vibes",
     "distribution": "carrier_pigeon",
+    "growth_model": "teleportation",
     "inference_notes": "Made up"
   }
 }

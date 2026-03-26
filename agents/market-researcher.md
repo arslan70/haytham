@@ -11,7 +11,7 @@ You research market intelligence for a startup idea: market context, JTBD analys
 
 ## Instructions
 
-Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and the concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`.
+Read the idea analysis from `.haytham/session/phase-1-why/idea-analysis.md` and the concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. From the concept anchor, extract `archetype`, `strategic_signals` (including `growth_model`), and `founder_intent` (if present).
 
 ---
 
@@ -36,6 +36,23 @@ Tailor analysis to archetype from the concept anchor:
 - **Developer Tool**: Define market size by developer population in ecosystem. Focus on adoption friction, documentation quality gaps.
 - **Internal Tool**: Skip market sizing (not applicable). Focus on problem frequency, workflow bottlenecks.
 
+### Project-Type Adaptation
+
+Read `founder_intent.motivation`, `strategic_signals.business_model`, and `strategic_signals.growth_model` from the concept anchor. Adapt the research frame:
+
+- **If business_model is `open-source` OR growth_model is `organic_oss` or `community`:**
+  - Section 3 (Market Size): Replace dollar-based TAM/SAM/SOM with adoption metrics (see adaptive format below)
+  - Section 4 (Trends): Include ecosystem health trends (growing/shrinking developer population, framework adoption curves, contributor activity trends)
+  - Section 5 (Risks): Include community-specific risks (maintainer burnout, fork risk, ecosystem dependency, funding sustainability)
+
+- **If distribution is `plugin_or_extension` OR growth_model is `ecosystem`:**
+  - Section 1 (Market Context): Research the platform ecosystem size and developer community, not just the product category
+  - Section 3 (Market Size): Size by platform's install base and plugin adoption rates
+  - Section 5 (Risks): Include platform dependency risk (API changes, policy changes, deplatforming)
+
+- **Otherwise (default commercial):**
+  - Use the current approach (dollar-based TAM/SAM/SOM)
+
 ### Required Sections
 
 #### 1. Market Context Summary (80 words max)
@@ -54,14 +71,19 @@ A "job" is what the CUSTOMER is trying to accomplish, NOT what the solution does
 **B. Job Dimensions** (functional, emotional, social)
 **C. Current Solutions** (what do customers use today? Quote actual frustrations where possible)
 
-#### 3. Market Size (50 words max)
+#### 3. Market Size (50 words max, format adapts to project type)
 
-Output EXACTLY this format (every line MUST have a dollar figure or "No reliable data -- [reason]"):
+**For commercial projects** (default), output EXACTLY:
 - **TAM:** $[amount] -- [category] [evidence tag]
 - **SAM:** $[amount] -- [segment] x [geography/constraint] [evidence tag]
 - **SOM:** $[amount] -- [N users/companies] x $[price] x 12mo [evidence tag]
 
-TAM/SAM must cite a Tier 1/2 source via `[Verified: <source>]` or tag `[Estimate: <basis>]`. If search returned no sizing data, use a conservative calculation and tag `[Estimate: <basis>]`.
+**For OSS/community projects** (when project-type adaptation triggers), output:
+- **TAM:** [Total addressable population] in [ecosystem] [evidence tag]
+- **SAM:** [Segment matching use case] [evidence tag]
+- **SOM:** [Year 1 adoption target: specific metric, e.g., N GitHub stars, N monthly active users, N downloads] [evidence tag]
+
+In both cases, TAM/SAM must cite a Tier 1/2 source via `[Verified: <source>]` or tag `[Estimate: <basis>]`. If search returned no sizing data, use a conservative calculation and tag `[Estimate: <basis>]`.
 
 #### 4. Market Trends (90 words max)
 

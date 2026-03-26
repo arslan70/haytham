@@ -1,5 +1,23 @@
 {
   "recommendation": "GO",
+  "recommended_path": "build_mvp",
+  "positioning": {
+    "territory": "The privacy-first gym leaderboard for anonymous competition",
+    "defensibility": "moderate",
+    "founder_market_fit": "strong"
+  },
+  "assumptions": [
+    {
+      "claim": "Gym-goers want anonymous competition with strangers",
+      "evidence_level": "belief",
+      "falsification_test": "Survey 50 gym members on anonymity preference"
+    },
+    {
+      "claim": "Users will return weekly to check leaderboard standings",
+      "evidence_level": "untested",
+      "falsification_test": "Track D7 retention in beta launch"
+    }
+  ],
   "executive_summary": {
     "idea_in_one_line": "A gym leaderboard app",
     "strongest_point": "Clear target market",

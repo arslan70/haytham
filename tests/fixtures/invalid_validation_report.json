@@ -1,5 +1,18 @@
 {
   "recommendation": "MAYBE",
+  "recommended_path": "vibes_based",
+  "positioning": {
+    "territory": "The gym app",
+    "defensibility": "impenetrable",
+    "founder_market_fit": "legendary"
+  },
+  "assumptions": [
+    {
+      "claim": "",
+      "evidence_level": "guessing",
+      "falsification_test": "None needed"
+    }
+  ],
   "executive_summary": {
     "idea_in_one_line": "A gym leaderboard app"
   }

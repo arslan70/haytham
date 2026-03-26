@@ -286,6 +286,58 @@ class TestSchemaValidation:
         assert any("success_metric" in w for w in warnings)
         assert any("distribution" in w for w in warnings)
 
+    def test_invalid_concept_anchor_founder_intent(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_concept_anchor.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("founder_intent.motivation" in w and "vibes" in w for w in warnings)
+        assert any("time_horizon" in w and "eons" in w for w in warnings)
+        assert any("constraints.team" in w and "army" in w for w in warnings)
+
+    def test_invalid_concept_anchor_growth_model(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_concept_anchor.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("growth_model" in w and "teleportation" in w for w in warnings)
+
+    def test_valid_validation_report_with_new_fields(self, tmp_path):
+        src = FIXTURES_DIR / "valid_validation_report.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_invalid_validation_report_bad_path(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_validation_report.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("recommended_path" in w and "vibes_based" in w for w in warnings)
+
+    def test_invalid_validation_report_bad_positioning(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_validation_report.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("defensibility" in w and "impenetrable" in w for w in warnings)
+        assert any("founder_market_fit" in w and "legendary" in w for w in warnings)
+
+    def test_invalid_validation_report_bad_assumptions(self, tmp_path):
+        src = FIXTURES_DIR / "invalid_validation_report.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert any("assumptions[0].claim" in w and "Missing/empty" in w for w in warnings)
+        assert any("evidence_level" in w and "guessing" in w for w in warnings)
+
     def test_valid_founder_corrections(self, tmp_path):
         dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "founder-corrections.json"
         dst.parent.mkdir(parents=True)

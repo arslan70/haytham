@@ -45,6 +45,15 @@
       "invariant_refs": ["output_format"]
     }
   ],
+  "founder_intent": {
+    "motivation": "learning",
+    "success_criteria": "Working prototype that generates specs",
+    "expected_impact": "Coding agents get structured specs instead of vague prompts",
+    "constraints": {
+      "time_horizon": "months",
+      "team": "solo"
+    }
+  },
   "founder_profile": {
     "technical_level": "technical",
     "domain_expertise": "high",
@@ -54,6 +63,7 @@
     "business_model": "open-source",
     "success_metric": "community_adoption",
     "distribution": "standalone",
+    "growth_model": "organic_oss",
     "inference_notes": "Founder explicitly mentions open source"
   }
 }

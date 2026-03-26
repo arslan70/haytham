@@ -16,13 +16,15 @@ Read the inputs and produce two output files: a validation report (markdown) and
 ## Inputs
 
 Read these files:
-- `.haytham/session/phase-1-why/idea-analysis.md` - the concept expansion
+- `.haytham/session/phase-1-why/idea-analysis.md` - the concept expansion (including intent analysis section)
 - `.haytham/session/phase-1-why/market-research.md` - market intelligence
 - `.haytham/session/phase-1-why/competitor-research.md` - competitor analysis
-- `.haytham/session/phase-1-why/concept-anchor.json` - invariants, founder profile, and strategic signals
+- `.haytham/session/phase-1-why/concept-anchor.json` - invariants, founder profile, strategic signals, and founder intent
 - `.haytham/project.yaml` - the original startup idea
 - `.haytham/session/phase-1-why/founder-corrections.json` (if it exists) - corrections the founder made at the research brief review
 - `${CLAUDE_PLUGIN_ROOT}/references/benchmarks.md` - industry benchmark data for grounding projections
+
+From `concept-anchor.json`, pay special attention to `founder_intent` (motivation, success_criteria, expected_impact, constraints) and `strategic_signals.growth_model`. These shape how you frame the entire report.
 
 The founder has already reviewed the research brief, so treat the research as authoritative. If `founder-corrections.json` exists, treat the corrections as HIGH-PRIORITY context. These are explicit reframings from the founder (e.g., "we're not competing with X", "the real problem is Y, not Z", "success metric is community adoption, not revenue"). The report MUST reflect these corrections. Do not contradict them.
 
@@ -43,6 +45,14 @@ Also read `strategic_signals` from the concept anchor. If the founder signalled 
 - `success_metric: community_adoption` -> Weight community-building feasibility over WTP signals
 - If `strategic_signals` is absent or all `unknown`, use defaults (commercial SaaS assumptions)
 
+**Founder Intent Calibration:**
+If `founder_intent` exists in the concept anchor:
+- Calibrate the entire report to the founder's motivation. A `learning`-motivated founder needs different advice than a `revenue`-motivated one.
+- Use `success_criteria` as the yardstick for "is this idea viable?" (not generic revenue milestones if the founder's goal is community growth or learning).
+- Use `expected_impact` to evaluate whether the idea actually serves the founder's deeper goal (backward-chaining check).
+- Factor `constraints.team` and `constraints.time_horizon` into feasibility assessments.
+- If motivation is `community` or `credibility`, do NOT default to commercial viability as the primary evaluation axis. Evaluate against community adoption potential, ecosystem fit, and credibility-building potential instead.
+
 Read the **Competitive Stance Determination** (section 7) from `.haytham/session/phase-1-why/competitor-research.md`. Use this research-derived stance to frame competition:
 - `complementary` -> Frame competition as "complementary landscape" rather than "threats to defend against"
 - `direct_competitor` -> Standard competitive framing
@@ -60,7 +70,7 @@ Write for a founder, not for a VC or analyst. Use plain language calibrated to t
 
 Write to `.haytham/session/phase-1-why/validation-report.md`
 
-Start with `# Validation Report`. The report has 4 narrative parts containing 8 sections:
+Start with `# Validation Report`. The report has 5 narrative parts containing 11 sections:
 
 ### PART 1: THE OPPORTUNITY
 
@@ -128,6 +138,59 @@ The single riskiest assumption. 1-2 low-cost experiments ($0-$500). Success/fail
 **Action plan:** 3-5 actions ordered by priority. Each: timeframe, specific action, decision criteria.
 **Pivot options (if applicable):** What changes, what stays, why worth considering.
 
+### PART 5: STRATEGIC ANALYSIS
+
+#### 9. Positioning Analysis
+
+Synthesize where this idea sits in the competitive landscape. This goes beyond "who are the competitors" (covered in Part 1) to "where do YOU fit and why that position is defensible."
+
+- **Territory:** What unique positioning can this idea credibly own? Define as a one-line statement: "[Product] is the [differentiator] for [specific audience]."
+- **Why this territory:** What evidence from the research supports claiming this position? Cite specific gaps from competitor analysis, unmet JTBD from market research.
+- **Defensibility assessment:** Rate as **weak**, **moderate**, or **strong**. Consider: switching costs, network effects, data moats, expertise barriers, speed advantage. Be specific about WHICH moat type applies (or doesn't). "No obvious moat" is a valid answer.
+- **Founder-market fit:** Does the founder's background (from `founder_profile` and `founder_intent`) give them an unfair advantage in this territory? Be honest: "no obvious advantage" is valid.
+
+#### 10. Strategic Options
+
+Do NOT default to "build the MVP" as the only path. Start from the founder's `expected_impact` and `success_criteria` and work backward to what path achieves them.
+
+Present 2-3 strategic paths, ordered by the one that best fits this founder's context.
+
+For each path:
+```
+**Path [N]: [Name]** (Optimizes for: [what this path prioritizes])
+- **What you do:** [Concrete first 3 actions]
+- **Timeline:** [Realistic timeframe given constraints]
+- **Risks:** [What could go wrong on this path]
+- **When to choose this:** [The founder profile / context where this is the best choice]
+```
+
+Path types to consider (use what fits, not all):
+- **Build MVP** -- standard path when evidence is strong and founder has capacity
+- **Validate First** -- when load-bearing assumptions are untested; run experiments before building
+- **Build Community First** -- when the product's value depends on network effects or the founder's motivation is community/credibility
+- **Content/Authority First** -- when the founder needs credibility or audience before a product launch
+- **Experiment** -- when the idea is novel and needs rapid hypothesis testing
+- **Pivot to [specific direction]** -- when research reveals a better adjacent opportunity
+
+End with: **Recommended path for this founder:** [path name] -- [one sentence explaining why this path fits their motivation, constraints, and the evidence].
+
+#### 11. Assumptions & Evidence
+
+List the 3-5 load-bearing assumptions the entire thesis depends on. These are claims that, if false, would change the recommendation. Apply WHY-refinement: for each assumption, ask "why does this matter?" to make sure you're identifying the real load-bearing claim, not a surface-level observation.
+
+For each:
+```
+**Assumption [N]: [One-line claim]**
+- **Evidence level:** Supported (multiple data points) | Belief (reasonable but no direct evidence) | Untested (plausible but never validated)
+- **Source:** [What evidence supports or contradicts this, with section references]
+- **Falsification test:** [What specific finding would prove this wrong?]
+- **Cheapest test:** [How to test this for <$500 and <2 weeks]
+```
+
+If the idea describes a multi-phase vision (check `intent.goal` and idea description for phased plans), stress-test phase dependencies: Does Phase 2 REQUIRE Phase 1 to succeed first? What happens if Phase 1 works but Phase 2 assumptions fail?
+
+End with: **Confidence summary:** Of [N] load-bearing assumptions, [X] are Supported, [Y] are Belief, [Z] are Untested. [One sentence on what this means for the recommendation.]
+
 ## Output File 2: Structured Summary (JSON)
 
 Write to `.haytham/session/phase-1-why/validation-report.json`
@@ -135,6 +198,19 @@ Write to `.haytham/session/phase-1-why/validation-report.json`
 ```json
 {
   "recommendation": "GO | PIVOT | NO-GO",
+  "recommended_path": "build_mvp | validate_first | build_community | content_first | experiment | pivot",
+  "positioning": {
+    "territory": "One-line positioning statement: [Product] is the [differentiator] for [audience]",
+    "defensibility": "weak | moderate | strong",
+    "founder_market_fit": "strong | moderate | weak"
+  },
+  "assumptions": [
+    {
+      "claim": "The one-line load-bearing claim",
+      "evidence_level": "supported | belief | untested",
+      "falsification_test": "What specific finding would prove this wrong"
+    }
+  ],
   "executive_summary": {
     "idea_in_one_line": "One plain-language sentence summarising what the idea does",
     "strongest_point": "The single strongest reason this idea is worth considering",

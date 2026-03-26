@@ -29,6 +29,15 @@
     "features": ["Offline-first", "Fast startup"],
     "why_distinctive": "Works without internet"
   },
+  "founder_intent": {
+    "motivation": "community",
+    "success_criteria": "1000 GitHub stars in 3 months",
+    "expected_impact": "Developers spend less time on dotfile setup across machines",
+    "constraints": {
+      "time_horizon": "months",
+      "team": "solo"
+    }
+  },
   "founder_profile": {
     "technical_level": "technical",
     "domain_expertise": "high",
@@ -38,6 +47,7 @@
     "business_model": "open-source",
     "success_metric": "community_adoption",
     "distribution": "standalone",
+    "growth_model": "organic_oss",
     "inference_notes": "Founder explicitly mentions open source and community growth"
   }
 }
