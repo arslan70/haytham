@@ -12,7 +12,7 @@
       "name": "haytham",
       "source": "./",
       "description": "Lifecycle control plane for AI-built products — validate, specify, design, build, and evolve",
-      "version": "0.3.11",
+      "version": "0.3.12",
       "repository": "https://github.com/arslan70/haytham",
       "license": "MIT",
       "keywords": [
