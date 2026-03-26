@@ -59,12 +59,6 @@ The earlier conversation worked because it kept pulling on threads until the fra
 
 If you're using AI to validate an idea, the tool will tell you whether the market exists, who the competitors are, and what the risks look like. It will not tell you whether you're building the right thing. For that, you need someone (or something) willing to ask "why are you actually building this?" and not accept the first answer.
 
-## Where this leaves the project
-
-I shared the [earlier dogfood run](2026-03-18-i-fed-my-ai-pipeline-its-own-idea.md) where I ran Haytham through all four phases and it built a working MVP of itself. That post was about the gap between a generated MVP and a production system. This experiment is about a different gap: the one between analyzing a market and questioning a strategy.
-
-Both gaps point in the same direction. The interesting problems in AI-assisted development aren't in generation. They're in the accumulated context that makes generation useful: why this feature exists, why that constraint was added, what broke when we tried the simpler version. The [telephone game problem](2026-02-20-agents-playing-telephone.md) I wrote about earlier is the technical version of this. The identity crisis is the strategic version.
-
 ## What we're doing about it
 
 The three things the tool missed (identity crisis, "Evolution is the real product," unvalidated core assumption) all stem from one root cause: the pipeline processes the idea but ignores the founder. It never asks *why* you're building, what success looks like to you personally, or what constraints you're working with. It analyzes the market around a product description without questioning whether that product serves the founder's actual goals.
@@ -78,5 +72,9 @@ We're rebuilding Phase 1 around these patterns. The idea-analyst now starts with
 I think this will help. I haven't validated it yet. The patterns are sound, the research supports the approach, but the proof is in whether the tool would now catch what it missed when it analyzed itself. That's the next test.
 
 ## Where this leaves the project
+
+I shared the [earlier dogfood run](2026-03-18-i-fed-my-ai-pipeline-its-own-idea.md) where I ran Haytham through all four phases and it built a working MVP of itself. That post was about the gap between a generated MVP and a production system. This experiment is about a different gap: the one between analyzing a market and questioning a strategy.
+
+Both gaps point in the same direction. The interesting problems in AI-assisted development aren't in generation. They're in the accumulated context that makes generation useful: why this feature exists, why that constraint was added, what broke when we tried the simpler version. The [telephone game problem](2026-02-20-agents-playing-telephone.md) I wrote about earlier is the technical version of this. The identity crisis is the strategic version.
 
 I'm still figuring out what Haytham becomes. The validation pipeline works. The question is whether it's a product or a demo for the thing that comes after it. If you want to run the same experiment on your own project: `/haytham:validate "your own tool's description here"`. The [repo is open source](https://github.com/arslan70/haytham). I'm curious whether your tool finds the same blind spots mine did.

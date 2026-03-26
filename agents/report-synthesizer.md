@@ -187,7 +187,7 @@ For each:
 - **Cheapest test:** [How to test this for <$500 and <2 weeks]
 ```
 
-If the idea describes a multi-phase vision (check `intent.goal` and idea description for phased plans), stress-test phase dependencies: Does Phase 2 REQUIRE Phase 1 to succeed first? What happens if Phase 1 works but Phase 2 assumptions fail?
+If the idea describes a multi-phase vision (check `founder_intent.expected_impact` and idea description for phased plans), stress-test phase dependencies: Does Phase 2 REQUIRE Phase 1 to succeed first? What happens if Phase 1 works but Phase 2 assumptions fail?
 
 End with: **Confidence summary:** Of [N] load-bearing assumptions, [X] are Supported, [Y] are Belief, [Z] are Untested. [One sentence on what this means for the recommendation.]
 
