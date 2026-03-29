@@ -949,6 +949,18 @@ class TestResearchBriefTone:
         assert any("promising" in w for w in warnings)
         assert any("strong" in w for w in warnings)
 
+    def test_word_boundary_no_false_positive(self, tmp_path):
+        """Substrings like 'armstrong' or 'stronger' should not trigger 'strong'."""
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "research-brief.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            "# Research Brief\n\n"
+            "Armstrong Industries has 500 users.\n"
+            "The stronger competitor has 1000 users.\n"
+        )
+        warnings = validate_file(str(dst))
+        assert not any("Banned judgment" in w for w in warnings)
+
 
 class TestMarketResearchStructure:
     """E8: Trend count and counter-trend check."""
@@ -1039,6 +1051,26 @@ class TestWordBudgetWarnings:
         warnings = validate_file(str(dst))
         assert not any("1. Competitor ID" in w for w in warnings)
 
+    def test_word_budget_includes_sub_headings(self, tmp_path):
+        """Sub-headings within a section should be counted in the parent's word budget."""
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "market-research.md"
+        dst.parent.mkdir(parents=True)
+        # Section 2 (JTBD) budget is 150, tolerance 187. Write 200 words
+        # split across sub-headings within the section.
+        filler_a = " ".join(["job"] * 100)
+        filler_b = " ".join(["task"] * 100)
+        dst.write_text(
+            "# Market Research\n\n"
+            "#### 2. Jobs-to-be-Done\n\n"
+            "**A. Core Jobs**\n\n"
+            f"{filler_a}\n\n"
+            "**B. Job Dimensions**\n\n"
+            f"{filler_b}\n\n"
+            "#### 3. Market Size\n\nSmall.\n"
+        )
+        warnings = validate_file(str(dst))
+        assert any("2. JTBD" in w and "words" in w for w in warnings)
+
 
 class TestEvidenceTagPreservation:
     """E11: Evidence tags in research brief should match upstream sources."""
@@ -1081,6 +1113,25 @@ class TestEvidenceTagPreservation:
         )
         warnings = validate_file(str(brief_path))
         assert not any("tag mismatch" in w.lower() or "evidence tag" in w.lower() for w in warnings)
+
+    def test_dropped_upstream_tag_warns(self, tmp_path):
+        """Brief that omits an upstream evidence tag should warn about lost evidence."""
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-1-why"
+        phase_dir.mkdir(parents=True)
+
+        (phase_dir / "market-research.md").write_text(
+            "# Market Research\n\nTAM is $5B [Verified: Statista]\n"
+        )
+        (phase_dir / "competitor-research.md").write_text(
+            "# Competitor Research\n\nCompetitor has 1000 users [Verified: Crunchbase]\n"
+        )
+        # Brief only includes one of the two upstream tags
+        brief_path = phase_dir / "research-brief.md"
+        brief_path.write_text(
+            "# Research Brief\n\nTAM is $5B [Verified: Statista]\n"
+        )
+        warnings = validate_file(str(brief_path))
+        assert any("not preserved" in w and "Crunchbase" in w for w in warnings)
 
 
 class TestMultiArchetypeFixtures:

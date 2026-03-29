@@ -36,11 +36,22 @@ SCHEMAS = {
 }
 
 
-def _count_section_words(content: str, header_pattern: str, next_header: str = r"^#{1,4} ") -> int:
-    """Count words in a markdown section between header_pattern and next heading."""
+def _count_section_words(content: str, header_pattern: str) -> int:
+    """Count words in a markdown section between header_pattern and the next same-or-higher-level heading.
+
+    Determines the heading level from the matched header, then scans for the
+    next heading at that level or above so sub-headings are included in the count.
+    """
     match = re.search(header_pattern, content, re.MULTILINE)
     if not match:
         return 0
+    # Determine heading level from matched text (count leading '#')
+    matched_text = match.group(0)
+    heading_level = len(matched_text) - len(matched_text.lstrip("#"))
+    if heading_level < 1:
+        heading_level = 4  # fallback
+    # Build pattern for next heading at same or higher level
+    next_header = r"^#{1," + str(heading_level) + r"} "
     start = match.end()
     rest = content[start:]
     next_match = re.search(next_header, rest, re.MULTILINE)
@@ -133,17 +144,18 @@ def validate_markdown(file_path: str) -> list[str]:
 
     # --- research-brief.md (E7, E11) ---
     if basename == "research-brief.md":
-        content_lower = content.lower()
         for word in BANNED_BRIEF_WORDS:
-            if word.lower() in content_lower:
-                # Find line number for context
-                for i, line in enumerate(content.splitlines(), 1):
-                    if word.lower() in line.lower():
-                        warnings.append(
-                            f"research-brief.md: Banned judgment word '{word}' "
-                            f"found on line {i}"
-                        )
-                        break
+            # Use word-boundary matching to avoid false positives
+            # (e.g., "strong" inside "strong encryption" is still banned,
+            # but "stronger" or "armstrong" won't match)
+            pattern = r"\b" + re.escape(word) + r"\b"
+            for i, line in enumerate(content.splitlines(), 1):
+                if re.search(pattern, line, re.IGNORECASE):
+                    warnings.append(
+                        f"research-brief.md: Banned judgment word '{word}' "
+                        f"found on line {i}"
+                    )
+                    break
 
         # E11: Evidence tag preservation check
         brief_dir = os.path.dirname(file_path)
@@ -181,6 +193,14 @@ def validate_markdown(file_path: str) -> list[str]:
                 warnings.append(
                     f"research-brief.md: Evidence tag [{tag_type}: {tag_source}] "
                     f"not found in upstream research files (possible tag mismatch)"
+                )
+
+            # Check if upstream tags were dropped from the brief
+            dropped_tags = upstream_tags - brief_tags
+            for tag_type, tag_source in dropped_tags:
+                warnings.append(
+                    f"research-brief.md: Upstream evidence tag [{tag_type}: {tag_source}] "
+                    f"not preserved in research brief (evidence may be lost)"
                 )
 
     # --- market-research.md (E8, E9) ---
