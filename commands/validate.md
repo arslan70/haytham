@@ -1,6 +1,6 @@
 ---
 description: Run Phase 1 (WHY) - Validate a startup idea with market research and produce a GO/PIVOT/NO-GO recommendation
-argument-hint: [startup idea] or [--from N] to resume from step N
+argument-hint: [startup idea | URL] [--batch] or [--from N] to resume from step N
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 ---
 
@@ -12,9 +12,51 @@ You are running Phase 1 of the Haytham validation workflow. This phase analyzes 
 
 ## Setup & Resume Detection
 
-First, check if the user passed `--from N` as the argument (e.g., `/haytham:validate --from 5`). If so, set START_STEP to N.
+### Flag Parsing
 
-Otherwise, check if `.haytham/project.yaml` exists and contains a `state` section. If it does, read it and check `state.phase_1.last_completed_step`:
+First, check if the argument contains `--batch`. If so:
+- Remove `--batch` from the argument string (the remainder is the idea, URL, or `--from N`)
+- Set BATCH_MODE to true
+
+Then check if the user passed `--from N` as the argument (e.g., `/haytham:validate --from 5`). If so, set START_STEP to N.
+
+### URL Detection
+
+If the argument is not `--from N`, check if it looks like a URL:
+
+**If it matches `https?://(www\.)?reddit\.com/`** (Reddit post):
+1. Use WebFetch to retrieve the URL content
+2. Extract the post title and body text from the fetched content
+3. Set IDEA_TEXT to the extracted title + body
+4. Set SOURCE_URL to the original URL
+5. Set SOURCE_TYPE to `reddit_post`
+
+**If it matches `https?://(www\.)?github\.com/`** (GitHub repo):
+1. Parse `{owner}/{repo}` from the URL path
+2. Use WebFetch to retrieve `https://raw.githubusercontent.com/{owner}/{repo}/main/README.md`
+3. If that fails (404), try `https://raw.githubusercontent.com/{owner}/{repo}/master/README.md`
+4. Also use WebFetch on the GitHub repo page to extract the repo description
+5. Set IDEA_TEXT to: repo description + "\n\n" + first 2000 characters of README content
+6. Set SOURCE_URL to the original URL
+7. Set SOURCE_TYPE to `github_repo`
+
+**If neither** (plain text):
+- Set IDEA_TEXT to the argument as-is
+- Set SOURCE_URL to null
+- Set SOURCE_TYPE to `text`
+
+If a URL was detected, tell the user what was extracted:
+> **Source:** [SOURCE_TYPE] at [SOURCE_URL]
+> **Extracted idea:** [first 200 chars of IDEA_TEXT]...
+>
+> This text will be analyzed as the startup idea.
+
+If the extracted text is under 50 characters, warn:
+> **Warning:** Extracted text is very short. The analysis may be thin. Consider providing a text description instead.
+
+### Resume or Start Fresh
+
+Check if `.haytham/project.yaml` exists and contains a `state` section. If it does, read it and check `state.phase_1.last_completed_step`:
 
 - If `last_completed_step` exists and is between 1 and 5, tell the user:
   > **Resuming Phase 1.** Found previous progress:
@@ -28,11 +70,16 @@ Otherwise, check if `.haytham/project.yaml` exists and contains a `state` sectio
 
 - If no state exists or a new idea was provided as the argument (not `--from`), start fresh from step 1:
   1. Create `.haytham/` and `.haytham/session/phase-1-why/` directories if they don't exist
-  2. Write the user's startup idea to `.haytham/project.yaml`:
+  2. Write to `.haytham/project.yaml`:
      ```yaml
      idea: |
-       [The user's startup idea exactly as provided]
+       [IDEA_TEXT]
+     source:
+       url: [SOURCE_URL or null]
+       type: [SOURCE_TYPE]
+       fetched_at: [current ISO timestamp]
      created_at: [current ISO timestamp]
+     batch_mode: [true if BATCH_MODE, omit otherwise]
      state:
        phase_1:
          last_completed_step: 0
@@ -47,6 +94,17 @@ After each step completes successfully, update `.haytham/project.yaml` to set `s
 ## Roadmap
 
 Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
+
+If BATCH_MODE is true, show the batch roadmap:
+
+> **Phase 1: Idea Validation** (haytham vVERSION) -- BATCH MODE
+>
+> Running unattended. Skipping Steps 0, 4, 6 (no human review).
+> Steps: 1 (Idea Analysis) -> 2 (Market Research) -> 3 (Research Brief) -> 5 (Validation Report)
+>
+> Estimated total: ~6 minutes.
+
+Otherwise, show the standard roadmap:
 
 > **Phase 1: Idea Validation** (haytham vVERSION)
 >
@@ -68,7 +126,9 @@ If resuming (START_STEP > 1), show which steps will be skipped:
 
 ## Step 0: Founder Context
 
-**Skip this step if resuming from step > 0.** Also skip if `.haytham/project.yaml` already contains a `founder_context` section.
+**Skip this step if BATCH_MODE is true.** Also skip if resuming from step > 0. Also skip if `.haytham/project.yaml` already contains a `founder_context` section.
+
+If skipped due to BATCH_MODE, do NOT write `founder_context`. The idea-analyst will infer what it can from the idea text.
 
 Ask the founder:
 
@@ -209,7 +269,12 @@ Update state: `last_completed_step: 3`.
 
 ## Step 4: Founder Review
 
-Ask:
+**If BATCH_MODE is true:** Skip the review prompt entirely. Do NOT write founder-corrections.json. Tell the user:
+> **Step 4 skipped (batch mode).** Auto-approving research brief.
+
+Update state: `last_completed_step: 4`. Proceed directly to Step 5.
+
+**Otherwise**, ask:
 > **Review the brief above.** Check these dimensions:
 > - **Problem statement** — is this the right problem?
 > - **Competitors** — are we missing anyone, or including wrong ones?
@@ -264,7 +329,23 @@ Update state: `last_completed_step: 5`.
 
 ## Step 6: Gate 1
 
-Ask:
+**If BATCH_MODE is true:** Read the recommendation from `.haytham/session/phase-1-why/validation-report.json`. Auto-write gate decision:
+```json
+{
+  "phase": 1,
+  "recommendation": "[from validation-report.json]",
+  "user_decision": "batch-auto-approved",
+  "notes": "Auto-approved in batch mode",
+  "decided_at": "[ISO timestamp]"
+}
+```
+
+Tell the user:
+> **Phase 1 complete (batch mode).** Verdict: [recommendation]. Auto-approved.
+
+Update state: `last_completed_step: 6`. Skip to the completion message.
+
+**Otherwise**, ask:
 > **Review the report above. Specifically:**
 > - Does the evidence support the verdict?
 > - Is the positioning analysis right? Is the territory you'd actually claim?
