@@ -1,0 +1,53 @@
+{
+  "archetype": "marketplace",
+  "intent": {
+    "goal": "Build a marketplace connecting local chefs with dinner party hosts",
+    "explicit_constraints": ["Local only", "Two-sided marketplace"],
+    "non_goals": []
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "open registration for both sides",
+      "source": "marketplace for chefs and hosts",
+      "confidence": 0.9
+    },
+    {
+      "property": "interaction_model",
+      "value": "browse, book, review",
+      "source": "marketplace connecting chefs with hosts",
+      "confidence": 0.85
+    },
+    {
+      "property": "session_medium",
+      "value": "web app",
+      "source": "marketplace",
+      "confidence": 0.8
+    }
+  ],
+  "identity": {
+    "features": ["Two-sided matching", "Local focus", "Chef portfolios"],
+    "why_distinctive": "Targets private dinner parties, not restaurants or catering"
+  },
+  "founder_intent": {
+    "motivation": "revenue",
+    "success_criteria": "50 bookings in first 3 months",
+    "expected_impact": "Home dinner parties become accessible without cooking skills",
+    "constraints": {
+      "time_horizon": "quarters",
+      "team": "small_team"
+    }
+  },
+  "founder_profile": {
+    "technical_level": "semi-technical",
+    "domain_expertise": "medium",
+    "inference_basis": "Describes user flows and matching mechanics"
+  },
+  "strategic_signals": {
+    "business_model": "marketplace",
+    "success_metric": "revenue",
+    "distribution": "standalone",
+    "growth_model": "community",
+    "inference_notes": "Two-sided marketplace with take rate on bookings"
+  }
+}

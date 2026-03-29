@@ -1,0 +1,53 @@
+{
+  "archetype": "b2b_saas",
+  "intent": {
+    "goal": "Build a compliance automation platform for mid-market fintech companies",
+    "explicit_constraints": ["SOC 2 and PCI-DSS focus", "Must integrate with existing CI/CD"],
+    "non_goals": ["Not for enterprise banks"]
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "team-based SaaS with role permissions",
+      "source": "compliance platform for fintech companies",
+      "confidence": 0.9
+    },
+    {
+      "property": "interaction_model",
+      "value": "dashboard with automated compliance checks",
+      "source": "compliance automation",
+      "confidence": 0.85
+    },
+    {
+      "property": "session_medium",
+      "value": "web dashboard + CI/CD integration",
+      "source": "must integrate with existing CI/CD",
+      "confidence": 0.9
+    }
+  ],
+  "identity": {
+    "features": ["Automated compliance scanning", "CI/CD integration", "Audit trail"],
+    "why_distinctive": "Targets mid-market fintech specifically, not general compliance"
+  },
+  "founder_intent": {
+    "motivation": "revenue",
+    "success_criteria": "10 paying customers at $500/month within 6 months",
+    "expected_impact": "Fintech companies pass compliance audits without dedicated compliance teams",
+    "constraints": {
+      "time_horizon": "quarters",
+      "team": "small_team"
+    }
+  },
+  "founder_profile": {
+    "technical_level": "technical",
+    "domain_expertise": "high",
+    "inference_basis": "Describes CI/CD integration, SOC 2/PCI-DSS specifics, compliance scanning architecture"
+  },
+  "strategic_signals": {
+    "business_model": "saas",
+    "success_metric": "revenue",
+    "distribution": "standalone",
+    "growth_model": "sales",
+    "inference_notes": "B2B SaaS with sales-led growth targeting mid-market fintech"
+  }
+}

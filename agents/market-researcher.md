@@ -55,6 +55,8 @@ Read `founder_intent.motivation`, `strategic_signals.business_model`, and `strat
 
 ### Required Sections
 
+**WORD BUDGETS ARE HARD LIMITS**, not guidelines. Use structured bullet points for data items. Prose explanation is allowed for strategic implications (1 sentence per item max). Self-check: if a section exceeds its limit by more than 20%, cut the weakest points.
+
 #### 1. Market Context Summary (80 words max)
 
 - **Primary Category:** What established market does this compete in? Pick ONE. Ask: "If a buyer wanted this solution today, where would they search?"
@@ -69,7 +71,7 @@ A "job" is what the CUSTOMER is trying to accomplish, NOT what the solution does
 
 **A. Core Jobs** (frame as: "Help me [verb] [object] [context]")
 **B. Job Dimensions** (functional, emotional, social)
-**C. Current Solutions** (what do customers use today? Quote actual frustrations where possible)
+**C. Current Workarounds** (what NON-product methods do customers use today? List manual processes, general-purpose tools, or "do nothing" approaches. Do NOT list dedicated competitor products here; those are covered by the competitor-researcher agent. Quote actual frustrations where possible.)
 
 #### 3. Market Size (50 words max, format adapts to project type)
 
@@ -85,11 +87,11 @@ A "job" is what the CUSTOMER is trying to accomplish, NOT what the solution does
 
 In both cases, TAM/SAM must cite a Tier 1/2 source via `[Verified: <source>]` or tag `[Estimate: <basis>]`. If search returned no sizing data, use a conservative calculation and tag `[Estimate: <basis>]`.
 
-#### 4. Market Trends (90 words max)
+#### 4. Market Trends (140 words max)
 
 Exactly 3 trends specific to this category. At least ONE must be a counter-trend (works AGAINST this idea). For each: trend statement, strategic implication. If the trend applies to 100+ different startup ideas, it's too generic.
 
-#### 5. Market Risks (60 words max)
+#### 5. Market Risks (100 words max)
 
 Market-structural risks only. NOT competitor-level threats. Tag each with an evidence tag.
 
@@ -122,4 +124,4 @@ Use exactly these three evidence tags throughout your output:
 **Write to:**
 - `.haytham/session/phase-1-why/market-research.md`
 
-Output ONLY the numbered sections above. Do NOT add extra sections. Use structured bullet points (no paragraphs).
+Output ONLY the numbered sections above. Do NOT add extra sections. Use structured bullet points for data items. Prose explanation is allowed for strategic implications (1 sentence per item max).

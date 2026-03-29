@@ -40,7 +40,8 @@ Use WebSearch for competitor discovery (budget: 8-12 searches for competitor ana
 
 1. **Job-anchored competitor discovery (2-3 searches):** Frame searches around the customer job, NOT the product category. Look for competitors across categories.
 2. **Traction & pricing deep-dive (3-5 searches):** For top 3 competitors, search for concrete data on g2.com, crunchbase.com, trustpilot.com.
-3. **User sentiment (3-4 searches):** Search for reviews, complaints on reddit, app stores, G2.
+3. **User sentiment (2-3 searches):** Search for reviews, complaints on reddit, app stores, G2.
+4. **Non-product substitutes (1-2 searches):** Search for how customers solve this job WITHOUT a dedicated product: general-purpose tools (spreadsheets, Notion, note apps), manual processes, or the "do nothing" option. For AI-native ideas specifically, search whether the underlying LLM can accomplish the core job directly when prompted by the user without a dedicated tool. If non-product substitutes exist, note them.
 
 ## Critical Rules
 
@@ -69,7 +70,7 @@ Use exactly these three evidence tags throughout your output:
 
 ## Required Sections
 
-### 1. Competitor Identification (3-5 competitors, 160 words max)
+### 1. Competitor Identification (3-5 competitors, 300 words max)
 
 For each REAL competitor:
 ```
@@ -84,7 +85,7 @@ For each REAL competitor:
 - **JTBD Match:** [Direct | Adjacent | Unrelated]
 ```
 
-### 2. User Sentiment Analysis (Top 2-3 Competitors, 80 words max)
+### 2. User Sentiment Analysis (Top 2-3 Competitors, 120 words max)
 
 For each:
 ```
@@ -95,6 +96,9 @@ For each:
 ```
 
 Every quote MUST have a source (Reddit r/subreddit, G2 review, App Store). NOT [from website] or [from app description].
+
+After listing Love/Hate/Wish for each competitor, add one line:
+- **Design implication:** [What should the proposed product learn from this competitor's user feedback? One sentence.]
 
 ### 3. Competitive Positioning & Revenue Evidence (70 words max)
 
@@ -109,11 +113,11 @@ Every quote MUST have a source (Reddit r/subreddit, G2 review, App Store). NOT [
 - **Switch triggers:** What would make users leave
 - **Switching Cost:** [Low | Medium | High]
 
-### 5. Competitive Gaps and Challenges (80 words max)
+### 5. Competitive Gaps and Challenges (160 words max)
 
 **Gaps:** Only list if you found ACTUAL user complaints/requests via search. Tag each: `[Verified: <source>]` or `[Assumption]`.
 
-**Challenges (REQUIRED - minimum 2):** Why is this market harder to enter than it appears? Why might users NOT switch?
+**Challenges (REQUIRED - minimum 2):** Why is this market harder to enter than it appears? Why might users NOT switch? Include at least one challenge about non-product substitution: why can't the customer just use a general-purpose tool or do nothing? If the answer is "they can, and it's good enough," that is a finding, not a failure.
 
 ### 6. Confirmation Bias Check (30 words max)
 
@@ -141,4 +145,4 @@ Based on your research above, classify the competitive landscape:
 **Write to:**
 - `.haytham/session/phase-1-why/competitor-research.md`
 
-Output ONLY the numbered sections above. Do NOT add extra sections. Use structured bullet points (no paragraphs).
+Output ONLY the numbered sections above. Do NOT add extra sections. Use structured bullet points for data items. Prose explanation is allowed for strategic implications (1 sentence per item max).

@@ -818,6 +818,324 @@ class TestSomValidation:
 
 
 # ---------------------------------------------------------------------------
+# 4b. New eval coverage: markdown validation, concept anchor completeness,
+#     multi-archetype fixtures, cross-file checks
+# ---------------------------------------------------------------------------
+
+
+class TestValidationReportMarkdown:
+    """E1, E2, E3: Validate validation-report.md structure."""
+
+    def test_all_sections_present(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            "# Validation Report\n\n"
+            "## 1. The Opportunity\nContent\n\n"
+            "## 2. Competitive Landscape\nContent\n\n"
+            "## 3. Claims & Evidence\nContent\n\n"
+            "## 4. Risk Profile\nDealbreaker Check: yes\n\n"
+            "## 5. Financial Feasibility\nContent\n\n"
+            "## 6. Our Recommendation\n**Composite Score:** 3.2/5.0\n\n"
+            "## 7. Validate Before You Build\nContent\n\n"
+            "## 8. Next Steps\nContent\n\n"
+            "## 9. Positioning Analysis\nContent\n\n"
+            "## 10. Strategic Options\nContent\n\n"
+            "## 11. Assumptions & Evidence\nContent\n"
+        )
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_missing_section_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.md"
+        dst.parent.mkdir(parents=True)
+        # Missing sections 9, 10, 11
+        dst.write_text(
+            "# Validation Report\n\n"
+            "## 1. The Opportunity\nContent\n\n"
+            "## 2. Competitive Landscape\nContent\n\n"
+            "## 3. Claims & Evidence\nContent\n\n"
+            "## 4. Risk Profile\nDealbreaker Check: yes\n\n"
+            "## 5. Financial Feasibility\nContent\n\n"
+            "## 6. Our Recommendation\n**Composite Score:** 3.2/5.0\n\n"
+            "## 7. Validate Before You Build\nContent\n\n"
+            "## 8. Next Steps\nContent\n"
+        )
+        warnings = validate_file(str(dst))
+        assert any("9. Positioning" in w for w in warnings)
+        assert any("10. Strategic" in w for w in warnings)
+        assert any("11. Assumptions" in w for w in warnings)
+
+    def test_missing_composite_score_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text("# Validation Report\n\n## 6. Our Recommendation\nNo score here.\n")
+        warnings = validate_file(str(dst))
+        assert any("Composite Score" in w for w in warnings)
+
+    def test_missing_dealbreaker_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "validation-report.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text("# Validation Report\n\n## 4. Risk Profile\nNo check here.\n")
+        warnings = validate_file(str(dst))
+        assert any("Dealbreaker" in w for w in warnings)
+
+
+class TestConceptAnchorCompleteness:
+    """E4, E5, E6: Required invariants, confidence range, term flags cap."""
+
+    def test_required_invariants_present(self, tmp_path):
+        src = FIXTURES_DIR / "valid_concept_anchor.json"
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        # Valid fixture has all three required invariants
+        assert not any("Missing required invariant" in w for w in warnings)
+
+    def test_missing_required_invariant_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        data = json.loads((FIXTURES_DIR / "valid_concept_anchor.json").read_text())
+        # Remove session_medium
+        data["invariants"] = [
+            inv for inv in data["invariants"]
+            if inv.get("property") != "session_medium"
+        ]
+        dst.write_text(json.dumps(data))
+        warnings = validate_file(str(dst))
+        assert any("session_medium" in w for w in warnings)
+
+    def test_confidence_out_of_range_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        data = json.loads((FIXTURES_DIR / "valid_concept_anchor.json").read_text())
+        data["invariants"][0]["confidence"] = 1.5
+        dst.write_text(json.dumps(data))
+        warnings = validate_file(str(dst))
+        assert any("confidence 1.5" in w for w in warnings)
+
+    def test_term_flags_cap_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        data = json.loads((FIXTURES_DIR / "valid_concept_anchor.json").read_text())
+        flag = {
+            "term": "test",
+            "chosen_interpretation": "A",
+            "alternatives": ["B"],
+            "impact": "Changes archetype",
+        }
+        data["term_flags"] = [flag, flag, flag, flag]  # 4 flags, exceeds cap
+        dst.write_text(json.dumps(data))
+        warnings = validate_file(str(dst))
+        assert any("Hard cap is 3" in w for w in warnings)
+
+
+class TestResearchBriefTone:
+    """E7: Banned judgment language in research brief."""
+
+    def test_no_judgment_language_clean(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "research-brief.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text("# Research Brief\n\nThe market has 500 users.\n")
+        warnings = validate_file(str(dst))
+        assert not any("Banned judgment" in w for w in warnings)
+
+    def test_judgment_language_flagged(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "research-brief.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text("# Research Brief\n\nThis is a promising market with strong growth.\n")
+        warnings = validate_file(str(dst))
+        assert any("promising" in w for w in warnings)
+        assert any("strong" in w for w in warnings)
+
+
+class TestMarketResearchStructure:
+    """E8: Trend count and counter-trend check."""
+
+    def test_three_trends_with_counter(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "market-research.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            "# Market Research\n\n"
+            "#### 4. Market Trends\n\n"
+            "**Trend 1 (tailwind):** Growth.\n\n"
+            "**Trend 2 (tailwind):** More growth.\n\n"
+            "**Trend 3 (counter-trend):** Decline.\n\n"
+            "#### 5. Market Risks\n\nRisks here.\n"
+        )
+        warnings = validate_file(str(dst))
+        assert not any("trends" in w.lower() for w in warnings)
+        assert not any("counter-trend" in w.lower() for w in warnings)
+
+    def test_wrong_trend_count_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "market-research.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            "# Market Research\n\n"
+            "#### 4. Market Trends\n\n"
+            "**Trend 1:** Growth.\n\n"
+            "**Trend 2:** More growth.\n\n"
+            "#### 5. Market Risks\n\nRisks here.\n"
+        )
+        warnings = validate_file(str(dst))
+        assert any("2 trends" in w for w in warnings)
+
+
+class TestWordBudgetWarnings:
+    """E9: Word budget checks fire for over-budget sections."""
+
+    def test_market_research_over_budget_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "market-research.md"
+        dst.parent.mkdir(parents=True)
+        # Section 5 budget is 100 words, 25% tolerance = 125. Write 130 words.
+        filler = " ".join(["risk"] * 130)
+        dst.write_text(
+            "# Market Research\n\n"
+            "#### 5. Market Risks\n\n"
+            f"{filler}\n"
+        )
+        warnings = validate_file(str(dst))
+        assert any("5. Market Risks" in w and "words" in w for w in warnings)
+
+    def test_market_research_within_budget_no_warning(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "market-research.md"
+        dst.parent.mkdir(parents=True)
+        # Section 5 budget is 100 words, write 90 (within budget)
+        filler = " ".join(["risk"] * 90)
+        dst.write_text(
+            "# Market Research\n\n"
+            "#### 5. Market Risks\n\n"
+            f"{filler}\n"
+        )
+        warnings = validate_file(str(dst))
+        assert not any("5. Market Risks" in w for w in warnings)
+
+    def test_competitor_research_over_budget_warns(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "competitor-research.md"
+        dst.parent.mkdir(parents=True)
+        # Section 1 budget is 300 words, 25% tolerance = 375. Write 400 words.
+        filler = " ".join(["competitor"] * 400)
+        dst.write_text(
+            "# Competitor Research\n\n"
+            "### 1. Competitor Identification\n\n"
+            f"{filler}\n\n"
+            "### 2. User Sentiment\n\nShort.\n"
+        )
+        warnings = validate_file(str(dst))
+        assert any("1. Competitor ID" in w and "words" in w for w in warnings)
+
+    def test_competitor_research_within_budget_no_warning(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "competitor-research.md"
+        dst.parent.mkdir(parents=True)
+        # Section 1 budget is 300 words, write 250 (within budget)
+        filler = " ".join(["competitor"] * 250)
+        dst.write_text(
+            "# Competitor Research\n\n"
+            "### 1. Competitor Identification\n\n"
+            f"{filler}\n\n"
+            "### 2. User Sentiment\n\nShort.\n"
+        )
+        warnings = validate_file(str(dst))
+        assert not any("1. Competitor ID" in w for w in warnings)
+
+
+class TestEvidenceTagPreservation:
+    """E11: Evidence tags in research brief should match upstream sources."""
+
+    def test_mismatched_tag_warns(self, tmp_path):
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-1-why"
+        phase_dir.mkdir(parents=True)
+
+        # Upstream has [Verified: Statista]
+        (phase_dir / "market-research.md").write_text(
+            "# Market Research\n\nTAM is $5B [Verified: Statista]\n"
+        )
+        (phase_dir / "competitor-research.md").write_text(
+            "# Competitor Research\n\nCompetitor has 1000 users [Verified: Crunchbase]\n"
+        )
+        # Brief changes the tag source
+        brief_path = phase_dir / "research-brief.md"
+        brief_path.write_text(
+            "# Research Brief\n\nTAM is $5B [Verified: IBISWorld]\n"
+            "Competitor has 1000 users [Verified: Crunchbase]\n"
+        )
+        warnings = validate_file(str(brief_path))
+        assert any("tag mismatch" in w.lower() or "evidence tag" in w.lower() for w in warnings)
+
+    def test_preserved_tags_no_warning(self, tmp_path):
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-1-why"
+        phase_dir.mkdir(parents=True)
+
+        (phase_dir / "market-research.md").write_text(
+            "# Market Research\n\nTAM is $5B [Verified: Statista]\n"
+        )
+        (phase_dir / "competitor-research.md").write_text(
+            "# Competitor Research\n\nCompetitor has 1000 users [Verified: Crunchbase]\n"
+        )
+        # Brief preserves exact tags
+        brief_path = phase_dir / "research-brief.md"
+        brief_path.write_text(
+            "# Research Brief\n\nTAM is $5B [Verified: Statista]\n"
+            "Competitor has 1000 users [Verified: Crunchbase]\n"
+        )
+        warnings = validate_file(str(brief_path))
+        assert not any("tag mismatch" in w.lower() or "evidence tag" in w.lower() for w in warnings)
+
+
+class TestMultiArchetypeFixtures:
+    """E10: All archetype fixtures pass validation."""
+
+    @pytest.mark.parametrize("fixture_name", [
+        "valid_concept_anchor.json",
+        "valid_concept_anchor_consumer.json",
+        "valid_concept_anchor_marketplace.json",
+        "valid_concept_anchor_b2b.json",
+    ], ids=lambda p: p.replace(".json", ""))
+    def test_archetype_fixture_valid(self, fixture_name, tmp_path):
+        src = FIXTURES_DIR / fixture_name
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(src.read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Warnings for {fixture_name}: {warnings}"
+
+
+class TestCompositeScoreConsistency:
+    """E2: Cross-file composite score check (JSON vs markdown)."""
+
+    def test_matching_scores_no_warning(self, tmp_path):
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-1-why"
+        phase_dir.mkdir(parents=True)
+
+        md_path = phase_dir / "validation-report.md"
+        md_path.write_text("## 6. Our Recommendation\n**Composite Score:** 3.2/5.0\n")
+
+        json_data = json.loads((FIXTURES_DIR / "valid_validation_report.json").read_text())
+        json_data["composite_score"] = 3.2
+        json_path = phase_dir / "validation-report.json"
+        json_path.write_text(json.dumps(json_data))
+
+        warnings = validate_file(str(json_path))
+        assert not any("Composite score mismatch" in w for w in warnings)
+
+    def test_mismatched_scores_warns(self, tmp_path):
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-1-why"
+        phase_dir.mkdir(parents=True)
+
+        md_path = phase_dir / "validation-report.md"
+        md_path.write_text("## 6. Our Recommendation\n**Composite Score:** 3.5/5.0\n")
+
+        json_data = json.loads((FIXTURES_DIR / "valid_validation_report.json").read_text())
+        json_data["composite_score"] = 2.8
+        json_path = phase_dir / "validation-report.json"
+        json_path.write_text(json.dumps(json_data))
+
+        warnings = validate_file(str(json_path))
+        assert any("Composite score mismatch" in w for w in warnings)
+
+
+# ---------------------------------------------------------------------------
 # 5. Marketplace JSON validation
 # ---------------------------------------------------------------------------
 

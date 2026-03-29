@@ -36,13 +36,31 @@ SCHEMAS = {
 }
 
 
+def _count_section_words(content: str, header_pattern: str, next_header: str = r"^#{1,4} ") -> int:
+    """Count words in a markdown section between header_pattern and next heading."""
+    match = re.search(header_pattern, content, re.MULTILINE)
+    if not match:
+        return 0
+    start = match.end()
+    rest = content[start:]
+    next_match = re.search(next_header, rest, re.MULTILINE)
+    section_text = rest[:next_match.start()] if next_match else rest
+    return len(section_text.split())
+
+
+# Banned judgment words for research-brief.md
+BANNED_BRIEF_WORDS = [
+    "strong", "weak", "promising", "concerning", "impressive",
+    "worrying", "significant", "notable", "better than", "worse than",
+    "leading", "lagging", "large market", "tough competition",
+    "clear opportunity",
+]
+
+
 def validate_markdown(file_path: str) -> list[str]:
     """Validate markdown files in .haytham/session/. Returns warnings."""
     warnings = []
     basename = os.path.basename(file_path)
-
-    if basename != "idea-analysis.md":
-        return warnings
 
     try:
         with open(file_path) as f:
@@ -50,25 +68,172 @@ def validate_markdown(file_path: str) -> list[str]:
     except FileNotFoundError:
         return warnings
 
-    # Extract UVP section
-    uvp_match = re.search(
-        r"## 3\. Unique Value Proposition.*?\n\n(.+?)(?:\n\n|$)",
-        content,
-        re.DOTALL,
-    )
-    if not uvp_match:
-        warnings.append("idea-analysis.md: UVP section (## 3) not found")
-        return warnings
+    # --- idea-analysis.md ---
+    if basename == "idea-analysis.md":
+        # Extract UVP section
+        uvp_match = re.search(
+            r"## 3\. Unique Value Proposition.*?\n\n(.+?)(?:\n\n|$)",
+            content,
+            re.DOTALL,
+        )
+        if not uvp_match:
+            warnings.append("idea-analysis.md: UVP section (## 3) not found")
+            return warnings
 
-    uvp_text = uvp_match.group(1).strip()
-    if len(uvp_text) > 140:
-        warnings.append(
-            f"idea-analysis.md: UVP exceeds 140 chars ({len(uvp_text)} chars)"
+        uvp_text = uvp_match.group(1).strip()
+        if len(uvp_text) > 140:
+            warnings.append(
+                f"idea-analysis.md: UVP exceeds 140 chars ({len(uvp_text)} chars)"
+            )
+        if " can " not in uvp_text.lower():
+            warnings.append(
+                "idea-analysis.md: UVP does not match '[Target] can [outcome]' format"
+            )
+
+    # --- validation-report.md (E1, E2, E3) ---
+    if basename == "validation-report.md":
+        # E1: Check all 11 sections present
+        required_sections = [
+            (r"#+\s*1\.\s*The Opportunity", "1. The Opportunity"),
+            (r"#+\s*2\.\s*Competitive Landscape", "2. Competitive Landscape"),
+            (r"#+\s*3\.\s*Claims\s*&?\s*Evidence", "3. Claims & Evidence"),
+            (r"#+\s*4\.\s*Risk Profile", "4. Risk Profile"),
+            (r"#+\s*5\.\s*Financial Feasibility", "5. Financial Feasibility"),
+            (r"#+\s*6\.\s*Our Recommendation", "6. Our Recommendation"),
+            (r"#+\s*7\.\s*Validate Before You Build", "7. Validate Before You Build"),
+            (r"#+\s*8\.\s*Next Steps", "8. Next Steps"),
+            (r"#+\s*9\.\s*Positioning Analysis", "9. Positioning Analysis"),
+            (r"#+\s*10\.\s*Strategic Options", "10. Strategic Options"),
+            (r"#+\s*11\.\s*Assumptions\s*&?\s*Evidence", "11. Assumptions & Evidence"),
+        ]
+        for pattern, name in required_sections:
+            if not re.search(pattern, content):
+                warnings.append(
+                    f"validation-report.md: Missing section '{name}'"
+                )
+
+        # E2: Composite score consistency (check markdown side; JSON checked separately)
+        score_match = re.search(
+            r"\*\*Composite Score:\*\*\s*(\d+\.?\d*)\s*/\s*5\.0",
+            content,
         )
-    if " can " not in uvp_text.lower():
-        warnings.append(
-            "idea-analysis.md: UVP does not match '[Target] can [outcome]' format"
+        if not score_match:
+            warnings.append(
+                "validation-report.md: 'Composite Score: X.X/5.0' not found"
+            )
+        else:
+            # Store for cross-file check (caller must handle)
+            pass
+
+        # E3: Dealbreaker check presence
+        if "Dealbreaker" not in content and "dealbreaker" not in content:
+            warnings.append(
+                "validation-report.md: Dealbreaker check not found in Risk Profile"
+            )
+
+    # --- research-brief.md (E7, E11) ---
+    if basename == "research-brief.md":
+        content_lower = content.lower()
+        for word in BANNED_BRIEF_WORDS:
+            if word.lower() in content_lower:
+                # Find line number for context
+                for i, line in enumerate(content.splitlines(), 1):
+                    if word.lower() in line.lower():
+                        warnings.append(
+                            f"research-brief.md: Banned judgment word '{word}' "
+                            f"found on line {i}"
+                        )
+                        break
+
+        # E11: Evidence tag preservation check
+        brief_dir = os.path.dirname(file_path)
+        upstream_tags = set()
+        for upstream_name in ("market-research.md", "competitor-research.md"):
+            upstream_path = os.path.join(brief_dir, upstream_name)
+            if os.path.exists(upstream_path):
+                try:
+                    with open(upstream_path) as uf:
+                        upstream_content = uf.read()
+                    # Extract all evidence tags: [Verified: X], [Estimate: X], [Assumption]
+                    tags = re.findall(
+                        r"\[(Verified|Estimate|Assumption)(?::\s*([^\]]*))?\]",
+                        upstream_content,
+                    )
+                    for tag_type, tag_source in tags:
+                        if tag_source:
+                            upstream_tags.add((tag_type, tag_source.strip()))
+                except OSError:
+                    pass
+
+        if upstream_tags:
+            brief_tags = set()
+            tags_in_brief = re.findall(
+                r"\[(Verified|Estimate|Assumption)(?::\s*([^\]]*))?\]",
+                content,
+            )
+            for tag_type, tag_source in tags_in_brief:
+                if tag_source:
+                    brief_tags.add((tag_type, tag_source.strip()))
+
+            # Check if brief introduces tags not found upstream
+            novel_tags = brief_tags - upstream_tags
+            for tag_type, tag_source in novel_tags:
+                warnings.append(
+                    f"research-brief.md: Evidence tag [{tag_type}: {tag_source}] "
+                    f"not found in upstream research files (possible tag mismatch)"
+                )
+
+    # --- market-research.md (E8, E9) ---
+    if basename == "market-research.md":
+        # E8: Trend count and counter-trend check
+        trend_matches = re.findall(
+            r"\*\*Trend\s+\d+", content
         )
+        if trend_matches and len(trend_matches) != 3:
+            warnings.append(
+                f"market-research.md: Found {len(trend_matches)} trends; "
+                f"requires exactly 3"
+            )
+        if trend_matches and "counter-trend" not in content.lower() and "counter" not in content.lower():
+            warnings.append(
+                "market-research.md: No counter-trend found; "
+                "requires at least 1"
+            )
+
+        # E9: Section word budget checks
+        section_budgets = {
+            r"#+\s*1\.\s*Market Context": ("1. Market Context", 80),
+            r"#+\s*2\.\s*Jobs-to-be-Done": ("2. JTBD", 150),
+            r"#+\s*3\.\s*Market Size": ("3. Market Size", 50),
+            r"#+\s*4\.\s*Market Trends": ("4. Market Trends", 140),
+            r"#+\s*5\.\s*Market Risks": ("5. Market Risks", 100),
+        }
+        for pattern, (name, budget) in section_budgets.items():
+            words = _count_section_words(content, pattern)
+            if words > 0 and words > budget * 1.25:
+                warnings.append(
+                    f"market-research.md: Section '{name}' has {words} words "
+                    f"(budget: {budget}, 25% tolerance: {int(budget * 1.25)})"
+                )
+
+    # --- competitor-research.md (E9) ---
+    if basename == "competitor-research.md":
+        section_budgets = {
+            r"#+\s*1\.\s*Competitor Identification": ("1. Competitor ID", 300),
+            r"#+\s*2\.\s*User Sentiment": ("2. Sentiment", 120),
+            r"#+\s*3\.\s*Competitive Positioning": ("3. Positioning", 70),
+            r"#+\s*4\.\s*Switching Analysis": ("4. Switching", 50),
+            r"#+\s*5\.\s*Competitive Gaps": ("5. Gaps & Challenges", 160),
+            r"#+\s*6\.\s*Confirmation Bias": ("6. Bias Check", 30),
+            r"#+\s*7\.\s*Competitive Stance": ("7. Stance", 20),
+        }
+        for pattern, (name, budget) in section_budgets.items():
+            words = _count_section_words(content, pattern)
+            if words > 0 and words > budget * 1.25:
+                warnings.append(
+                    f"competitor-research.md: Section '{name}' has {words} words "
+                    f"(budget: {budget}, 25% tolerance: {int(budget * 1.25)})"
+                )
 
     return warnings
 
@@ -131,8 +296,31 @@ def validate_file(file_path: str) -> list[str]:
                     "Must be high, medium, or low."
                 )
 
-        # Validate scope_risk on invariants
+        # E4: Validate required invariants (access_model, interaction_model, session_medium)
         invariants = data.get("invariants", [])
+        if isinstance(invariants, list):
+            invariant_properties = {
+                inv.get("property", "") for inv in invariants
+                if isinstance(inv, dict)
+            }
+            for required_prop in ("access_model", "interaction_model", "session_medium"):
+                if required_prop not in invariant_properties:
+                    warnings.append(
+                        f"Missing required invariant '{required_prop}' in {basename}"
+                    )
+
+            # E5: Validate confidence score range [0.0, 1.0]
+            for i, inv in enumerate(invariants):
+                if isinstance(inv, dict):
+                    conf = inv.get("confidence")
+                    if isinstance(conf, (int, float)):
+                        if conf < 0.0 or conf > 1.0:
+                            warnings.append(
+                                f"Invalid invariants[{i}].confidence {conf} in "
+                                f"{basename}. Must be in [0.0, 1.0]."
+                            )
+
+        # Validate scope_risk on invariants
         valid_scope_risks = {"low", "medium", "high"}
         if isinstance(invariants, list):
             for i, inv in enumerate(invariants):
@@ -152,6 +340,13 @@ def validate_file(file_path: str) -> list[str]:
                     f"term_flags must be an array in {basename}"
                 )
             else:
+                # E6: Term flags cap (max 3)
+                if len(term_flags) > 3:
+                    warnings.append(
+                        f"term_flags has {len(term_flags)} entries in {basename}. "
+                        f"Hard cap is 3."
+                    )
+
                 invariant_props = set()
                 if isinstance(invariants, list):
                     for inv in invariants:
@@ -312,6 +507,26 @@ def validate_file(file_path: str) -> list[str]:
 
     # Special validation for validation-report.json
     if basename == "validation-report.json":
+        # E2: Cross-file composite score consistency
+        report_md_path = os.path.join(os.path.dirname(file_path), "validation-report.md")
+        if os.path.exists(report_md_path):
+            try:
+                with open(report_md_path) as mf:
+                    md_content = mf.read()
+                score_match = re.search(
+                    r"\*\*Composite Score:\*\*\s*(\d+\.?\d*)\s*/\s*5\.0",
+                    md_content,
+                )
+                json_score = data.get("composite_score")
+                if score_match and json_score is not None:
+                    md_score = float(score_match.group(1))
+                    if abs(md_score - float(json_score)) > 0.1:
+                        warnings.append(
+                            f"Composite score mismatch: markdown has {md_score}, "
+                            f"JSON has {json_score} in {basename}"
+                        )
+            except (OSError, ValueError):
+                pass
         # Check recommendation value
         rec = data.get("recommendation", "")
         if rec not in ("GO", "PIVOT", "NO-GO"):

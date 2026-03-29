@@ -1,0 +1,53 @@
+{
+  "archetype": "consumer_app",
+  "intent": {
+    "goal": "Build a mobile app for tracking bird songs in parks",
+    "explicit_constraints": ["Mobile-first", "Works offline in parks"],
+    "non_goals": []
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "free with optional premium",
+      "source": "consumer mobile app",
+      "confidence": 0.85
+    },
+    {
+      "property": "interaction_model",
+      "value": "record and identify bird songs",
+      "source": "bird song tracking",
+      "confidence": 0.9
+    },
+    {
+      "property": "session_medium",
+      "value": "mobile app",
+      "source": "mobile app",
+      "confidence": 0.95
+    }
+  ],
+  "identity": {
+    "features": ["Audio recognition", "Offline mode", "Species catalog"],
+    "why_distinctive": "Niche focus on bird songs rather than general nature sounds"
+  },
+  "founder_intent": {
+    "motivation": "learning",
+    "success_criteria": "Learn React Native by shipping a real app",
+    "expected_impact": "Birders can identify species by sound without field guides",
+    "constraints": {
+      "time_horizon": "months",
+      "team": "solo"
+    }
+  },
+  "founder_profile": {
+    "technical_level": "semi-technical",
+    "domain_expertise": "low",
+    "inference_basis": "Describes user outcome, mentions React Native framework"
+  },
+  "strategic_signals": {
+    "business_model": "freemium",
+    "success_metric": "usage",
+    "distribution": "standalone",
+    "growth_model": "content",
+    "inference_notes": "Mobile app distributed via app stores, content-driven growth through species catalog"
+  }
+}
