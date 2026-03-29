@@ -98,7 +98,7 @@ For each problem:
   - Low: Annoying but tolerated; won't pay to solve
   - Medium: Causes friction; would try a free solution
   - High: Urgent/blocking; actively seeking and paying for solutions
-  - RULE: Pick the LOWER level if between two. Not all problems are High.
+  - RULE: Use single-level ratings only (Low, Medium, High). Do not use compound ratings like "Low-Medium". If between two levels, pick the LOWER one. Not all problems are High.
 ```
 
 #### 2. Target User Segments (2-3 segments)
@@ -150,7 +150,7 @@ Describe WHAT the solution delivers, not HOW it's built. Use capabilities (user 
 
 CRITICAL: Do NOT soften these assessments. If most triggers are Inferred or Constructed, Trigger Strength should be Weak, not Moderate.
 
-**Word budget: 500 words maximum across all sections.**
+**Word budget: 800 words maximum across all sections.**
 
 ### Step 3: Concept Anchor Extraction
 
