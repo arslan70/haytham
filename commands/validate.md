@@ -22,14 +22,21 @@ Then check if the user passed `--from N` as the argument (e.g., `/haytham:valida
 
 ### URL Detection
 
+<!-- Keep in sync with commands/haytham.md "URL Detection" section -->
+
 If the argument is not `--from N`, check if it looks like a URL:
 
 **If it matches `https?://(www\.)?reddit\.com/`** (Reddit post):
-1. Use WebFetch to retrieve the URL content
-2. Extract the post title and body text from the fetched content
-3. Set IDEA_TEXT to the extracted title + body
-4. Set SOURCE_URL to the original URL
-5. Set SOURCE_TYPE to `reddit_post`
+1. Try WebFetch to retrieve the URL content
+2. If WebFetch fails (blocked or errors), fall back to the Reddit JSON API via Bash:
+   ```bash
+   curl -s -H "User-Agent: haytham/1.0" "[URL].json"
+   ```
+   Parse the JSON response to extract `title` and `selftext` from `data.children[0].data`.
+3. Extract the post title and body text from the fetched content
+4. Set IDEA_TEXT to the extracted title + body
+5. Set SOURCE_URL to the original URL
+6. Set SOURCE_TYPE to `reddit_post`
 
 **If it matches `https?://(www\.)?github\.com/`** (GitHub repo):
 1. Parse `{owner}/{repo}` from the URL path

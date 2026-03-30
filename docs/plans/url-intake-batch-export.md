@@ -181,7 +181,7 @@ No agent files modified. No scripts modified. No hooks modified.
 
 ## Risks
 
-- **WebFetch on Reddit may return noisy HTML** -- mitigated by extracting from the fetched content, not expecting clean text. The command should warn if extracted text is under 50 characters.
+- **WebFetch blocks reddit.com** -- mitigated by falling back to the Reddit JSON API via `curl -s -H "User-Agent: haytham/1.0" "[URL].json"` and extracting `title` + `selftext` from the response. Confirmed working in testing.
 - **GitHub raw README URL may use `master` not `main`** -- mitigated by trying `main` first, falling back to `master`.
 - **Slug collisions** -- mitigated by appending numeric suffix if directory exists, or user provides `--slug` override.
 - **pandoc not installed** -- mitigated by making `--pdf` opt-in with clear install instructions.
