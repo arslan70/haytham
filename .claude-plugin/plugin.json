@@ -1,7 +1,7 @@
 {
   "name": "haytham",
   "description": "Lifecycle control plane for AI-built products — validate, specify, design, build, and evolve",
-  "version": "0.3.12",
+  "version": "0.3.14",
   "author": {
     "name": "Arslan Mehboob"
   },

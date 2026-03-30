@@ -1,12 +1,12 @@
 ---
 description: Validate a startup idea and produce an implementation-ready specification
-argument-hint: [startup idea]
+argument-hint: [startup idea | URL] [--batch]
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 ---
 
 # Haytham: Startup Idea Validation & Specification
 
-You are orchestrating a 4-phase startup validation workflow. Follow each phase in order. Do not skip phases. Do not proceed to the next phase without user approval at the gate.
+You are orchestrating a 4-phase startup validation workflow. Follow each phase in order. Do not skip phases. In normal mode, do not proceed to the next phase without user approval at the gate. In BATCH_MODE, auto-approve all gates and skip all interactive review steps.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history. Before each phase, verify previous phase output files exist by reading them.
 
@@ -29,13 +29,30 @@ All paths relative to `.haytham/session/`.
 
 ## Setup
 
+### Flag Parsing
+
+First, check if the argument contains `--batch`. If so:
+- Remove `--batch` from the argument string (the remainder is the idea or URL)
+- Set BATCH_MODE to true
+
+### URL Detection
+
+URL detection logic is defined in `commands/validate.md` under "URL Detection". Follow that section exactly: detect Reddit/GitHub URLs, extract content via WebFetch (with Reddit JSON API fallback), set IDEA_TEXT/SOURCE_URL/SOURCE_TYPE, show the user what was extracted, and warn if extracted text is under 50 characters.
+
+### Initialize Project
+
 1. Create `.haytham/` directory if it doesn't exist
 2. Create `.haytham/session/phase-1-why/`, `.haytham/session/phase-2-what/`, `.haytham/session/phase-3-how/`, `.haytham/session/phase-4-specs/` directories
-3. Write the user's startup idea to `.haytham/project.yaml`:
+3. Write to `.haytham/project.yaml`:
    ```yaml
    idea: |
-     [The user's startup idea exactly as provided]
+     [IDEA_TEXT]
+   source:
+     url: [SOURCE_URL or null]
+     type: [SOURCE_TYPE]
+     fetched_at: [current ISO timestamp]
    created_at: [current ISO timestamp]
+   batch_mode: [true if BATCH_MODE, omit otherwise]
    state:
      phase_1:
        last_completed_step: 0
@@ -52,7 +69,18 @@ After each step completes successfully, update `.haytham/project.yaml` to set th
 
 **Goal:** Understand the idea, research the market, and produce a GO/PIVOT/NO-GO recommendation.
 
-Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`. Then tell the user (replacing VERSION with the actual version string you just read):
+Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketplace.json` and extract the `version` field from `plugins[0]`.
+
+If BATCH_MODE is true, tell the user:
+
+> **Phase 1: Idea Validation** (haytham vVERSION) -- BATCH MODE
+>
+> Running unattended. Skipping Steps 0, 4, 6 (no human review).
+> Steps: 1 (Idea Analysis) -> 2 (Market Research) -> 3 (Research Brief) -> 5 (Validation Report)
+>
+> Estimated total: ~6 minutes.
+
+Otherwise, tell the user:
 
 > **Phase 1: Idea Validation** (haytham vVERSION)
 >
@@ -69,7 +97,9 @@ Before launching any agents, read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/marketpl
 
 ### Step 0: Founder Context
 
-**Skip this step if a new idea was NOT provided (resuming from state).** Also skip if `.haytham/project.yaml` already contains a `founder_context` section.
+**Skip this step if BATCH_MODE is true.** Also skip if a new idea was NOT provided (resuming from state). Also skip if `.haytham/project.yaml` already contains a `founder_context` section.
+
+If skipped due to BATCH_MODE, do NOT write `founder_context`. The idea-analyst will infer what it can.
 
 Ask the founder:
 
@@ -210,7 +240,12 @@ Update state: `last_completed_step: 3`.
 
 ### Step 4: Founder Review
 
-Ask:
+**If BATCH_MODE is true:** Skip the review prompt. Tell the user:
+> **Step 4 skipped (batch mode).** Auto-approving research brief.
+
+Update state: `last_completed_step: 4`. Proceed directly to Step 5.
+
+**Otherwise**, ask:
 > **Review the brief above.** Check these dimensions:
 > - **Problem statement** — is this the right problem?
 > - **Competitors** — are we missing anyone, or including wrong ones?
@@ -265,7 +300,31 @@ Update state: `last_completed_step: 5`.
 
 ### Step 6: Gate 1
 
-Ask:
+**If BATCH_MODE is true:** Read the recommendation from `.haytham/session/phase-1-why/validation-report.json`.
+
+If the recommendation is **NO-GO**, halt the pipeline:
+> **Gate 1 (batch mode): NO-GO.** The validation report recommends against proceeding. Pipeline halted.
+>
+> Review the report in `.haytham/session/phase-1-why/validation-report.md` and re-run without `--batch` if you want to discuss or override.
+
+Write gate decision with `"user_decision": "batch-auto-halted"` and stop. Do not proceed to Phase 2.
+
+Otherwise (GO or PIVOT), auto-write gate decision:
+```json
+{
+  "phase": 1,
+  "recommendation": "[from validation-report.json]",
+  "user_decision": "batch-auto-approved",
+  "notes": "Auto-approved in batch mode",
+  "decided_at": "[ISO timestamp]"
+}
+```
+Tell the user:
+> **Gate 1 auto-approved (batch mode).** Verdict: [recommendation]. Proceeding to Phase 2.
+
+Update state: `last_completed_step: 6`. Skip to Phase 2.
+
+**Otherwise**, ask:
 > **Review the report above. Specifically:**
 > - Does the evidence support the verdict?
 > - Is the positioning analysis right? Is the territory you'd actually claim?
@@ -339,7 +398,12 @@ Update state: `last_completed_step: 7`.
 
 This is a refinement loop. The user must approve the scope BEFORE capabilities are derived from it.
 
-Ask:
+**If BATCH_MODE is true:** Skip the review. Tell the user:
+> **Scope review skipped (batch mode).** Auto-approving MVP scope.
+
+Update state: `last_completed_step: 8`. Proceed to Step 9.
+
+**Otherwise**, ask:
 > **Review the MVP scope above. Specifically:**
 > - Is "The One Thing" right? Does it capture what matters?
 > - Are the IN/OUT scope boundaries correct?
@@ -380,7 +444,12 @@ Update state: `last_completed_step: 9`.
 
 ### Step 10: Gate 2
 
-Read `.haytham/session/phase-2-what/capabilities.json` and output the following inline in your response (the user must see this without expanding anything):
+**If BATCH_MODE is true:** Auto-write gate decision with `user_decision: "batch-auto-approved"`. Tell the user:
+> **Gate 2 auto-approved (batch mode).** Proceeding to technical design.
+
+Update state: `last_completed_step: 10`. Skip to Phase 3.
+
+**Otherwise**, read `.haytham/session/phase-2-what/capabilities.json` and output the following inline in your response (the user must see this without expanding anything):
 - Functional capabilities with traceability to scope items
 - Non-functional capabilities
 - System traits classification
@@ -459,7 +528,12 @@ Update state: `last_completed_step: 11`.
 
 ### Step 12: Review & Gate 3
 
-Read all three output files and output the following inline in your response (the user must see this without expanding anything):
+**If BATCH_MODE is true:** Auto-write gate decision with `user_decision: "batch-auto-approved"`. Tell the user:
+> **Gate 3 auto-approved (batch mode).** Proceeding to spec generation.
+
+Update state: `last_completed_step: 12`. Skip to Phase 4.
+
+**Otherwise**, read all three output files and output the following inline in your response (the user must see this without expanding anything):
 - **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
 - **Architecture Decisions**: ID, name, what it covers, capabilities served
 - **Research Directives:** [N] of [M] capabilities require pre-implementation research
@@ -538,7 +612,12 @@ Update state: `last_completed_step: 13`.
 
 ### Step 14: Final Review
 
-Read the OpenSpec files and output the following inline in your response (the user must see this without expanding anything):
+**If BATCH_MODE is true:** Skip the review. Tell the user:
+> **Final review skipped (batch mode).** Specification complete.
+
+Update state: `last_completed_step: 14`. Skip to Completion.
+
+**Otherwise**, read the OpenSpec files and output the following inline in your response (the user must see this without expanding anything):
 - Domain list with requirement counts per domain
 - Coverage check (all capabilities and decisions covered)
 - config.yaml traits summary

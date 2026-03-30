@@ -105,14 +105,37 @@ Concept anchors (extracted in Phase 1) are passed unchanged to every downstream 
 
 Read more: [How It Works](https://arslan70.github.io/haytham/how-it-works/) | [System Evolution](https://arslan70.github.io/haytham/system-evolution/)
 
-## Run individual phases
+## Commands
 
-```
-/haytham:validate "your idea"    # Phase 1: Should this be built?
-/haytham:specify                 # Phase 2: What exactly?
-/haytham:design                  # Phase 3: How to build it?
-/haytham:plan                    # Phase 4: What are the specs?
-```
+### Pipeline
+
+| Command | Description |
+|---------|-------------|
+| `/haytham "idea"` | Run all 4 phases end-to-end |
+| `/haytham:validate "idea or URL"` | Phase 1: Market research and GO/PIVOT/NO-GO verdict |
+| `/haytham:specify` | Phase 2: MVP scope and capability model |
+| `/haytham:design` | Phase 3: Build/buy analysis and architecture decisions |
+| `/haytham:plan` | Phase 4: Generate implementation-ready OpenSpec |
+| `/haytham:build` | Set up a new project from Phase 4 specs |
+
+### Utilities
+
+| Command | Description |
+|---------|-------------|
+| `/haytham:demo <URL>` | Batch-validate a URL and export the report to a demos repo |
+| `/haytham:export` | Export a validation report to a demos repository for sharing |
+
+### Quality reviews
+
+| Command | Description |
+|---------|-------------|
+| `/haytham:ux-review` | Analyze a run transcript for UX guideline compliance |
+| `/haytham:review-fidelity` | Check if output stays faithful to the original idea |
+| `/haytham:review-consistency` | Check cross-stage consistency and traceability |
+| `/haytham:review-depth` | Check Phase 1 analysis depth and evidence quality |
+| `/haytham:review-actionability` | Check if the spec is detailed enough to implement |
+
+Both `/haytham:validate` and `/haytham:demo` accept Reddit post and GitHub repo URLs. Use `--batch` with `/haytham:validate` to skip interactive gates.
 
 ## Share your experience
 
