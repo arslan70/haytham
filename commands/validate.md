@@ -22,8 +22,6 @@ Then check if the user passed `--from N` as the argument (e.g., `/haytham:valida
 
 ### URL Detection
 
-<!-- Keep in sync with commands/haytham.md "URL Detection" section -->
-
 If the argument is not `--from N`, check if it looks like a URL:
 
 **If it matches `https?://(www\.)?reddit\.com/`** (Reddit post):
@@ -336,7 +334,16 @@ Update state: `last_completed_step: 5`.
 
 ## Step 6: Gate 1
 
-**If BATCH_MODE is true:** Read the recommendation from `.haytham/session/phase-1-why/validation-report.json`. Auto-write gate decision:
+**If BATCH_MODE is true:** Read the recommendation from `.haytham/session/phase-1-why/validation-report.json`.
+
+If the recommendation is **NO-GO**, halt the pipeline:
+> **Gate 1 (batch mode): NO-GO.** The validation report recommends against proceeding. Pipeline halted.
+>
+> Review the report in `.haytham/session/phase-1-why/validation-report.md` and re-run without `--batch` if you want to discuss or override.
+
+Write gate decision with `"user_decision": "batch-auto-halted"` and stop. Do not proceed further.
+
+Otherwise (GO or PIVOT), auto-write gate decision:
 ```json
 {
   "phase": 1,

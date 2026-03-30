@@ -37,38 +37,7 @@ First, check if the argument contains `--batch`. If so:
 
 ### URL Detection
 
-<!-- Keep in sync with commands/validate.md "URL Detection" section -->
-
-Check if the argument looks like a URL:
-
-**If it matches `https?://(www\.)?reddit\.com/`** (Reddit post):
-1. Try WebFetch to retrieve the URL content
-2. If WebFetch fails (blocked or errors), fall back to the Reddit JSON API via Bash:
-   ```bash
-   curl -s -H "User-Agent: haytham/1.0" "[URL].json"
-   ```
-   Parse the JSON response to extract `title` and `selftext` from `data.children[0].data`.
-3. Extract the post title and body text from the fetched content
-4. Set IDEA_TEXT to the extracted title + body
-5. Set SOURCE_URL to the original URL, SOURCE_TYPE to `reddit_post`
-
-**If it matches `https?://(www\.)?github\.com/`** (GitHub repo):
-1. Parse `{owner}/{repo}` from the URL path
-2. Use WebFetch to retrieve `https://raw.githubusercontent.com/{owner}/{repo}/main/README.md` (fall back to `master` if 404)
-3. Also use WebFetch on the GitHub repo page to extract the repo description
-4. Set IDEA_TEXT to: repo description + "\n\n" + first 2000 characters of README content
-5. Set SOURCE_URL to the original URL, SOURCE_TYPE to `github_repo`
-
-**If neither** (plain text):
-- Set IDEA_TEXT to the argument as-is
-- Set SOURCE_URL to null, SOURCE_TYPE to `text`
-
-If a URL was detected, tell the user what was extracted:
-> **Source:** [SOURCE_TYPE] at [SOURCE_URL]
-> **Extracted idea:** [first 200 chars of IDEA_TEXT]...
-
-If the extracted text is under 50 characters, warn:
-> **Warning:** Extracted text is very short. The analysis may be thin. Consider providing a text description instead.
+URL detection logic is defined in `commands/validate.md` under "URL Detection". Follow that section exactly: detect Reddit/GitHub URLs, extract content via WebFetch (with Reddit JSON API fallback), set IDEA_TEXT/SOURCE_URL/SOURCE_TYPE, show the user what was extracted, and warn if extracted text is under 50 characters.
 
 ### Initialize Project
 

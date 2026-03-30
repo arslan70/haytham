@@ -13,8 +13,10 @@ You are exporting Phase 1 outputs to a demos repository for sharing with founder
 Verify these files exist:
 - `.haytham/session/phase-1-why/validation-report.md`
 - `.haytham/session/phase-1-why/validation-report.json`
+- `.haytham/session/phase-1-why/idea-analysis.md`
+- `.haytham/project.yaml`
 
-If either is missing:
+If any are missing:
 > Phase 1 must be completed first. Run `/haytham:validate` to generate a validation report.
 
 ## Argument Parsing
@@ -32,7 +34,7 @@ If `--slug` was not provided, generate one automatically:
 1. Read `.haytham/project.yaml`
 2. If `source.type` is `reddit_post`: extract the post ID from `source.url` path -> `reddit-{id}`
 3. If `source.type` is `github_repo`: extract owner/repo from `source.url` -> `github-{owner}-{repo}`
-4. If `source.type` is `text` or absent: take the first 50 characters of the `idea:` field, lowercase, replace spaces and special characters with hyphens, strip trailing hyphens
+4. If `source.type` is `text` or absent: take the first 50 characters of the `idea:` field, lowercase, replace characters outside `[a-z0-9-]` with hyphens, collapse consecutive hyphens, strip trailing hyphens
 
 If `{target}/reports/{slug}/` already exists, append a numeric suffix (e.g., `reddit-1abcdef-2`).
 
@@ -107,8 +109,12 @@ Write `{target}/reports/{slug}/README.md`:
 | [summary.md](summary.md) | One-page summary with key findings (start here) |
 | [validation-report.md](validation-report.md) | Full validation report with competitive analysis and risk profile |
 | [idea-analysis.md](idea-analysis.md) | Structured idea expansion and concept health signals |
-| [concept-anchor.json](concept-anchor.json) | Concept invariants and strategic signals (if available) |
 | [source.yaml](source.yaml) | Provenance metadata |
+```
+
+If `concept-anchor.json` was copied in Step 2, add a row for it before the source.yaml row:
+```
+| [concept-anchor.json](concept-anchor.json) | Concept invariants and strategic signals |
 ```
 
 ### Step 6: Update Index
