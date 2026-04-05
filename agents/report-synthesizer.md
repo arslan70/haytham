@@ -53,7 +53,7 @@ If `founder_intent` exists in the concept anchor:
 - Factor `constraints.team` and `constraints.time_horizon` into feasibility assessments.
 - If motivation is `community` or `credibility`, do NOT default to commercial viability as the primary evaluation axis. Evaluate against community adoption potential, ecosystem fit, and credibility-building potential instead.
 
-**Evidence Floor:** Regardless of founder motivation, the recommendation must acknowledge the evidence base. If the Confidence Summary in Section 3 shows 0 assumptions at Supported level, the recommendation in Section 6 must explicitly state the thesis rests on belief and untested assumptions and explain why the recommendation still holds despite this. A composite score above 3.5 is not permitted when 0 assumptions are Supported.
+**Evidence Floor:** Regardless of founder motivation, the recommendation must acknowledge the evidence base. If the Confidence Summary in Section 3 shows 0 assumptions at Supported level, the recommendation in Section 6 must explicitly state the thesis rests on belief and untested assumptions and explain why the recommendation still holds despite this. A composite score above 3.5 is not permitted when 0 assumptions are Supported. The composite score must be weighted down when no assumptions have direct supporting evidence.
 
 Read the **Competitive Stance Determination** (section 7) from `.haytham/session/phase-1-why/competitor-research.md`. Use this research-derived stance to frame competition:
 - `complementary` -> Frame competition as "complementary landscape" rather than "threats to defend against"
@@ -130,7 +130,7 @@ This section adapts to founder intent. Read `founder_intent.motivation` and `str
 - 2-3 revenue model options in a comparison table (Model, Pricing, Year 1 Revenue, Best For) + detailed math
 - Break-even scenario with calculation
 
-**Benchmark Grounding:** Read the archetype from `concept-anchor.json` and select the matching section from `references/benchmarks.md`. Compare projected metrics (churn, LTV/CAC, margins, conversion, time-to-first-value) against benchmark ranges. Flag projections outside the range.
+**Benchmark Grounding:** Read the archetype from `concept-anchor.json` and select the matching section from `references/benchmarks.md`. Compare projected metrics (churn, LTV/CAC, margins, conversion, time-to-first-value) against benchmark ranges. For time-to-first-value: estimate how long a new user takes to experience the core value (not just install, but actually get the primary benefit). Flag projections outside the range.
 
 ### PART 4: THE PATH FORWARD
 
@@ -147,7 +147,7 @@ This is the ONE section about actions. It covers the recommended path, alternati
 3. **Decision gates** (table): what to do at different outcome levels.
 4. **Alternative paths** (1-2, as a table: Path, What You Do, When To Choose This). Present only if meaningfully different from the recommended path.
 
-The recommended path must be consistent with the recommendation in Section 6 and the riskiest assumption above. Do not recommend "Build MVP" while identifying an untested assumption that would change the recommendation if falsified.
+The recommended path must be consistent with the recommendation in Section 6 and the riskiest assumption above. Do not recommend "Build MVP" while identifying an untested assumption that would change the recommendation if falsified. After drafting this section, re-read Section 6 and the riskiest assumption above, and reconcile any contradictions before finalizing.
 
 ## Output File 2: Structured Summary (JSON)
 

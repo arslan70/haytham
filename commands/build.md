@@ -48,15 +48,15 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    - `.haytham/session/phase-2-what/mvp-scope.md` (constraints, what's in/out of scope)
    - `.haytham/session/phase-2-what/capabilities.json` (what the system does)
 
-   The CLAUDE.md should include:
+   Include applicable sections from the following (skip any that don't apply to this product type):
    - **What This Is:** One paragraph explaining the product (from config.yaml description + MVP scope)
    - **Tech Stack:** List from project.md
-   - **Commands:** npm scripts (dev, build, lint)
+   - **Commands:** Build/run commands from project.md (e.g., npm scripts, CLI entry points, make targets)
    - **Project Structure:** File tree from project.md
-   - **Key Architecture Decisions:** 3-5 bullet points summarizing the most important decisions (not all 7). Focus on decisions that a developer would get wrong without context (e.g., "currency conversion is server-side only", "orders created from webhooks not form submission").
-   - **Database Schema:** Table summaries from project.md
-   - **Constraints:** Hard constraints from MVP scope that a developer must not violate (delivery geography, photo privacy, guest-only checkout, catalog limits, supported currencies)
-   - **Environment Variables:** List from project.md
+   - **Key Architecture Decisions:** 3-5 bullet points summarizing the most important decisions (not all of them). Focus on decisions that a developer would get wrong without context (e.g., non-obvious data flow, server-side vs client-side boundaries, integration patterns).
+   - **Data Model:** Schema summaries from project.md (database tables, config files, or data structures depending on product type)
+   - **Constraints:** Hard constraints from MVP scope that a developer must not violate
+   - **Environment Variables:** Configuration required from project.md (if applicable)
    - **Specification:** Pointers to the OpenSpec files with domain names and scenario counts
 
    Do NOT include the full architecture decisions prose. Keep it to what a developer needs to start coding correctly. Aim for under 150 lines.
