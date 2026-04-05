@@ -726,7 +726,7 @@ def validate_file(file_path: str) -> list[str]:
         # Validate decision ID format
         valid_dec_categories = {
             "AUTH", "DB", "DEPLOY", "NOTIFY", "REALTIME",
-            "INTEGRITY", "ORCHESTRATION", "STACK",
+            "INTEGRITY", "ORCHESTRATION", "STACK", "UI",
         }
         for decision in data.get("decisions", []):
             dec_id = decision.get("id", "")

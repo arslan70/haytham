@@ -182,6 +182,7 @@ Evaluate these categories and produce decisions for each relevant one.
 5. **REALTIME**: WebSocket/SSE/polling strategy (if realtime: true)
 6. **INTEGRITY**: Input validation, error handling, data consistency
 7. **ORCHESTRATION**: Pipeline/workflow sequencing, stage definitions, context accumulation, state machine design, inter-step interaction patterns (if the product's core value involves multi-step coordination)
+8. **UI**: Component library, styling approach, design baseline. **Required when `interface` includes `browser`, `mobile_native`, or `desktop_gui`.** Skip otherwise.
 
 ### Decision Specificity
 
@@ -238,6 +239,7 @@ This applies to `description`, `rationale`, and `alternatives_considered` fields
 Use `DEC-{CATEGORY}-{NNN}`:
 - DEC-AUTH-001, DEC-DB-001, DEC-DEPLOY-001, DEC-NOTIFY-001, DEC-REALTIME-001, DEC-INTEGRITY-001, DEC-ORCHESTRATION-001
 - Also: DEC-STACK-001 for stack/framework decisions
+- Also: DEC-UI-001 for component library and design system (when interface is visual)
 
 ### Self-Check
 
@@ -249,6 +251,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 - If a capability covers the product's core behavior ("THE ONE THING" from MVP scope), it has at least one architecture decision describing HOW that behavior executes, not just how it is validated? Validation decisions (INTEGRITY) address quality; orchestration/execution decisions address design. The core capability needs both.
 - If `developer_model` was populated in Part 0, do DEC-STACK and DEC-DEPLOY decisions match the researched `plugin_format` and `distribution_mechanism`? Do not prescribe a language, build tool, or distribution channel that contradicts the platform's documented plugin model.
 - Do architecture decisions describe patterns rather than prescribing specific file paths or directory names? Concrete paths belong in the spec generator's Project Structure output, not in architecture decisions.
+- If `interface` includes `browser`, `mobile_native`, or `desktop_gui`, is there a DEC-UI-001 decision? Does it specify a component library compatible with the framework chosen in DEC-STACK?
 
 ---
 
