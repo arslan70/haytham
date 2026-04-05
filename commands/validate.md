@@ -257,6 +257,8 @@ After both agents complete, read `.haytham/session/phase-1-why/market-research.m
 > - **User sentiment:** [One key "love" and one key "hate" quote from real users]
 > - **Key gap:** [The most significant gap or unmet need found]
 > - **Top risk:** [The biggest market-structural risk or challenge]
+>
+> Full details: `.haytham/session/phase-1-why/market-research.md` and `.haytham/session/phase-1-why/competitor-research.md`
 
 Update state: `last_completed_step: 2`.
 

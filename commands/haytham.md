@@ -223,6 +223,8 @@ After both agents complete, read `.haytham/session/phase-1-why/market-research.m
 > - **User sentiment:** [One key "love" and one key "hate" quote from real users]
 > - **Key gap:** [The most significant gap or unmet need found]
 > - **Top risk:** [The biggest market-structural risk or challenge]
+>
+> Full details: `.haytham/session/phase-1-why/market-research.md` and `.haytham/session/phase-1-why/competitor-research.md`
 
 Update state: `last_completed_step: 2`.
 
@@ -391,6 +393,8 @@ After the agent completes, read `.haytham/session/phase-2-what/mvp-scope.md` and
 > - **OUT scope:** [List the key items explicitly excluded]
 > - **Appetite:** [Time/effort budget]
 > - **Core flow:** [One-line description of the primary user journey]
+>
+> Full scope document: `.haytham/session/phase-2-what/mvp-scope.md` — review the details before approving.
 
 Update state: `last_completed_step: 7`.
 
@@ -439,6 +443,8 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 > - **Non-functional capabilities:** [Count] — [list capability names]
 > - **System traits:** [List key traits like auth model, data sensitivity, etc.]
 > - **Traceability:** Each capability traces to [IN SCOPE items / problems from Phase 1]
+>
+> Full details: `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json` — review before approving.
 
 Update state: `last_completed_step: 9`.
 
@@ -523,6 +529,8 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `
 > - **Research directives:** [N] capabilities flagged ([list classifications used])
 > - **Estimated monthly cost:** [Cost range]
 > - **Integration effort:** [Effort estimate]
+>
+> Full details: `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` — review before approving.
 
 Update state: `last_completed_step: 11`.
 
@@ -607,6 +615,8 @@ Then read the generated files and present a structured digest:
 > - **Scenarios:** [count] Gherkin scenarios
 > - **Architecture decisions:** [count] documented in project.md
 > - **Coverage:** All [N] functional + [M] non-functional capabilities covered
+>
+> Full details: `.haytham/session/phase-4-specs/openspec/` — review before approving.
 
 Update state: `last_completed_step: 13`.
 

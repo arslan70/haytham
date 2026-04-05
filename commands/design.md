@@ -49,6 +49,8 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `
 > - **Research directives:** [N] capabilities flagged ([list classifications used])
 > - **Estimated monthly cost:** [Cost range]
 > - **Integration effort:** [Effort estimate]
+>
+> Full details: `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` — review before approving.
 
 ## Step 2: Review
 

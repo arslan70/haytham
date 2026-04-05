@@ -52,6 +52,8 @@ After the agent completes, read `.haytham/session/phase-2-what/mvp-scope.md` and
 > - **OUT scope:** [List the key items explicitly excluded]
 > - **Appetite:** [Time/effort budget]
 > - **Core flow:** [One-line description of the primary user journey]
+>
+> Full scope document: `.haytham/session/phase-2-what/mvp-scope.md` — review the details (boundaries, flows, success criteria) before approving.
 
 ## Step 2: Scope Review
 
@@ -91,6 +93,8 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 > - **Non-functional capabilities:** [Count] — [list capability names]
 > - **System traits:** [List key traits like auth model, data sensitivity, etc.]
 > - **Traceability:** Each capability traces to [IN SCOPE items / problems from Phase 1]
+>
+> Full details: `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json` — review before approving.
 
 ## Step 4: Gate 2
 
