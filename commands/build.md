@@ -35,7 +35,31 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
 
 4. Copy domain specs: copy all spec directories from `.haytham/session/phase-4-specs/openspec/specs/` into `<project-directory>/openspec/specs/`. Preserve the directory structure (each `{domain}/spec.md`).
 
-A PostToolUse hook automatically creates the `initial-mvp` change, copies specs into it, and seeds `design.md` with research directives when it detects `openspec init`. Check that `<project-directory>/openspec/changes/initial-mvp/` exists after the init completes.
+5. Create the `initial-mvp` change directory and seed it:
+   ```bash
+   mkdir -p <project-directory>/openspec/changes/initial-mvp
+   cp -r <project-directory>/openspec/specs <project-directory>/openspec/changes/initial-mvp/specs
+   ```
+   Then read `.haytham/session/phase-3-how/research-directives.json` and generate `<project-directory>/openspec/changes/initial-mvp/design.md` containing the research questions for capabilities that have `research_required: true`. Format as a markdown document with one section per capability listing its questions.
+
+6. Generate a `CLAUDE.md` at the project root. This file orients the coding agent in the implementation session. Read these files to generate it:
+   - `.haytham/session/phase-4-specs/openspec/config.yaml` (project name, description)
+   - `.haytham/session/phase-4-specs/openspec/project.md` (tech stack, architecture decisions, data schemas, project structure)
+   - `.haytham/session/phase-2-what/mvp-scope.md` (constraints, what's in/out of scope)
+   - `.haytham/session/phase-2-what/capabilities.json` (what the system does)
+
+   The CLAUDE.md should include:
+   - **What This Is:** One paragraph explaining the product (from config.yaml description + MVP scope)
+   - **Tech Stack:** List from project.md
+   - **Commands:** npm scripts (dev, build, lint)
+   - **Project Structure:** File tree from project.md
+   - **Key Architecture Decisions:** 3-5 bullet points summarizing the most important decisions (not all 7). Focus on decisions that a developer would get wrong without context (e.g., "currency conversion is server-side only", "orders created from webhooks not form submission").
+   - **Database Schema:** Table summaries from project.md
+   - **Constraints:** Hard constraints from MVP scope that a developer must not violate (delivery geography, photo privacy, guest-only checkout, catalog limits, supported currencies)
+   - **Environment Variables:** List from project.md
+   - **Specification:** Pointers to the OpenSpec files with domain names and scenario counts
+
+   Do NOT include the full architecture decisions prose. Keep it to what a developer needs to start coding correctly. Aim for under 150 lines.
 
 ## Completion
 

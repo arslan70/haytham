@@ -157,6 +157,8 @@ Build vs Buy applies to INFRASTRUCTURE and SERVICES, not implementation choices.
 
 Provide alternatives only for the 2-3 most important BUY decisions. A service CANNOT appear in both recommended_stack AND alternatives.
 
+**No vendor API surface in stack output.** The `rationale`, `free_tier`, and other text fields in recommended_stack must describe capabilities and constraints, not specific env var names, SDK methods, or API patterns. Say "provides a server-side client with elevated privileges" not "uses the service-role key via SUPABASE_SERVICE_ROLE_KEY". Vendor-specific details belong in the research directives (Part 3), not the stack recommendation.
+
 If the system needs infrastructure that doesn't fit the standard categories, use a descriptive lowercase slug (e.g., `ml_pipeline`, `iot_gateway`). Use standard categories when they fit; invent when they don't.
 
 `platform_opportunity` is required when Part 0 finds a viable platform, omitted otherwise.
@@ -183,12 +185,22 @@ Evaluate these categories and produce decisions for each relevant one.
 
 ### Decision Specificity
 
-Architecture decisions describe PATTERNS and CONVENTIONS, not specific file paths or directory names. The spec generator determines the actual project structure, paths, and naming from the patterns you define. Use illustrative examples marked with "e.g." when a pattern needs to be concrete, but do not hardcode the implementation structure.
+Architecture decisions describe PATTERNS and CAPABILITIES NEEDED, not vendor-specific implementation details. The architect operates before the implementation session reads current vendor documentation. Any vendor-specific detail you hardcode here (env var names, SDK method signatures, authentication token names, API endpoint paths) may be stale by the time someone implements it.
 
-- Good: "Each pipeline stage writes its output as a structured file to a session-scoped directory, with subsequent stages reading their predecessor's output file (e.g., `.app/session/stage-output.md`)"
-- Bad: "Stage 1 writes to `.app/session/phase-1-research.md`, Stage 2 reads it and writes to `.app/session/phase-2-competitors.md`"
+**What to specify (capabilities and patterns):**
+- "Server-side database client with elevated privileges for bypassing row-level security"
+- "Webhook handler that verifies request authenticity before processing"
+- "Fixed exchange rates stored as server-side configuration, not a live API"
+- "Each pipeline stage writes its output as a structured file to a session-scoped directory"
 
-This matters because the architect operates before the spec generator has defined the project structure. Hardcoded paths in architecture decisions constrain the spec generator and risk diverging from platform conventions or existing project structure.
+**What NOT to specify (vendor API surface):**
+- Specific environment variable names (e.g., `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- SDK method signatures (e.g., `createClient(url, serviceRoleKey)`)
+- Specific API endpoint paths or webhook event type names
+- Authentication token names or header formats
+- Package version numbers
+
+This applies to `description`, `rationale`, and `alternatives_considered` fields. The implementation session resolves vendor-specific details by reading current documentation during the research phase.
 
 ### Coverage Requirements
 
@@ -262,10 +274,15 @@ For each non-standard capability, generate 2-4 research questions. Questions mus
 
 Use the concept anchor's archetype and system traits to frame questions appropriate to the product's runtime context. A CLI plugin's integration questions differ from a mobile app's. For example, "How should the scoring algorithm rank entries?" is generic; "Given this is a CLI plugin, how should the scoring algorithm surface results in a terminal-friendly format?" is archetype-aware.
 
+**Mandatory for `integration_dependent` capabilities:** Every capability classified as `integration_dependent` MUST include a question asking the implementation session to verify the current API surface by reading the vendor's latest documentation. This is critical because the architect's training data may contain stale SDK patterns, deprecated env var names, or outdated API conventions. The implementation session has access to current docs and must verify before coding.
+
+Template: "Read [vendor]'s current documentation to verify: the correct SDK initialization pattern, required environment variables and their current names, authentication method for [specific capability needed], and any breaking changes in the latest SDK version."
+
 Good questions:
 - "What prompt structure produces consistent matching scores for [specific use case]?"
 - "What ranking algorithm handles [specific constraint from the capability]?"
 - "How should the system handle [specific edge case relevant to the domain]?"
+- "Read Stripe's current docs to verify: the correct Payment Element configuration for multi-currency, required API keys and their current naming convention, and the webhook event type for confirmed payments."
 
 Bad questions (too generic or about tech selection):
 - "What database should we use?" (already decided in Part 1)

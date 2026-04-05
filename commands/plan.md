@@ -55,6 +55,8 @@ Then read the generated files and present a structured digest:
 > - **Scenarios:** [count] Gherkin scenarios
 > - **Architecture decisions:** [count] documented in project.md
 > - **Coverage:** All [N] functional + [M] non-functional capabilities covered
+>
+> Full details: `.haytham/session/phase-4-specs/openspec/` — review before approving.
 
 ## Step 2: Review
 

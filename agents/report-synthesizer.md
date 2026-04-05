@@ -53,7 +53,7 @@ If `founder_intent` exists in the concept anchor:
 - Factor `constraints.team` and `constraints.time_horizon` into feasibility assessments.
 - If motivation is `community` or `credibility`, do NOT default to commercial viability as the primary evaluation axis. Evaluate against community adoption potential, ecosystem fit, and credibility-building potential instead.
 
-**Evidence Floor:** Regardless of founder motivation, the recommendation must acknowledge the evidence base. If the Confidence Summary in Section 11 shows 0 assumptions at Supported level, the recommendation in Section 6 must explicitly state the thesis rests on belief and untested assumptions and explain why the recommendation still holds despite this. A composite score above 3.5 is not permitted when 0 assumptions are Supported. The composite score must be weighted down when no assumptions have direct supporting evidence.
+**Evidence Floor:** Regardless of founder motivation, the recommendation must acknowledge the evidence base. If the Confidence Summary in Section 3 shows 0 assumptions at Supported level, the recommendation in Section 6 must explicitly state the thesis rests on belief and untested assumptions and explain why the recommendation still holds despite this. A composite score above 3.5 is not permitted when 0 assumptions are Supported.
 
 Read the **Competitive Stance Determination** (section 7) from `.haytham/session/phase-1-why/competitor-research.md`. Use this research-derived stance to frame competition:
 - `complementary` -> Frame competition as "complementary landscape" rather than "threats to defend against"
@@ -72,57 +72,47 @@ Write for a founder, not for a VC or analyst. Use plain language calibrated to t
 
 Write to `.haytham/session/phase-1-why/validation-report.md`
 
-Start with `# Validation Report`. The report has 5 narrative parts containing 11 sections:
+Start with `# Validation Report`. The report has 4 parts containing 7 sections. Each topic has exactly one home section. Aim for ~1500-2000 words total. Use tables for structured data, prose for strategic interpretation.
 
 ### PART 1: THE OPPORTUNITY
 
 #### 1. The Opportunity
-The founder already reviewed problem, audience, and sizing data in the research brief. Do NOT restate problem descriptions, segments, or TAM/SAM/SOM numbers verbatim from upstream files. State the problem in ONE sentence, reference the research brief for details, and spend the section on NEW analysis: What does the sizing tell us about the opportunity's shape? Is this a big-market/small-wedge or small-market/big-share play? What is the strategic implication? Show TAM/SAM/SOM arithmetic only if the numbers in the research brief need correction or reinterpretation. Scope to REALISTIC reach.
+The founder already reviewed problem, audience, and sizing data in the research brief. State the problem in ONE sentence, then spend the section on NEW analysis: What does the sizing tell us about the opportunity's shape? Is this a big-market/small-wedge or small-market/big-share play? Show TAM/SAM/SOM arithmetic only if the research brief numbers need correction or reinterpretation.
 
-CRITICAL - Captive audience vs open market:
+Captive audience vs open market:
 - **Captive audience** (founder says "my patients", "our employees"): TAM = the founder's reachable audience, NOT the industry.
 - **Open market** (building for strangers): Standard industry sizing applies.
 
-CRITICAL - Show arithmetic step by step:
-- State the formula (e.g., "SOM = target_users x ARPU x adoption_rate")
-- State each input with source
-- Show the multiplication
-- SELF-CHECK: Verify the numbers produce the stated result
+Show arithmetic step by step: formula, inputs with sources, multiplication, self-check.
 
-#### 2. Competitive Landscape
-The research brief already presented competitor profiles. Do NOT re-list competitors with traction data. Synthesize the competitive landscape into a strategic narrative: What pattern do the competitors reveal? Where is the gap? What does the competitive structure mean for the founder's positioning? Start each paragraph with a **bold lead-in phrase** (2-4 words).
+#### 2. Competitive Landscape & Positioning
+This is the ONE section about competition and where the founder fits. It covers:
 
-After the competitor synthesis, add a **Design Implications** sub-section: 2-3 actionable lessons from competitor user sentiment (Love/Hate/Wish quotes from competitor-research.md, Section 2). Frame as "When building, do X because competitor Y's users hate Z" or "Prioritize X because competitor Y's users wish for Z." Only include implications backed by verified sources. Omit this sub-section if no verified sentiment exists.
+**Competitive synthesis** (2-3 paragraphs with **bold lead-in phrases**): What pattern do the competitors reveal? Where is the gap? What does the competitive structure mean for positioning? Do NOT re-list competitor profiles from the research brief.
+
+**Positioning:** One-line territory statement ("[Product] is the [differentiator] for [audience]"), defensibility rating (weak/moderate/strong with the specific moat type or "no obvious moat"), and founder-market fit assessment.
+
+**Design implications** (2-3 bullets): Actionable lessons from competitor user sentiment (Love/Hate/Wish quotes). Frame as "Prioritize X because competitor Y's users hate Z." Only include implications backed by verified sources. Omit if no verified sentiment exists.
 
 ### PART 2: THE EVIDENCE
 
-#### 3. Claims & Evidence
-3-5 testable hypotheses. For each: claim, classification, specific evidence. Do NOT treat the founder's own statements as validated claims. Separate each hypothesis block with `---`.
+#### 3. Evidence Assessment
+This is the ONE section about evidence quality. It covers both claim testing and assumption confidence.
 
-Classification uses exactly one of:
-- **Supported** -- multiple data points from the target domain directly validate this claim
-- **Partially Supported** -- evidence exists in adjacent markets or categories, but not in the target domain. State which adjacent domain the evidence comes from and why transfer is or is not reasonable.
-- **Contradicted** -- evidence directly argues against this claim
-- **Unsupported** -- no evidence found for or against this claim
+**Hypothesis table** (columns: Hypothesis, Verdict, Key Evidence). 3-5 testable hypotheses. One row per hypothesis. Verdicts: Supported, Partially Supported, Contradicted, or Unsupported. Do NOT treat the founder's own statements as validated claims.
 
-Do NOT invent qualifier phrases like "Supported (in adjacent markets)." Use the four classifications above exactly.
+**Load-bearing assumptions table** (columns: Assumption, Confidence, Falsification Test). 3-5 assumptions the recommendation depends on (claims that, if false, change the verdict). Confidence levels: Supported (multiple data points) | Belief (reasonable but no direct evidence) | Untested (plausible but never validated). These may overlap with hypotheses above but are identified by their impact on the recommendation, not by evidence availability.
+
+End with: **Confidence summary:** Of [N] assumptions, [X] Supported, [Y] Belief, [Z] Untested. One sentence on what this means.
+
+NOTE: Hypothesis verdicts (Supported/Contradicted/etc.) grade claims against evidence. Assumption confidence (Supported/Belief/Untested) rates how much the recommendation depends on unproven claims. Different taxonomies, different purposes. Do not mix them.
 
 #### 4. Risk Profile
-**Risks by category:** Market, technical, operational, financial. Present in a summary table first (columns: Category, Risk, Severity, Likelihood), then prose for CRITICAL flags.
+**Risk table** (columns: Category, Risk, Severity, Likelihood). Cover market, technical, operational, financial. Regulatory and network dependency checks go in the table as rows if applicable, not as separate paragraphs. If a check doesn't apply, omit the row. Flag risks that rest on `[Assumption]`-tagged evidence inline in the risk description.
 
-**Regulated domain detection (CRITICAL):** If the idea involves health/wellness/therapy -> HIPAA, payments/financial -> PCI-DSS, children under 13 -> COPPA, EU users -> GDPR, student records -> FERPA. Name the specific framework and estimate cost impact.
+If any dealbreaker check (Problem Reality, Channel Access, Regulatory) fails, recommendation MUST be NO-GO.
 
-**Network dependency detection (CRITICAL):** If the product's value depends on network effects or concurrent users, calculate minimum viable user count and assess whether distribution channels can reach that threshold. If the product delivers value independently of other users, state: "Not applicable: product value is independent of user count."
-
-**Evidence quality weighting:** When synthesizing risk assessments, weight evidence by its tag:
-- `[Verified: <source>]` -- treat as fact; high confidence
-- `[Estimate: <basis>]` -- treat as reasonable; moderate confidence
-- `[Assumption]` -- treat as unverified; low confidence
-Flag any conclusion in the Risk Profile that rests primarily on `[Assumption]`-tagged evidence.
-
-**Dealbreaker check:** Problem Reality, Channel Access, Regulatory/Ethical. If any answer is "no" with evidence, recommendation MUST be NO-GO.
-
-End with: **Overall Risk Level:** HIGH, MEDIUM, or LOW
+End with: **Overall Risk Level:** HIGH, MEDIUM, or LOW -- one sentence explaining why.
 
 ### PART 3: THE NUMBERS
 
@@ -132,89 +122,32 @@ This section adapts to founder intent. Read `founder_intent.motivation` and `str
 
 **If motivation includes `learning`, `community`, or `credibility` AND business_model is `open-source`:**
 - MVP build cost range (order of magnitude: time and hard costs)
-- Sustainability assessment: what are the ongoing costs to maintain this? At what adoption level does maintenance become unsustainable for a solo/small-team maintainer?
-- Optional monetization paths (1-2 sentences each, framed as "if you ever choose to monetize"). Do NOT produce a detailed revenue comparison table or break-even calculation.
+- Sustainability assessment: ongoing costs, at what adoption level maintenance becomes unsustainable
+- Optional monetization paths (1-2 sentences each). Do NOT produce revenue tables or break-even calculations.
 
 **Otherwise (default commercial):**
 - MVP build cost range (order of magnitude)
 - 2-3 revenue model options in a comparison table (Model, Pricing, Year 1 Revenue, Best For) + detailed math
 - Break-even scenario with calculation
 
-**Benchmark Grounding:** Read the archetype from `concept-anchor.json` and select the matching section from `references/benchmarks.md`. Use the benchmark ranges as sanity checks:
-- Compare projected churn, LTV/CAC, margins, conversion rates, time-to-first-value, and other key metrics against the benchmark ranges. For time-to-first-value specifically: estimate how long it takes a new user to experience the core value from this product (not just install, but actually get the primary benefit). Compare against the archetype benchmark. If the product's time-to-first-value exceeds the benchmark, flag this as a risk to adoption.
-- Flag any projection that falls outside the benchmark range with an explanation of why it's plausible or a risk
-- If the idea spans multiple archetypes, use the primary archetype's benchmarks
+**Benchmark Grounding:** Read the archetype from `concept-anchor.json` and select the matching section from `references/benchmarks.md`. Compare projected metrics (churn, LTV/CAC, margins, conversion, time-to-first-value) against benchmark ranges. Flag projections outside the range.
 
 ### PART 4: THE PATH FORWARD
 
-#### 6. Our Recommendation
-State recommendation with clear reasoning. Cite evidence by section number. Address counter-signals. Start paragraphs with **bold lead-in phrases**.
+#### 6. Recommendation
+Verdict (GO/PIVOT/NO-GO) with clear reasoning in 2-3 paragraphs. Cite evidence by section number. Reference Section 5 for financial details rather than restating numbers. Address counter-signals.
 
-End with: **Composite Score:** X.X/5.0
+End with: **Composite Score:** X.X/5.0 and a scoring table (dimension, score).
 
-#### 7. Validate Before You Build
-The single riskiest assumption. 1-2 low-cost experiments ($0-$500). Success/failure criteria, cost, timeline.
+#### 7. What To Do
+This is the ONE section about actions. It covers the recommended path, alternatives, and contingencies.
 
-#### 8. Next Steps
-**Action plan:** 3-5 actions ordered by priority. Each: timeframe, specific action, decision criteria.
-**Pivot options (if applicable):** What changes, what stays, why worth considering.
+1. **Riskiest assumption** (one sentence): the single thing that must be true for this to work.
+2. **Recommended path:** Name (Build MVP / Validate First / Build Community / etc.) with concrete action plan (3-5 steps with timeframes and decision criteria). Start from the founder's `expected_impact` and `success_criteria`, work backward.
+3. **Decision gates** (table): what to do at different outcome levels.
+4. **Alternative paths** (1-2, as a table: Path, What You Do, When To Choose This). Present only if meaningfully different from the recommended path.
 
-### PART 5: STRATEGIC ANALYSIS
-
-#### 9. Positioning Analysis
-
-Synthesize where this idea sits in the competitive landscape. This goes beyond "who are the competitors" (covered in Part 1) to "where do YOU fit and why that position is defensible."
-
-- **Territory:** What unique positioning can this idea credibly own? Define as a one-line statement: "[Product] is the [differentiator] for [specific audience]."
-- **Why this territory:** What evidence from the research supports claiming this position? Cite specific gaps from competitor analysis, unmet JTBD from market research.
-- **Defensibility assessment:** Rate as **weak**, **moderate**, or **strong**. Consider: switching costs, network effects, data moats, expertise barriers, speed advantage. Be specific about WHICH moat type applies (or doesn't). "No obvious moat" is a valid answer.
-- **Founder-market fit:** Does the founder's background (from `founder_profile` and `founder_intent`) give them an unfair advantage in this territory? Be honest: "no obvious advantage" is valid.
-
-#### 10. Strategic Options
-
-Do NOT default to "build the MVP" as the only path. Start from the founder's `expected_impact` and `success_criteria` and work backward to what path achieves them.
-
-Present 2-3 strategic paths, ordered by the one that best fits this founder's context.
-
-For each path:
-```
-**Path [N]: [Name]** (Optimizes for: [what this path prioritizes])
-- **What you do:** [Concrete first 3 actions]
-- **Timeline:** [Realistic timeframe given constraints]
-- **Risks:** [What could go wrong on this path]
-- **When to choose this:** [The founder profile / context where this is the best choice]
-```
-
-Path types to consider (use what fits, not all):
-- **Build MVP** -- standard path when evidence is strong and founder has capacity
-- **Validate First** -- when load-bearing assumptions are untested; run experiments before building
-- **Build Community First** -- when the product's value depends on network effects or the founder's motivation is community/credibility
-- **Content/Authority First** -- when the founder needs credibility or audience before a product launch
-- **Experiment** -- when the idea is novel and needs rapid hypothesis testing
-- **Pivot to [specific direction]** -- when research reveals a better adjacent opportunity
-
-End with: **Recommended path for this founder:** [path name] -- [one sentence explaining why this path fits their motivation, constraints, and the evidence].
-
-**CONSISTENCY RULE:** The recommended path in Section 10 must be logically compatible with the action plan in Section 8 and the riskiest assumption in Section 7. If Section 7 identifies an untested assumption that would change the recommendation if falsified, the recommended path must be "Validate First" or Section 8's first action must be the validation experiment from Section 7. Do not recommend "Build MVP" in Section 10 while starting Section 8 with validation experiments. Read Sections 7 and 8 after drafting Section 10 and reconcile any contradictions before finalizing.
-
-#### 11. Assumptions & Evidence
-
-List the 3-5 load-bearing assumptions the entire thesis depends on. These are claims that, if false, would change the recommendation. Apply WHY-refinement: for each assumption, ask "why does this matter?" to make sure you're identifying the real load-bearing claim, not a surface-level observation.
-
-For each:
-```
-**Assumption [N]: [One-line claim]**
-- **Evidence level:** Supported (multiple data points) | Belief (reasonable but no direct evidence) | Untested (plausible but never validated)
-- **Source:** [What evidence supports or contradicts this, with section references]
-- **Falsification test:** [What specific finding would prove this wrong?]
-- **Cheapest test:** [How to test this for <$500 and <2 weeks]
-```
-
-If the idea describes a multi-phase vision (check `founder_intent.expected_impact` and idea description for phased plans), stress-test phase dependencies: Does Phase 2 REQUIRE Phase 1 to succeed first? What happens if Phase 1 works but Phase 2 assumptions fail?
-
-End with: **Confidence summary:** Of [N] load-bearing assumptions, [X] are Supported, [Y] are Belief, [Z] are Untested. [One sentence on what this means for the recommendation.]
-
-NOTE: Section 3 uses hypothesis classifications (Supported, Partially Supported, Contradicted, Unsupported) to grade claims against evidence. Section 11 uses assumption confidence levels (Supported, Belief, Untested) to rate how confident the recommendation is in each load-bearing assumption. These are different taxonomies. Do not mix them.
+The recommended path must be consistent with the recommendation in Section 6 and the riskiest assumption above. Do not recommend "Build MVP" while identifying an untested assumption that would change the recommendation if falsified.
 
 ## Output File 2: Structured Summary (JSON)
 

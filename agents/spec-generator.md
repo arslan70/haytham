@@ -133,6 +133,11 @@ Rules:
 - Data Schemas must cover every structured data file mentioned in architecture decisions or specs
 - Component Map must cover every functional capability (CAP-F-*)
 
+**No vendor-specific API surface in project.md.** The architecture decisions upstream describe capabilities and patterns, not vendor-specific env var names, SDK method signatures, or API endpoints. Carry this forward:
+- **Data Schemas:** Specify what data the system stores and its structure (field names, types, relationships). Do NOT include vendor-specific env var names or SDK configuration keys. For environment configuration, list the CATEGORIES of configuration needed (e.g., "database connection credentials", "payment processor API keys", "email service credentials", "currency conversion rates") with descriptions of what each category provides. The implementation session determines the exact variable names from current vendor documentation.
+- **Dependencies:** List packages with minimum version ranges (e.g., `^14.0.0`). Do NOT pin to exact versions. The implementation session resolves to the latest compatible version.
+- **Architecture Decisions:** Copy the capability-level descriptions from the upstream decisions. If the upstream decisions contain vendor-specific details (they shouldn't, but if they do), translate them to capability descriptions.
+
 ---
 
 ## Part 3: Domain Specs
