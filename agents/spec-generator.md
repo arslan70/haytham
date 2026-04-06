@@ -208,7 +208,7 @@ Then add a `## Baseline Requirements` section with implementation requirements d
 ### Auth Security (if `auth` is not `none`):
 - Session handling: the system SHALL redirect to the login page with a message when a session expires during use, rather than showing a broken page
 - Constant-time comparison: the system SHALL use constant-time comparison functions for all secret comparisons (password checks, session token verification, webhook signature validation) to prevent timing attacks
-- Rate limiting: authentication endpoints SHALL enforce rate limiting (max 5 attempts per minute per IP) and return HTTP 429 after the limit is exceeded
+- Rate limiting: authentication endpoints SHALL enforce rate limiting appropriate to the deployment context (e.g., per-IP throttling for web apps, per-session throttling for CLIs). The mechanism and thresholds SHALL be specified in DEC-INTEGRITY based on the product's system traits
 - Session secret separation: session signing keys SHALL be a dedicated environment variable, separate from the admin password or any other credential. The admin password SHALL NOT be reused as an HMAC key or signing secret
 
 ### Data Security (if `data_layer` is `remote_db`):

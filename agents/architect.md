@@ -184,7 +184,7 @@ Evaluate these categories and produce decisions for each relevant one.
    - **Client separation**: public-facing operations use a minimal-privilege client (e.g., RLS-scoped). Elevated/admin clients are restricted to authenticated admin routes only, never used in public API routes or pages.
    - **Error sanitization**: API routes return generic error messages to clients. Database errors, stack traces, and internal identifiers are logged server-side only, never sent to the client.
    - **Constant-time comparison**: all secret comparisons (passwords, session tokens, webhook signatures) use constant-time functions to prevent timing attacks.
-   - **Rate limiting**: authentication endpoints enforce rate limiting (e.g., max 5 attempts per minute per IP).
+   - **Rate limiting**: authentication endpoints enforce rate limiting appropriate to the deployment context (e.g., per-IP throttling for web apps, per-session throttling for CLIs).
    - **Session secret separation**: session signing keys are a dedicated secret, never the admin password or another credential reused as an HMAC key.
    - **Mass assignment prevention**: API endpoints that accept JSON bodies explicitly pick allowed fields; unknown fields are rejected or ignored.
    - **File upload security** (if applicable): server-side MIME type validation, filename sanitization (strip path traversal, special characters), maximum file size enforcement. Storage policies restrict upload/delete to authenticated admin routes; public access is read-only.
