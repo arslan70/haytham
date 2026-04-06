@@ -180,7 +180,7 @@ Evaluate these categories and produce decisions for each relevant one.
 3. **DEPLOY**: Hosting, CI/CD, environment management. If `developer_model.distribution_mechanism` was populated, use it.
 4. **NOTIFY**: Email/SMS provider, notification patterns (if applicable)
 5. **REALTIME**: WebSocket/SSE/polling strategy (if realtime: true)
-6. **INTEGRITY**: Input validation, error handling, data consistency, and security hardening. The DEC-INTEGRITY decision MUST address each of the following that applies to the product:
+6. **INTEGRITY**: Input validation, error handling, data consistency, and security hardening. The DEC-INTEGRITY decision MUST address each of the following that applies to the product. Only include patterns whose condition is met (e.g., skip "Integer currency arithmetic" if `payments` is not `required`). The corresponding Baseline Requirements in the spec-generator's cross-cutting spec produce testable SHALL statements from these patterns.
    - **Client separation**: public-facing operations use a minimal-privilege client (e.g., RLS-scoped). Elevated/admin clients are restricted to authenticated admin routes only, never used in public API routes or pages.
    - **Error sanitization**: API routes return generic error messages to clients. Database errors, stack traces, and internal identifiers are logged server-side only, never sent to the client.
    - **Constant-time comparison**: all secret comparisons (passwords, session tokens, webhook signatures) use constant-time functions to prevent timing attacks.
@@ -264,6 +264,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 - If `developer_model` was populated in Part 0, do DEC-STACK and DEC-DEPLOY decisions match the researched `plugin_format` and `distribution_mechanism`? Do not prescribe a language, build tool, or distribution channel that contradicts the platform's documented plugin model.
 - Do architecture decisions describe patterns rather than prescribing specific file paths or directory names? Concrete paths belong in the spec generator's Project Structure output, not in architecture decisions.
 - If `interface` includes `browser`, `mobile_native`, or `desktop_gui`, is there a DEC-UI-001 decision? Does it specify a component library compatible with the framework chosen in DEC-STACK? Does it include a `design_direction` with specific hex color values, font guidance, and component patterns (not just "clean and functional")?
+- Does DEC-INTEGRITY only include security patterns whose conditions are met by the product's system traits? No pattern for a trait the product does not have?
 
 ---
 
@@ -271,7 +272,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 
 Write to `.haytham/session/phase-3-how/research-directives.json`.
 
-After completing Parts 1 and 2, classify every functional capability (CAP-F-*) from `capabilities.json` to determine which ones require pre-implementation research. For capabilities classified as `integration_dependent`, you MUST resolve the integration questions yourself using WebSearch and WebFetch before writing the output. The coding agent implements directly from your findings. Unanswered questions produce broken integrations, wrong environment variable names, and non-functional features.
+After completing Parts 1 and 2, classify every functional capability (CAP-F-*) from `capabilities.json` to determine which ones require pre-implementation research. For capabilities classified as `integration_dependent`, you MUST resolve the integration questions using WebSearch and WebFetch before writing the output. The coding agent implements directly from your findings. Unanswered questions produce broken integrations, wrong environment variable names, and non-functional features.
 
 ### Classification Types
 
@@ -337,8 +338,7 @@ Bad questions (too generic or about tech selection):
       "capability_name": "Standard Feature",
       "classifications": ["standard"],
       "research_required": false,
-      "questions": [],
-      "findings": []
+      "questions": []
     }
   ],
   "summary": {
@@ -358,7 +358,7 @@ Before writing the file, verify:
 - Every CAP-F-* from capabilities.json has exactly one directive entry?
 - No CAP-NF-* entries are included?
 - Every directive with `research_required: true` has a non-empty `questions` array (2-4 questions)?
-- Every directive with `research_required: false` has `classifications: ["standard"]` and empty `questions` and empty `findings`?
+- Every directive with `research_required: false` has `classifications: ["standard"]` and empty `questions`?
 - No directive has `"standard"` mixed with other classifications?
 - All classification values are from the valid set (`llm_dependent`, `algorithm_dependent`, `integration_dependent`, `domain_dependent`, `standard`)?
 - `summary.total` matches the length of `directives`?
