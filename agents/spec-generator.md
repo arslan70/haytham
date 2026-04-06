@@ -92,9 +92,9 @@ From architecture decisions: framework, language, database, hosting.
 
 ## Dependencies
 
-| Package | Version | Purpose | Dev Only |
-|---------|---------|---------|----------|
-| next | ^14.0.0 | Web framework | false |
+| Package | Purpose | Dev Only |
+|---------|---------|----------|
+| next | Web framework with App Router | false |
 ```
 
 After the Dependencies table, add these three sections:
@@ -127,7 +127,7 @@ The Component Map must cover every functional capability. A build agent reading 
 Rules:
 - Every DEC-* from `architecture-decisions.json` must appear as a `### DEC-*` subsection
 - Every entry from `build-buy.json` recommended_stack must appear in the Build/Buy table
-- Dependencies must list specific packages with version ranges, derived from the architecture decisions and build/buy analysis
+- Dependencies must list required packages with their purpose, derived from the architecture decisions and build/buy analysis. Do NOT include version numbers (see below)
 - Each decision must include **Decision:**, **Rationale:**, and **Trade-offs:** lines
 - Project Structure must show every file/directory needed for a working project
 - Data Schemas must cover every structured data file mentioned in architecture decisions or specs
@@ -135,7 +135,7 @@ Rules:
 
 **No vendor-specific API surface in project.md.** The architecture decisions upstream describe capabilities and patterns, not vendor-specific env var names, SDK method signatures, or API endpoints. Carry this forward:
 - **Data Schemas:** Specify what data the system stores and its structure (field names, types, relationships). Do NOT include vendor-specific env var names or SDK configuration keys. For environment configuration, list the CATEGORIES of configuration needed (e.g., "database connection credentials", "payment processor API keys", "email service credentials", "currency conversion rates") with descriptions of what each category provides. The implementation session determines the exact variable names from current vendor documentation.
-- **Dependencies:** List packages with minimum version ranges (e.g., `^14.0.0`). Do NOT pin to exact versions. The implementation session resolves to the latest compatible version.
+- **Dependencies:** List packages by name and purpose only. Do NOT include version numbers or ranges. Version numbers in specs are stale by definition (the spec-generator's training data lags behind current releases). The implementation session MUST determine versions by using the framework's official scaffolding tool (e.g., `create-next-app@latest`, `cargo init`, `go mod init`) or by running the package manager's install command with a `@latest` tag. Add a note at the bottom of the Dependencies table: "Versions: Use the framework's official scaffolding tool or package manager (e.g., `create-next-app@latest`, `npm install <pkg>@latest`) to get current stable versions. Do not copy version numbers from this spec."
 - **Architecture Decisions:** Copy the capability-level descriptions from the upstream decisions. If the upstream decisions contain vendor-specific details (they shouldn't, but if they do), translate them to capability descriptions.
 
 ---
@@ -187,7 +187,44 @@ Omit this section for requirements that describe behavior without a persistent a
 
 ### Cross-Cutting Spec
 
-Write non-functional capabilities to `.haytham/session/phase-4-specs/openspec/specs/cross-cutting/spec.md`.
+Write non-functional capabilities AND trait-driven baseline requirements to `.haytham/session/phase-4-specs/openspec/specs/cross-cutting/spec.md`.
+
+First, include all CAP-NF-* requirements from capabilities.json as `### Requirement:` blocks with their CAP-NF-* IDs.
+
+Then add a `## Baseline Requirements` section with implementation requirements derived from system traits. These are expectations that every product of this type needs but that are not explicit capabilities. They do not have CAP-* IDs. Use descriptive headings instead.
+
+### Web Baseline (if `interface` includes `browser`):
+- Web app metadata: the system SHALL provide a favicon, HTML title and description meta tags, viewport meta tag for mobile rendering, and Open Graph tags (og:title, og:description, og:image) for social link previews
+- Error handling: the system SHALL display a user-friendly error page for unhandled errors and a 404 page for invalid routes (not a blank screen or raw stack trace)
+- Loading states: the system SHALL show visual feedback during async operations (disabled buttons with spinner during form submission, skeleton or loading indicator during data fetches)
+- Security headers: the system SHALL set Content-Security-Policy, X-Frame-Options (DENY), X-Content-Type-Options (nosniff), Strict-Transport-Security, and Referrer-Policy headers on all responses
+- Error sanitization: API routes SHALL return generic error messages to clients. Database errors, stack traces, SQL state codes, and internal identifiers SHALL never appear in responses. Full errors are logged server-side only
+
+### Payment Security (if `payments: required`):
+- Payment error recovery: the system SHALL preserve checkout form state on payment failure so the buyer does not re-enter details, and SHALL display actionable error messages distinguishing card declined, insufficient funds, and network errors
+- Integer currency arithmetic: the system SHALL perform all currency calculations using integer arithmetic in the smallest currency unit (cents, pence, fils). Floating-point types SHALL NOT be used for monetary amounts. Exchange rate conversion SHALL produce an integer result before creating a payment intent
+- Exchange rate validation: the system SHALL fail loudly (return an error to the user, not silently fall back to a default) if exchange rate configuration is missing or invalid
+
+### Auth Security (if `auth` is not `none`):
+- Session handling: the system SHALL redirect to the login page with a message when a session expires during use, rather than showing a broken page
+- Constant-time comparison: the system SHALL use constant-time comparison functions for all secret comparisons (password checks, session token verification, webhook signature validation) to prevent timing attacks
+- Rate limiting: authentication endpoints SHALL enforce rate limiting appropriate to the deployment context (e.g., per-IP throttling for web apps, per-session throttling for CLIs). The mechanism and thresholds SHALL be specified in DEC-INTEGRITY based on the product's system traits
+- Session secret separation: session signing keys SHALL be a dedicated environment variable, separate from the admin password or any other credential. The admin password SHALL NOT be reused as an HMAC key or signing secret
+
+### Data Security (if `data_layer` is `remote_db`):
+- Client separation: public-facing API routes and pages SHALL use a database client with minimal privileges (RLS-scoped). Elevated/admin database clients SHALL only be used inside routes that verify admin authentication first. A public checkout route using an admin database client is a critical vulnerability
+- Storage access control (if file storage is used): storage policies SHALL restrict file upload and deletion to authenticated admin routes. Public access to stored files SHALL be read-only. Anonymous users SHALL NOT be able to upload or delete files
+- Database constraints: tables SHALL have unique constraints on natural keys, foreign key constraints on references, NOT NULL constraints on required fields, and indexes on columns used in WHERE clauses or joins
+- Input escaping: user-provided content that is rendered in HTML (email templates, server-rendered pages) SHALL be escaped or sanitized to prevent HTML and script injection
+
+### API Security (all products):
+- Mass assignment prevention: API endpoints that accept JSON request bodies SHALL explicitly extract only the allowed fields. Unknown or unexpected fields in the request body SHALL be ignored. The endpoint SHALL NOT spread or assign the raw request body directly to a database record
+- File upload security (if applicable): file uploads SHALL validate MIME type server-side (not client-only), sanitize filenames to remove path traversal characters (../, /, \) and special characters, and enforce a maximum file size. Filename validation SHALL NOT rely solely on the file extension
+- Framework security config: image optimization or asset loading configurations SHALL list specific allowed hostnames, not wildcard patterns. Environment variable validation SHALL fail loudly on application startup if any required secret (database credentials, payment keys, signing secrets) is missing or empty
+
+These baseline categories mirror the security patterns in the architect's DEC-INTEGRITY decision. DEC-INTEGRITY defines the architectural pattern; these Baseline Requirements produce testable SHALL statements from those patterns. If a pattern exists in DEC-INTEGRITY, the corresponding SHALL statement must exist here, and vice versa.
+
+Format baseline requirements as SHALL statements with at least one scenario each, following the same Gherkin pattern as capability requirements.
 
 ```markdown
 # Cross-Cutting Requirements
@@ -197,6 +234,18 @@ Write non-functional capabilities to `.haytham/session/phase-4-specs/openspec/sp
 Non-functional requirements that apply across all domains.
 
 ### Requirement: {NF Capability Name} [CAP-NF-001]
+
+The system SHALL {bare infinitive verb} {what the system does}.
+
+#### Scenario: {Verification scenario}
+
+- **Given** {precondition}
+- **When** {trigger}
+- **Then** {measurable outcome}
+
+## Baseline Requirements
+
+### Requirement: {Baseline Requirement Name}
 
 The system SHALL {bare infinitive verb} {what the system does}.
 
@@ -288,6 +337,7 @@ Within the 8-scenario cap, apply these rules:
 Before writing output files, verify:
 - Every CAP-F-* from `capabilities.json` appears as a SHALL requirement in exactly one domain spec (no duplicates across domains)
 - Every CAP-NF-* from `capabilities.json` appears as a SHALL requirement in `specs/cross-cutting/spec.md`
+- `specs/cross-cutting/spec.md` includes a `## Baseline Requirements` section with trait-driven requirements (web metadata, error handling, loading states, etc. as applicable based on system traits)
 - Every SHALL statement uses a bare infinitive verb (not third-person)
 - Every `#### Scenario:` block has Given, When, and Then
 - No requirement exceeds 8 scenarios

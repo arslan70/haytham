@@ -40,7 +40,7 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    mkdir -p <project-directory>/openspec/changes/initial-mvp
    cp -r <project-directory>/openspec/specs <project-directory>/openspec/changes/initial-mvp/specs
    ```
-   Then read `.haytham/session/phase-3-how/research-directives.json` and generate `<project-directory>/openspec/changes/initial-mvp/design.md` containing the research questions for capabilities that have `research_required: true`. Format as a markdown document with one section per capability listing its questions.
+   Then read `.haytham/session/phase-3-how/research-directives.json` and generate `<project-directory>/openspec/changes/initial-mvp/design.md` containing the resolved research findings for capabilities that have `research_required: true`. Format as a markdown document with one section per capability. For each capability, list the research findings (verified integration patterns, env var names, SDK methods, API details) as actionable implementation guidance. If a directive has both `questions` and `findings`, present the findings as resolved answers. If a directive has questions but no findings (legacy format), include the questions as-is.
 
 6. Generate a `CLAUDE.md` at the project root. This file orients the coding agent in the implementation session. Read these files to generate it:
    - `.haytham/session/phase-4-specs/openspec/config.yaml` (project name, description)
