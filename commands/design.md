@@ -58,7 +58,7 @@ Read all three output files and output the following inline in your response (th
 - **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
 - **Architecture Decisions**: ID, name, what it covers, capabilities served
 - **Research Directives:** [N] of [M] capabilities require pre-implementation research
-  - CAP-F-NNN (Capability Name): classification(s) — N questions
+  - CAP-F-NNN (Capability Name): classification(s) — N findings resolved, N questions remaining
   - (Repeat for each non-standard capability)
 - **Integration Effort**: Estimated days
 - **Monthly Cost**: Estimated range

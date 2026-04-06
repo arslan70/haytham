@@ -180,9 +180,21 @@ Evaluate these categories and produce decisions for each relevant one.
 3. **DEPLOY**: Hosting, CI/CD, environment management. If `developer_model.distribution_mechanism` was populated, use it.
 4. **NOTIFY**: Email/SMS provider, notification patterns (if applicable)
 5. **REALTIME**: WebSocket/SSE/polling strategy (if realtime: true)
-6. **INTEGRITY**: Input validation, error handling, data consistency
+6. **INTEGRITY**: Input validation, error handling, data consistency, and security hardening. The DEC-INTEGRITY decision MUST address each of the following that applies to the product:
+   - **Client separation**: public-facing operations use a minimal-privilege client (e.g., RLS-scoped). Elevated/admin clients are restricted to authenticated admin routes only, never used in public API routes or pages.
+   - **Error sanitization**: API routes return generic error messages to clients. Database errors, stack traces, and internal identifiers are logged server-side only, never sent to the client.
+   - **Constant-time comparison**: all secret comparisons (passwords, session tokens, webhook signatures) use constant-time functions to prevent timing attacks.
+   - **Rate limiting**: authentication endpoints enforce rate limiting (e.g., max 5 attempts per minute per IP).
+   - **Session secret separation**: session signing keys are a dedicated secret, never the admin password or another credential reused as an HMAC key.
+   - **Mass assignment prevention**: API endpoints that accept JSON bodies explicitly pick allowed fields; unknown fields are rejected or ignored.
+   - **File upload security** (if applicable): server-side MIME type validation, filename sanitization (strip path traversal, special characters), maximum file size enforcement. Storage policies restrict upload/delete to authenticated admin routes; public access is read-only.
+   - **Input escaping**: user-provided content rendered in HTML (email templates, web pages) is escaped to prevent HTML/script injection.
+   - **Integer currency arithmetic** (if `payments: required`): all currency calculations use integer math in the smallest currency unit (cents, pence, fils). No floating-point math for money.
+   - **Security headers** (if `interface` includes `browser`): Content-Security-Policy, X-Frame-Options (DENY), X-Content-Type-Options (nosniff), Strict-Transport-Security, Referrer-Policy set on all responses.
+   - **Database constraints**: tables have unique constraints, foreign keys, and indexes for query patterns used by the application.
+   - **Framework security config**: image optimization configs list specific allowed hostnames, not wildcard patterns. Environment variable validation fails loudly on startup if required values are missing.
 7. **ORCHESTRATION**: Pipeline/workflow sequencing, stage definitions, context accumulation, state machine design, inter-step interaction patterns (if the product's core value involves multi-step coordination)
-8. **UI**: Component library, styling approach, design baseline. **Required when `interface` includes `browser`, `mobile_native`, or `desktop_gui`.** Skip otherwise.
+8. **UI**: Component library, styling approach, and visual design direction. **Required when `interface` includes `browser`, `mobile_native`, or `desktop_gui`.** Skip otherwise. The DEC-UI decision MUST include a `design_direction` subsection in its `description` with: a color palette (primary, secondary, accent, background, and text colors as hex values, derived from the product's context and target audience), typography guidance (font family or category, heading/body size relationship), and key component patterns (how cards, forms, buttons, and navigation should look and feel). A coding agent reading DEC-UI should produce a polished, cohesive UI without asking design questions. "Clean and functional" is not a design direction.
 
 ### Decision Specificity
 
@@ -251,7 +263,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 - If a capability covers the product's core behavior ("THE ONE THING" from MVP scope), it has at least one architecture decision describing HOW that behavior executes, not just how it is validated? Validation decisions (INTEGRITY) address quality; orchestration/execution decisions address design. The core capability needs both.
 - If `developer_model` was populated in Part 0, do DEC-STACK and DEC-DEPLOY decisions match the researched `plugin_format` and `distribution_mechanism`? Do not prescribe a language, build tool, or distribution channel that contradicts the platform's documented plugin model.
 - Do architecture decisions describe patterns rather than prescribing specific file paths or directory names? Concrete paths belong in the spec generator's Project Structure output, not in architecture decisions.
-- If `interface` includes `browser`, `mobile_native`, or `desktop_gui`, is there a DEC-UI-001 decision? Does it specify a component library compatible with the framework chosen in DEC-STACK?
+- If `interface` includes `browser`, `mobile_native`, or `desktop_gui`, is there a DEC-UI-001 decision? Does it specify a component library compatible with the framework chosen in DEC-STACK? Does it include a `design_direction` with specific hex color values, font guidance, and component patterns (not just "clean and functional")?
 
 ---
 
@@ -259,7 +271,7 @@ Use `DEC-{CATEGORY}-{NNN}`:
 
 Write to `.haytham/session/phase-3-how/research-directives.json`.
 
-After completing Parts 1 and 2, classify every functional capability (CAP-F-*) from `capabilities.json` to determine which ones require pre-implementation research. The build agent will use these directives to research approach and strategy before writing code.
+After completing Parts 1 and 2, classify every functional capability (CAP-F-*) from `capabilities.json` to determine which ones require pre-implementation research. For capabilities classified as `integration_dependent`, you MUST resolve the integration questions yourself using WebSearch and WebFetch before writing the output. The coding agent implements directly from your findings. Unanswered questions produce broken integrations, wrong environment variable names, and non-functional features.
 
 ### Classification Types
 
@@ -271,21 +283,27 @@ Each capability gets one or more classifications. A capability can have multiple
 - **`domain_dependent`**: The capability requires domain-specific knowledge that a general-purpose developer may lack. Examples: compliance rules, industry-specific calculations, domain terminology.
 - **`standard`**: The capability can be implemented with conventional patterns and does not require pre-implementation research. This classification is exclusive: if a capability is `standard`, it must have no other classifications.
 
-### Generating Questions
+### Generating Questions and Resolving Integration Research
 
 For each non-standard capability, generate 2-4 research questions. Questions must focus on **approach and strategy**, not technology selection (technology is already decided in Parts 1-2).
 
-Use the concept anchor's archetype and system traits to frame questions appropriate to the product's runtime context. A CLI plugin's integration questions differ from a mobile app's. For example, "How should the scoring algorithm rank entries?" is generic; "Given this is a CLI plugin, how should the scoring algorithm surface results in a terminal-friendly format?" is archetype-aware.
+Use the concept anchor's archetype and system traits to frame questions appropriate to the product's runtime context. A CLI plugin's integration questions differ from a mobile app's.
 
-**Mandatory for `integration_dependent` capabilities:** Every capability classified as `integration_dependent` MUST include a question asking the implementation session to verify the current API surface by reading the vendor's latest documentation. This is critical because the architect's training data may contain stale SDK patterns, deprecated env var names, or outdated API conventions. The implementation session has access to current docs and must verify before coding.
+**Mandatory for `integration_dependent` capabilities: Resolve, Don't Defer**
 
-Template: "Read [vendor]'s current documentation to verify: the correct SDK initialization pattern, required environment variables and their current names, authentication method for [specific capability needed], and any breaking changes in the latest SDK version."
+For every capability classified as `integration_dependent`, you MUST:
 
-Good questions:
+1. Use WebSearch to find the vendor's current documentation for the specific integration pattern needed (e.g., search "Stripe Payment Intents multi-currency Next.js", "Supabase Storage file upload JavaScript SDK", "Resend send email API Node.js")
+2. Use WebFetch to read the most relevant documentation page
+3. Extract and record in `findings`: exact environment variable names the vendor expects, SDK initialization patterns, API method signatures, authentication patterns, webhook event type names, and any gotchas or breaking changes
+4. If a search returns nothing useful, note the gap in findings with `"source_url": "not found"` and state your assumptions explicitly
+
+**Why this matters:** The coding agent implements from your findings. If you write "Read Stripe's docs to verify the correct Payment Intent pattern," the coding agent will guess from training data instead of looking it up, producing stale env var names and broken integrations. You have WebSearch and WebFetch. Use them.
+
+Good questions (for non-integration research):
 - "What prompt structure produces consistent matching scores for [specific use case]?"
 - "What ranking algorithm handles [specific constraint from the capability]?"
 - "How should the system handle [specific edge case relevant to the domain]?"
-- "Read Stripe's current docs to verify: the correct Payment Element configuration for multi-currency, required API keys and their current naming convention, and the webhook event type for confirmed payments."
 
 Bad questions (too generic or about tech selection):
 - "What database should we use?" (already decided in Part 1)
@@ -300,11 +318,18 @@ Bad questions (too generic or about tech selection):
     {
       "capability_id": "CAP-F-001",
       "capability_name": "Name from capabilities.json",
-      "classifications": ["llm_dependent"],
+      "classifications": ["integration_dependent"],
       "research_required": true,
       "questions": [
-        "Specific question about approach or strategy",
-        "Another specific question"
+        "Specific question about approach or strategy"
+      ],
+      "findings": [
+        {
+          "topic": "Short description of what was researched",
+          "verified_pattern": "The exact pattern, env var name, SDK method, or integration detail verified from current docs. Include code snippets where helpful.",
+          "source_url": "URL of the documentation page consulted",
+          "verified_at": "ISO date"
+        }
       ]
     },
     {
@@ -312,13 +337,14 @@ Bad questions (too generic or about tech selection):
       "capability_name": "Standard Feature",
       "classifications": ["standard"],
       "research_required": false,
-      "questions": []
+      "questions": [],
+      "findings": []
     }
   ],
   "summary": {
     "total": 2,
     "requiring_research": 1,
-    "classifications_used": ["llm_dependent", "standard"]
+    "classifications_used": ["integration_dependent", "standard"]
   }
 }
 ```
@@ -332,12 +358,15 @@ Before writing the file, verify:
 - Every CAP-F-* from capabilities.json has exactly one directive entry?
 - No CAP-NF-* entries are included?
 - Every directive with `research_required: true` has a non-empty `questions` array (2-4 questions)?
-- Every directive with `research_required: false` has `classifications: ["standard"]` and empty `questions`?
+- Every directive with `research_required: false` has `classifications: ["standard"]` and empty `questions` and empty `findings`?
 - No directive has `"standard"` mixed with other classifications?
 - All classification values are from the valid set (`llm_dependent`, `algorithm_dependent`, `integration_dependent`, `domain_dependent`, `standard`)?
 - `summary.total` matches the length of `directives`?
 - `summary.requiring_research` matches the count of directives where `research_required` is true?
 - Questions reference the product's archetype or runtime context where relevant, not just generic implementation questions?
+- Every directive with `integration_dependent` classification has a non-empty `findings` array with at least one finding per integration point?
+- Every finding has a non-empty `source_url` (if docs were found) or explicitly states "not found" with assumptions?
+- Findings include specific details the coding agent needs: env var names, SDK initialization patterns, API method signatures, or webhook event types?
 
 ## File I/O
 
