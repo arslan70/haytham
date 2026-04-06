@@ -42,7 +42,30 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    ```
    Then read `.haytham/session/phase-3-how/research-directives.json` and generate `<project-directory>/openspec/changes/initial-mvp/design.md` containing the resolved research findings for capabilities that have `research_required: true`. Format as a markdown document with one section per capability. For each capability, list the research findings (verified integration patterns, env var names, SDK methods, API details) as actionable implementation guidance. If a directive has both `questions` and `findings`, present the findings as resolved answers. If a directive has questions but no findings (legacy format), include the questions as-is.
 
-6. Generate a `CLAUDE.md` at the project root. This file orients the coding agent in the implementation session. Read these files to generate it:
+6. Copy upstream context into the project. This carries the reasoning graph (why the product exists, who it's for, market landscape) so post-build activities (go-to-market, feature prioritization, pivots) can reference the original analysis without going back to the plugin repo.
+
+   ```bash
+   mkdir -p <project-directory>/openspec/context
+   ```
+
+   Copy these files from `.haytham/session/` into `<project-directory>/openspec/context/`:
+
+   | Source | File | Contains |
+   |--------|------|----------|
+   | phase-1-why/ | concept-anchor.json | Core identity, invariants, founder profile, strategic signals |
+   | phase-1-why/ | idea-analysis.md | Problem analysis, target segments, UVP, lean canvas |
+   | phase-1-why/ | market-research.md | Market sizing, JTBD, trends, risks |
+   | phase-1-why/ | competitor-research.md | Competitor profiles, sentiment, pricing, gaps |
+   | phase-1-why/ | validation-report.md | GO/PIVOT/NO-GO decision with evidence and action plan |
+   | phase-2-what/ | mvp-scope.md | Scope boundaries, success criteria, user flows |
+   | phase-2-what/ | capabilities.json | Structured capability model |
+   | phase-2-what/ | system-traits.json | Non-functional trait classifications |
+   | phase-3-how/ | architecture-decisions.json | Architecture decision records |
+   | phase-3-how/ | build-buy.json | Build vs buy analysis |
+
+   Do NOT copy: gate-decision.json (pipeline state), research-brief.md (superseded by validation report), validation-report.json (machine duplicate of .md), validation-report.pdf (export format).
+
+7. Generate a `CLAUDE.md` at the project root. This file orients the coding agent in the implementation session. Read these files to generate it:
    - `.haytham/session/phase-4-specs/openspec/config.yaml` (project name, description)
    - `.haytham/session/phase-4-specs/openspec/project.md` (tech stack, architecture decisions, data schemas, project structure)
    - `.haytham/session/phase-2-what/mvp-scope.md` (constraints, what's in/out of scope)
@@ -57,9 +80,10 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    - **Data Model:** Schema summaries from project.md (database tables, config files, or data structures depending on product type)
    - **Constraints:** Hard constraints from MVP scope that a developer must not violate
    - **Environment Variables:** Configuration required from project.md (if applicable)
+   - **Strategic Context:** A table listing each file in `openspec/context/`, what it contains, and when to use it. Frame it as: "Use these files when working on anything beyond code implementation: go-to-market strategy, feature prioritization, positioning, pivot decisions, or competitive analysis." Include all 10 files from step 6.
    - **Specification:** Pointers to the OpenSpec files with domain names and scenario counts
 
-   Do NOT include the full architecture decisions prose. Keep it to what a developer needs to start coding correctly. Aim for under 150 lines.
+   Do NOT include the full architecture decisions prose. Keep it to what a developer needs to start coding correctly. Aim for under 170 lines.
 
 ## Completion
 
