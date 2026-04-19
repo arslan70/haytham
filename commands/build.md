@@ -132,8 +132,8 @@ Tell the user:
 >
 > This runs in a clean session so the implementation is generated purely from your specs.
 >
-> For future changes after the initial build:
+> For future changes after the initial build, use `/haytham:evolve` from the project directory. It reads the reasoning graph in `openspec/` and maintains it alongside your code change:
 >
 > ```
-> /opsx:propose <change-name>
+> /haytham:evolve "<description of the change>"
 > ```
