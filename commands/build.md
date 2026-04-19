@@ -31,7 +31,9 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    mkdir -p <project-directory> && cd <project-directory> && openspec init --tools claude
    ```
 
-3. Copy project context: copy `.haytham/session/phase-4-specs/openspec/project.md` to `<project-directory>/openspec/project.md`, overwriting the default.
+3. Copy project context files:
+   - Copy `.haytham/session/phase-4-specs/openspec/project.md` to `<project-directory>/openspec/project.md`, overwriting the default.
+   - Copy `.haytham/session/phase-4-specs/openspec/config.yaml` to `<project-directory>/openspec/config.yaml`. This carries project metadata (name, description, tech choices) that downstream tools need.
 
 4. Copy domain specs: copy all spec directories from `.haytham/session/phase-4-specs/openspec/specs/` into `<project-directory>/openspec/specs/`. Preserve the directory structure (each `{domain}/spec.md`).
 
@@ -40,7 +42,7 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    mkdir -p <project-directory>/openspec/changes/initial-mvp
    cp -r <project-directory>/openspec/specs <project-directory>/openspec/changes/initial-mvp/specs
    ```
-   Then read `.haytham/session/phase-3-how/research-directives.json` and generate `<project-directory>/openspec/changes/initial-mvp/design.md` containing the resolved research findings for capabilities that have `research_required: true`. Format as a markdown document with one section per capability. For each capability, list the research findings (verified integration patterns, env var names, SDK methods, API details) as actionable implementation guidance. If a directive has both `questions` and `findings`, present the findings as resolved answers. If a directive has questions but no findings (legacy format), include the questions as-is.
+   Then read `.haytham/session/phase-3-how/research-directives.json` and generate `<project-directory>/openspec/changes/initial-mvp/design.md` containing the resolved research findings for capabilities that have `research_required: true`. Format as a markdown document with one section per capability. For each capability, list the research findings (verified integration patterns, env var names, SDK methods, API details) as actionable implementation guidance. If a directive has both `questions` and `findings`, present the findings as resolved answers. If a directive has questions but no findings, flag them explicitly as **unresolved** and mark them as requiring resolution during implementation: "⚠️ UNRESOLVED: [question]. This must be resolved during implementation. Do not proceed with assumptions." The coding agent must resolve these before implementing the affected capability.
 
 6. Copy upstream context into the project. This carries the reasoning graph (why the product exists, who it's for, market landscape) so post-build activities (go-to-market, feature prioritization, pivots) can reference the original analysis without going back to the plugin repo.
 
@@ -84,6 +86,20 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    - **Specification:** Pointers to the OpenSpec files with domain names and scenario counts
 
    Do NOT include the full architecture decisions prose. Keep it to what a developer needs to start coding correctly. Aim for under 170 lines.
+
+## Cleanup
+
+Delete the `.haytham/session/` directory. The phase-4 output is now in `openspec/` and the phase 1-3 intermediates are preserved in git history. `openspec/` is the single source of truth going forward.
+
+```bash
+rm -rf .haytham/session/
+```
+
+If `.haytham/` is now empty, remove it too:
+
+```bash
+rmdir .haytham/ 2>/dev/null
+```
 
 ## Completion
 
