@@ -30,3 +30,6 @@ evals/triggering/results/
 evals/quality/results/
 evals/e2e/results/
 __pycache__/
+
+# Experiment session logs (kept locally as raw evidence, not in git)
+docs/experiments/*.jsonl

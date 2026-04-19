@@ -1,5 +1,7 @@
 # Evolution Sprint Plan: Idea to Pitch-Ready Product
 
+> **SUPERSEDED (2026-04-18).** Replaced by [2026-04-18-haytham-final-push.md](./2026-04-18-haytham-final-push.md) — a compressed 4-week final push with a binary kill-or-keep decision on 2026-05-16.
+
 **Date:** 2026-04-13
 **Goal:** Take Haytham from "working Genesis plugin + two live projects" to "demonstrable Evolution capability with evidence that the reasoning graph produces better change outcomes than specs alone."
 **Timebox:** 8 weeks
