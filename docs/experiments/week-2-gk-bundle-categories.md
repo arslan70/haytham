@@ -74,31 +74,46 @@ Don't steer. If the agent asks clarifying questions, respond factually only (e.g
 
 ## Results
 
-_Empty until run completes._
+Session JSONL: `docs/experiments/week-2-session.jsonl` (local only, gitignored). Merged PR: [arslan70/giftkaro.pk#1](https://github.com/arslan70/giftkaro.pk/pull/1) on branch `experiment/week-2-bundle-categories`, merged 2026-04-19 14:41 UTC.
 
-- Active agent time:
-- Code files changed (vs 9d47cf9):
-- openspec files read:
-- openspec files modified:
-- Generated prompt (full text logged to separate file):
-- Did the agent surface the 3-5 bundle / 7 category tension?:
-- Reasoning trail summary:
-- Rubric scores:
-  1. Invariant check:
-  2. Capability boundary:
-  3. Scenario regression:
-  4. Architecture alignment:
-  5. Context documentation:
-  6. Scope-tension surfacing:
+- **Active agent time:** ~1h05m. Session opened 13:23:40Z; `/haytham:evolve` invoked 13:29:44Z; PR requested 14:34:52Z; last event 14:35:47Z.
+- **Code files changed (vs `9d47cf9`):** 13 files — `src/lib/categories.ts` (new, single source of truth), `src/app/page.tsx` (home rewritten), `src/app/categories/[slug]/page.tsx` (new), `src/components/catalog/{CategoryCard,CategoryGrid}.tsx` (new), `src/components/admin/{BundleForm,BundleList}.tsx`, `src/app/admin/dashboard/page.tsx`, `src/app/api/admin/bundles/route.ts`, `src/types/index.ts`, `supabase/migrations/002_bundle_categories.sql` (new), `CLAUDE.md`, `next.config.js` (dev-only CSP fix for Next.js React Refresh, discovered during manual test).
+- **openspec files read:** 11 — 6 context files + 5 spec files (all specs present in GiftKaro openspec: gift-catalog, admin-management, checkout-and-orders, cross-cutting, trust-signals).
+- **openspec files modified:** 5 — `openspec/context/mvp-scope.md`, `openspec/context/capabilities.json`, `openspec/context/architecture-decisions.json`, `openspec/specs/gift-catalog/spec.md`, `openspec/specs/admin-management/spec.md`. Left alone: `concept-anchor.json`, `system-traits.json`, `build-buy.json`, `checkout-and-orders/spec.md`, `cross-cutting/spec.md`, `trust-signals/spec.md`.
+- **Generated prompt:** matches the v1 template verbatim. Change description embedded as given. File list enumerated 6 context files + 5 globbed specs. Maintenance rules present in full. Emitted at 13:30:24Z as a fenced code block before execution, per spec. See session JSONL line 62.
+- **Did the agent surface the 3-5 bundle / 7 category tension?:** Yes. At 13:31:02Z — before any code was written — the agent emitted "Scope tensions identified (none are invariant conflicts — all resolvable via graph updates)" and flagged three loci: `mvp-scope.md` § 5 ("3-5 pre-built bundles"), `capabilities.json` CAP-F-001 acceptance ("3-5 bundles"), and `gift-catalog/spec.md` scenario ("3-5 bundles"). Resolution path: replace the scope item with a category-first framing where category count is fixed at seven but bundle count per category is flexible. This is a hybrid of pre-registered options (b) expand the catalog and (c) keep 3-5 total but show all 7 categories — rather than hiding empty categories, the agent added both an acceptance criterion and a Gherkin scenario for "category with no active bundles is still displayed but marked."
+- **Reasoning trail summary:**
+  1. 13:30:24Z — assembled prompt stated as a code block.
+  2. 13:30:24Z–13:31:00Z — read all 11 graph files.
+  3. 13:31:02Z — surfaced three scope-tension loci; explicitly evaluated `interaction_model` ("browse-select-pay is extended, not violated"), `product_catalog` (unchanged), and the occasion set against the product identity. No invariant conflicts.
+  4. 13:32:17Z — stated implementation plan. Step 6 listed graph updates, including `admin-management/spec.md`.
+  5. 13:32:17Z–13:37:27Z — implemented code + migration + graph updates; first commit (`28ba82e`) shipped code and all 5 graph-file updates in lockstep.
+  6. 13:38:10Z — user asked for local test; agent started dev server.
+  7. 13:42:57Z — user steered: "We would also need changes to modify the admin panel for this change." (The agent's plan at 13:32:17Z already included `admin-management/spec.md`; the first commit already updated the admin form to require a category. The steer extended scope to the grouped dashboard view, not the capability boundary itself.)
+  8. 13:53:18Z–14:18:37Z — debugging of admin auth (placeholder password) and a CSP `unsafe-eval` error from Next.js React Refresh. Resolved with a dev-only CSP relaxation in `next.config.js`.
+  9. 14:34:13Z — second commit (`d1cd24d`) landed the grouped admin dashboard view.
+  10. 14:34:52Z — user asked for a PR; agent created it.
+- **Rubric scores:**
+  1. **Invariant check: Pass.** `concept-anchor.json` left untouched. Agent explicitly reasoned about `interaction_model`, `product_catalog`, and the identity-level "occasion-specific gift bundles" framing, and concluded no invariant was violated. `mvp-scope.md`'s § "Flagged scope risks" discussion of `interaction_model` was updated (from 4-5 surfaces to 5-6) because that section references the interaction model, not because the invariant changed.
+  2. **Capability boundary: Pass.** CAP-F-001 (catalog browsing) refined, not replaced. CAP-F-005 (admin management) updated. Payments (CAP-F-002), notifications (CAP-F-003), checkout/trust specs left alone. Caveat: the user nudged an admin-dashboard UX addition; without the nudge, the capability boundary would still have been right (admin-management spec update was already in the plan and in commit 1), only the dashboard-grouping polish would have been missing.
+  3. **Scenario regression: Pass.** `gift-catalog/spec.md`: 2 new scenarios added (drill-in, empty category); all 4 existing scenarios correctly updated where the home-page change affected them. `admin-management/spec.md`: 1 new scenario (reject-without-category) and existing "admin creates a new bundle" updated to require category assignment. No scenarios silently dropped.
+  4. **Architecture alignment: Pass.** New `DEC-CATEGORIES-001` recorded for the closed-taxonomy + text-slug decision, with 3 alternatives considered (admin-editable table, multi-category tags, client-side filter chips). `DEC-DB-001` updated minimally to describe the category column without touching the core Supabase/RLS rationale. Stack, Stripe, Vercel, Tailwind DECs untouched.
+  5. **Context documentation: Pass.** Code and all 5 graph-file updates shipped in the same first commit (`28ba82e`). `openspec/` is consistent with the code after the merge.
+  6. **Scope-tension surfacing: Pass.** Surfaced before writing code (13:31:02Z); recommended and applied a resolution (category-first scope item replaces "3-5 pre-built bundles"; bundle count per category noted as flexible). Did not silently expand the catalog or ship empty categories — explicit scenario + acceptance criterion added for the empty-category state.
+
+**Score: 6/6 Pass.** Passes the ship criterion for v1 (≥5/6) with margin.
 
 ## Interpretation
 
-_Empty until scored._
+**Did the tool correctly construct the prompt?** Yes. The generated prompt at 13:30:24Z matches the v1 template verbatim — change description embedded, 11 reasoning-graph files enumerated (6 fixed context + 5 globbed specs), four maintenance rules present, "zero drift" ship criterion stated. This confirms `commands/evolve.md`'s substitution and glob logic work.
 
-Key questions:
-- Did the tool correctly construct the prompt (change description + full graph file list + maintenance rules)?
-- Did thin orchestration handle capability creation + IA restructure?
-- Does `/haytham:evolve` need tightening before the TinyTales cross-project test, or is the v1 build sufficient to proceed?
+**Did thin orchestration handle capability creation + IA restructure?** Yes, cleanly. The agent surfaced the pre-registered hard cases (interaction_model invariant, 3-5/7 scope tension, empty categories) without prompting and resolved them in a way that's consistent with the reasoning graph's existing shape. The prediction that `concept-anchor.json` would be left alone held. The prediction that the scope tension would be surfaced and resolved held. The agent's choice of resolution (category-first scope item with flexible bundle count, plus explicit handling for empty categories) went slightly beyond the options I'd pre-registered — this is a good sign that the agent read the scope intent rather than picking from a menu.
+
+**The one contamination:** at 13:42:57Z the user steered with "We would also need changes to modify the admin panel." This did not affect the capability-boundary or graph-maintenance scores because the admin-management spec update was already in the agent's plan at 13:32:17Z and landed in commit 1. The steer added a grouped-dashboard UX polish (commit 2) that wasn't purely needed for the capability — but it also wasn't a graph update. N=1, so worth noting but not load-bearing.
+
+**What this says about v1:** the two-ingredient recipe (full-graph file list + maintenance-demanding prompt template) is sufficient for capability creation + IA restructure, at least on a project the graph author understands well. The cuts made at design time — no classifier, no file-picker, no drift detector — did not cost this run anything. The "leave files alone" rule correctly filtered `concept-anchor.json`, `system-traits.json`, `build-buy.json`, and three orthogonal specs at read-time.
+
+**Does `/haytham:evolve` need tightening before the TinyTales cross-project test?** No. Proceed to Week 2 of the final push plan as written. The TinyTales run is the actual cross-project bedrock — this result says v1 is worth spending that test on, not that v1 is universally proven.
 
 ## Limitations
 
@@ -110,10 +125,8 @@ Key questions:
 
 ## Next steps
 
-- [ ] `/haytham:evolve` v1 built (Week 1 of the final push plan).
-- [ ] Run the experiment. Record results.
-- [ ] Score rubric. Write Interpretation section.
-- [ ] If the run passes: proceed to TinyTales cross-project test in Week 2 of the final push.
-- [ ] If the run fails on tool construction (missing file list, broken prompt): fix the tool and re-run before TinyTales.
-- [ ] If the run fails on thin orchestration itself (agent has right entry points but still doesn't maintain the graph): identify the failure mode and decide whether `/haytham:evolve` needs more prescription than v1 provides. This is a meaningful design pivot.
+- [x] `/haytham:evolve` v1 built (Week 1 of the final push plan). Shipped as `commands/evolve.md` (haytham commit `b1e3d87`).
+- [x] Run the experiment. Recorded in Results section.
+- [x] Score rubric. Interpretation written.
+- [x] Run passed (6/6): proceed to TinyTales cross-project test in Week 2 of the final push.
 - [ ] Defer: promote Path C (Safepay + graph maintenance) to main when ready.
