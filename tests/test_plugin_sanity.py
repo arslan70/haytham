@@ -1225,16 +1225,14 @@ class TestMarketplaceJson:
                     f"Must be one of: {VALID_CATEGORIES}"
                 )
 
-    def test_version_consistent(self):
+    def test_version_single_source_of_truth(self):
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
         marketplace = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())
-        assert "version" in plugin, (
-            "plugin.json must have a version field"
+        assert "version" not in plugin, (
+            "plugin.json must NOT carry a version field. "
+            "Claude Code reads the plugin version from marketplace.json; "
+            "duplicating it here creates a sync bug class."
         )
         assert "version" in marketplace["plugins"][0], (
             "marketplace.json plugins[0] must have a version field"
-        )
-        assert plugin["version"] == marketplace["plugins"][0]["version"], (
-            f"Version mismatch: plugin.json has '{plugin['version']}' "
-            f"but marketplace.json has '{marketplace['plugins'][0]['version']}'"
         )
