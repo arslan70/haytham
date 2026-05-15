@@ -104,11 +104,28 @@ Only include checks for files that exist. State clearly which phases were availa
 **Files reviewed: [list]**
 **Score: X PASS, Y PARTIAL, Z FAIL out of N applicable checks**
 
+### Confidence Discipline
+
+Every drift call must carry a confidence score 0-100:
+
+- 90-100: Specific drift with quoted evidence from both the original idea and the downstream output. The drift is visible side-by-side.
+- 80-89: Drift is named with evidence but lower blast radius (e.g., emphasis shift, single missing element).
+- 60-79: Plausible drift without specific evidence. Likely interpretive.
+- <60: Style preference or speculative.
+
+**Surface only drift calls with confidence ≥ 80.** Collapse the rest into a single trailing line:
+
+> N drift signals below threshold suppressed.
+
+A confidence score without quoting both the original and the drifted output is invalid. Score the citation, not the vibe.
+
 ### Drift Summary
 
-If any check is PARTIAL or FAIL, describe the overall drift pattern:
+If any check is PARTIAL or FAIL with confidence ≥ 80, describe the overall drift pattern:
 - Is the idea being **narrowed** (losing distinctive elements)?
 - Is it being **expanded** (accumulating features the founder didn't ask for)?
 - Is it being **substituted** (replaced with a more generic version)?
+
+For each drift call, prefix with **[confidence]** and quote both the original idea and the downstream output side by side.
 
 Name the specific agent prompt(s) where the drift likely originates, and whether it's a **missing instruction** (no fidelity guard), **weak instruction** (guard exists but isn't followed), or **structural gap** (no mechanism to enforce fidelity at this stage).

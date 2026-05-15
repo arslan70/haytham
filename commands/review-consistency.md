@@ -140,9 +140,24 @@ Only include checks for phases that are present. Do not list checks for missing 
 **Phases reviewed: 1, 2** (or whichever are present)
 **Score: X PASS, Y PARTIAL, Z FAIL out of N applicable checks**
 
+### Confidence Discipline
+
+Every entry in "Suggested Improvements" must carry a confidence score 0-100:
+
+- 90-100: Specific, evidence-backed, would block a developer or break the graph. Cites a file path and a quoted line or value.
+- 80-89: Clear gap with named evidence but lower blast radius (e.g., terminology drift, missing edge-case scenario).
+- 60-79: Plausible concern without specific evidence. Likely a nit.
+- <60: Style preference or speculative.
+
+**Surface only entries with confidence ≥ 80.** Collapse the rest into a single trailing line:
+
+> N findings below threshold suppressed.
+
+A confidence score without a specific file/line citation is invalid. Score the citation, not the vibe.
+
 ### Suggested Improvements
 
-For each PARTIAL or FAIL, state:
-1. The specific inconsistency (quote both sides)
+For each PARTIAL or FAIL with confidence ≥ 80, state:
+1. **[confidence]** The specific inconsistency (quote both sides, cite both files)
 2. Which upstream file is likely the source of truth
 3. Which agent prompt needs the fix, and whether it's a **missing instruction**, **weak instruction**, or **structural gap**

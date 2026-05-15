@@ -114,10 +114,25 @@ A coding agent can pick up `openspec/` and start implementing without ambiguity.
 List which domain specs were evaluated:
 > Reviewed: specs/identity/spec.md, specs/leaderboard/spec.md, specs/community/spec.md
 
+### Confidence Discipline
+
+Every entry in "Suggested Improvements" must carry a confidence score 0-100:
+
+- 90-100: Specific, evidence-backed, would block a developer or break the graph. Cites a file path and a quoted line or value.
+- 80-89: Clear gap with named evidence but lower blast radius (e.g., terminology drift, missing edge-case scenario).
+- 60-79: Plausible concern without specific evidence. Likely a nit.
+- <60: Style preference or speculative.
+
+**Surface only entries with confidence ≥ 80.** Collapse the rest into a single trailing line:
+
+> N findings below threshold suppressed.
+
+A confidence score without a specific file/line citation is invalid. Score the citation, not the vibe.
+
 ### Suggested Improvements
 
-For each PARTIAL or FAIL, state:
-1. What was observed (quote the output)
+For each PARTIAL or FAIL with confidence ≥ 80, state:
+1. **[confidence]** What was observed (quote the output, cite the file)
 2. What a developer would need to know that's missing
 3. Which agent prompt needs the fix (`agents/mvp-scoper.md`, `agents/capability-modeler.md`, `agents/architect.md`, or `agents/spec-generator.md`)
 4. Whether it's a **missing instruction**, **weak instruction**, or **structural gap**

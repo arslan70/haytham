@@ -103,10 +103,25 @@ Present findings as a table, then provide improvement suggestions.
 
 **Score: X/7 PASS, Y/7 PARTIAL, Z/7 FAIL**
 
+### Confidence Discipline
+
+Every entry in "Suggested Improvements" must carry a confidence score 0-100:
+
+- 90-100: Specific, evidence-backed, would block a developer or break the graph. Cites a file path and a quoted line or value.
+- 80-89: Clear gap with named evidence but lower blast radius (e.g., terminology drift, missing edge-case scenario).
+- 60-79: Plausible concern without specific evidence. Likely a nit.
+- <60: Style preference or speculative.
+
+**Surface only entries with confidence ≥ 80.** Collapse the rest into a single trailing line:
+
+> N findings below threshold suppressed.
+
+A confidence score without a specific file/line citation is invalid. Score the citation, not the vibe.
+
 ### Suggested Improvements
 
-For each PARTIAL or FAIL, state:
-1. What was observed (quote the output)
+For each PARTIAL or FAIL with confidence ≥ 80, state:
+1. **[confidence]** What was observed (quote the output, cite the file)
 2. What should have been there instead
 3. Which file likely needs the fix (the agent prompt, not the output)
 4. Whether this is a **missing instruction**, **weak instruction**, or **wrong instruction** in that agent prompt
