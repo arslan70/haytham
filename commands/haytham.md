@@ -1,6 +1,6 @@
 ---
 description: Validate a startup idea and produce an implementation-ready specification
-argument-hint: [startup idea | URL] [--batch]
+argument-hint: "[startup idea | URL] [--batch]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite, WebSearch, WebFetch
 ---
 

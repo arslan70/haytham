@@ -1,6 +1,6 @@
 ---
 description: Export validation report to a demos repository for sharing
-argument-hint: [--target <path>] [--slug <name>] [--commit] [--pdf]
+argument-hint: "[--target <path>] [--slug <name>] [--commit] [--pdf]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 ---
 

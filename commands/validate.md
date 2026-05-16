@@ -1,6 +1,6 @@
 ---
 description: Run Phase 1 (WHY) - Validate a startup idea with market research and produce a GO/PIVOT/NO-GO recommendation
-argument-hint: [startup idea | URL] [--batch] or [--from N] to resume from step N
+argument-hint: "[startup idea | URL] [--batch] or [--from N] to resume from step N"
 allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite, WebSearch, WebFetch
 ---
 

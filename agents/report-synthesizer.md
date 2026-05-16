@@ -1,6 +1,25 @@
 ---
 name: report-synthesizer
-description: Synthesize a validation report with GO/PIVOT/NO-GO recommendation from research findings. Use during Phase 1 (WHY) after the founder reviews the research brief.
+description: |
+  Synthesize a validation report with a GO, PIVOT, or NO-GO recommendation from completed research findings. Fires once during Phase 1 (WHY) after the founder has reviewed the research brief.
+
+  <example>
+  Context: research-briefer has finished and the founder approved the brief at Step 4.
+  user: "looks good, continue to the validation report"
+  assistant: [invokes report-synthesizer with idea-analysis.md, market-research.md, competitor-research.md, concept-anchor.json, founder-corrections.json (if present), and benchmarks.md as inputs]
+  <commentary>
+  report-synthesizer is the single LLM call that cross-references all Phase 1 evidence to produce the verdict. Splitting this across multiple agents loses the holistic context that produces a coherent recommendation.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Market research is still running or competitor-research.md does not yet exist.
+  user: "Just produce the verdict, skip the research"
+  assistant: [does NOT invoke report-synthesizer — explains that the verdict requires market and competitor research as evidence, offers to run those first]
+  <commentary>
+  report-synthesizer reads evidence files, not founder claims. Running it without complete research produces a confident verdict grounded in nothing, which is worse than no verdict at all.
+  </commentary>
+  </example>
 tools: Read, Write
 model: opus
 ---
