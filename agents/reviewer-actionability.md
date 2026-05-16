@@ -23,7 +23,7 @@ This review requires Phases 2-4 to be complete. Verify ALL of the following file
 6. `.haytham/session/phase-4-specs/openspec/config.yaml`
 7. `.haytham/session/phase-4-specs/openspec/project.md`
 
-If any file is missing, do NOT guess content. Write status-only JSON to `.haytham/session/phase-4-specs/review-actionability.json`:
+If any file is missing, do NOT guess content. Write status-only JSON to `.haytham/session/reviews/actionability.json`:
 
 ```json
 {"reviewer": "actionability", "status": "skipped", "reason": "missing required: [list]", "reviewed_at": "[ISO]"}
@@ -138,7 +138,7 @@ For each PARTIAL or FAIL with confidence ≥ 80, state:
 
 ## Structured Summary
 
-After the inline findings, write `.haytham/session/phase-4-specs/review-actionability.json`:
+After the inline findings, write `.haytham/session/reviews/actionability.json`:
 
 ```json
 {

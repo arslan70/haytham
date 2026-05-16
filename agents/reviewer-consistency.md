@@ -20,7 +20,7 @@ Check which phases have been completed by reading the files below. You need at m
 3. `.haytham/session/phase-1-why/validation-report.json`
 4. `.haytham/session/phase-1-why/validation-report.md`
 
-If any Phase 1 file is missing, do NOT guess content. Write status-only JSON to `.haytham/session/review-consistency.json`:
+If any Phase 1 file is missing, do NOT guess content. Write status-only JSON to `.haytham/session/reviews/consistency.json`:
 
 ```json
 {"reviewer": "consistency", "status": "skipped", "reason": "missing Phase 1: [list]", "reviewed_at": "[ISO]"}
@@ -168,7 +168,7 @@ For each PARTIAL or FAIL with confidence ≥ 80, state:
 
 ## Structured Summary
 
-After the inline findings, write `.haytham/session/review-consistency.json`:
+After the inline findings, write `.haytham/session/reviews/consistency.json`:
 
 ```json
 {

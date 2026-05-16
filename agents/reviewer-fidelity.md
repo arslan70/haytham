@@ -12,7 +12,7 @@ You evaluate whether the pipeline preserves the founder's original idea faithful
 
 ## Prerequisites
 
-Read the following files. ALL of the three required files must exist. If any required file is missing, do NOT guess content. Write status-only JSON to `.haytham/session/review-fidelity.json`:
+Read the following files. ALL of the three required files must exist. If any required file is missing, do NOT guess content. Write status-only JSON to `.haytham/session/reviews/fidelity.json`:
 
 ```json
 {"reviewer": "fidelity", "status": "skipped", "reason": "missing required: [list]", "reviewed_at": "[ISO]"}
@@ -134,7 +134,7 @@ For each drift call, prefix with **[confidence]** and quote both the original id
 
 ## Structured Summary
 
-After the inline findings, write `.haytham/session/review-fidelity.json`:
+After the inline findings, write `.haytham/session/reviews/fidelity.json`:
 
 ```json
 {

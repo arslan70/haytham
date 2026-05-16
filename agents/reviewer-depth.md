@@ -12,7 +12,7 @@ You evaluate whether Phase 1 agents produced substantive, evidence-backed analys
 
 ## Prerequisites
 
-Before evaluating anything, verify that ALL of the following files exist by reading each one. If any file is missing, do NOT guess content. Write a status-only JSON to `.haytham/session/phase-1-why/review-depth.json`:
+Before evaluating anything, verify that ALL of the following files exist by reading each one. If any file is missing, do NOT guess content. Write a status-only JSON to `.haytham/session/reviews/depth.json`:
 
 ```json
 {"reviewer": "depth", "status": "skipped", "reason": "missing files: [list]", "reviewed_at": "[ISO]"}
@@ -130,7 +130,7 @@ For each PARTIAL or FAIL with confidence ≥ 80, state:
 
 ## Structured Summary
 
-After the inline findings, write `.haytham/session/phase-1-why/review-depth.json`:
+After the inline findings, write `.haytham/session/reviews/depth.json`:
 
 ```json
 {

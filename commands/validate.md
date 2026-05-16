@@ -357,12 +357,12 @@ After Step 5 writes the validation report, launch reviewers automatically. These
 Launch BOTH agents in parallel:
 
 1. A **reviewer-depth** agent with this task:
-   > Review Phase 1 output in `.haytham/session/phase-1-why/`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/phase-1-why/review-depth.json`.
+   > Review Phase 1 output in `.haytham/session/phase-1-why/`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/reviews/depth.json`.
 
 2. A **reviewer-fidelity** agent with this task:
-   > Review Phase 1 output in `.haytham/session/phase-1-why/` against `.haytham/project.yaml`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/review-fidelity.json`.
+   > Review Phase 1 output in `.haytham/session/phase-1-why/` against `.haytham/project.yaml`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/reviews/fidelity.json`.
 
-After both agents complete, read `.haytham/session/phase-1-why/review-depth.json` and `.haytham/session/review-fidelity.json`. If either file does not exist or has `"status": "skipped"`, note which was skipped and proceed.
+After both agents complete, read `.haytham/session/reviews/depth.json` and `.haytham/session/reviews/fidelity.json`. If either file does not exist or has `"status": "skipped"`, note which was skipped and proceed.
 
 **If BATCH_MODE is true:** Do not embed the digest in user-facing messages (the gate is auto-approved). The JSON summaries on disk are sufficient.
 
@@ -377,7 +377,7 @@ After both agents complete, read `.haytham/session/phase-1-why/review-depth.json
 > - **[confidence] [reviewer]** — [criterion or check]: [issue] (see [file])
 > - (repeat for up to 3 highest-confidence findings)
 >
-> Full summaries: `.haytham/session/phase-1-why/review-depth.json`, `.haytham/session/review-fidelity.json`. Run `/haytham:review-depth` or `/haytham:review-fidelity` to re-run a single reviewer.
+> Full summaries: `.haytham/session/reviews/depth.json`, `.haytham/session/reviews/fidelity.json`. Run `/haytham:review-depth` or `/haytham:review-fidelity` to re-run a single reviewer.
 
 If both reviewers returned `"status": "pass"` and no top findings, emit one line: `Automated reviews passed (depth + fidelity). No findings to surface.`
 
