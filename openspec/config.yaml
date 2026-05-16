@@ -1,0 +1,13 @@
+name: haytham
+description: Lifecycle control plane for AI-built products, delivered as a Claude Code plugin that orchestrates specialist agents across validate, specify, design, plan, build, and evolve phases while maintaining a reasoning graph from founder intent to production telemetry.
+appetite: Medium
+generated_at: "2026-05-16T00:00:00Z"
+traits:
+  interface: [cli]
+  auth: none
+  deployment: [plugin]
+  data_layer: file_system
+  realtime: false
+  communication: none
+  payments: none
+  scheduling: none

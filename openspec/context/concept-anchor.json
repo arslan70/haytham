@@ -1,0 +1,172 @@
+{
+  "archetype": "developer_tool",
+  "intent": {
+    "goal": "A Claude Code plugin that orchestrates specialist agents to maintain a reasoning graph from founder intent to production telemetry across the product lifecycle. GENESIS (idea to MVP) is shipped; EVOLUTION (graph-aware change management) is partially shipped; SENTIENCE (autonomous improvement) is future scope.",
+    "explicit_constraints": [
+      "Delivered as a Claude Code plugin, not a standalone app or SaaS",
+      "No Python required of the user beyond what hook scripts use",
+      "No API keys required",
+      "No environment variables required",
+      "Works within an existing Claude Code subscription",
+      "Generic across input archetypes (web app, CLI tool, API service, marketplace) — no input-specific hardcoding"
+    ],
+    "non_goals": [
+      "Not a generic agent orchestration framework (LangGraph, CrewAI, AutoGen). The value is the reasoning graph, not the plumbing.",
+      "Not a code execution platform. Haytham declares intent; downstream tools execute.",
+      "Not a project management tool. The control plane governs the lifecycle of one product, not a portfolio."
+    ]
+  },
+  "invariants": [
+    {
+      "property": "access_model",
+      "value": "Claude Code plugin installed via /plugin marketplace add. No separate account, no separate infra.",
+      "source": "marketplace.json + README install instructions",
+      "confidence": 0.98,
+      "scope_risk": "low"
+    },
+    {
+      "property": "interaction_model",
+      "value": "User-facing commands (validate, specify, design, plan, build, evolve, export, demo, haytham, review-*, ux-review). Each phase ends with a human approval gate in normal mode; BATCH_MODE skips gates for demo/CI use.",
+      "source": "commands/*.md frontmatter and bodies; haytham.md explicit 'do not skip phases' and BATCH_MODE handling",
+      "confidence": 0.97,
+      "scope_risk": "low"
+    },
+    {
+      "property": "session_medium",
+      "value": "Claude Code CLI session. Text-based. No web UI, no separate dashboard.",
+      "source": "Plugin format precludes a separate UI surface",
+      "confidence": 0.97,
+      "scope_risk": "low"
+    },
+    {
+      "property": "reasoning_graph_is_core_asset",
+      "value": "The reasoning graph (concept anchor → capabilities → architecture decisions → specs → code → telemetry) is the product. Every milestone increases autonomy over this graph. A change that does not build or maintain the graph is out of scope.",
+      "source": "CLAUDE.md Constitution: 'The core asset is the reasoning graph'; VISION.md milestones table",
+      "confidence": 0.99,
+      "scope_risk": "high"
+    },
+    {
+      "property": "control_plane_not_data_plane",
+      "value": "Haytham orchestrates and validates; downstream tools execute. When choosing between approaches, prefer the one where Haytham declares intent and delegates over the one where Haytham does the work itself. A proposal that pulls execution into Haytham violates this invariant.",
+      "source": "CLAUDE.md Constitution principle 7",
+      "confidence": 0.99,
+      "scope_risk": "high"
+    },
+    {
+      "property": "fix_root_cause_not_symptom",
+      "value": "Fixes target underlying structure, not surface symptoms. Patches accumulate; root-cause fixes compound. A change that adds a 'don't do X' rule where the structure causing X could be changed instead is rejected.",
+      "source": "CLAUDE.md Constitution principle 6",
+      "confidence": 0.97,
+      "scope_risk": "high"
+    },
+    {
+      "property": "meta_system_genericity",
+      "value": "Haytham is a factory that produces products, not one specific product. Prompts, scripts, and schemas enforce principles (traceability, consistency) not prescriptions (use Supabase, limit to 5 items). A rule that would not apply to a CLI tool AND a web app AND an API is too specific.",
+      "source": "CLAUDE.md Meta-System Design section",
+      "confidence": 0.97,
+      "scope_risk": "high"
+    },
+    {
+      "property": "deterministic_rules_in_hooks_qualitative_in_llm",
+      "value": "Hook scripts enforce deterministic rules (schema validation, phase prerequisites, SOM arithmetic). LLM-generated text never overrides those rules. The LLM's job is qualitative judgment (scoring, evaluating evidence).",
+      "source": "CLAUDE.md Pitfall: LLM Text Overriding Deterministic Rules; hooks/hooks.json + scripts/validate_schema.py",
+      "confidence": 0.98,
+      "scope_risk": "medium"
+    },
+    {
+      "property": "drift_prevention_via_concept_anchor",
+      "value": "Concept anchor extracted in Phase 1 is passed unchanged to every downstream agent. Known values (GO/NO-GO, anchors) are passed as file context, never re-extracted from prose.",
+      "source": "CLAUDE.md Pitfall: Agents Re-deriving Known Values; idea-analyst.md output schema",
+      "confidence": 0.97,
+      "scope_risk": "medium"
+    },
+    {
+      "property": "single_agent_for_holistic_reasoning",
+      "value": "Tasks requiring cross-referencing across findings are handled by a single agent with full context. Splitting holistic reasoning across agents connected by deterministic glue is rejected.",
+      "source": "CLAUDE.md Pitfall: Splitting LLM Reasoning Across Multiple Agents; report-synthesizer is single-agent by design",
+      "confidence": 0.95,
+      "scope_risk": "medium"
+    },
+    {
+      "property": "specialist_agent_split_criteria",
+      "value": "Multi-agent split is only justified when agents need different tools (web search vs analysis), different model tiers, or operate on genuinely independent tasks. The current eight specialists are split along these lines.",
+      "source": "CLAUDE.md Pitfall note; agents/*.md frontmatter tool/model differences",
+      "confidence": 0.93,
+      "scope_risk": "medium"
+    },
+    {
+      "property": "output_artifact_shape",
+      "value": "Phase 4 produces an OpenSpec directory with SHALL requirements, Gherkin scenarios, project.md, capabilities.json, architecture-decisions.json, system-traits.json, build-buy.json, mvp-scope.md, concept-anchor.json. Coding agents consume this directly.",
+      "source": "agents/spec-generator.md; scripts/validate_openspec.py required structure",
+      "confidence": 0.97,
+      "scope_risk": "medium"
+    },
+    {
+      "property": "verdict_model",
+      "value": "GO / PIVOT / NO-GO verdict is honest. The pipeline can and will recommend against building when signals are negative.",
+      "source": "agents/report-synthesizer.md prompt instructs honest verdicts; CLAUDE.md collaboration stance",
+      "confidence": 0.96,
+      "scope_risk": "low"
+    },
+    {
+      "property": "milestone_scope_genesis_plus_evolution",
+      "value": "GENESIS (Phases 1-4 + build setup) is shipped. EVOLUTION (graph-maintaining change via /haytham:evolve) is shipped as v1 and refining. SENTIENCE (autonomous improvement from telemetry) is future scope; nothing in the current MVP serves it.",
+      "source": "VISION.md milestones table; commands/evolve.md exists; no telemetry-loop commands exist",
+      "confidence": 0.95,
+      "scope_risk": "high"
+    },
+    {
+      "property": "agent_communication_via_files",
+      "value": "Agents communicate by writing files into .haytham/session/ (or openspec/ for evolve). No in-memory state passes between agents.",
+      "source": "All agent prompts write to file paths; commands orchestrate by reading upstream files; hook scripts enforce phase prereqs by checking files exist",
+      "confidence": 0.97,
+      "scope_risk": "medium"
+    }
+  ],
+  "identity": {
+    "features": [
+      "Zero-setup Claude Code plugin (no infra, no accounts beyond an existing Claude Code subscription)",
+      "Reasoning graph from concept anchor → capabilities → architecture decisions → specs",
+      "Concept anchor mechanism that prevents idea drift across multi-agent pipeline",
+      "Honest NO-GO capability — the tool can and will recommend against building",
+      "/haytham:evolve maintains the graph alongside code changes, with three parallel variant proposers",
+      "Self-referential credibility: built using the same process it advocates (this very graph is a meta proof)"
+    ],
+    "why_distinctive": "Most AI coding tools optimize for the implementation phase. Haytham operates one layer up: it decides what should be built and why, then keeps that reasoning intact as the system evolves. The reasoning graph and the orchestration discipline (Control Plane, not Data Plane) are structural moats — competitors would have to architect them from scratch, not retrofit. Generic orchestrators solve plumbing; Haytham solves 'what should agents be doing and how do we know they did it right'."
+  },
+  "term_flags": [
+    {
+      "term": "lifecycle control plane",
+      "source_quote": "Lifecycle control plane for AI-built products — from idea to working, evolvable system.",
+      "chosen_interpretation": "An orchestration layer that governs the full product lifecycle (validate, specify, build, evolve, monitor, improve) by maintaining a reasoning graph that links every decision to its origin. Operates on one product at a time.",
+      "alternatives": [
+        "A deployment and monitoring tool focused on post-ship operations",
+        "A project management layer for AI coding teams",
+        "A generic agent orchestration framework"
+      ],
+      "impact": "Wrong interpretation would change the archetype (developer_tool to devops_tool or pm_tool) and shift the target segment from pre-build founders to post-ship engineering teams.",
+      "invariant_refs": ["reasoning_graph_is_core_asset", "milestone_scope_genesis_plus_evolution", "control_plane_not_data_plane"]
+    }
+  ],
+  "founder_intent": {
+    "motivation": "credibility",
+    "success_criteria": "4-week kill-or-keep window ending 2026-05-16. Inward-only litmus: (1) GiftKaro ships via /haytham:evolve; (2) GiftKaro publicly live; (3) TinyTales cross-project test of evolve. No external validation required.",
+    "expected_impact": "If Haytham succeeds, technical founders default to starting AI-built products with a validated, traceable foundation rather than jumping straight to code. The reasoning graph becomes the new norm for serious products.",
+    "constraints": {
+      "time_horizon": "quarters",
+      "team": "solo"
+    }
+  },
+  "founder_profile": {
+    "technical_level": "expert",
+    "domain_expertise": "high",
+    "inference_basis": "Repo author Arslan Mehboob. Codebase reflects multi-agent pipeline design with explicit pitfall documentation, deterministic-vs-qualitative boundary, and a constitution. Indicates deep familiarity with AI agent system design and product methodology."
+  },
+  "strategic_signals": {
+    "business_model": "open-source",
+    "success_metric": "community_adoption",
+    "distribution": "marketplace_listing",
+    "growth_model": "ecosystem",
+    "inference_notes": "MIT licensed, distributed via Claude Code plugin marketplace, GitHub-hosted. Growth coupled to Claude Code ecosystem adoption. Community adoption (plugin installs, GiftKaro/TinyTales as reference cases) is the implied success metric."
+  }
+}

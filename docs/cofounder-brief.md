@@ -16,7 +16,7 @@ The architectural bet: as coding agents commoditize execution, the durable value
 
 ## Where We Are: GENESIS
 
-The first milestone is working. Four phases, eight specialist agents, human approval gates between phases.
+The first milestone is working. Four phases, ten specialist agents, human approval gates between phases.
 
 ```
 Phase 1 (WHY)   Idea analysis → market research → competitor research → GO/PIVOT/NO-GO

@@ -1,0 +1,268 @@
+{
+  "summary": {
+    "system_name": "Haytham",
+    "system_purpose": "A lifecycle control plane for AI-built products, delivered as a Claude Code plugin. Orchestrates specialist agents across validate, specify, design, plan, build, and evolve phases while maintaining a reasoning graph that links every decision to its origin.",
+    "primary_user_segment": "Solo technical founders or two-person teams building AI-built products inside Claude Code, willing to spend 20 minutes on structured validation before days on implementation.",
+    "input_method": "Slash command in a Claude Code CLI session, taking free text or a URL.",
+    "mvp_scope_respected": true,
+    "launch_posture_note": "Genesis (Phases 1-4 + build setup) shipped. Evolution v1 shipped this sprint. Sentience explicitly out of MVP."
+  },
+  "capabilities": {
+    "functional": [
+      {
+        "id": "CAP-F-001",
+        "name": "Validate (Phase 1 - WHY)",
+        "description": "Take a startup idea (free text or URL) and produce a GO/PIVOT/NO-GO recommendation backed by evidence. Runs idea analysis, parallel market and competitor research, neutral research brief for founder review, and single-agent synthesis. Extracts the concept anchor (invariants, identity, term flags, intent) that every downstream phase reads unchanged.",
+        "serves_scope_item": "/haytham:validate Phase 1 (WHY)",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Accepts either free-text idea or a URL (Reddit post, GitHub repo) as input; --batch flag skips interactive review gates.",
+          "Produces .haytham/session/phase-1-why/concept-anchor.json containing invariants, identity, intent, term flags, founder profile, strategic signals.",
+          "Runs market-researcher and competitor-researcher in parallel after idea analysis completes.",
+          "Synthesis is performed by a single agent (report-synthesizer) reading the full upstream context, not by deterministic glue between multiple synthesizers.",
+          "Produces a validation report with an explicit GO, PIVOT, or NO-GO recommendation.",
+          "On NO-GO, the orchestrator surfaces the verdict and stops the pipeline unless the founder explicitly overrides."
+        ],
+        "rationale": "Validation is the entry point to Genesis. The concept anchor is the durable contract that prevents downstream drift, so its quality determines every later phase. Splitting synthesis across agents was tested and shown to degrade quality from 8 PASS / 4 PARTIAL to 1 PASS / 3 PARTIAL / 8 FAIL, so the single-agent constraint is load-bearing."
+      },
+      {
+        "id": "CAP-F-002",
+        "name": "Specify (Phase 2 - WHAT)",
+        "description": "Define MVP scope (core identity, primary segment, input method, appetite, boundaries, success criteria, user flows) and produce a capability model with functional and non-functional capabilities, each traceable to a scope item. Classifies the system's traits (interface, auth, deployment, data layer, etc.).",
+        "serves_scope_item": "/haytham:specify Phase 2 (WHAT)",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Reads .haytham/session/phase-1-why/concept-anchor.json and validation-report.md without re-extracting their values.",
+          "Produces mvp-scope.md with a concept-anchor compliance table covering every invariant.",
+          "Produces capabilities.json where every CAP-F-* references the scope item it serves and every scope item is either covered or explicitly marked uncovered with reason.",
+          "Produces system-traits.json classifying interface, auth, deployment, data_layer, realtime, communication, payments, scheduling with explanations grounded in the concept anchor.",
+          "Capability count and granularity respect the appetite stated in the MVP scope; the agent does not invent capabilities the scope does not require."
+        ],
+        "rationale": "Specification converts an approved idea into a structured target. Capability granularity drives downstream architecture decisions and spec files, so the agent has to model the right number of capabilities at the right scope, not a templated count."
+      },
+      {
+        "id": "CAP-F-003",
+        "name": "Design (Phase 3 - HOW)",
+        "description": "Produce a build-vs-buy analysis and a set of architecture decisions. Each decision cites the capabilities it serves and the alternatives that were considered. Build-buy entries categorize infrastructure needs and recommend BUY, BUILD, or PLATFORM with rationale and free-tier or cost notes.",
+        "serves_scope_item": "/haytham:design Phase 3 (HOW)",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Reads upstream capabilities.json and system-traits.json without re-deriving their values.",
+          "Produces build-buy.json with a recommendation per infrastructure category and a stack rationale paragraph.",
+          "Produces architecture-decisions.json where every decision has a serves_capabilities array referencing valid CAP-* IDs.",
+          "Every functional and non-functional capability is covered by at least one architecture decision; uncovered capabilities are listed explicitly with reason.",
+          "Alternatives considered are recorded with concrete pros and cons, not hand-waving."
+        ],
+        "rationale": "Architecture decisions are the bridge from capability to implementation. Without explicit traceability to capabilities, decisions accumulate without a clear motivation and accumulate drift. Web search is allowed during this phase so the agent can ground choices in current product realities."
+      },
+      {
+        "id": "CAP-F-004",
+        "name": "Plan (Phase 4 - SPECS)",
+        "description": "Generate an OpenSpec directory tree that a coding agent can use to build the system from zero. Output includes project.md (flattened summary), capabilities.json, architecture-decisions.json, system-traits.json, build-buy.json, mvp-scope.md, concept-anchor.json under context/, and per-domain spec.md files under specs/ using SHALL grammar and Gherkin scenarios.",
+        "serves_scope_item": "/haytham:plan Phase 4 (SPECS)",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Output directory matches the structure validated by scripts/validate_openspec.py.",
+          "config.yaml includes name, description, appetite, traits, generated_at.",
+          "project.md includes Tech Stack, Architecture Decisions, Project Structure, Data Schemas, Component Map sections.",
+          "Every CAP-F-* and CAP-NF-* from capabilities.json appears in at least one spec.md.",
+          "No CAP-F-* appears in more than one domain spec.",
+          "SHALL statements use bare infinitive verbs (e.g., 'provide', not 'provides').",
+          "Every Scenario block contains Given, When, and Then steps."
+        ],
+        "rationale": "The OpenSpec is the artifact handed to coding agents. Its validity is enforced by a deterministic validator script, not LLM judgement, because the cost of a malformed spec downstream is high. SHALL grammar and Gherkin completeness are checked by the validator and cannot be skipped."
+      },
+      {
+        "id": "CAP-F-005",
+        "name": "Build Setup (Phase 5)",
+        "description": "Scaffold a fresh project directory from Phase 4 output so a separate Claude Code session can implement against pure specs without the plugin context bleeding into the implementation. Copies the OpenSpec, initializes git, and produces a handoff message instructing the founder to open the new directory in a clean session.",
+        "serves_scope_item": "/haytham:build Phase 5 setup",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Accepts a target project directory argument.",
+          "Refuses to overwrite an existing non-empty directory without explicit confirmation.",
+          "Copies the OpenSpec tree from .haytham/session/phase-4-specs/openspec/ into the target.",
+          "Does not generate implementation code from inside the plugin session; implementation is delegated to a separate Claude Code session.",
+          "Produces clear instructions to the founder for opening the new project and starting implementation."
+        ],
+        "rationale": "Implementation is deliberately separated from the plugin session to keep the spec as the only context the implementer sees. This is the Control-Plane-not-Data-Plane invariant in action: Haytham scaffolds and delegates; it does not implement."
+      },
+      {
+        "id": "CAP-F-006",
+        "name": "Full Pipeline Orchestration",
+        "description": "Run Phases 1-4 (and optionally build setup) in sequence with human approval gates at every phase boundary. BATCH_MODE skips all gates for demo or CI use. Resume support via --from N for restarting at a specific phase after correction.",
+        "serves_scope_item": "/haytham full-pipeline orchestrator",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Runs validate, specify, design, plan in order without skipping phases.",
+          "Pauses at every phase boundary for human approval in normal mode.",
+          "BATCH_MODE auto-approves all gates and skips interactive review steps.",
+          "Each phase reads its upstream artifacts as files; no in-memory state passes between phases.",
+          "On phase failure, surfaces the error and offers a resume option from the failed phase rather than restarting from the beginning."
+        ],
+        "rationale": "The orchestrator is the headline command. Approval gates are mandatory in normal mode because each phase output shapes the next; a wrong validation report compounds into a wrong specification. BATCH_MODE exists for demo and CI use where the trade-off is understood."
+      },
+      {
+        "id": "CAP-F-007",
+        "name": "Evolve (Graph-Maintaining Change)",
+        "description": "Apply a change to a project that has an openspec/ graph. Runs three parallel variant proposers (minimal graph touch, clean refactor, pragmatic middle) that read the graph and produce file-touch proposals with a graph delta, tradeoff, and confidence score. The orchestrator detects invariant or scope conflicts, synthesizes a recommendation with a single specific reason and a cited file, and requests user confirmation. The chosen variant then executes both code and graph changes, committed together.",
+        "serves_scope_item": "/haytham:evolve",
+        "user_flow": "Flow 2",
+        "acceptance_criteria": [
+          "Refuses to run if ./openspec/ does not exist in the current directory.",
+          "Refuses to run if $ARGUMENTS is empty.",
+          "Three variant proposers run in a single parallel Agent call, all with the same file list and change description but different framings.",
+          "Variants are read-only proposers; they must not write code or graph files.",
+          "If any variant returns INVARIANT_CONFLICT: or SCOPE_CONFLICT:, the orchestrator surfaces the conflict verbatim and stops without synthesizing a recommendation.",
+          "The orchestrator commits to a recommendation, names the chosen variant, cites a specific file as the reason, and explains what the rejected variants gave up.",
+          "The chosen variant executes code changes and graph updates in a single commit whose message names the variant (e.g., 'evolve: <change> [variant B]').",
+          "If during execution a proposal step proves wrong, the executor stops and surfaces the discrepancy rather than silently deviating.",
+          "Self-check surfaces only concerns with confidence >= 80; lower-confidence concerns are collapsed into one trailing line."
+        ],
+        "rationale": "Evolution makes Genesis output durable. The three-variant parallel proposer pattern was adopted this sprint to force the orchestrator to choose with explicit tradeoffs rather than producing a single underjustified proposal. Invariant conflict detection at proposal time prevents a variant from sneaking past the concept anchor."
+      },
+      {
+        "id": "CAP-F-008",
+        "name": "Export Validation Report",
+        "description": "Take Phase 1 output and copy it to a separate demos repository for sharing, with optional --commit and --pdf flags. Generates a README, source.yaml, and a short summary alongside the validation report so the artifact is self-contained.",
+        "serves_scope_item": "/haytham:export",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Accepts --target <path>, --slug <name>, --commit, --pdf flags.",
+          "Refuses to run if Phase 1 output is missing.",
+          "Produces a target directory containing concept-anchor.json, idea-analysis.md, validation-report.md, summary.md, source.yaml, README.md.",
+          "Summary is generated by the outreach-summarizer agent and is suitable for cold outreach to a founder who did not request it.",
+          "--commit creates a git commit in the demos repository; --pdf generates a PDF rendering of the report."
+        ],
+        "rationale": "Export converts a private session artifact into a shareable report. The outreach summary exists because the validation report is too long to send cold; the summary respects that the founder did not ask for the analysis."
+      },
+      {
+        "id": "CAP-F-009",
+        "name": "Demo (Batch Validate + Export)",
+        "description": "Combine /haytham:validate --batch and /haytham:export --commit into a single unattended run for a URL. Used to generate reference cases without human supervision.",
+        "serves_scope_item": "/haytham:demo",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Accepts a URL (Reddit post or GitHub repo) as input.",
+          "Runs validation in batch mode with no interactive gates.",
+          "Exports the report to the demos repository with --commit.",
+          "Produces a single end-to-end log that surfaces the verdict and the export path."
+        ],
+        "rationale": "Demo is the credibility-building loop: every public reference case (GiftKaro, TinyTales, haytham itself) was produced by this command. It is the validation pipeline applied to publicly visible inputs."
+      },
+      {
+        "id": "CAP-F-010",
+        "name": "Pipeline Output Reviews",
+        "description": "Four review commands that read pipeline outputs and report on quality dimensions: review-depth (analysis depth and evidence quality in Phase 1), review-fidelity (idea drift across phases), review-consistency (cross-stage agreement), review-actionability (specification implementability). Reviews are read-only and do not gate progression.",
+        "serves_scope_item": "Four review commands",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Each review command runs in isolation and reads only the artifacts it needs from .haytham/session/.",
+          "Reviews produce a markdown report with PASS/PARTIAL/FAIL per dimension and specific evidence citations.",
+          "No review command can modify pipeline output or block the next phase.",
+          "Reviews can be re-run without re-executing the underlying pipeline phase."
+        ],
+        "rationale": "Reviews are quality-of-output tooling, distinct from the hook-based deterministic validators. Hook scripts enforce non-negotiable rules; reviews surface qualitative concerns the founder can choose to act on. Keeping reviews non-blocking preserves founder velocity."
+      },
+      {
+        "id": "CAP-F-011",
+        "name": "UX Review of Pipeline Run",
+        "description": "Analyze a transcript of a Haytham run against the Agent UX Standards in CLAUDE.md (roadmap-first, frame every agent call, purpose over procedure, guided questions, soft checkpoints, no blocking without reason). Produces a report of compliance and improvement suggestions.",
+        "serves_scope_item": "/haytham:ux-review",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          "Accepts a path to a transcript file.",
+          "Reads CLAUDE.md to get the current UX standards rather than embedding them in the prompt.",
+          "Produces a report with a row per standard and PASS/PARTIAL/FAIL plus a specific quote or line reference from the transcript.",
+          "Suggestions are concrete enough to be actionable as a prompt change."
+        ],
+        "rationale": "Pipeline UX is the founder's first impression. The standards are written in CLAUDE.md so they evolve with the project; the review reads them at runtime rather than hardcoding them, which is the meta-system genericity invariant applied to UX."
+      },
+      {
+        "id": "CAP-F-012",
+        "name": "Plugin Distribution",
+        "description": "Publish to the Claude Code plugin marketplace via .claude-plugin/marketplace.json with version field. Plugin manifest (.claude-plugin/plugin.json) provides metadata for Claude Code's plugin loader. MIT licensed, GitHub-hosted source.",
+        "serves_scope_item": "Plugin distribution via marketplace.json",
+        "user_flow": "Flow 1",
+        "acceptance_criteria": [
+          ".claude-plugin/marketplace.json validates against the marketplace schema and includes a version field inside plugins[0].",
+          ".claude-plugin/plugin.json exists with name, description, author, repository, license.",
+          "Version is bumped only in marketplace.json (not plugin.json) per Claude Code plugin reference.",
+          "Repository is publicly accessible at the URL declared in plugin.json.",
+          "Plugin installs cleanly via /plugin marketplace add followed by /plugin install."
+        ],
+        "rationale": "Distribution is the access surface. The version-in-marketplace-only constraint comes from Claude Code's plugin loader behaviour, and getting it wrong silently breaks update flow. Plugin manifest fields are enforced by the marketplace schema."
+      }
+    ],
+    "non_functional": [
+      {
+        "id": "CAP-NF-001",
+        "name": "Concept Anchor Drift Prevention",
+        "description": "Every downstream agent reads the concept anchor extracted in Phase 1 as a file, not a re-extraction from prose. Known values (GO/NO-GO verdict, invariants, identity) are passed by file path, not embedded in long prompts.",
+        "category": "correctness",
+        "requirement": "Phase 2, 3, and 4 agent prompts must reference concept-anchor.json by path and treat its contents as authoritative. No agent may re-derive values that already exist in upstream artifacts.",
+        "measurement": "Inspection of agent prompts in agents/*.md. Negative test: run review-fidelity on a real pipeline run and confirm invariants from Phase 1 anchor are still present unchanged in Phase 4 OpenSpec.",
+        "rationale": "The concept anchor is the system's defence against the multi-agent 'telephone game'. A pitfall documented in CLAUDE.md (PITFALL: Agents Re-deriving Known Values) requires passing values explicitly; this NF makes that requirement first-class."
+      },
+      {
+        "id": "CAP-NF-002",
+        "name": "Deterministic Rules in Hooks; Qualitative Judgement in LLM",
+        "description": "Hook scripts (check_phase_prereqs.sh, validate_schema.py, validate_openspec.py, post_bash_seed.sh) enforce deterministic rules: phase prerequisites, output schemas, SHALL grammar, Gherkin completeness, capability coverage. LLM-generated text does not override hook decisions.",
+        "category": "correctness",
+        "requirement": "Every rule whose violation would silently produce malformed downstream artifacts must be enforced by a hook script, not by a prompt instruction. Prompt instructions handle qualitative judgement (scoring evidence, evaluating depth).",
+        "measurement": "Code review of hooks/hooks.json and scripts/. Any new rule added to a prompt that could be checked deterministically is treated as a refactor opportunity.",
+        "rationale": "CLAUDE.md PITFALL: LLM Text Overriding Deterministic Rules. The boundary is sharp: hooks enforce; LLM judges. Mixing them produces unenforceable rules and false confidence in pipeline output."
+      },
+      {
+        "id": "CAP-NF-003",
+        "name": "Zero-Setup Distribution",
+        "description": "The plugin requires no API keys, no environment variables, no Python install steps from the user beyond what Claude Code already provides, and no separate account creation. Installation is two commands.",
+        "category": "usability",
+        "requirement": "Fresh install on a clean Claude Code environment must run /haytham 'an idea' to completion without prompting the user for any secret or environment variable.",
+        "measurement": "Manual test: install the plugin on a clean Claude Code session and run a full validation. Any prompt for an API key, env var, or external setup is a regression.",
+        "rationale": "Setup friction kills adoption. The plugin format and Claude Code's built-in capabilities (WebSearch, WebFetch, Read, Write, Bash) cover everything Haytham needs, so any added dependency is unnecessary."
+      },
+      {
+        "id": "CAP-NF-004",
+        "name": "Generic Across Input Archetypes",
+        "description": "The pipeline produces useful output for any valid startup idea regardless of archetype: web app, CLI tool, API service, marketplace, embedded system. Prompts enforce principles (traceability, consistency, anchor preservation) not prescriptions (use Supabase, limit to five items, must be a web app).",
+        "category": "correctness",
+        "requirement": "Every prompt and every hook rule must work equally for a CLI tool, a web app, an API service, and a marketplace. A prompt that names a specific technology, segment, or count is rejected during review.",
+        "measurement": "Cross-archetype test: run /haytham on at least one of each archetype (GiftKaro is marketplace, TinyTales is web app, haytham itself is CLI/developer tool). Outputs must be coherent and useful for each.",
+        "rationale": "CLAUDE.md Meta-System Design: 'Would this work for a CLI tool? An IoT system? A marketplace?' If no, the generalization is missing. This is the single most important invariant for the plugin's value."
+      },
+      {
+        "id": "CAP-NF-005",
+        "name": "Phase Prerequisite Gating",
+        "description": "Each phase command refuses to run if its upstream phase output is missing. Enforcement is via the check_phase_prereqs.sh hook on the Agent tool, not via LLM judgement.",
+        "category": "correctness",
+        "requirement": "Running /haytham:specify without Phase 1 output, /haytham:design without Phase 2, /haytham:plan without Phase 3, or /haytham:evolve without openspec/, must produce a clear error and not invoke any agent.",
+        "measurement": "Manual test: invoke each phase command in an empty .haytham/session/ and confirm the hook blocks execution with a useful message.",
+        "rationale": "Without prereq gating, a downstream phase silently hallucinates upstream context, producing plausible but ungrounded output. The hook script is the right place because the check is deterministic (file exists or it does not)."
+      }
+    ]
+  },
+  "traceability": {
+    "scope_items_covered": [
+      "/haytham:validate Phase 1 (WHY)",
+      "/haytham:specify Phase 2 (WHAT)",
+      "/haytham:design Phase 3 (HOW)",
+      "/haytham:plan Phase 4 (SPECS)",
+      "/haytham:build Phase 5 setup",
+      "/haytham full-pipeline orchestrator",
+      "/haytham:evolve",
+      "/haytham:export",
+      "/haytham:demo",
+      "Four review commands",
+      "/haytham:ux-review",
+      "Plugin distribution via marketplace.json",
+      "Hook-based deterministic validation"
+    ],
+    "scope_items_not_covered": [],
+    "flows_covered": ["Flow 1", "Flow 2"]
+  },
+  "metadata": {
+    "functional_count": 12,
+    "non_functional_count": 5
+  }
+}

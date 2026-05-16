@@ -99,7 +99,7 @@ All output lives in `.haytham/session/`:
 
 ## How it works
 
-Eight specialist agents across four phases. Market research agents run web searches. The report synthesizer weighs evidence and produces an honest verdict. If risks are high, it says so. If the idea doesn't hold up, it recommends NO-GO.
+Ten specialist agents across four phases. Market research agents run web searches. The report synthesizer weighs evidence and produces an honest verdict. If risks are high, it says so. If the idea doesn't hold up, it recommends NO-GO.
 
 Concept anchors (extracted in Phase 1) are passed unchanged to every downstream agent, preventing the "telephone game" where your specific idea gets genericized into something bland.
 

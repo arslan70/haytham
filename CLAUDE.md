@@ -69,7 +69,7 @@ When evaluating or making changes, consider these traits critical to the system'
 
 Haytham is a lifecycle control plane for AI-built products, delivered as a Claude Code plugin. It orchestrates specialist agents across the full product lifecycle: validate the idea, specify the MVP, design the architecture, generate implementation specs, and build the system. The current implementation covers validate → specify → build. The roadmap extends to deploy → monitor → improve.
 
-Eight specialist agents across four phases, orchestrated via command and agent markdown files.
+Ten specialist agents across four phases, orchestrated via command and agent markdown files.
 
 ## Plugin Structure
 
@@ -77,11 +77,13 @@ Eight specialist agents across four phases, orchestrated via command and agent m
 .claude-plugin/
   plugin.json                    # Manifest (name, version, description)
 
-agents/                          # 8 specialist agents (markdown with frontmatter)
+agents/                          # 10 specialist agents (markdown with frontmatter)
   idea-analyst.md                # Concept expansion, gating, anchor extraction
-  market-researcher.md           # Market intelligence + competitor analysis
+  market-researcher.md           # Market intelligence
+  competitor-researcher.md       # Competitor profiles and positioning
   research-briefer.md            # Neutral formatting of research findings
   report-synthesizer.md          # GO/NO-GO/PIVOT verdict (single-agent synthesis)
+  outreach-summarizer.md         # Founder-facing one-page summary for export
   mvp-scoper.md                  # Scope definition, boundaries, core flows
   capability-modeler.md          # Capability extraction + system trait classification
   architect.md                   # Build/buy analysis + architecture decisions
