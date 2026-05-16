@@ -1,0 +1,143 @@
+{
+  "system_summary": "Claude Code plugin that orchestrates specialist agents to maintain a reasoning graph for AI-built products. No backend service, no database, no managed cloud services. All execution runs inside Claude Code; all state lives on the filesystem.",
+  "infrastructure_requirements": [
+    {
+      "category": "agent_runtime",
+      "need": "Execute specialist agents in parallel or sequence with tool access (Read, Write, Bash, WebSearch, WebFetch, Agent). Each agent is described by a markdown file with YAML frontmatter (name, description, tools, model).",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-005", "CAP-F-006", "CAP-F-007", "CAP-F-008", "CAP-F-009", "CAP-F-010", "CAP-F-011"]
+    },
+    {
+      "category": "command_dispatch",
+      "need": "Surface user-facing commands as slash commands (/haytham, /haytham:validate, /haytham:specify, /haytham:design, /haytham:plan, /haytham:build, /haytham:evolve, /haytham:export, /haytham:demo, /haytham:review-*, /haytham:ux-review). Each command is a markdown file with YAML frontmatter (description, argument-hint, allowed-tools) and an instruction body.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-005", "CAP-F-006", "CAP-F-007", "CAP-F-008", "CAP-F-009", "CAP-F-010", "CAP-F-011"]
+    },
+    {
+      "category": "tool_surface",
+      "need": "Read and Write for file I/O; Bash for hook scripts and shell ops; WebSearch and WebFetch for market and competitor research; Agent for spawning specialist agents; Glob for file enumeration; Grep for code search.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-007", "CAP-F-012"]
+    },
+    {
+      "category": "hook_execution",
+      "need": "Run validator scripts at well-known lifecycle points (before Agent calls, after Write calls, after Bash calls). Hook scripts produce non-zero exit codes to block invalid operations.",
+      "capabilities_served": ["CAP-NF-002", "CAP-NF-005", "CAP-F-004"]
+    },
+    {
+      "category": "state_persistence",
+      "need": "Persist pipeline artifacts (concept-anchor.json, validation-report.md, capabilities.json, etc.) under .haytham/session/phase-N/ and the maintained reasoning graph under openspec/. Read access required across agents within a session and across sessions for /haytham:evolve.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-007", "CAP-NF-001"]
+    },
+    {
+      "category": "distribution",
+      "need": "Publish the plugin to the Claude Code marketplace and propagate version updates to installed instances. Source-of-truth metadata in .claude-plugin/marketplace.json (with version field inside plugins[0]) and .claude-plugin/plugin.json.",
+      "capabilities_served": ["CAP-F-012", "CAP-NF-003"]
+    },
+    {
+      "category": "language_runtime",
+      "need": "Run hook scripts. Python 3 for validate_schema.py, validate_openspec.py, validate_som.py. Bash for check_phase_prereqs.sh, post_bash_seed.sh. Both are present by default on macOS, Linux, and WSL.",
+      "capabilities_served": ["CAP-NF-002", "CAP-NF-005"]
+    },
+    {
+      "category": "version_control",
+      "need": "Commit code and graph changes together in /haytham:evolve. Used by /haytham:demo for the demos repository commits and by /haytham:export with --commit.",
+      "capabilities_served": ["CAP-F-007", "CAP-F-008", "CAP-F-009"]
+    }
+  ],
+  "recommended_stack": [
+    {
+      "name": "Claude Code",
+      "category": "agent_runtime + command_dispatch + tool_surface + hook_execution",
+      "recommendation": "PLATFORM",
+      "rationale": "Claude Code is the runtime for Haytham. It provides the LLM (Anthropic Claude models), the tool surface (Read, Write, Bash, WebSearch, WebFetch, Agent, Glob, Grep), the slash command dispatch, the hook execution lifecycle (PreToolUse, PostToolUse matchers), and the plugin marketplace. There is no buy decision here because there is no alternative that fits the design: a standalone implementation would replicate all of this for no benefit. The plugin form means Claude Code is consumed as a platform, not bought as a SaaS.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-005", "CAP-F-006", "CAP-F-007", "CAP-F-008", "CAP-F-009", "CAP-F-010", "CAP-F-011", "CAP-F-012", "CAP-NF-002", "CAP-NF-003", "CAP-NF-005"],
+      "free_tier": "Plugin is free; Claude Code subscription is the user's existing relationship with Anthropic",
+      "estimated_monthly_cost": "$0 (incremental to existing Claude Code subscription)"
+    },
+    {
+      "name": "Filesystem (built-in)",
+      "category": "state_persistence",
+      "recommendation": "PLATFORM",
+      "rationale": "All pipeline state and the reasoning graph live as files. No database is required at the scale of one product per directory. The filesystem provides inspectability (founders can read .haytham/session/ output directly), resumability (failed phases re-run by reading the same files), and version control compatibility (openspec/ commits cleanly to git). A database would add an operational dependency for no functional benefit.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-007", "CAP-NF-001"],
+      "free_tier": "N/A (OS-provided)",
+      "estimated_monthly_cost": "$0"
+    },
+    {
+      "name": "Agent markdown files (built)",
+      "category": "agent_runtime",
+      "recommendation": "BUILD",
+      "rationale": "Each specialist agent is a markdown file under agents/ with YAML frontmatter (name, description, tools, model) and a system prompt body. Claude Code's Agent tool loads these by name. Authoring agents as plain markdown means changes are diffable, reviewable, and version-controlled like any code change. There is no agent framework to install and no runtime to operate.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-006", "CAP-F-007", "CAP-F-008", "CAP-F-011"],
+      "free_tier": "N/A (built)",
+      "estimated_monthly_cost": "$0"
+    },
+    {
+      "name": "Command markdown files (built)",
+      "category": "command_dispatch",
+      "recommendation": "BUILD",
+      "rationale": "User-facing commands are markdown files under commands/ with frontmatter (description, argument-hint, allowed-tools). Claude Code registers them as slash commands automatically. Allowed-tools pre-approves the union of tools the command and its subagents need so the user does not face a permission prompt per file read.",
+      "capabilities_served": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-005", "CAP-F-006", "CAP-F-007", "CAP-F-008", "CAP-F-009", "CAP-F-010", "CAP-F-011"],
+      "free_tier": "N/A (built)",
+      "estimated_monthly_cost": "$0"
+    },
+    {
+      "name": "Hook scripts (Bash + Python)",
+      "category": "hook_execution",
+      "recommendation": "BUILD",
+      "rationale": "Hook scripts under scripts/ enforce deterministic rules at lifecycle points wired in hooks/hooks.json. check_phase_prereqs.sh blocks Agent calls when upstream artifacts are missing. validate_schema.py validates JSON outputs against expected shapes. validate_openspec.py validates Phase 4 spec trees (config keys, project sections, SHALL grammar, Gherkin completeness, capability coverage, no duplicate caps). Python and Bash are the right choices because they are present by default on macOS and Linux; introducing a Node or Ruby dependency would add install steps a user does not currently need.",
+      "capabilities_served": ["CAP-F-004", "CAP-NF-002", "CAP-NF-005"],
+      "free_tier": "N/A (built)",
+      "estimated_monthly_cost": "$0"
+    },
+    {
+      "name": "Claude Code Plugin Marketplace",
+      "category": "distribution",
+      "recommendation": "PLATFORM",
+      "rationale": "Publishing via .claude-plugin/marketplace.json registers the plugin with Anthropic's marketplace. Version field inside plugins[0] is the source of truth for update detection. The plugin source-of-truth is a public GitHub repo (license: MIT) so users can install from the marketplace and read or fork the code on demand. No separate distribution channel is needed.",
+      "capabilities_served": ["CAP-F-012", "CAP-NF-003"],
+      "free_tier": "Free for open-source plugins",
+      "estimated_monthly_cost": "$0"
+    },
+    {
+      "name": "Git + GitHub",
+      "category": "version_control",
+      "recommendation": "PLATFORM",
+      "rationale": "Git is the plumbing for /haytham:evolve commits, /haytham:export --commit, and /haytham:demo. GitHub is the source-of-truth repo at https://github.com/arslan70/haytham. Both are standard developer tools the target user already has; treating them as a platform is correct.",
+      "capabilities_served": ["CAP-F-007", "CAP-F-008", "CAP-F-009", "CAP-F-012"],
+      "free_tier": "Free for public repositories",
+      "estimated_monthly_cost": "$0"
+    }
+  ],
+  "stack_rationale": "Haytham is unusual among products in that almost every infrastructure category resolves to PLATFORM (Claude Code, filesystem, marketplace, git) or BUILD (agents, commands, hooks). There is no BUY decision because there is no managed service that fits a control plane delivered as a plugin: an agent runtime, slash command surface, tool dispatch, and hook lifecycle all already exist inside Claude Code, and using them is consumption of a platform rather than a procurement decision. The state layer is filesystem because the scale is one product per directory and inspectability beats schema enforcement at this size. Distribution piggybacks the Claude Code marketplace. The only built components are the markdown files (agents and commands) that describe the pipeline and the Python and Bash scripts that enforce its non-negotiable rules. Total managed services: zero. Total operational footprint: zero beyond the user's existing Claude Code subscription.",
+  "alternatives": [
+    {
+      "category": "agent_runtime (Alternative to: Claude Code)",
+      "options": [
+        {
+          "name": "OpenAI Assistants API + custom dispatch",
+          "pros": ["Model choice independent of Claude", "Established function-calling and threads model"],
+          "cons": ["Requires building slash command surface, hook lifecycle, marketplace, and tool dispatch from scratch", "Adds API key, billing, and operator surface the plugin form does not need", "Locks the product into being a standalone app, contradicting DEC-DELIVERY-001"],
+          "best_for": "Teams building a hosted SaaS where they own the runtime and the user does not already have an LLM CLI subscription."
+        },
+        {
+          "name": "LangGraph or CrewAI",
+          "pros": ["Established multi-agent orchestration frameworks", "Active community"],
+          "cons": ["Solves the plumbing problem; Haytham's value is the reasoning graph, not the plumbing", "Adds Python framework dependency users would have to install", "Brings opinionated orchestration patterns that conflict with file-based agent communication (DEC-COMM-001)"],
+          "best_for": "Teams whose value proposition is the orchestration topology itself."
+        }
+      ]
+    },
+    {
+      "category": "state_persistence (Alternative to: Filesystem)",
+      "options": [
+        {
+          "name": "SQLite",
+          "pros": ["Zero-config embedded database", "Single-file storage"],
+          "cons": ["Loses inspectability (founder cannot just open a folder)", "Adds a schema migration concern as agent outputs evolve", "No benefit at one-product-per-directory scale"],
+          "best_for": "Multi-product portfolio tools where queries across products matter."
+        }
+      ]
+    }
+  ],
+  "total_integration_effort": "N/A (built incrementally; no integration phase)",
+  "estimated_monthly_cost": "$0"
+}

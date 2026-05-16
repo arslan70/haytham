@@ -1,0 +1,129 @@
+{
+  "decisions": [
+    {
+      "id": "DEC-DELIVERY-001",
+      "name": "Claude Code Plugin as Sole Delivery Form",
+      "description": "Haytham is distributed exclusively as a Claude Code plugin via .claude-plugin/marketplace.json and .claude-plugin/plugin.json. There is no standalone CLI, no hosted SaaS, and no separate web UI. The earlier standalone implementation (Burr + Strands + Streamlit) was archived in favor of the plugin form. Plugin version is bumped in marketplace.json inside plugins[0] (not in plugin.json) so Claude Code's plugin loader correctly detects updates.",
+      "rationale": "Setup friction is the dominant adoption barrier for developer tools targeting solo founders. A plugin install is two commands; a standalone app requires Python, virtualenvs, API keys, and a separate dashboard. The plugin form also inherits Claude Code's tool surface (Read, Write, Bash, WebSearch, WebFetch, Agent), which covers everything Haytham needs without operator-managed infrastructure. The version-in-marketplace-only rule comes from observed Claude Code loader behavior; getting it wrong silently breaks update propagation.",
+      "serves_capabilities": ["CAP-F-012", "CAP-NF-003"],
+      "implements_recommendation": "Claude Code (platform)",
+      "alternatives_considered": [
+        "Standalone Burr + Strands + Streamlit app: requires user to install Python, configure virtualenvs, and run a separate dashboard. Adoption tested at zero. Archived.",
+        "Hosted SaaS with login: violates the no-account constraint, requires building auth, billing, and an infra footprint disproportionate to the value at this stage.",
+        "VS Code extension: ties the product to a single editor and reproduces effort already done by Claude Code's plugin model."
+      ]
+    },
+    {
+      "id": "DEC-ORCH-001",
+      "name": "Eight Specialist Agents Across Four Phases, Split by Tool or Model Need",
+      "description": "Pipeline work is split into eight specialist agents (idea-analyst, market-researcher, competitor-researcher, research-briefer, report-synthesizer, mvp-scoper, capability-modeler, architect, spec-generator, outreach-summarizer) plus a hierarchy of orchestrator commands. Agents are split only when they need different tools (web search vs analysis-only), different model tiers (haiku for compilation, sonnet for analysis, opus for synthesis), or operate on genuinely independent tasks (market vs competitor research can parallelize).",
+      "rationale": "Multi-agent split is a structural choice with real cost: each split adds a file boundary that loses context. CLAUDE.md documents an experiment where splitting LLM reasoning across multiple agents connected by deterministic glue produced 1 PASS / 3 PARTIAL / 8 FAIL vs 8 PASS / 4 PARTIAL / 0 FAIL for a single agent with full context. The split criteria (tool, model, independence) reflects when splitting is worth the context cost. Without this criterion, agents proliferate and quality degrades.",
+      "serves_capabilities": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-005", "CAP-F-006"],
+      "implements_recommendation": "Claude Code (platform)",
+      "alternatives_considered": [
+        "Single mega-agent handling all phases: would exceed reasonable prompt size and would mix tools (web search needed only for research phases).",
+        "Per-task micro-agents (15-20 agents): tested in an earlier version, produced telephone-game drift and required deterministic glue that re-introduced the problem the split was supposed to solve.",
+        "Phase-level agents only (one per phase): coarser than needed; parallelizing market and competitor research at Phase 1 is a real win and impossible at phase granularity."
+      ]
+    },
+    {
+      "id": "DEC-COMM-001",
+      "name": "File-Based Agent Communication via .haytham/session/",
+      "description": "Agents communicate exclusively by writing files to .haytham/session/phase-N-name/ paths. No in-memory state, no shared context object, no prompt-stuffing of previous outputs. Downstream agents read upstream files by path. Known values (concept anchor invariants, GO/NO-GO verdict) are passed as file context, never re-extracted from prose. /haytham:evolve uses the same pattern but reads from openspec/ instead of .haytham/session/.",
+      "rationale": "Files are inspectable, debuggable, and resumable. A failed pipeline can be restarted from any phase by re-running the relevant agent against the existing files. The pattern enforces the drift-prevention discipline naturally: if a value is in a file, the next agent reads it; if it is not, the next agent must produce it. CLAUDE.md PITFALL: Agents Re-deriving Known Values explicitly identifies in-prose value passing as a failure mode; the file-based pattern is the structural fix.",
+      "serves_capabilities": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-007", "CAP-NF-001"],
+      "implements_recommendation": "Filesystem (built-in)",
+      "alternatives_considered": [
+        "Shared in-memory context object: prompt-stuffs the entire pipeline state into every agent, degrading latency and confusing the agent about what is its job.",
+        "Embedding upstream values in long preamble prose: leads to re-extraction errors. Tested and shown to fail.",
+        "Structured message passing via stdin/stdout: requires every agent to parse a protocol; files are simpler and already the agent's native output format."
+      ]
+    },
+    {
+      "id": "DEC-VALIDATION-001",
+      "name": "Hook Scripts Enforce Deterministic Rules; LLM Performs Qualitative Judgement",
+      "description": "Hook scripts wired in hooks/hooks.json enforce non-negotiable rules: check_phase_prereqs.sh runs before every Agent tool call to verify upstream artifacts exist; validate_schema.py runs after every Write to verify output schemas; validate_openspec.py validates the Phase 4 spec tree (config keys, project sections, SHALL grammar, Gherkin completeness, capability coverage, no duplicate capabilities); post_bash_seed.sh seeds session state after Bash calls. LLM prompts handle qualitative work (scoring evidence quality, evaluating depth, synthesizing tradeoffs).",
+      "rationale": "Some rules must be unconditional: SHALL statements must use bare infinitives, every CAP-F-* must appear in a spec, phase prerequisites must exist. Encoding these as prompt instructions makes them advisory; encoding them as hook scripts makes them structural. CLAUDE.md PITFALL: LLM Text Overriding Deterministic Rules names this boundary explicitly. The cost is maintaining hook scripts in Python and Bash, which is small and stable.",
+      "serves_capabilities": ["CAP-F-004", "CAP-NF-002", "CAP-NF-005"],
+      "implements_recommendation": "Bash + Python (built)",
+      "alternatives_considered": [
+        "Prompt-only enforcement: rules degrade as prompts grow; LLM compliance varies run to run.",
+        "Post-hoc human review only: misses violations that compound silently downstream.",
+        "Hook scripts in TypeScript or Node: introduces a runtime dependency the user may not have; Python and Bash are standard."
+      ]
+    },
+    {
+      "id": "DEC-SYNTH-001",
+      "name": "Single-Agent Synthesis for Holistic Reasoning",
+      "description": "Tasks that require cross-referencing across findings are handled by a single agent with full upstream context, not by deterministic glue between multiple synthesizers. The report-synthesizer agent reads the full Phase 1 research output and produces a single validation report with a GO/PIVOT/NO-GO verdict. The orchestrator in /haytham:evolve also synthesizes across three parallel variant proposals in a single step.",
+      "rationale": "An experiment documented in CLAUDE.md compared a single-agent synthesis (8 PASS / 4 PARTIAL / 0 FAIL) against a 4-agent + 6-validator pipeline processing the same inputs (1 PASS / 3 PARTIAL / 8 FAIL). Splitting holistic reasoning across agents with glue between them loses cross-reference context. The single-agent constraint applies wherever the work is 'use all of A, B, C together'.",
+      "serves_capabilities": ["CAP-F-001", "CAP-F-007"],
+      "implements_recommendation": "Claude Code (platform)",
+      "alternatives_considered": [
+        "Multi-step synthesizer with validators between steps: tested and underperformed.",
+        "Tree-of-thought with multiple drafts: increases latency and cost without measured quality gain at the scale of one validation report."
+      ]
+    },
+    {
+      "id": "DEC-EVOLVE-001",
+      "name": "Three Parallel Variant Proposers with Orchestrator Synthesis",
+      "description": "/haytham:evolve runs three Agent tool calls in a single message: Variant A (minimal graph touch), Variant B (clean refactor with foreseeable reuse), Variant C (pragmatic middle). Each is a read-only proposer that produces a proposal with files touched, graph delta, tradeoff, and confidence. The orchestrator then renders a comparison table, names a recommended variant with a single specific reason and a cited file, and asks for user confirmation. The chosen variant executes both code and graph updates in a single commit naming the variant.",
+      "rationale": "A single-proposer evolve would produce one plausible plan with no visible tradeoff. The three-framing pattern forces explicit tradeoffs and gives the orchestrator real material to choose between. The framings are chosen so that variants disagree usefully: A optimizes for today, B for two features ahead, C names a specific migration to avoid. The orchestrator committing to a recommendation (not 'depends on your priorities') comes from CLAUDE.md's co-builder stance.",
+      "serves_capabilities": ["CAP-F-007"],
+      "implements_recommendation": "Claude Code (platform)",
+      "alternatives_considered": [
+        "Single-agent proposer: no visible tradeoff, no forcing function for explicit alternatives.",
+        "Five or more variants: diminishing returns; three is enough to span the tradeoff space without overwhelming the user.",
+        "Sequential variant generation with critique steps in between: increases latency without producing better tradeoffs than parallel with synthesis at the end."
+      ]
+    },
+    {
+      "id": "DEC-ANCHOR-001",
+      "name": "Concept Anchor Passed Unchanged to Every Downstream Agent",
+      "description": "The concept anchor extracted by idea-analyst in Phase 1 (with invariants, identity, intent, term flags, founder profile, strategic signals) is written to a file and read verbatim by every downstream agent (mvp-scoper, capability-modeler, architect, spec-generator). Agents may add context but must not modify or reinterpret anchor invariants. The anchor is the durable contract.",
+      "rationale": "Without an anchor, multi-agent pipelines drift: by Phase 4 the idea has been reshaped through five reformulations. Pinning invariants in a file the next agent reads breaks the telephone game. The anchor exists in this graph too (openspec/context/concept-anchor.json) for exactly this reason: /haytham:evolve reads it as the conflict-detection contract.",
+      "serves_capabilities": ["CAP-F-001", "CAP-F-007", "CAP-NF-001"],
+      "implements_recommendation": "JSON file (built)",
+      "alternatives_considered": [
+        "Anchor regenerated each phase: drift is the failure mode this exists to prevent.",
+        "Anchor stored in a database: filesystem is simpler and matches DEC-COMM-001."
+      ]
+    },
+    {
+      "id": "DEC-CTRL-PLANE-001",
+      "name": "Haytham Declares Intent; Downstream Tools Execute",
+      "description": "Haytham is a control plane, not a data plane. It classifies, directs, validates, and gates; it does not run user code, deploy services, or operate infrastructure. Phase 5 (build setup) scaffolds a project directory and delegates implementation to a separate Claude Code session. Phase 6 (validation against the spec) is delegated to coding agents and test runners. /haytham:evolve writes code and graph updates, but the running of that code, the deployment, and the monitoring are all outside Haytham.",
+      "rationale": "CLAUDE.md Constitution principle 7. A control plane is portable across execution backends; a data plane is locked to its execution model. Keeping Haytham as a control plane is what makes Evolution and Sentience tractable: each milestone adds a new loop without re-architecting the previous one. A design decision that couples Haytham to execution in Genesis would block delegation in Evolution and autonomy in Sentience.",
+      "serves_capabilities": ["CAP-F-005", "CAP-F-006", "CAP-F-007"],
+      "implements_recommendation": "Claude Code (platform)",
+      "alternatives_considered": [
+        "Implement code inside the plugin session: blurs the boundary between specification and implementation; tested in an early version and produced spec-implementation entanglement that made re-implementation impossible.",
+        "Bundle a code executor: violates the no-runtime-dependency invariant and replicates Claude Code's existing capability."
+      ]
+    }
+  ],
+  "coverage_check": {
+    "functional_covered": [
+      "CAP-F-001",
+      "CAP-F-002",
+      "CAP-F-003",
+      "CAP-F-004",
+      "CAP-F-005",
+      "CAP-F-006",
+      "CAP-F-007",
+      "CAP-F-008",
+      "CAP-F-009",
+      "CAP-F-010",
+      "CAP-F-011",
+      "CAP-F-012"
+    ],
+    "non_functional_covered": ["CAP-NF-001", "CAP-NF-002", "CAP-NF-003", "CAP-NF-004", "CAP-NF-005"],
+    "uncovered": [
+      "CAP-F-008 (Export) — no dedicated architecture decision; covered structurally by DEC-DELIVERY-001 (plugin form) and DEC-COMM-001 (file-based). Export is implemented as a thin agent (outreach-summarizer) writing to a target directory; no novel architecture.",
+      "CAP-F-009 (Demo) — composition of validate --batch and export --commit; inherits decisions from CAP-F-001 and CAP-F-008.",
+      "CAP-F-010 (Reviews) — read-only commands; no architecture decision beyond DEC-COMM-001.",
+      "CAP-F-011 (UX Review) — read-only command reading CLAUDE.md at runtime; covered by meta-system genericity principle, no novel architecture."
+    ]
+  },
+  "summary": "Haytham is a Claude Code plugin (DEC-DELIVERY-001) that orchestrates eight specialist agents split by tool and model need (DEC-ORCH-001). Agents communicate via files under .haytham/session/ and openspec/ (DEC-COMM-001), with hook scripts enforcing deterministic rules (DEC-VALIDATION-001) and LLMs handling qualitative judgement. Holistic reasoning is single-agent by design (DEC-SYNTH-001), but /haytham:evolve uses three parallel variant proposers with a single orchestrator synthesizing the recommendation (DEC-EVOLVE-001). The concept anchor extracted in Phase 1 is the durable contract passed unchanged to every downstream agent (DEC-ANCHOR-001), and the entire system stays a control plane by delegating execution to separate Claude Code sessions and downstream tools (DEC-CTRL-PLANE-001). No managed services are required; everything runs inside Claude Code with filesystem state."
+}
