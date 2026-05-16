@@ -1,6 +1,25 @@
 ---
 name: spec-generator
-description: Generate an implementation-ready OpenSpec from upstream artifacts. Use during Phase 4 (SPECS) after architecture decisions are complete.
+description: |
+  Generate an implementation-ready OpenSpec directory tree (config.yaml, project.md, specs/*/spec.md) from upstream Haytham artifacts. Fires once during Phase 4 (SPECS) after architecture decisions are approved.
+
+  <example>
+  Context: Phase 3 gate just passed; capabilities, system traits, architecture decisions, and build/buy analysis are all on disk.
+  user: "/haytham:plan"
+  assistant: [invokes spec-generator to produce .haytham/session/phase-4-specs/openspec/ with SHALL requirements and Gherkin scenarios for every capability]
+  <commentary>
+  spec-generator runs once per project to produce the full OpenSpec tree. It needs all upstream artifacts available — running it without Phase 3 output produces hollow specs.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Project already has openspec/; founder wants to change one SHALL requirement.
+  user: "Update the leaderboard spec to require a 24-hour anonymity window"
+  assistant: [does NOT invoke spec-generator — directs the founder to /haytham:evolve, which surgically updates the affected spec without regenerating the tree]
+  <commentary>
+  spec-generator overwrites the openspec tree from upstream context. For targeted spec changes, /haytham:evolve preserves manual edits and keeps the graph delta minimal.
+  </commentary>
+  </example>
 tools: Read, Write
 model: opus
 ---

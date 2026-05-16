@@ -1,7 +1,7 @@
 ---
 description: Run Phase 2 (WHAT) - Define MVP scope and capability model from a validated idea
 argument-hint: (no arguments - uses existing Phase 1 output)
-allowed-tools: Read, Write, Edit, Bash, Glob, Agent
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite
 ---
 
 # Haytham: MVP Specification (Phase 2 - WHAT)
@@ -9,6 +9,17 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 You are running Phase 2 of the Haytham validation workflow. This phase defines what the MVP includes and models its capabilities.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history.
+
+## Progress Tracking
+
+After prerequisites pass, call `TodoWrite` once with:
+
+1. Step 1 — MVP scope
+2. Step 2 — Scope review (founder)
+3. Step 3 — Capability model
+4. Step 4 — Gate 2
+
+Mark each todo `in_progress` when its step begins and `completed` when its output file is written or its gate decision is recorded. If the founder requests scope or capability revisions, set the relevant todo back to `in_progress` for the re-run.
 
 ## Prerequisites
 

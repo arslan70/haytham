@@ -1,6 +1,25 @@
 ---
 name: architect
-description: Analyze build-vs-buy decisions and produce architecture decisions for the MVP. Use during Phase 3 (HOW) after capability model and system traits are complete.
+description: |
+  Analyze build-vs-buy decisions, produce architecture decisions, and generate pre-implementation research directives for non-standard capabilities. Fires once during Phase 3 (HOW) after the capability model is approved.
+
+  <example>
+  Context: Phase 2 gate just passed; capabilities.json, system-traits.json, and mvp-scope.md are on disk.
+  user: "/haytham:design"
+  assistant: [invokes architect to read the capability model and produce build-buy.json, architecture-decisions.json, and research-directives.json]
+  <commentary>
+  architect must run after the capability model because build/buy decisions are made per capability. Running it on raw scope (without capabilities) produces vague tech recommendations that don't tie back to anything testable.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Project already has openspec/; founder wants to swap one piece of infrastructure (e.g. Postgres to Neon).
+  user: "switch our database to Neon"
+  assistant: [does NOT invoke architect — directs the founder to /haytham:evolve, which proposes the swap as a graph delta touching only the relevant architecture decision]
+  <commentary>
+  architect produces the full architecture from capabilities. For incremental tech changes, /haytham:evolve generates three variant proposals and updates only the affected decision and downstream specs.
+  </commentary>
+  </example>
 tools: Read, Write, WebSearch, WebFetch
 model: sonnet
 ---

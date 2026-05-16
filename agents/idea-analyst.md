@@ -1,6 +1,25 @@
 ---
 name: idea-analyst
-description: Analyze a startup idea to extract problems, segments, value proposition, and concept anchor. Use when starting Phase 1 (WHY) to understand and structure the founder's raw idea.
+description: |
+  Gate a raw startup idea, expand it into a structured concept, and extract the concept anchor that anchors all downstream Haytham phases. Fires at the start of Phase 1 (WHY) before any market research runs.
+
+  <example>
+  Context: Founder pasted a raw idea; no prior session state exists.
+  user: "/haytham:validate a gym community leaderboard with anonymous handles"
+  assistant: [invokes idea-analyst to gate the idea, expand the concept, and write idea-analysis.md plus concept-anchor.json]
+  <commentary>
+  idea-analyst must fire before market-researcher and competitor-researcher because the concept anchor is their required input. Without it, downstream agents drift from the founder's intent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: An existing Haytham project already has openspec/ and the founder wants to adjust scope.
+  user: "/haytham:evolve the leaderboard should be team-based instead of individual"
+  assistant: [does NOT invoke idea-analyst — uses the /haytham:evolve flow, which reads the existing concept-anchor.json from openspec/context/]
+  <commentary>
+  idea-analyst is for initial concept extraction. For evolution of an existing reasoning graph, the anchor is already on disk; re-deriving it would discard prior corrections and gate decisions.
+  </commentary>
+  </example>
 tools: Read, Write, Glob
 model: sonnet
 ---

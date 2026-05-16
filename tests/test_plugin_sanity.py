@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 AGENTS_DIR = ROOT / "agents"
@@ -39,17 +40,27 @@ VALID_CATEGORIES = {
 
 
 def parse_frontmatter(path: Path) -> dict:
-    """Extract YAML frontmatter from a markdown file."""
+    """Extract YAML frontmatter from a markdown file.
+
+    Uses PyYAML so block scalars (e.g. `description: |` with multi-line
+    bodies, used by the plugin-dev triggering pattern) parse correctly.
+    """
     text = path.read_text()
     match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
     if not match:
         return {}
-    frontmatter = {}
-    for line in match.group(1).strip().splitlines():
-        if ":" in line:
-            key, _, value = line.partition(":")
-            frontmatter[key.strip()] = value.strip()
-    return frontmatter
+    return yaml.safe_load(match.group(1)) or {}
+
+
+# Agents migrated to the plugin-dev triggering pattern
+# (block-scalar description with <example>/<commentary> blocks).
+# Add an agent's stem here when its frontmatter is migrated.
+MIGRATED_TRIGGERING_AGENTS = {
+    "idea-analyst",
+    "spec-generator",
+    "report-synthesizer",
+    "architect",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +108,24 @@ class TestAgentFrontmatter:
         after_frontmatter = re.sub(r"^---\n.*?\n---\n?", "", text, flags=re.DOTALL)
         assert len(after_frontmatter.strip()) > 50, (
             f"{agent_file.name} has no substantial system prompt"
+        )
+
+    @pytest.mark.parametrize("agent_file", agents, ids=lambda p: p.name)
+    def test_migrated_agent_has_triggering_examples(self, agent_file):
+        if agent_file.stem not in MIGRATED_TRIGGERING_AGENTS:
+            pytest.skip(
+                f"{agent_file.stem} not yet migrated to <example>/<commentary> triggering"
+            )
+        fm = parse_frontmatter(agent_file)
+        desc = fm.get("description", "")
+        assert desc.count("<example>") >= 2, (
+            f"{agent_file.name} must have >=2 <example> blocks in description"
+        )
+        assert desc.count("<commentary>") >= 2, (
+            f"{agent_file.name} must have >=2 <commentary> blocks in description"
+        )
+        assert "</example>" in desc and "</commentary>" in desc, (
+            f"{agent_file.name} has unclosed <example> or <commentary> tags"
         )
 
 

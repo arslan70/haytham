@@ -1,7 +1,7 @@
 ---
 description: Validate a startup idea and produce an implementation-ready specification
-argument-hint: [startup idea | URL] [--batch]
-allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
+argument-hint: "[startup idea | URL] [--batch]"
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite, WebSearch, WebFetch
 ---
 
 # Haytham: Startup Idea Validation & Specification
@@ -9,6 +9,21 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 You are orchestrating a 4-phase startup validation workflow. Follow each phase in order. Do not skip phases. In normal mode, do not proceed to the next phase without user approval at the gate. In BATCH_MODE, auto-approve all gates and skip all interactive review steps.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history. Before each phase, verify previous phase output files exist by reading them.
+
+## Progress Tracking
+
+After the Setup section completes, call `TodoWrite` once to register the full pipeline as todos. Use these exact items:
+
+1. Phase 1 — Idea validation (WHY)
+2. Phase 1 gate — founder approves verdict
+3. Phase 2 — MVP scope & capabilities (WHAT)
+4. Phase 2 gate — founder approves capabilities
+5. Phase 3 — Architecture (HOW)
+6. Phase 3 gate — founder approves design
+7. Phase 4 — OpenSpec generation
+8. Final review
+
+Mark the active item `in_progress` when starting the phase and `completed` when its output files are written and the digest is shown. Only one item `in_progress` at a time. If a gate triggers a re-run of the preceding phase, set that phase back to `in_progress`.
 
 ## Upstream Dependencies
 
@@ -299,6 +314,39 @@ After the full report, read `.haytham/session/phase-1-why/validation-report.json
 > Full report saved to `.haytham/session/phase-1-why/validation-report.md`
 
 Update state: `last_completed_step: 5`.
+
+### Step 5b: Automated Reviews
+
+After Step 5 writes the validation report, launch reviewers automatically. These are non-blocking — they surface findings for the founder to weigh at the gate, but they do not halt the pipeline.
+
+Launch BOTH agents in parallel:
+
+1. A **reviewer-depth** agent with this task:
+   > Review Phase 1 output in `.haytham/session/phase-1-why/`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/reviews/depth.json`.
+
+2. A **reviewer-fidelity** agent with this task:
+   > Review Phase 1 output in `.haytham/session/phase-1-why/` against `.haytham/project.yaml`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/reviews/fidelity.json`.
+
+After both agents complete, read `.haytham/session/reviews/depth.json` and `.haytham/session/reviews/fidelity.json`. If either file does not exist or has `"status": "skipped"`, note which was skipped and proceed.
+
+**If BATCH_MODE is true:** Do not embed the digest in user-facing messages (the gate is auto-approved). JSON summaries on disk are sufficient.
+
+**Otherwise**, build a combined digest. Merge `top_findings` from both reviewers, sort by confidence descending, take the top 3 overall. Emit:
+
+> **Automated reviews of the report above:**
+>
+> - **Depth:** [status] — [score.pass]/[score.total] PASS, [score.partial] PARTIAL, [score.fail] FAIL
+> - **Fidelity:** [status] — drift pattern: [drift_pattern]; [score.pass]/[score.applicable] PASS, [score.partial] PARTIAL, [score.fail] FAIL
+>
+> **Top findings to consider before approving:**
+> - **[confidence] [reviewer]** — [criterion or check]: [issue] (see [file])
+> - (repeat for up to 3 highest-confidence findings)
+>
+> Full summaries: `.haytham/session/reviews/depth.json`, `.haytham/session/reviews/fidelity.json`. Run `/haytham:review-depth` or `/haytham:review-fidelity` to re-run a single reviewer.
+
+If both reviewers returned `"status": "pass"` and no top findings, emit one line: `Automated reviews passed (depth + fidelity). No findings to surface.`
+
+Reviews are supplemental and do not update `last_completed_step`.
 
 ### Step 6: Gate 1
 

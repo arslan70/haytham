@@ -1,7 +1,7 @@
 ---
 description: Run Phase 3 (HOW) - Produce build/buy analysis and architecture decisions
 argument-hint: (no arguments - uses existing Phase 2 output)
-allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite, WebSearch, WebFetch
 ---
 
 # Haytham: Technical Design (Phase 3 - HOW)
@@ -9,6 +9,16 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 You are running Phase 3 of the Haytham validation workflow. This phase decides on infrastructure and architecture.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history.
+
+## Progress Tracking
+
+After prerequisites pass, call `TodoWrite` once with:
+
+1. Step 1 — Architecture (build/buy, decisions, research directives)
+2. Step 2 — Review
+3. Step 3 — Gate 3
+
+Mark each todo `in_progress` when its step begins and `completed` when its output file is written or its gate decision is recorded.
 
 ## Prerequisites
 
