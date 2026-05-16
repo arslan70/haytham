@@ -15,8 +15,8 @@
     },
     {
       "id": "DEC-ORCH-001",
-      "name": "Eight Specialist Agents Across Four Phases, Split by Tool or Model Need",
-      "description": "Pipeline work is split into eight specialist agents (idea-analyst, market-researcher, competitor-researcher, research-briefer, report-synthesizer, mvp-scoper, capability-modeler, architect, spec-generator, outreach-summarizer) plus a hierarchy of orchestrator commands. Agents are split only when they need different tools (web search vs analysis-only), different model tiers (haiku for compilation, sonnet for analysis, opus for synthesis), or operate on genuinely independent tasks (market vs competitor research can parallelize).",
+      "name": "Ten Specialist Agents Across Four Phases, Split by Tool or Model Need",
+      "description": "Pipeline work is split into ten specialist agents (idea-analyst, market-researcher, competitor-researcher, research-briefer, report-synthesizer, mvp-scoper, capability-modeler, architect, spec-generator, outreach-summarizer) plus a hierarchy of orchestrator commands. Agents are split only when they need different tools (web search vs analysis-only), different model tiers (haiku for compilation, sonnet for analysis, opus for synthesis), or operate on genuinely independent tasks (market vs competitor research can parallelize).",
       "rationale": "Multi-agent split is a structural choice with real cost: each split adds a file boundary that loses context. CLAUDE.md documents an experiment where splitting LLM reasoning across multiple agents connected by deterministic glue produced 1 PASS / 3 PARTIAL / 8 FAIL vs 8 PASS / 4 PARTIAL / 0 FAIL for a single agent with full context. The split criteria (tool, model, independence) reflects when splitting is worth the context cost. Without this criterion, agents proliferate and quality degrades.",
       "serves_capabilities": ["CAP-F-001", "CAP-F-002", "CAP-F-003", "CAP-F-004", "CAP-F-005", "CAP-F-006"],
       "implements_recommendation": "Claude Code (platform)",
@@ -111,19 +111,16 @@
       "CAP-F-005",
       "CAP-F-006",
       "CAP-F-007",
-      "CAP-F-008",
-      "CAP-F-009",
-      "CAP-F-010",
-      "CAP-F-011",
       "CAP-F-012"
     ],
     "non_functional_covered": ["CAP-NF-001", "CAP-NF-002", "CAP-NF-003", "CAP-NF-004", "CAP-NF-005"],
-    "uncovered": [
+    "covered_indirectly": [
       "CAP-F-008 (Export) — no dedicated architecture decision; covered structurally by DEC-DELIVERY-001 (plugin form) and DEC-COMM-001 (file-based). Export is implemented as a thin agent (outreach-summarizer) writing to a target directory; no novel architecture.",
       "CAP-F-009 (Demo) — composition of validate --batch and export --commit; inherits decisions from CAP-F-001 and CAP-F-008.",
       "CAP-F-010 (Reviews) — read-only commands; no architecture decision beyond DEC-COMM-001.",
       "CAP-F-011 (UX Review) — read-only command reading CLAUDE.md at runtime; covered by meta-system genericity principle, no novel architecture."
-    ]
+    ],
+    "uncovered": []
   },
-  "summary": "Haytham is a Claude Code plugin (DEC-DELIVERY-001) that orchestrates eight specialist agents split by tool and model need (DEC-ORCH-001). Agents communicate via files under .haytham/session/ and openspec/ (DEC-COMM-001), with hook scripts enforcing deterministic rules (DEC-VALIDATION-001) and LLMs handling qualitative judgement. Holistic reasoning is single-agent by design (DEC-SYNTH-001), but /haytham:evolve uses three parallel variant proposers with a single orchestrator synthesizing the recommendation (DEC-EVOLVE-001). The concept anchor extracted in Phase 1 is the durable contract passed unchanged to every downstream agent (DEC-ANCHOR-001), and the entire system stays a control plane by delegating execution to separate Claude Code sessions and downstream tools (DEC-CTRL-PLANE-001). No managed services are required; everything runs inside Claude Code with filesystem state."
+  "summary": "Haytham is a Claude Code plugin (DEC-DELIVERY-001) that orchestrates ten specialist agents split by tool and model need (DEC-ORCH-001). Agents communicate via files under .haytham/session/ and openspec/ (DEC-COMM-001), with hook scripts enforcing deterministic rules (DEC-VALIDATION-001) and LLMs handling qualitative judgement. Holistic reasoning is single-agent by design (DEC-SYNTH-001), but /haytham:evolve uses three parallel variant proposers with a single orchestrator synthesizing the recommendation (DEC-EVOLVE-001). The concept anchor extracted in Phase 1 is the durable contract passed unchanged to every downstream agent (DEC-ANCHOR-001), and the entire system stays a control plane by delegating execution to separate Claude Code sessions and downstream tools (DEC-CTRL-PLANE-001). No managed services are required; everything runs inside Claude Code with filesystem state."
 }

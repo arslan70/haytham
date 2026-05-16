@@ -21,13 +21,13 @@ Lifecycle control plane for AI-built products. Delivered as a Claude Code plugin
 
 **Trade-offs:** Tied to Claude Code's release cycle and breaking changes. Acceptable because Claude Code is the user's existing runtime.
 
-### DEC-ORCH-001: Eight Specialist Agents Split by Tool or Model Need
+### DEC-ORCH-001: Ten Specialist Agents Split by Tool or Model Need
 
-**Decision:** Split work into eight specialist agents. Splits are justified only by different tool needs (web search vs analysis), different model tiers (Haiku/Sonnet/Opus), or genuine independence (market vs competitor research can parallelize).
+**Decision:** Split work into ten specialist agents (idea-analyst, market-researcher, competitor-researcher, research-briefer, report-synthesizer, mvp-scoper, capability-modeler, architect, spec-generator, outreach-summarizer). Splits are justified only by different tool needs (web search vs analysis), different model tiers (Haiku/Sonnet/Opus), or genuine independence (market vs competitor research can parallelize).
 
 **Rationale:** Multi-agent split costs context. A documented experiment showed a single agent with full context (8 PASS / 4 PARTIAL / 0 FAIL) beat a 4-agent + 6-validator pipeline on the same inputs (1 PASS / 3 PARTIAL / 8 FAIL). The split criterion limits when splitting is worth the context cost.
 
-**Trade-offs:** Eight agents is more surface area than one. Acceptable because each split is load-bearing.
+**Trade-offs:** Ten agents is more surface area than one. Acceptable because each split is load-bearing.
 
 ### DEC-COMM-001: File-Based Agent Communication
 
