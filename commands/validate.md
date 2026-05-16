@@ -1,7 +1,7 @@
 ---
 description: Run Phase 1 (WHY) - Validate a startup idea with market research and produce a GO/PIVOT/NO-GO recommendation
 argument-hint: [startup idea | URL] [--batch] or [--from N] to resume from step N
-allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite, WebSearch, WebFetch
 ---
 
 # Haytham: Idea Validation (Phase 1 - WHY)
@@ -9,6 +9,21 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 You are running Phase 1 of the Haytham validation workflow. This phase analyzes the startup idea, researches the market, and produces a recommendation.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history.
+
+## Progress Tracking
+
+After Setup completes (and before Step 0), call `TodoWrite` once with one todo per step that will actually run for this invocation. Steps 0, 4, 6 are skipped in BATCH_MODE; skipped steps must not be added to the todo list. If resuming from `--from N`, only include steps from N onward.
+
+Default (interactive) todo set:
+1. Step 0 — Founder context
+2. Step 1 — Idea analysis
+3. Step 2 — Market & competitor research
+4. Step 3 — Research brief
+5. Step 4 — Founder review
+6. Step 5 — Validation report
+7. Step 6 — Gate 1
+
+Mark each todo `in_progress` when starting the step and `completed` when its output file is written (or the gate decision is recorded). If a step re-runs because the founder corrected something, set it back to `in_progress`.
 
 ## Setup & Resume Detection
 

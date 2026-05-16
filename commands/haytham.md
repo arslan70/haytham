@@ -1,7 +1,7 @@
 ---
 description: Validate a startup idea and produce an implementation-ready specification
 argument-hint: [startup idea | URL] [--batch]
-allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite, WebSearch, WebFetch
 ---
 
 # Haytham: Startup Idea Validation & Specification
@@ -9,6 +9,21 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent, WebSearch, WebFetch
 You are orchestrating a 4-phase startup validation workflow. Follow each phase in order. Do not skip phases. In normal mode, do not proceed to the next phase without user approval at the gate. In BATCH_MODE, auto-approve all gates and skip all interactive review steps.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history. Before each phase, verify previous phase output files exist by reading them.
+
+## Progress Tracking
+
+After the Setup section completes, call `TodoWrite` once to register the full pipeline as todos. Use these exact items:
+
+1. Phase 1 — Idea validation (WHY)
+2. Phase 1 gate — founder approves verdict
+3. Phase 2 — MVP scope & capabilities (WHAT)
+4. Phase 2 gate — founder approves capabilities
+5. Phase 3 — Architecture (HOW)
+6. Phase 3 gate — founder approves design
+7. Phase 4 — OpenSpec generation
+8. Final review
+
+Mark the active item `in_progress` when starting the phase and `completed` when its output files are written and the digest is shown. Only one item `in_progress` at a time. If a gate triggers a re-run of the preceding phase, set that phase back to `in_progress`.
 
 ## Upstream Dependencies
 

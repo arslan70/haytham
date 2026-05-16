@@ -1,12 +1,25 @@
 ---
 description: Apply a change to this project while maintaining the reasoning graph in openspec/
 argument-hint: "description of the change"
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, TodoWrite
 ---
 
 # Haytham: Evolve
 
 Apply a change to this project and maintain the reasoning graph in `openspec/` alongside the code change. Three variant proposers run in parallel, the orchestrator synthesizes, the user confirms, then the chosen variant executes.
+
+## Progress Tracking
+
+After preconditions pass, call `TodoWrite` once with these items:
+
+1. Build reasoning-graph file list
+2. Run three variant proposers in parallel
+3. Synthesize and recommend a variant
+4. Confirm choice with the user
+5. Execute chosen variant (code + graph changes)
+6. Self-check pass
+
+Mark the active item `in_progress` when its step starts and `completed` when its output is produced. If the user picks a hybrid or asks for re-synthesis, set step 3 back to `in_progress`.
 
 ## Preconditions
 

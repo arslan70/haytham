@@ -1,7 +1,7 @@
 ---
 description: Run Phase 4 (SPECS) - Generate implementation-ready OpenSpec
 argument-hint: (no arguments - uses existing Phase 3 output)
-allowed-tools: Read, Write, Edit, Bash, Glob, Agent
+allowed-tools: Read, Write, Edit, Bash, Glob, Agent, TodoWrite
 ---
 
 # Haytham: Specification Generation (Phase 4 - SPECS)
@@ -9,6 +9,16 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Agent
 You are running Phase 4 of the Haytham validation workflow. This phase generates an implementation-ready OpenSpec that a coding agent can use to build the system.
 
 **IMPORTANT:** Always read agent output from files, not from conversation history.
+
+## Progress Tracking
+
+After prerequisites pass, call `TodoWrite` once with:
+
+1. Step 1 — OpenSpec generation
+2. Step 2 — Review
+3. Step 3 — Detail review (optional drill-in)
+
+Mark each todo `in_progress` when its step begins and `completed` when its output is produced or the founder finishes the review. Step 3 completes immediately if the founder says "looks good" without requesting a drill-in.
 
 ## Prerequisites
 
