@@ -1,5 +1,7 @@
 # Validation Report
 
+> **Frozen Phase 1 snapshot from 2026-05-11.** This report is a historical artifact preserved alongside the reasoning graph. For the current source of truth, read `capabilities.json`, `architecture-decisions.json`, and `mvp-scope.md`. The agent count below (eight) reflects the state at snapshot time; the system has since grown to ten specialist agents (idea-analyst, market-researcher, competitor-researcher, research-briefer, report-synthesizer, outreach-summarizer, mvp-scoper, capability-modeler, architect, spec-generator).
+
 Haytham is a Claude Code plugin that runs eight specialist agents across four phases to turn a startup idea into a validated, traceable, implementation-ready spec. The founder is solo, technical, credibility-motivated, and shipping open-source through the Claude Code marketplace. The tool already exists and works. The question this report answers is not "should we build it?" but "is the wedge real, defensible, and reachable on the timeline the founder has?"
 
 ---
