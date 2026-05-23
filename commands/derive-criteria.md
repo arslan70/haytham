@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Glob, Bash, mcp__analytics-mcp__get_account_summarie
 
 # Haytham: Derive Criteria
 
-**Version:** 0.4 (2026-05-23 — adds founder-facing layer: every approvable entry now carries `founder_summary` (plain-English one-liner, no methodology vocabulary) and `why_it_matters` (founder-grade outcome link) so review can happen without translating GA4 jargon on the fly. Pairs with the new `/haytham:approve-criteria` command.)
+**Version:** 0.5 (2026-05-23 — adds Rule 6a: session-scoped ratios must use session count as numerator, not event count. Caught after the gift-catalog calibration error doubled the apparent baseline by computing `view_item events / total sessions` instead of `sessions with view_item / total sessions`.)
 
 Reads the reasoning-graph nodes for one capability, optionally queries observed reality from the analytics adapter, and produces a candidate `telemetry.derived.yml`. The criterion *shape* comes from the graph. The criterion *numbers* (targets, thresholds, sample sizes) come from the observed baseline when analytics is available, or are left as TBD when it is not. Every derived entry is `status: pending` and cites both the upstream line that justifies the shape and the observation that justifies the number. The founder then approves, modifies, or rejects each entry by editing the file.
 
@@ -89,6 +89,12 @@ Follow these rules. They are hard constraints.
 - **Correctness / invariant thresholds** (where a SHALL is unconditional, e.g. "every product detail page must have these elements"): target = 100% (or 0 for negative SHALLs). Confidence: high. Do not compute from baseline — the SHALL itself sets the number.
 
 Emit `observed_baseline: {value, window, sample_n, query_succeeded}` on every entry where analytics ran. Emit `calibration_rationale: |` on every entry explaining which policy applied and why the proposed number reflects it. If analytics is unavailable, emit `target: "TBD — calibrate when analytics is connected"` and skip the baseline/rationale.
+
+**Rule 6a — Session-scoped ratios use session count, not event count.** When a criterion's definition is session-scoped — phrasings like "of sessions that...", "the fraction of sessions...", "sessions that include...", "session-scoped" — the GA4 query's numerator metric must be a session count (`sessions` filtered by `eventName=X`, or the per-event session count in a funnel), **never `eventCount`**. The two diverge whenever a session fires the same event multiple times: a session that views three products generates one session-with-view_item but three view_item events, so `eventCount / sessions` overstates the rate by 3×. The same rule applies to user-scoped ratios (`activeUsers`, not `eventCount`).
+
+Before emitting any calibration number, verify the metric you pulled matches the definition's denominator unit. If you are uncertain — for example the GA4 schema does not directly expose "sessions filtered by event" and you have to derive it — state the derivation in `calibration_rationale` so the founder can spot-check. If you cannot determine the right metric without ambiguity, set `target: "TBD — calibration ambiguous, founder to disambiguate"` and explain. Inventing a number is worse than admitting the query was unclear.
+
+**Cross-check before writing the file.** For every emitted threshold/anti_signal, sanity-check: does the units in `observed_baseline.value` match the units the `definition` describes? If the definition says "fraction of sessions" and your baseline came from `eventCount`, the units don't match and the calibration is wrong — fix the query before proceeding.
 
 **Rule 7 — Skip differentiation entries unless a specific competitor is paired with a specific dimension in one citation.** A `differentiates_from` entry requires a single upstream citation that names both a competitor (by name, not by category — "TCS SentimentsExpress" qualifies, "Pakistani gifting sites" does not) and the dimension on which this capability differentiates from that competitor. Two separate citations (a competitor mentioned in one place, a dimension mentioned in another) do not pair. Generic competitive intuition is not allowed. If the strategic signal is real but the citation isn't paired in one place, emit no entry and add an `intent_gaps` note saying the concept-anchor should be enriched.
 
