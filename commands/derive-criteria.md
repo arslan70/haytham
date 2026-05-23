@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Glob, Bash, mcp__analytics-mcp__get_account_summarie
 
 # Haytham: Derive Criteria
 
-**Version:** 0.3 (2026-05-23 — adds calibration pass: derivation now reads the project's observed baseline and proposes concrete target numbers, instead of leaving them TBD. Shape still comes from the graph; numbers come from data; approval is still the founder's.)
+**Version:** 0.4 (2026-05-23 — adds founder-facing layer: every approvable entry now carries `founder_summary` (plain-English one-liner, no methodology vocabulary) and `why_it_matters` (founder-grade outcome link) so review can happen without translating GA4 jargon on the fly. Pairs with the new `/haytham:approve-criteria` command.)
 
 Reads the reasoning-graph nodes for one capability, optionally queries observed reality from the analytics adapter, and produces a candidate `telemetry.derived.yml`. The criterion *shape* comes from the graph. The criterion *numbers* (targets, thresholds, sample sizes) come from the observed baseline when analytics is available, or are left as TBD when it is not. Every derived entry is `status: pending` and cites both the upstream line that justifies the shape and the observation that justifies the number. The founder then approves, modifies, or rejects each entry by editing the file.
 
@@ -92,6 +92,15 @@ Emit `observed_baseline: {value, window, sample_n, query_succeeded}` on every en
 
 **Rule 7 — Skip differentiation entries unless a specific competitor is paired with a specific dimension in one citation.** A `differentiates_from` entry requires a single upstream citation that names both a competitor (by name, not by category — "TCS SentimentsExpress" qualifies, "Pakistani gifting sites" does not) and the dimension on which this capability differentiates from that competitor. Two separate citations (a competitor mentioned in one place, a dimension mentioned in another) do not pair. Generic competitive intuition is not allowed. If the strategic signal is real but the citation isn't paired in one place, emit no entry and add an `intent_gaps` note saying the concept-anchor should be enriched.
 
+**Rule 8 — Every approvable entry must carry a founder-facing layer.** Every entry that the founder will review (success_thresholds, anti_signals, regression_triggers, minimum_sample) must include two additional fields:
+
+- `founder_summary:` — one sentence in plain English describing *what* is being measured, written the way the founder would describe it to a non-engineer. **No measurement vocabulary** — no "GA4", no "sessions that fire X", no "DOM", no "engaged sessions", no "ratio", no "denominator". Replace methodology with intent. Example: instead of *"Of sessions that include the home page (/), the fraction that are 'engaged sessions' per GA4 definition (session lasted >10s, had a conversion event, or had 2+ page views)"*, write *"Are visitors sticking around after landing on the home page?"*
+- `why_it_matters:` — one sentence linking the criterion to a real outcome the founder cares about. **Not a SHALL citation; an outcome.** Example: *"If this drops, fewer buyers ever reach a product page, and the catalog stops doing its job."*
+
+These fields are the wizard's display layer and the proposer's narrative layer. The technical `definition:` field stays for the GA4-querying machinery. Events do not need this layer (they are schema, not approvable judgments), but every other approvable entry must have both fields.
+
+If the upstream graph does not provide enough context to write a non-trivial `why_it_matters`, write the most honest version possible (e.g., *"The spec considers this a hard requirement"* is acceptable for an invariant) — do not pad with vague language.
+
 ## Step 3 — Write the derived file
 
 Path: `./openspec/specs/$1/telemetry.derived.yml`.
@@ -146,6 +155,15 @@ events:
 success_thresholds:
   - name: <criterion-name>
     status: pending
+    founder_summary: |
+      <One sentence in plain English per Rule 8. No GA4 jargon, no
+      methodology. Describes what we're measuring as a founder would
+      describe it. Example: "Are visitors sticking around after landing
+      on the home page?">
+    why_it_matters: |
+      <One sentence linking to a real outcome. Example: "If this drops,
+      fewer buyers ever reach a product page, and the catalog stops
+      doing its job.">
     definition: |
       <The shape of the measurement, derived from the SHALL or scenario.
       Numerator/denominator phrased session-scoped where applicable.>
@@ -169,6 +187,12 @@ success_thresholds:
 anti_signals:
   - name: <anti-signal-name>
     status: pending
+    founder_summary: |
+      <One sentence per Rule 8. Plain English, no methodology. Example:
+      "Are too many visitors leaving the home page without exploring?">
+    why_it_matters: |
+      <One sentence outcome link. Example: "This catches regressions
+      that quietly erode catalog entry before they hit conversion.">
     definition: |
       <The failure mode, derived from a scenario or invariant. What it
       looks like in measurable form.>
@@ -188,16 +212,30 @@ anti_signals:
       <Which Rule 6 policy applied and how the threshold reflects it.>
 
 regression_triggers:
-  - text: |
-      <Phrase as a sentence. Each trigger must derive from a specific
-      upstream invariant or scenario. Avoid generic "drop in metric X"
-      triggers unless the upstream implies a slope.>
-    status: pending
+  - status: pending
+    founder_summary: |
+      <One sentence per Rule 8. Plain English description of the
+      trigger condition. Example: "Catalog discovery has been quietly
+      dropping for two weeks running.">
+    why_it_matters: |
+      <One sentence outcome link. Example: "Two-week persistence rules
+      out a noisy single week and points at a real regression.">
+    text: |
+      <Precise machine/proposer-grade phrasing of the trigger condition.
+      Each trigger must derive from a specific upstream invariant or
+      scenario. Avoid generic "drop in metric X" triggers unless the
+      upstream implies a slope.>
     derived_from:
       - <upstream citation>
 
 minimum_sample:
   status: pending
+  founder_summary: |
+    <One sentence per Rule 8. Example: "Below this weekly traffic level,
+    we treat the week as too noisy to draw conclusions from.">
+  why_it_matters: |
+    <One sentence outcome link. Example: "Stops the proposer from raising
+    alarms based on a sparse week that just happened to look bad.">
   value: <calibrated weekly sample floor — see rationale; or
     "TBD — calibrate when analytics is connected" in shape-only mode>
   rationale: |
