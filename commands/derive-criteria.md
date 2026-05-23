@@ -6,6 +6,7 @@ allowed-tools: Read, Write, Glob, Bash, mcp__analytics-mcp__get_account_summarie
 
 # Haytham: Derive Criteria
 
+**Version:** 0.5.1 (2026-05-23 — Step 4 closing message now points at `/haytham:approve-criteria` as the recommended next step, with manual file edits as the fallback. Cosmetic.)
 **Version:** 0.5 (2026-05-23 — adds Rule 6a: session-scoped ratios must use session count as numerator, not event count. Caught after the gift-catalog calibration error doubled the apparent baseline by computing `view_item events / total sessions` instead of `sessions with view_item / total sessions`.)
 
 Reads the reasoning-graph nodes for one capability, optionally queries observed reality from the analytics adapter, and produces a candidate `telemetry.derived.yml`. The criterion *shape* comes from the graph. The criterion *numbers* (targets, thresholds, sample sizes) come from the observed baseline when analytics is available, or are left as TBD when it is not. Every derived entry is `status: pending` and cites both the upstream line that justifies the shape and the observation that justifies the number. The founder then approves, modifies, or rejects each entry by editing the file.
@@ -288,7 +289,7 @@ After writing the file, print to the user:
 
 End with:
 
-> Open `./openspec/specs/$1/telemetry.derived.yml`, review each entry, and change `status: pending` to `status: approved` (or `modified` with edits, or `rejected` with a reason). When you're done, run `/haytham:propose-next-steps` to see how the proposals change.
+> Next: run `/haytham:approve-criteria $1` to walk through each entry interactively (founder summaries, follow-up prompts for modifications and rejections, manual add-back step at the end). If you'd rather edit the file directly, open `./openspec/specs/$1/telemetry.derived.yml` and change `status: pending` to `status: approved` / `modified` / `rejected` per entry. After approval, run `/haytham:propose-next-steps` to see how the proposals change.
 
 ## Step 5 — Stop
 
