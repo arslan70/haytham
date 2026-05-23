@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Glob, Bash, TodoWrite, mcp__analytics-mcp__get_accou
 
 # Haytham: Propose Next Steps
 
-**Version:** 0.1 (2026-05-17 — prompt improvements from the cold-proxy test)
+**Version:** 0.2 (2026-05-23 — reads `telemetry.derived.yml` when present and filters entries by approval status; legacy `telemetry.yml` still supported for capabilities that haven't migrated)
 
 Closes the reasoning-graph loop. Read the project's telemetry contracts, pull live observed values from the configured adapter, fold in the latest strategic context, and produce a ranked list of change candidates the founder can route to `/haytham:evolve`.
 
@@ -32,9 +32,9 @@ Mark `in_progress` when each step starts and `completed` when its output exists.
 
    Then stop.
 
-2. Glob `./openspec/specs/*/telemetry.yml`. If zero matches:
+2. Glob `./openspec/specs/*/telemetry.derived.yml` and `./openspec/specs/*/telemetry.yml`. A capability has a contract if either matches. If the union is empty:
 
-   > No telemetry contracts found. Run `/haytham:propose-next-steps` after writing at least one `openspec/specs/<capability>/telemetry.yml`. The contract is what makes the loop possible; without it the proposer would be guessing.
+   > No telemetry contracts found. Either run `/haytham:derive-criteria <capability>` to produce a candidate contract from the reasoning graph, or hand-write at least one `openspec/specs/<capability>/telemetry.yml`. The contract is what makes the loop possible; without it the proposer would be guessing.
 
    Then stop.
 
@@ -57,8 +57,12 @@ Read into context:
 - `./openspec/context/concept-anchor.json` (project invariants and strategic signals)
 - `./openspec/context/capabilities.json` (capability model)
 - `./openspec/context/architecture-decisions.json` (build/buy choices and constraints)
-- Every `./openspec/specs/*/telemetry.yml` returned by the glob
+- For each capability that has a contract: prefer `./openspec/specs/<capability>/telemetry.derived.yml` if it exists; otherwise fall back to `./openspec/specs/<capability>/telemetry.yml`. Never read both for the same capability — the derived file is authoritative when present.
 - For each capability that has a contract, also read its `./openspec/specs/<capability>/spec.md` (the Gherkin scenarios and SHALL statements)
+
+**Filter by approval status (derived files only).** For each contract loaded from `telemetry.derived.yml`, filter every list field (`events`, `success_thresholds`, `anti_signals`, `regression_triggers`, `differentiates_from`) to keep only entries whose `status` is `approved` or `modified`. Drop `pending` and `rejected` entries silently — the proposer must not reason against unapproved hypotheses. If after filtering a capability has zero entries across all lists, treat it as `unapproved` and surface an `intent_gap` finding in Step 4: `intent_gap: <capability> — derivation exists but no entries approved yet`. Do not query observed reality for unapproved capabilities.
+
+Legacy `telemetry.yml` files have no `status` field; treat all their entries as approved by default. This preserves existing behaviour for capabilities that haven't been migrated to the derive-and-approve flow.
 
 If any context file is missing, note it in the proposals output as `intent_gap` — don't stop.
 
