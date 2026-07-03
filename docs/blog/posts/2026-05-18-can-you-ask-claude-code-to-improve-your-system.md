@@ -18,6 +18,8 @@ description: "Five runs over ten days. The first found broken instrumentation. T
 
 Open Claude Code, Cursor, or whatever agent you use. Ask it: "Look at this project and suggest a meaningful improvement." Watch what comes back.
 
+<!-- more -->
+
 You'll get a list. Add more tests. Improve error handling. Consider TypeScript. Maybe a remark about your folder structure. The advice is fine, often correct, and almost never about your system specifically. You could have written the same list before opening the IDE.
 
 The agent's missing a reference frame.

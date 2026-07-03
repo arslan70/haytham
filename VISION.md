@@ -1,5 +1,7 @@
 # VISION.md - The Haytham Roadmap
 
+> **Status (2026-07-03): this roadmap is retired.** Haytham was re-scoped to a personal idea-to-MVP tool. The Evolution and Sentience milestones were built far enough to close the loop once on a real product (GiftKaro, May 2026) but never validated beyond it; their machinery lives at git tag `v0.3.27-full` and the retrospective lives in the repo memory and `docs/`. This file is preserved as a record of the original ambition. For what the tool is now, see the README.
+
 ## Executive Summary
 
 Haytham is a lifecycle control plane for AI-built products.

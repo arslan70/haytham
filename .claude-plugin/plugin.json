@@ -1,6 +1,6 @@
 {
   "name": "haytham",
-  "description": "Lifecycle control plane for AI-built products — validate, specify, design, build, and evolve",
+  "description": "Idea-to-MVP pipeline: validate a startup idea, scope the MVP, design the architecture, and generate implementation-ready specs",
   "author": {
     "name": "Arslan Mehboob"
   },

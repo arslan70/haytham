@@ -5,14 +5,14 @@
     "name": "Arslan Mehboob"
   },
   "metadata": {
-    "description": "Lifecycle control plane for AI-built products — from idea to working, evolvable system"
+    "description": "Idea-to-MVP pipeline: from raw idea to implementation-ready OpenSpec"
   },
   "plugins": [
     {
       "name": "haytham",
       "source": "./",
-      "description": "Lifecycle control plane for AI-built products — validate, specify, design, build, and evolve",
-      "version": "0.3.27",
+      "description": "Idea-to-MVP pipeline: validate a startup idea, scope the MVP, design the architecture, and generate implementation-ready specs",
+      "version": "0.4.0",
       "repository": "https://github.com/arslan70/haytham",
       "license": "MIT",
       "keywords": [
