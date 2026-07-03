@@ -17,16 +17,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install test dependencies
-        run: pip install pytest
+        run: pip install pytest pyyaml
 
       - name: Run plugin sanity tests
         run: pytest tests/test_plugin_sanity.py -v
-
-      - name: Run eval Python syntax checks
-        run: |
-          python3 -m py_compile evals/shared.py
-          python3 -m py_compile evals/triggering/run_triggering_evals.py
-          python3 -m py_compile evals/quality/run_quality_evals.py
-          python3 -m py_compile evals/e2e/consistency_checks.py
-          python3 -m py_compile evals/e2e/run_e2e_eval.py
-          python3 -m py_compile evals/e2e/ux_grader.py

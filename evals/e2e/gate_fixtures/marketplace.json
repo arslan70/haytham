@@ -1,8 +1,0 @@
-{
-  "idea": "A marketplace connecting independent music teachers with students for in-person lessons, handling discovery, booking, and payment",
-  "archetype": "marketplace",
-  "gate_responses": {
-    "research_brief_review": "looks good",
-    "validation_gate": "proceed"
-  }
-}

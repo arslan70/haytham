@@ -95,8 +95,10 @@ hooks/
 
 scripts/
   check_phase_prereqs.sh         # Phase prerequisite verification
+  post_bash_seed.sh              # Fixes config.yaml quoting after openspec init
   validate_schema.py             # Output schema validation
   validate_som.py                # SOM arithmetic + regulated domain checks
+  validate_openspec.py           # Structural validation of generated OpenSpec
 ```
 
 ## How to Modify

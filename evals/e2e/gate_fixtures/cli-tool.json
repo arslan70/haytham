@@ -1,8 +1,0 @@
-{
-  "idea": "A CLI tool that analyzes git repositories to generate changelogs, release notes, and contributor reports from commit history and PR metadata",
-  "archetype": "developer_tool",
-  "gate_responses": {
-    "research_brief_review": "looks good",
-    "validation_gate": "proceed"
-  }
-}
