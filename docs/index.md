@@ -11,6 +11,9 @@ hide:
 
 Haytham validates your idea with real market research, then generates a complete specification any developer or coding agent can execute. If the idea doesn't hold up, it tells you before you waste months building.
 
+!!! note "Status"
+    Haytham is a personal tool maintained for the author's own projects. It works and you are welcome to use it, but it is not seeking users or contributors.
+
 <div class="hero-buttons" markdown>
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
@@ -57,7 +60,7 @@ flowchart TD
 
     idea --> P1
 
-    subgraph genesis["Genesis -- What's built today"]
+    subgraph phases["The four phases"]
         P1["Should this be built?"] -->|Validation Report| G1{{"Founder Review"}}
         G1 -->|GO| P2["What exactly?"]
         P2 -->|MVP Spec| G2{{"Product Owner"}}
