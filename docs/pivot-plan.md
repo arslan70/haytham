@@ -1,5 +1,7 @@
 # Plan: Hard Pivot to Claude Code Plugin
 
+> **Status (2026-07-03): completed.** The pivot this plan describes was carried out; this repo is now the plugin. The page is kept as a record.
+
 ## Context
 
 Haytham has two parallel systems: a standalone Python pipeline (200 files, 38K LOC) and a Claude Code plugin (18 files, 2.4K LOC). The plugin is the product. The standalone system is dead weight. The user wants fast feedback, which means a clean repo that IS a plugin.

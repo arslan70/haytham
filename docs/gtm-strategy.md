@@ -1,5 +1,7 @@
 # Go-To-Market Strategy: 2-Week Sprint
 
+> **Status (2026-07-03): retired.** The sprint this strategy describes ended in April 2026, and Haytham has since been re-scoped to a personal tool with no go-to-market ambitions. This page is kept as a record.
+
 **Goal:** 5 people run `/haytham` on their own idea and give feedback.
 **Timeline:** March 19 - April 1, 2026
 **Kill condition:** Fewer than 5 runs by April 1 = project enters wind-down.

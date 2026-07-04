@@ -1,5 +1,7 @@
 # Haytham: A Technical Brief for Potential Collaborators
 
+> **Status (2026-07-03): retired.** Haytham was re-scoped to a personal idea-to-MVP tool and is not seeking collaborators. The control-plane vision described here is preserved at git tag `v0.3.27-full`. This page is kept as a record.
+
 ## The Vision
 
 Haytham is an autonomous control plane for startups. You describe an idea. It validates whether the idea is worth building, generates an implementation-ready specification, hands that spec to coding agents, deploys the result, monitors production, and continuously improves the system based on what it observes.

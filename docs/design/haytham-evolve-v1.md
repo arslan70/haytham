@@ -1,7 +1,7 @@
 # `/haytham:evolve` v1 Design
 
 **Date:** 2026-04-19
-**Status:** Proposal. Aligns contracts before we write the command file.
+**Status:** Retired. `/haytham:evolve` shipped and closed the loop on GiftKaro, then was removed in the 2026-07-03 re-scope (v0.4.0). The command is preserved at git tag `v0.3.27-full`. This design is kept as a record.
 **Context:** Week 1 of the final push ([plan](../plans/2026-04-18-haytham-final-push.md)). The first real test is the GiftKaro bundle-categories change ([pre-registration](../experiments/week-2-gk-bundle-categories.md)); the bedrock test is the TinyTales cross-project run in Week 2.
 
 ## What v1 is

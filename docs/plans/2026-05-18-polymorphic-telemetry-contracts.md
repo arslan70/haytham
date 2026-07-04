@@ -19,7 +19,7 @@ Without this, the SENTIENCE loop is mostly synthetic: the proposer "discovers" g
 
 Three things converged that exposed the current design's limits.
 
-**One.** The first end-to-end loop run (2026-05-17) demonstrated the engineering closes, but on audit, every "finding" the system surfaced was something the founder had hand-annotated into `telemetry.yml` a day earlier. The proposer relayed; it didn't reason. See [docs/blog/posts/2026-05-18-can-you-ask-claude-code-to-improve-your-system.md](../blog/posts/2026-05-18-can-you-ask-claude-code-to-improve-your-system.md) for the public version; the cheating audit was sharper than the blog admits.
+**One.** The first end-to-end loop run (2026-05-17) demonstrated the engineering closes, but on audit, every "finding" the system surfaced was something the founder had hand-annotated into `telemetry.yml` a day earlier. The proposer relayed; it didn't reason. See [docs/blog/posts/2026-05-27-can-you-ask-claude-code-to-improve-your-system.md](../blog/posts/2026-05-27-can-you-ask-claude-code-to-improve-your-system.md) for the public version; the cheating audit was sharper than the blog admits.
 
 **Two.** A polished sentence in that blog post ("the success threshold my contract used to judge this capability depended on a measurement that wasn't actually being captured, so the system couldn't tell whether the capability was working") triggered the right question: *which agent actually did that work?* Answer: none. The contract author did. The system surfaced an annotation.
 

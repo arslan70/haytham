@@ -616,7 +616,7 @@ Launch a **spec-generator** agent with this task:
 
 After the agent completes, run validation:
 ```bash
-python3 scripts/validate_openspec.py .haytham/session/phase-4-specs/openspec/ .haytham/session/phase-2-what/capabilities.json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/validate_openspec.py" .haytham/session/phase-4-specs/openspec/ .haytham/session/phase-2-what/capabilities.json
 ```
 
 If validation produces warnings, report them to the user before the digest.
@@ -672,6 +672,3 @@ Command               Output Directory
 Tell the user:
 
 > Your specification is complete. Ran 9 agents across 4 phases. All output files are in `.haytham/session/`. Run `/haytham:build` to set up your project for implementation with OpenSpec.
->
-> **How did this go?** We're looking for honest feedback to make this better.
-> Share your experience: https://github.com/arslan70/haytham/discussions

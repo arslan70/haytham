@@ -1,5 +1,7 @@
 # Haytham Cloud Operations: Implementation Spec
 
+> **Status (2026-07-03): retired, never implemented.** This spec predates the re-scope to a personal idea-to-MVP tool; the `cloud-researcher` agent was never built. The page is kept as a record.
+
 ## Overview
 
 Add cloud enrichment to Haytham's Phase 3 (Technical Design). A new `cloud-researcher` agent runs after the `architect` agent, querying live provider data (pricing, features, limits) to ground build-buy decisions in reality rather than training knowledge.

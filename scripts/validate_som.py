@@ -171,28 +171,28 @@ def main():
     warnings = validate_som_arithmetic(report_text)
 
     # Try to read the idea from project.yaml for regulated domain checks.
-    # Resolve it from the report's own .haytham root, not the CWD — the
+    # Resolve it from the report's own .haytham root, never the CWD — the
     # process may run from a directory that has an unrelated .haytham/.
+    # If the report is not under a .haytham tree, the idea is unknown and
+    # the domain checks are skipped rather than run against a guess.
     idea_text = ""
     parts = os.path.abspath(file_path).split(os.sep)
     if ".haytham" in parts:
         haytham_root = os.sep.join(parts[: parts.index(".haytham") + 1])
         project_yaml = os.path.join(haytham_root, "project.yaml")
-    else:
-        project_yaml = os.path.join(".haytham", "project.yaml")
-    try:
-        import yaml
-
-        with open(project_yaml) as f:
-            project = yaml.safe_load(f)
-            idea_text = project.get("idea", "")
-    except Exception:
-        # If yaml isn't available or file doesn't exist, try plain read
         try:
+            import yaml
+
             with open(project_yaml) as f:
-                idea_text = f.read()
-        except (FileNotFoundError, OSError):
-            pass
+                project = yaml.safe_load(f)
+                idea_text = project.get("idea", "")
+        except Exception:
+            # If yaml isn't available or file doesn't exist, try plain read
+            try:
+                with open(project_yaml) as f:
+                    idea_text = f.read()
+            except (FileNotFoundError, OSError):
+                pass
 
     warnings.extend(
         validate_regulated_domain_safety(report_text, idea_text, recommendation)
