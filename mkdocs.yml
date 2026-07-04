@@ -65,6 +65,8 @@ plugins:
         - Engineering
         - Open Source
         - Strategy
+        - Agentic Coding
+        - Self-Improving Systems
   - rss:
       match_path: blog/posts/.*
       date_from_meta:

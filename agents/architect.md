@@ -15,9 +15,9 @@ description: |
   <example>
   Context: Project already has openspec/; founder wants to swap one piece of infrastructure (e.g. Postgres to Neon).
   user: "switch our database to Neon"
-  assistant: [does NOT invoke architect — directs the founder to /haytham:evolve, which proposes the swap as a graph delta touching only the relevant architecture decision]
+  assistant: [does NOT invoke architect — updates the affected entry in architecture-decisions.json and any downstream specs directly]
   <commentary>
-  architect produces the full architecture from capabilities. For incremental tech changes, /haytham:evolve generates three variant proposals and updates only the affected decision and downstream specs.
+  architect produces the full architecture from capabilities. For incremental tech changes, update only the affected decision and downstream specs; re-running architect would regenerate everything and discard approved decisions.
   </commentary>
   </example>
 tools: Read, Write, WebSearch, WebFetch

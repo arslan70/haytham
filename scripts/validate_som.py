@@ -9,6 +9,7 @@ Outputs warnings to stderr. Exit 0 always (non-blocking).
 """
 
 import json
+import os
 import re
 import sys
 
@@ -169,18 +170,26 @@ def main():
 
     warnings = validate_som_arithmetic(report_text)
 
-    # Try to read the idea from project.yaml for regulated domain checks
+    # Try to read the idea from project.yaml for regulated domain checks.
+    # Resolve it from the report's own .haytham root, not the CWD — the
+    # process may run from a directory that has an unrelated .haytham/.
     idea_text = ""
+    parts = os.path.abspath(file_path).split(os.sep)
+    if ".haytham" in parts:
+        haytham_root = os.sep.join(parts[: parts.index(".haytham") + 1])
+        project_yaml = os.path.join(haytham_root, "project.yaml")
+    else:
+        project_yaml = os.path.join(".haytham", "project.yaml")
     try:
         import yaml
 
-        with open(".haytham/project.yaml") as f:
+        with open(project_yaml) as f:
             project = yaml.safe_load(f)
             idea_text = project.get("idea", "")
     except Exception:
         # If yaml isn't available or file doesn't exist, try plain read
         try:
-            with open(".haytham/project.yaml") as f:
+            with open(project_yaml) as f:
                 idea_text = f.read()
         except (FileNotFoundError, OSError):
             pass

@@ -15,9 +15,9 @@ description: |
   <example>
   Context: Project already has openspec/; founder wants to change one SHALL requirement.
   user: "Update the leaderboard spec to require a 24-hour anonymity window"
-  assistant: [does NOT invoke spec-generator — directs the founder to /haytham:evolve, which surgically updates the affected spec without regenerating the tree]
+  assistant: [does NOT invoke spec-generator — edits the affected spec.md directly (or via OpenSpec's /opsx change flow), preserving the rest of the tree]
   <commentary>
-  spec-generator overwrites the openspec tree from upstream context. For targeted spec changes, /haytham:evolve preserves manual edits and keeps the graph delta minimal.
+  spec-generator overwrites the openspec tree from upstream context. For targeted spec changes, edit the affected spec in place to preserve manual edits and keep the delta minimal.
   </commentary>
   </example>
 tools: Read, Write

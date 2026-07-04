@@ -14,29 +14,25 @@ This is a small, early-stage project with zero room for politeness overhead. Be 
 
 ## Constitution
 
-Haytham is a lifecycle control plane for AI-built products. It maintains a reasoning graph from founder intent to production telemetry, making every decision traceable, every change targeted, and every improvement evidence-grounded. Delivered as a Claude Code plugin, it orchestrates specialist agents across the full product lifecycle: validate, specify, build, deploy, monitor, improve.
+Haytham is a personal idea-to-MVP pipeline, delivered as a Claude Code plugin. It turns a raw startup idea into an implementation-ready specification: validate the idea with market research, scope the MVP, make architecture decisions, generate OpenSpec, and set up the project for implementation.
 
-The core asset is the reasoning graph: concept anchor → capabilities → architecture decisions → specs → code → telemetry. Three milestones increase autonomy over this graph:
+**Re-scoped 2026-07-03.** Haytham previously aimed to be a lifecycle control plane for AI-built products, with three autonomy milestones (GENESIS, EVOLUTION, SENTIENCE) over a reasoning graph extending into production telemetry. That product ambition is retired. The founder uses Haytham personally to test new ideas quickly; only the GENESIS pipeline (validate → specify → design → plan → build) remains in HEAD. The EVOLUTION and SENTIENCE machinery (evolve, derive-criteria, approve-criteria, propose-next-steps, the reviewer agents, and the GTM/demo/export commands) is preserved at git tag `v0.3.27-full`. Do not propose rebuilding it unless the founder asks.
 
-1. **GENESIS** (CURRENT FOCUS): Idea to working MVP. Builds the reasoning graph. Delivered as a Claude Code plugin.
-2. **EVOLUTION** (PLANNED): System + change request to targeted update. Navigates the graph to handle change without full rewrites.
-3. **SENTIENCE** (VISION): Running system + telemetry to autonomous improvement. Walks the graph to detect, propose, and execute improvements.
+The core asset is still the reasoning graph GENESIS builds: concept anchor → capabilities → architecture decisions → specs. Traceability is what makes the output better than a prompt-built app. The two things the founder wants from this repo: an agentic system to tinker with, and a fast way to turn ideas into MVPs.
 
 ### Guiding Principles
 
-1. **Stay Focused**: Only work on features that advance the current milestone
+1. **Stay Focused**: Only work on what makes the idea-to-MVP loop faster or more honest
 2. **Stay Lean**: Minimum viable implementation. No gold-plating. No premature optimization
-3. **Challenge Distractions**: If it doesn't advance the roadmap, push back. Defer polish, config options, UI enhancements, and premature abstractions
+3. **Challenge Distractions**: This is a personal tool. Push back on anything that serves a hypothetical external user: marketing surface, onboarding polish, adoption features
 4. **Close the Loop**: Partial solutions have no value. Complete the feedback loop
 5. **Trace Everything**: Every requirement traces to a capability. Every capability traces to a user need
 
-Before starting work, ask: Does this advance the current milestone? Is it the minimum viable implementation? Can it be deferred? If so, challenge the request. See [VISION.md](./VISION.md).
+Before starting work, ask: Does this make running a new idea faster or the verdict more honest? Is it the minimum viable implementation? Can it be deferred? If so, challenge the request.
 
 6. **Fix the Root Cause**: When a problem surfaces, fix the underlying issue, not the symptom. Never propose a patch, workaround, or "don't do X" rule when the structure that causes X can be changed. Before any fix, ask: why does this problem exist? Can the root cause be eliminated? A sync test between two files is a patch; putting the data in one file is the fix. Adding "do not repeat Section 2" to a prompt is a patch; merging the two sections that cover the same topic is the fix. This applies everywhere: code, prompts, schemas, architecture. If the fix is harder than the patch, do the fix anyway. Patches accumulate; root cause fixes compound.
 
 7. **Control Plane, Not Data Plane**: Haytham is an orchestrator, not an executor. When choosing between approaches, prefer the one where Haytham declares intent and delegates execution over the one where Haytham does the work itself. Haytham classifies, directs, and validates. Build agents, spec tools, and downstream systems execute. If a proposed change has Haytham doing something a downstream tool should do, push back. The test: "Is Haytham deciding WHAT needs to happen, or doing the work?" If the latter, delegate it.
-
-   This principle compounds across milestones. GENESIS delegates build execution. EVOLUTION delegates change execution. SENTIENCE delegates improvement execution. Each milestone adds a new loop, but Haytham stays the control plane in all of them. A design decision that couples Haytham to execution in GENESIS will block delegation in EVOLUTION and autonomy in SENTIENCE.
 
 ### Meta-System Design
 
@@ -49,8 +45,6 @@ Before starting work, ask: Does this advance the current milestone? Is it the mi
 - **Self-checking agents**: Validate output against input constraints.
 
 **Review test**: "Would this work for a CLI tool? An IoT system? A marketplace?" If no, find the generalization.
-
-**Lifecycle test**: "Does this design decision work for build AND deploy AND monitor AND improve?" If it only serves the build phase, it's too narrow. The reasoning graph must support the full lifecycle.
 
 ### System Integrity Traits
 
@@ -67,9 +61,9 @@ When evaluating or making changes, consider these traits critical to the system'
 
 ## Project Overview
 
-Haytham is a lifecycle control plane for AI-built products, delivered as a Claude Code plugin. It orchestrates specialist agents across the full product lifecycle: validate the idea, specify the MVP, design the architecture, generate implementation specs, and build the system. The current implementation covers validate → specify → build. The roadmap extends to deploy → monitor → improve.
+Haytham is a personal idea-to-MVP pipeline, delivered as a Claude Code plugin. It orchestrates specialist agents to validate the idea, specify the MVP, design the architecture, generate implementation specs, and set up the project for building.
 
-Ten specialist agents across four phases, orchestrated via command and agent markdown files.
+Nine specialist agents across four phases, orchestrated via command and agent markdown files.
 
 ## Plugin Structure
 
@@ -77,13 +71,12 @@ Ten specialist agents across four phases, orchestrated via command and agent mar
 .claude-plugin/
   plugin.json                    # Manifest (name, version, description)
 
-agents/                          # 10 specialist agents (markdown with frontmatter)
+agents/                          # 9 specialist agents (markdown with frontmatter)
   idea-analyst.md                # Concept expansion, gating, anchor extraction
   market-researcher.md           # Market intelligence
   competitor-researcher.md       # Competitor profiles and positioning
   research-briefer.md            # Neutral formatting of research findings
   report-synthesizer.md          # GO/NO-GO/PIVOT verdict (single-agent synthesis)
-  outreach-summarizer.md         # Founder-facing one-page summary for export
   mvp-scoper.md                  # Scope definition, boundaries, core flows
   capability-modeler.md          # Capability extraction + system trait classification
   architect.md                   # Build/buy analysis + architecture decisions
@@ -95,14 +88,17 @@ commands/                        # User-facing commands
   specify.md                     # Phase 2 only (/haytham:specify)
   design.md                      # Phase 3 only (/haytham:design)
   plan.md                        # Phase 4 only (/haytham:plan)
+  build.md                       # Project setup from Phase 4 specs (/haytham:build)
 
 hooks/
   hooks.json                     # PreToolUse prereq checks, PostToolUse validation
 
 scripts/
   check_phase_prereqs.sh         # Phase prerequisite verification
+  post_bash_seed.sh              # Fixes config.yaml quoting after openspec init
   validate_schema.py             # Output schema validation
   validate_som.py                # SOM arithmetic + regulated domain checks
+  validate_openspec.py           # Structural validation of generated OpenSpec
 ```
 
 ## How to Modify
@@ -189,7 +185,7 @@ Do not split a task that requires holistic reasoning across multiple agents conn
 
 **Evidence**: A single LLM call with upstream context scored 8 PASS / 4 PARTIAL / 0 FAIL on report quality criteria, versus 1 PASS / 3 PARTIAL / 8 FAIL from a 4-agent + 6-validator pipeline processing the same inputs.
 
-**When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. The current 8 agents are split along these lines.
+**When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. The current 9 agents are split along these lines.
 
 ### PITFALL: LLM Text Overriding Deterministic Rules
 
@@ -274,6 +270,3 @@ Located at `.claude-plugin/marketplace.json`. Must include `$schema` for validat
 
 **Version management:** The `version` field lives only in `marketplace.json` (inside `plugins[0]`), not in `plugin.json`. Claude Code uses this version to determine whether to update the plugin. Bump it with every release. See the [plugins reference](https://code.claude.com/docs/en/plugins-reference#version-management).
 
-### Submission
-
-Submit to Anthropic's official marketplace via the form at `claude.ai/settings/plugins/submit` or `platform.claude.com/plugins/submit`. PRs to the `anthropics/claude-plugins-official` repo are auto-closed.

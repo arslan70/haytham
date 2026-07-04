@@ -19,7 +19,9 @@ flowchart TD
 
     subgraph why["WHY: Should this be built?"]
         idea_analyst --> market[Market Researcher]
+        idea_analyst --> competitor[Competitor Researcher]
         market --> briefer[Research Briefer]
+        competitor --> briefer
         briefer --> synthesis[Report Synthesizer]
     end
 
@@ -67,7 +69,7 @@ The Idea Analyst extracts "concept anchors" before any analysis begins: the user
 
 Determine if the idea is viable before investing in specification.
 
-The **Market Researcher** uses the Jobs-to-be-Done framework to identify core functional, emotional, and social jobs, then sizes the opportunity using TAM/SAM/SOM analysis. It also anchors competitor searches around the customer job rather than the product category, finding competitors across markets that solve the same job. Both market intelligence and competitor analysis happen in a single agent with web search access.
+Two research agents run in parallel, both with web search access. The **Market Researcher** uses the Jobs-to-be-Done framework to identify core functional, emotional, and social jobs, then sizes the opportunity using TAM/SAM/SOM analysis. The **Competitor Researcher** anchors its search around the customer job rather than the product category, finding competitors across markets that solve the same job, and profiles their positioning, user sentiment, and gaps.
 
 The **Research Briefer** presents the findings in a non-opinionated format for user review before any verdict is rendered.
 
@@ -120,7 +122,8 @@ The OpenSpec in `.haytham/session/phase-4-specs/openspec/` is a complete, self-c
 | Agent | Phase | Responsibility | Model |
 |-------|-------|----------------|-------|
 | Idea Analyst | Discovery/WHY | Classify input, assess coverage, expand concept, extract anchors | sonnet |
-| Market Researcher | WHY | Market intelligence and competitor analysis with web search | sonnet |
+| Market Researcher | WHY | Market intelligence (JTBD, sizing, trends, risks) with web search | sonnet |
+| Competitor Researcher | WHY | Competitor profiles, sentiment, and positioning with web search | sonnet |
 | Research Briefer | WHY | Present research findings neutrally for user review | haiku |
 | Report Synthesizer | WHY | Score dimensions, produce GO/NO-GO/PIVOT verdict | opus |
 | MVP Scoper | WHAT | Scope definition, boundaries, core flows | sonnet |
@@ -139,7 +142,8 @@ Each phase writes structured output to `.haytham/session/`. Phases read upstream
   phase-1-why/
     idea-analysis.md              # Structured idea analysis
     concept-anchor.json           # Invariants that prevent idea drift
-    market-research.md            # Market and competitor findings
+    market-research.md            # Market intelligence findings
+    competitor-research.md        # Competitor profiles and positioning
     research-brief.md             # Neutral brief for founder review
     validation-report.md          # Synthesis report
     validation-report.json        # Structured recommendation
@@ -152,6 +156,7 @@ Each phase writes structured output to `.haytham/session/`. Phases read upstream
   phase-3-how/
     build-buy.json                # BUILD/BUY/HYBRID per capability
     architecture-decisions.json   # DEC-* decisions
+    research-directives.json      # What to investigate before coding
     gate-decision.json
   phase-4-specs/
     openspec/

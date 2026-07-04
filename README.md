@@ -2,13 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**AI can build your app in minutes. Haytham builds your product for years.**
+> **Status (2026-07):** Haytham is now a personal tool. It is no longer seeking users, contributors, or marketplace adoption. The full product ambition (lifecycle control plane, EVOLUTION and SENTIENCE milestones, telemetry loop) is preserved at the git tag `v0.3.27-full` and in [docs/](docs/). What remains is the part that earns its keep: a fast idea-to-MVP pipeline.
 
-Lovable, Bolt, and v0 build apps. Haytham builds products: validated, specified, traceable, and evolvable. Run one command inside Claude Code. Get market research, a GO/NO-GO verdict, MVP scope, architecture decisions, an implementation-ready [OpenSpec](https://github.com/Fission-AI/OpenSpec), and a working system. Every requirement traces to a capability. Every capability traces to a validated need.
-
-<p align="center">
-  <img src="docs/images/yes-machine-problem.png" alt="The Yes-Machine Problem: AI that builds without validating" width="500"/>
-</p>
+Haytham turns a raw startup idea into an implementation-ready specification inside Claude Code. Run one command. Get market research, a GO/NO-GO verdict, MVP scope, architecture decisions, and an [OpenSpec](https://github.com/Fission-AI/OpenSpec) ready to hand to a coding agent. Every requirement traces to a capability. Every capability traces to a validated need.
 
 ## Install
 
@@ -17,7 +13,7 @@ Lovable, Bolt, and v0 build apps. Haytham builds products: validated, specified,
 /plugin install haytham@haytham
 ```
 
-No Python. No API keys. No environment variables. Works with your existing Claude Code subscription.
+No Python. No API keys. No environment variables.
 
 ## Try it
 
@@ -53,8 +49,6 @@ Phase 4: What are the specs?
   → Ready to hand to Claude Code or any coding agent
 ```
 
-Every requirement traces to a capability. Every capability traces to a validated need. Every decision traces to the capabilities it serves.
-
 ## See example output
 
 The [`examples/`](examples/) directory contains complete outputs from real Haytham runs across different idea types:
@@ -64,8 +58,6 @@ The [`examples/`](examples/) directory contains complete outputs from real Hayth
 | [Gym Leaderboard](examples/gym-leaderboard/) | B2C consumer app | GO (high risk) |
 | [Git Changelog CLI](examples/git-changelog-cli/) | Developer tool | GO |
 | [Invoice Reconciler](examples/invoice-reconciler/) | B2B SaaS | PIVOT |
-
-Each example shows the full output tree: validation report, MVP scope, architecture decisions, and OpenSpec.
 
 ## Output structure
 
@@ -99,15 +91,13 @@ All output lives in `.haytham/session/`:
 
 ## How it works
 
-Ten specialist agents across four phases. Market research agents run web searches. The report synthesizer weighs evidence and produces an honest verdict. If risks are high, it says so. If the idea doesn't hold up, it recommends NO-GO.
+Nine specialist agents across four phases. Market research agents run web searches. The report synthesizer weighs evidence and produces an honest verdict. If risks are high, it says so. If the idea doesn't hold up, it recommends NO-GO.
 
 Concept anchors (extracted in Phase 1) are passed unchanged to every downstream agent, preventing the "telephone game" where your specific idea gets genericized into something bland.
 
 Read more: [How It Works](https://arslan70.github.io/haytham/how-it-works/) | [System Evolution](https://arslan70.github.io/haytham/system-evolution/)
 
 ## Commands
-
-### Pipeline
 
 | Command | Description |
 |---------|-------------|
@@ -118,40 +108,7 @@ Read more: [How It Works](https://arslan70.github.io/haytham/how-it-works/) | [S
 | `/haytham:plan` | Phase 4: Generate implementation-ready OpenSpec |
 | `/haytham:build` | Set up a new project from Phase 4 specs |
 
-### Utilities
-
-| Command | Description |
-|---------|-------------|
-| `/haytham:demo <URL>` | Batch-validate a URL and export the report to a demos repo |
-| `/haytham:export` | Export a validation report to a demos repository for sharing |
-
-### Quality reviews
-
-| Command | Description |
-|---------|-------------|
-| `/haytham:ux-review` | Analyze a run transcript for UX guideline compliance |
-| `/haytham:review-fidelity` | Check if output stays faithful to the original idea |
-| `/haytham:review-consistency` | Check cross-stage consistency and traceability |
-| `/haytham:review-depth` | Check Phase 1 analysis depth and evidence quality |
-| `/haytham:review-actionability` | Check if the spec is detailed enough to implement |
-
-Both `/haytham:validate` and `/haytham:demo` accept Reddit post and GitHub repo URLs. Use `--batch` with `/haytham:validate` to skip interactive gates.
-
-## Share your experience
-
-Tried Haytham? We want to hear about it.
-
-- [Share your run](https://github.com/arslan70/haytham/discussions) on GitHub Discussions
-- [Report a bug](https://github.com/arslan70/haytham/issues)
-- [Read the blog](https://arslan70.github.io/haytham/blog/) for design decisions and lessons learned
-
-## Documentation
-
-- [Getting Started](https://arslan70.github.io/haytham/getting-started/)
-- [How It Works](https://arslan70.github.io/haytham/how-it-works/)
-- [OpenSpec Output](https://arslan70.github.io/haytham/openspec-output/)
-- [System Evolution](https://arslan70.github.io/haytham/system-evolution/)
-- [Blog](https://arslan70.github.io/haytham/blog/)
+`/haytham:validate` accepts Reddit post and GitHub repo URLs. Use `--batch` to skip interactive gates (the NO-GO halt still applies).
 
 ## License
 

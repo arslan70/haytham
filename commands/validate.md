@@ -21,8 +21,7 @@ Default (interactive) todo set:
 4. Step 3 — Research brief
 5. Step 4 — Founder review
 6. Step 5 — Validation report
-7. Step 5b — Automated reviews (depth + fidelity)
-8. Step 6 — Gate 1
+7. Step 6 — Gate 1
 
 Mark each todo `in_progress` when starting the step and `completed` when its output file is written (or the gate decision is recorded). If a step re-runs because the founder corrected something, set it back to `in_progress`.
 
@@ -350,39 +349,6 @@ After the full report, read `.haytham/session/phase-1-why/validation-report.json
 
 Update state: `last_completed_step: 5`.
 
-## Step 5b: Automated Reviews
-
-After Step 5 writes the validation report, launch reviewers automatically. These are non-blocking — they surface findings for the founder to weigh at the gate, but they do not halt the pipeline.
-
-Launch BOTH agents in parallel:
-
-1. A **reviewer-depth** agent with this task:
-   > Review Phase 1 output in `.haytham/session/phase-1-why/`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/reviews/depth.json`.
-
-2. A **reviewer-fidelity** agent with this task:
-   > Review Phase 1 output in `.haytham/session/phase-1-why/` against `.haytham/project.yaml`. Follow your instructions exactly. Emit the findings table inline. Write the structured summary to `.haytham/session/reviews/fidelity.json`.
-
-After both agents complete, read `.haytham/session/reviews/depth.json` and `.haytham/session/reviews/fidelity.json`. If either file does not exist or has `"status": "skipped"`, note which was skipped and proceed.
-
-**If BATCH_MODE is true:** Do not embed the digest in user-facing messages (the gate is auto-approved). The JSON summaries on disk are sufficient.
-
-**Otherwise**, build a combined digest. Merge `top_findings` from both reviewers, sort by confidence descending, take the top 3 overall. Emit:
-
-> **Automated reviews of the report above:**
->
-> - **Depth:** [status] — [score.pass]/[score.total] PASS, [score.partial] PARTIAL, [score.fail] FAIL
-> - **Fidelity:** [status] — drift pattern: [drift_pattern]; [score.pass]/[score.applicable] PASS, [score.partial] PARTIAL, [score.fail] FAIL
->
-> **Top findings to consider before approving:**
-> - **[confidence] [reviewer]** — [criterion or check]: [issue] (see [file])
-> - (repeat for up to 3 highest-confidence findings)
->
-> Full summaries: `.haytham/session/reviews/depth.json`, `.haytham/session/reviews/fidelity.json`. Run `/haytham:review-depth` or `/haytham:review-fidelity` to re-run a single reviewer.
-
-If both reviewers returned `"status": "pass"` and no top findings, emit one line: `Automated reviews passed (depth + fidelity). No findings to surface.`
-
-Do not update `last_completed_step` for this sub-step. Reviews are supplemental; if the user resumes mid-flow, `--from 6` correctly skips reviews and proceeds to the gate.
-
 ## Step 6: Gate 1
 
 **If BATCH_MODE is true:** Read the recommendation from `.haytham/session/phase-1-why/validation-report.json`.
@@ -433,4 +399,4 @@ Write gate decision to `.haytham/session/phase-1-why/gate-decision.json`:
 
 Update state: `last_completed_step: 6`.
 
-Tell the user: "Phase 1 complete. Ran 4 agents across 6 steps. Output saved to `.haytham/session/phase-1-why/`. Run `/haytham:specify` to proceed to Phase 2."
+Tell the user: "Phase 1 complete. Ran 5 agents across 6 steps. Output saved to `.haytham/session/phase-1-why/`. Run `/haytham:specify` to proceed to Phase 2."

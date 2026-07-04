@@ -14,10 +14,10 @@ description: |
 
   <example>
   Context: An existing Haytham project already has openspec/ and the founder wants to adjust scope.
-  user: "/haytham:evolve the leaderboard should be team-based instead of individual"
-  assistant: [does NOT invoke idea-analyst — uses the /haytham:evolve flow, which reads the existing concept-anchor.json from openspec/context/]
+  user: "the leaderboard should be team-based instead of individual"
+  assistant: [does NOT invoke idea-analyst — edits the existing concept-anchor.json and affected specs directly, keeping prior corrections intact]
   <commentary>
-  idea-analyst is for initial concept extraction. For evolution of an existing reasoning graph, the anchor is already on disk; re-deriving it would discard prior corrections and gate decisions.
+  idea-analyst is for initial concept extraction. On an existing reasoning graph the anchor is already on disk; re-deriving it would discard prior corrections and gate decisions. Make the targeted edit instead.
   </commentary>
   </example>
 tools: Read, Write, Glob
