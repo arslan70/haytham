@@ -1,0 +1,4 @@
+# Development dependencies for running the plugin sanity tests.
+# Install into a virtual environment: pip install -r requirements-dev.txt
+pytest==9.1.1
+PyYAML==6.0.3

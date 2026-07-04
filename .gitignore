@@ -16,6 +16,9 @@ site/
 .idea/
 .vscode/
 
+# Python virtual environment (machine-local)
+.venv/
+
 # Claude Code (machine-local)
 .claude/
 
