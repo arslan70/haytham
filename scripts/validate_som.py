@@ -181,17 +181,25 @@ def main():
         haytham_root = os.sep.join(parts[: parts.index(".haytham") + 1])
         project_yaml = os.path.join(haytham_root, "project.yaml")
         try:
-            import yaml
-
             with open(project_yaml) as f:
-                project = yaml.safe_load(f)
-                idea_text = project.get("idea", "")
-        except Exception:
-            # If yaml isn't available or file doesn't exist, try plain read
+                raw = f.read()
+        except OSError:
+            raw = ""
+        if raw:
             try:
-                with open(project_yaml) as f:
-                    idea_text = f.read()
-            except (FileNotFoundError, OSError):
+                import yaml
+
+                project = yaml.safe_load(raw)
+                if isinstance(project, dict):
+                    idea_text = str(project.get("idea") or "")
+            except ImportError:
+                # Without yaml, extract only the idea value. Never feed the
+                # whole file to the domain regexes: founder_context and other
+                # prose sections would trigger false compliance warnings.
+                match = re.search(r"^idea:[ \t]*(.+)$", raw, re.MULTILINE)
+                if match:
+                    idea_text = match.group(1).strip().strip("\"'")
+            except Exception:
                 pass
 
     warnings.extend(
