@@ -107,6 +107,30 @@ def validate_som_arithmetic(report_text: str) -> list[str]:
     return []
 
 
+def _extract_idea_without_yaml(raw: str) -> str:
+    """Best-effort idea extraction when pyyaml is unavailable.
+
+    Handles both the inline form (`idea: some text`) and the block-scalar
+    form (`idea: |`) that project.yaml actually uses. Only the idea value is
+    returned — never the whole file, whose founder_context and other prose
+    sections would trigger false regulated-domain warnings.
+    """
+    match = re.search(r"^idea:[ \t]*(.*)$", raw, re.MULTILINE)
+    if not match:
+        return ""
+    inline = match.group(1).strip()
+    if not inline.startswith(("|", ">")):
+        return inline.strip("\"'")
+    # Block scalar: collect the indented lines that follow, stopping at the
+    # next top-level (unindented) key.
+    block = []
+    for line in raw[match.end() :].splitlines():
+        if line.strip() and not line[:1].isspace():
+            break
+        block.append(line.strip())
+    return " ".join(part for part in block if part)
+
+
 def validate_regulated_domain_safety(
     report_text: str, idea_text: str, recommendation: str
 ) -> list[str]:
@@ -193,12 +217,7 @@ def main():
                 if isinstance(project, dict):
                     idea_text = str(project.get("idea") or "")
             except ImportError:
-                # Without yaml, extract only the idea value. Never feed the
-                # whole file to the domain regexes: founder_context and other
-                # prose sections would trigger false compliance warnings.
-                match = re.search(r"^idea:[ \t]*(.+)$", raw, re.MULTILINE)
-                if match:
-                    idea_text = match.group(1).strip().strip("\"'")
+                idea_text = _extract_idea_without_yaml(raw)
             except Exception:
                 pass
 
