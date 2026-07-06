@@ -16,6 +16,8 @@ description: "Five runs over ten days. The first found broken instrumentation. T
 
 # Can you ask Claude Code to improve your system?
 
+> **Status (2026-07-03): the commands this post describes were retired.** Haytham has since been re-scoped to a personal idea-to-MVP pipeline. `/haytham:propose-next-steps` and `/haytham:evolve` no longer exist in the plugin; their machinery is preserved at git tag [`v0.3.27-full`](https://github.com/arslan70/haytham/tree/v0.3.27-full). The post is kept as a record of what the loop found while it ran.
+
 Open Claude Code, Cursor, or whatever agent you use. Ask it: "Look at this project and suggest a meaningful improvement." Watch what comes back.
 
 <!-- more -->

@@ -27,6 +27,10 @@ if [ -z "$AGENT_TYPE_LOWER" ]; then
     exit 0
 fi
 
+# Gate files live under the project root's .haytham/, never the hook CWD —
+# the hook may run from a directory that has an unrelated .haytham/.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
+
 # Map agent names to required prerequisite files
 check_prereq() {
     local prereq_file="$1"
@@ -42,17 +46,17 @@ check_prereq() {
 
 # Phase 2 agents require Phase 1 gate decision
 if echo "$AGENT_TYPE_LOWER" | grep -qE '(mvp-scoper|capability-modeler)'; then
-    check_prereq ".haytham/session/phase-1-why/gate-decision.json" "Phase 1 (WHY)"
+    check_prereq "$PROJECT_DIR/.haytham/session/phase-1-why/gate-decision.json" "Phase 1 (WHY)"
 fi
 
 # Phase 3 agents require Phase 2 gate decision
 if echo "$AGENT_TYPE_LOWER" | grep -qE '(architect)'; then
-    check_prereq ".haytham/session/phase-2-what/gate-decision.json" "Phase 2 (WHAT)"
+    check_prereq "$PROJECT_DIR/.haytham/session/phase-2-what/gate-decision.json" "Phase 2 (WHAT)"
 fi
 
 # Phase 4 agents require Phase 3 gate decision
 if echo "$AGENT_TYPE_LOWER" | grep -qE '(spec-generator)'; then
-    check_prereq ".haytham/session/phase-3-how/gate-decision.json" "Phase 3 (HOW)"
+    check_prereq "$PROJECT_DIR/.haytham/session/phase-3-how/gate-decision.json" "Phase 3 (HOW)"
 fi
 
 # All checks passed

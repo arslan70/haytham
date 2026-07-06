@@ -17,11 +17,11 @@
       "license": "MIT",
       "keywords": [
         "startup",
-        "lifecycle",
+        "validation",
         "specification",
-        "control-plane",
+        "mvp",
         "agents",
-        "product"
+        "openspec"
       ],
       "category": "productivity"
     }

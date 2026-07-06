@@ -51,7 +51,7 @@ Launch a **spec-generator** agent with this task:
 
 After the agent completes, run validation:
 ```bash
-python3 scripts/validate_openspec.py .haytham/session/phase-4-specs/openspec/ .haytham/session/phase-2-what/capabilities.json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/validate_openspec.py" .haytham/session/phase-4-specs/openspec/ .haytham/session/phase-2-what/capabilities.json
 ```
 
 If validation produces warnings, report them to the user before the digest.
