@@ -1,5 +1,5 @@
 ---
-description: Autonomous daily idea scout - extract candidates from a harvest, screen them, deep dive the winner (headless; no human in the loop)
+description: Autonomous daily idea scout - extract problems from a harvest, screen them with a solution angle, deep dive the winner (headless; no human in the loop)
 argument-hint: "[run_dir] (must contain harvest/ written by scout_harvest.py)"
 allowed-tools: Read, Write, Bash, Glob, Agent, TodoWrite
 ---
@@ -27,7 +27,7 @@ RUN_DIR = `$ARGUMENTS` (a path relative to the working directory).
 
 ## Step 1 — Extract
 
-Launch the `idea-scout` agent. Tell it the RUN_DIR. It writes `RUN_DIR/candidates/candidates.json`.
+Launch the `idea-scout` agent. Tell it the RUN_DIR and give it PERSONA verbatim. It writes `RUN_DIR/candidates/candidates.json`.
 
 Verify the file exists and parses. If it is missing or `candidates` is empty, write `RUN_DIR/scout-status.json` `{"failed_at": "extract", "reason": "<what happened>"}` and stop.
 
