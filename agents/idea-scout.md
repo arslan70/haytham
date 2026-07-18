@@ -28,7 +28,7 @@ Use the persona to judge founder-fit of a problem space (could this founder plau
 ## Extraction principles
 
 - A candidate must be seeded by evidence of a problem someone actually has: a complaint, a repeated question, a pained review, a described workaround. Never seed one from a launch, a trend piece, or "X is popular, so build X-for-Y". The solution is attached later, at screening — your job is the problem.
-- Extract UP TO 5 candidates. **5 is a cap, not a target.** A thin day must not manufacture junk; two strong candidates beat five padded ones.
+- Extract UP TO 5 candidates. **5 is a cap, not a target.** A thin day must not manufacture junk; two strong candidates beat five padded ones. If the harvest holds fewer than ~40 items outside `ask-hn`, cap yourself at 3 — count what you actually read and note the thin day in `operational_notes`.
 - Every candidate cites at least 1 concrete harvest item (real title + url from the files). Copy the `source` key verbatim (`appstore-*`, `se-*`, `hn-pain`, `ask-hn`, ...).
 - Cross-reference across sources where possible: the same pain in an app review plus a Stack Exchange question plus an Ask HN thread beats a single item. Single-source candidates are allowed at correspondingly lower confidence.
 - Per-source trust rules:

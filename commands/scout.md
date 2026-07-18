@@ -53,13 +53,20 @@ SESSION = `RUN_DIR/session/phase-1-why`. Include this override block verbatim in
 > - Session directory: read and write SESSION wherever your instructions say `.haytham/session/phase-1-why/`.
 > - The idea comes from an automated scout. There is nobody to ask. On ANY path where your instructions say to stop, ask for clarification, or escalate, proceed with your best interpretation and log every assumption explicitly in your output file.
 > - founder_context (treat as the founder): PERSONA
-> - The idea statement lives in RUN_DIR/selected/project.yaml; treat it as `.haytham/project.yaml`.
+> - The idea statement lives in RUN_DIR/selected/project.yaml; treat it as `.haytham/project.yaml`. Its `pain_evidence` and `evidence` blocks are raw harvest quotes — treat them as primary sources; do not re-fetch those URLs from the web.
 
 Sequence:
 
 1. **idea-analyst** — adopt `agents/idea-analyst.md` (in the plugin) with the overrides. Writes idea-analysis.md + concept-anchor.json into SESSION.
 2. **market-researcher and competitor-researcher in parallel** (two Agent calls in one message) — each adopts its plugin agent file with the overrides. Additionally give each the winner's evidence URLs from `RUN_DIR/selected/selection.json` with the instruction: "WebFetch these cited URLs directly before searching; they may be too fresh for search indexes."
-3. **report-synthesizer** — adopts its plugin agent file with the overrides, plus: "No founder reviewed the research and no founder-corrections.json exists; state plainly in the report that the research is machine-gathered and unreviewed. ALSO read RUN_DIR/screen/screening.json as a designated input and reconcile any competitor named there but missing from competitor-research.md — flag discrepancies, do not silently patch." Writes validation-report.md + validation-report.json into SESSION.
+3. **report-synthesizer** — adopts its plugin agent file with the overrides, plus this scout-mode scoring block verbatim:
+
+   > SCOUT-MODE SCORING (overrides the agent file where they conflict):
+   > - Composite rubric is FIXED across runs so scores are comparable day to day. Exactly these 5 dimensions, each 0-5, composite = their mean, on a /5 scale: problem_severity (how bad and how frequent is the pain in the evidence), evidence_confidence (how much of the thesis rests on verified data vs belief — this dimension, not a global cap, carries the day-0 penalty; do NOT apply the "composite above 3.5 not permitted" rule), market_openness (can a new entrant win: incumbent gaps, distribution paths), founder_fit (persona vs what winning requires), wedge_viability (does the solution angle survive the research).
+   > - NO-GO is mandatory when direct disconfirming evidence exists (a free or bundled incumbent already serves the exact wedge for the same user, the pain is one-off, or the evidence contradicts the problem statement). GO is allowed when evidence_confidence >= 3 and no fatal finding survived. PIVOT is for a real problem with a wrong wedge — name the better wedge.
+   > - State the evidence basis ("machine-gathered, day-0, unreviewed") once in a fixed report field, not as a warning; warnings are only for findings specific to today.
+
+   Also: "No founder reviewed the research and no founder-corrections.json exists. ALSO read RUN_DIR/screen/screening.json as a designated input and reconcile any competitor named there but missing from competitor-research.md — flag discrepancies, do not silently patch." Writes validation-report.md + validation-report.json into SESSION.
 
 If a deep-dive agent dies, record it in scout-status.json and stop — do not retry more than once, do not substitute your own analysis.
 
@@ -70,5 +77,7 @@ Write `RUN_DIR/scout-status.json`:
 ```json
 {"completed": true, "winner_one_liner": "...", "recommendation": "GO|PIVOT|NO-GO", "composite_score": 0.0}
 ```
+
+`winner_one_liner` is copied VERBATIM from `RUN_DIR/selected/selection.json` (`winner.candidate.one_liner`) — never paraphrase it. `recommendation` and `composite_score` come from validation-report.json.
 
 Final message: one line — winner, recommendation, composite score. The report script does the rest.
