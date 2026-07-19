@@ -27,11 +27,15 @@ RUN_DIR = `$ARGUMENTS` (a path relative to the working directory).
 
 ## Step 1 — Extract
 
+Replay guard: if `RUN_DIR/candidates/candidates.json` already exists and parses with a non-empty `candidates` list, skip this step (replay/sampling run) and go to Step 2.
+
 Launch the `idea-scout` agent. Tell it the RUN_DIR and give it PERSONA verbatim. It writes `RUN_DIR/candidates/candidates.json`.
 
 Verify the file exists and parses. If it is missing or `candidates` is empty, write `RUN_DIR/scout-status.json` `{"failed_at": "extract", "reason": "<what happened>"}` and stop.
 
 ## Step 2 — Screen
+
+Replay guard: if `RUN_DIR/screen/screening.json` already exists and parses with a non-empty `scorecards` list, skip this step and go to Step 3.
 
 Launch the `feasibility-screener` agent. Tell it the RUN_DIR and give it PERSONA verbatim. It writes `RUN_DIR/screen/screening.json` and `screening.md`.
 
@@ -39,7 +43,9 @@ Verify screening.json exists and parses; on failure write scout-status.json `{"f
 
 ## Step 3 — Select (deterministic)
 
-Run: `python3 scripts/scout_select.py "$RUN_DIR"`
+Replay guard: if `RUN_DIR/selected/selection.json` already exists and parses, do NOT run the script — a sampling workflow pre-selected the winner (possibly with gates deliberately bypassed) and re-running would overwrite it.
+
+Otherwise run: `python3 scripts/scout_select.py "$RUN_DIR"`
 
 Read `RUN_DIR/selected/selection.json`. If `decision` is not `deep_dive`, write `RUN_DIR/scout-status.json` `{"failed_at": null, "honest_zero": "<reason from selection.json>"}` and stop — this is a normal outcome, not an error.
 
@@ -63,7 +69,7 @@ Sequence:
 
    > SCOUT-MODE SCORING (overrides the agent file where they conflict):
    > - Composite rubric is FIXED across runs so scores are comparable day to day. Exactly these 5 dimensions, each 0-5, composite = their mean, on a /5 scale: problem_severity (how bad and how frequent is the pain in the evidence), evidence_confidence (how much of the thesis rests on verified data vs belief — this dimension, not a global cap, carries the day-0 penalty; do NOT apply the "composite above 3.5 not permitted" rule), market_openness (can a new entrant win: incumbent gaps, distribution paths), founder_fit (persona vs what winning requires), wedge_viability (does the solution angle survive the research).
-   > - NO-GO is mandatory when direct disconfirming evidence exists (a free or bundled incumbent already serves the exact wedge for the same user, the pain is one-off, or the evidence contradicts the problem statement). GO is allowed when evidence_confidence >= 3 and no fatal finding survived. PIVOT is for a real problem with a wrong wedge — name the better wedge.
+   > - NO-GO is mandatory when direct disconfirming evidence exists (a free or bundled incumbent already serves the exact wedge for the same user, the pain is one-off, or the evidence contradicts the problem statement). GO is allowed when evidence_confidence >= 3 and no fatal finding survived. PIVOT is for a real problem with a wrong wedge — name the better wedge, AND put it in validation-report.json as a top-level `pivot_wedge` field: ONE sentence naming the better wedge (machine-read into the ledger's wedge backlog; omit the field entirely on GO/NO-GO).
    > - State the evidence basis ("machine-gathered, day-0, unreviewed") once in a fixed report field, not as a warning; warnings are only for findings specific to today.
 
    Also: "No founder reviewed the research and no founder-corrections.json exists. ALSO read RUN_DIR/screen/screening.json as a designated input and reconcile any competitor named there but missing from competitor-research.md — flag discrepancies, do not silently patch." Writes validation-report.md + validation-report.json into SESSION.

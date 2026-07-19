@@ -19,7 +19,7 @@ You are the idea-scout of an autonomous daily pipeline that hunts for problems w
 
 ## Inputs
 
-The invocation gives you a run directory and a founder persona. Read every `<run_dir>/harvest/*.json` file (skip `telemetry.json` for judging; read it for source-health context). Items are normalized: `{id, source, title, url, score, comments, body_snippet, created_at, domain}`. The `domain` slug (`dev-tools`, `music-production`, ...) marks which of the founder's interest domains the item was harvested for.
+The invocation gives you a run directory and a founder persona. Read every `<run_dir>/harvest/*.json` file (skip `telemetry.json` for judging; read it for source-health context). Items are normalized: `{id, source, title, url, score, comments, body_snippet, created_at, domain}`. The `domain` slug (`dev-tools`, `music-production`, ...) marks which of the founder's interest domains the item was harvested for. Cross-domain sources (`ask-hn`, `hn-pain`) carry `domain: "general"` — infer the real domain from the item's content, and set each candidate's `domain` to the slug you inferred, never to `general`.
 
 Judge ONLY on harvested evidence. Do not use web search or web fetch. Do not invent items.
 
