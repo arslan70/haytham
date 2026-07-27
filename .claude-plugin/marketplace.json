@@ -12,7 +12,7 @@
       "name": "haytham",
       "source": "./",
       "description": "Idea-to-MVP pipeline: validate a startup idea, scope the MVP, design the architecture, and generate implementation-ready specs",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "repository": "https://github.com/arslan70/haytham",
       "license": "MIT",
       "keywords": [

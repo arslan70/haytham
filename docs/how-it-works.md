@@ -95,7 +95,7 @@ The **Capability Checker** then audits the model adversarially. A generation pas
 
 ### Gate 2: Product Owner Review
 
-The modeler writes `gate-summary.md` alongside the JSON, and the gate renders that file verbatim. It carries what the JSON cannot hold: the behaviors that were cut, the calls that could have gone the other way, and the questions the approved scope left open. The decision record then stores the summary path and a SHA-256 of the text, so the approval names exactly what was read.
+The modeler writes `gate-summary.md` alongside the JSON, and the gate renders that file verbatim. It carries what the JSON cannot hold: the behaviors that were cut, the calls that could have gone the other way, and the questions the approved scope left open. The decision record then stores the summary path and a SHA-256 of the text, so the approval names exactly what was read. The validator re-hashes the file on every write and warns if the two ever disagree, which is what makes a post-approval edit detectable rather than merely recorded.
 
 - **Approved**: Scope is locked, proceed to technical design
 - **Revise**: Adjust scope boundaries or capabilities

@@ -511,7 +511,15 @@ Update state: `last_completed_step: 10`.
 
 ### Step 11: Gate 2
 
-**If BATCH_MODE is true:** Auto-write gate decision with `user_decision: "batch-auto-approved"`. Tell the user:
+**If BATCH_MODE is true:** hash the summary, then auto-write the gate decision.
+
+```bash
+shasum -a 256 .haytham/session/phase-2-what/gate-summary.md
+```
+
+Write `.haytham/session/phase-2-what/gate-decision.json` using the same template as the approved case below, with `user_decision: "batch-auto-approved"`, `summary_shown` set to the summary path, and `summary_sha256` set to that digest. Batch mode skips the human, not the record: the summary was still what the phase produced, so the decision still names it.
+
+Tell the user:
 > **Gate 2 auto-approved (batch mode).** Proceeding to technical design.
 
 Update state: `last_completed_step: 11`. Skip to Phase 3.
@@ -562,7 +570,7 @@ Ask:
 
 Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections. Set `checker_rounds` to CHECKER_ROUNDS and `checker_additions_accepted` to ADDITIONS_ACCEPTED from Step 10.
 
-Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval, so the record names the exact text that was approved. In BATCH_MODE, run `shasum -a 256` on the file when writing the auto-approval and record both fields the same way.
+Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval, so the record names the exact text that was approved. If you revised the model after rendering, recompute it: the validator re-hashes `gate-summary.md` and warns when the two disagree.
 
 Update state: `last_completed_step: 11`.
 
@@ -611,7 +619,15 @@ Update state: `last_completed_step: 12`.
 
 ### Step 13: Review & Gate 3
 
-**If BATCH_MODE is true:** Auto-write gate decision with `user_decision: "batch-auto-approved"`. Tell the user:
+**If BATCH_MODE is true:** hash the summary, then auto-write the gate decision.
+
+```bash
+shasum -a 256 .haytham/session/phase-3-how/gate-summary.md
+```
+
+Write `.haytham/session/phase-3-how/gate-decision.json` using the same template as the approved case below, with `user_decision: "batch-auto-approved"`, `summary_shown` set to the summary path, and `summary_sha256` set to that digest. Batch mode skips the human, not the record.
+
+Tell the user:
 > **Gate 3 auto-approved (batch mode).** Proceeding to spec generation.
 
 Update state: `last_completed_step: 13`. Skip to Phase 4.
@@ -650,7 +666,7 @@ Write gate decision:
 }
 ```
 
-Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval, so the record names the exact text that was approved. In BATCH_MODE, run `shasum -a 256` on the file when writing the auto-approval and record both fields the same way.
+Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval, so the record names the exact text that was approved. If the design was revised after rendering, recompute it: the validator re-hashes `gate-summary.md` and warns when the two disagree.
 
 Update state: `last_completed_step: 13`.
 

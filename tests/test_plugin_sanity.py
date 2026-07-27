@@ -8,6 +8,7 @@ Tests cover:
 5. Marketplace JSON validation
 """
 
+import hashlib
 import json
 import os
 import re
@@ -611,12 +612,67 @@ class TestSchemaValidation:
         warnings = validate_file(str(dst))
         assert any("cap: 600" in w for w in warnings)
 
+    def _gate_decision_with_summary(self, tmp_path, summary_text):
+        """Write a phase-2 gate decision whose digest matches the summary beside it."""
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-2-what"
+        phase_dir.mkdir(parents=True)
+        (phase_dir / "gate-summary.md").write_text(summary_text)
+        decision = json.loads(
+            (FIXTURES_DIR / "valid_gate_decision_phase2.json").read_text()
+        )
+        decision["summary_sha256"] = hashlib.sha256(
+            summary_text.encode()
+        ).hexdigest()
+        dst = phase_dir / "gate-decision.json"
+        dst.write_text(json.dumps(decision))
+        return dst
+
     def test_valid_gate_decision_phase2(self, tmp_path):
+        summary = (FIXTURES_DIR / "valid_gate_summary_phase2.md").read_text()
+        dst = self._gate_decision_with_summary(tmp_path, summary)
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_gate_decision_digest_mismatch(self, tmp_path):
+        """An edit to the summary after approval must be detectable."""
+        summary = (FIXTURES_DIR / "valid_gate_summary_phase2.md").read_text()
+        dst = self._gate_decision_with_summary(tmp_path, summary)
+        (dst.parent / "gate-summary.md").write_text(summary + "\nSnuck in later.\n")
+        warnings = validate_file(str(dst))
+        assert any("does not match gate-summary.md" in w for w in warnings)
+
+    def test_gate_decision_summary_file_missing(self, tmp_path):
+        """A decision naming a summary that is not on disk is a broken record."""
         dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "gate-decision.json"
         dst.parent.mkdir(parents=True)
         dst.write_text((FIXTURES_DIR / "valid_gate_decision_phase2.json").read_text())
         warnings = validate_file(str(dst))
-        assert not warnings, f"Unexpected warnings: {warnings}"
+        assert any("no gate-summary.md exists" in w for w in warnings)
+
+    def test_gate_decision_phase3_digest_checked(self, tmp_path):
+        """Phase 3 records the same provenance and gets the same check."""
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-3-how"
+        phase_dir.mkdir(parents=True)
+        summary = (FIXTURES_DIR / "valid_gate_summary_phase3.md").read_text()
+        (phase_dir / "gate-summary.md").write_text(summary)
+        dst = phase_dir / "gate-decision.json"
+        dst.write_text(
+            json.dumps(
+                {
+                    "phase": 3,
+                    "user_decision": "approved",
+                    "summary_shown": ".haytham/session/phase-3-how/gate-summary.md",
+                    "summary_sha256": hashlib.sha256(summary.encode()).hexdigest(),
+                    "notes": "",
+                    "decided_at": "2026-07-27T10:00:00Z",
+                }
+            )
+        )
+        assert not validate_file(str(dst))
+
+        (phase_dir / "gate-summary.md").write_text(summary + "\nEdited.\n")
+        warnings = validate_file(str(dst))
+        assert any("does not match gate-summary.md" in w for w in warnings)
 
     def test_gate_decision_phase2_missing_summary(self, tmp_path):
         dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "gate-decision.json"

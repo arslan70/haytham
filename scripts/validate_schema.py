@@ -9,6 +9,7 @@ Checks:
 Outputs warnings to stderr (non-blocking). Exit 0 always.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -340,6 +341,52 @@ def _validate_gate_summary(file_path: str, content: str) -> list[str]:
     return warnings
 
 
+def _check_summary_digest(file_path: str, data: dict) -> list[str]:
+    """Re-hash the gate summary and compare against the recorded digest.
+
+    The point of storing summary_sha256 is that an edit to the summary after
+    approval becomes detectable. Checking only that the field is non-empty
+    would leave the digest decorative, so recompute it here.
+
+    file_path is the gate-decision.json path; the summary is its sibling.
+    """
+    warnings = []
+    phase_dir = os.path.dirname(file_path)
+    summary_path = os.path.join(phase_dir, "gate-summary.md")
+
+    shown = data.get("summary_shown", "")
+    if os.path.basename(shown) != "gate-summary.md":
+        warnings.append(
+            f"'summary_shown' points at '{shown}', not the gate-summary.md "
+            f"beside gate-decision.json in {os.path.basename(phase_dir)}"
+        )
+        return warnings
+
+    if not os.path.exists(summary_path):
+        warnings.append(
+            f"'summary_shown' names {shown} but no gate-summary.md exists in "
+            f"{os.path.basename(phase_dir)}. The approved text is missing."
+        )
+        return warnings
+
+    try:
+        with open(summary_path, "rb") as sf:
+            actual = hashlib.sha256(sf.read()).hexdigest()
+    except OSError:
+        return warnings
+
+    recorded = str(data.get("summary_sha256", "")).strip().lower()
+    if recorded != actual:
+        warnings.append(
+            f"'summary_sha256' does not match gate-summary.md in "
+            f"{os.path.basename(phase_dir)} (recorded {recorded[:12]}..., "
+            f"file hashes to {actual[:12]}...). Either the summary was edited "
+            "after approval, or the digest was not taken from the rendered text."
+        )
+
+    return warnings
+
+
 def validate_file(file_path: str) -> list[str]:
     """Validate a JSON file against its schema. Returns warnings."""
     warnings = []
@@ -393,6 +440,8 @@ def validate_file(file_path: str) -> list[str]:
                 f"Missing 'summary_sha256' in {basename} (phase {data.get('phase')}). "
                 "Without the digest, a later edit to the summary is undetectable."
             )
+        else:
+            warnings.extend(_check_summary_digest(file_path, data))
 
     # Special validation for concept-anchor.json
     if basename == "concept-anchor.json":
