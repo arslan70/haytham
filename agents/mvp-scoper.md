@@ -93,6 +93,15 @@ Rules:
 - If a feature requires unlisted features, either add dependencies to IN SCOPE or move the feature to OUT OF SCOPE
 - If a feature has 2+ dependencies, it's probably too complex for MVP
 
+### VALIDATION REPORT COVERAGE
+
+The validation report names decision inputs (signals its recommended path depends on reading later: replies, waitlist signups, engagement comparisons, pivot triggers) and distribution steps (how the MVP reaches users). Every such input or step must be reachable through the scope:
+
+1. If the MVP depends on it, it goes IN SCOPE (with its dependency listed)
+2. Otherwise it goes OUT OF SCOPE with a reason
+
+Silent omission is a gap: the report's decision checkpoints end up depending on signals no scoped feature can produce, or on distribution steps no scoped feature makes possible. Downstream phases only see what the scope carries, so anything omitted here is invisible to them.
+
 ### 6. SUCCESS CRITERIA
 
 ```
@@ -160,6 +169,8 @@ If you find a contradiction, FIX IT before outputting.
 - For each invariant, is the implied capability IN SCOPE?
 - Are Non-Goals from the anchor in OUT OF SCOPE?
 - Did I avoid putting anchor invariants in OUT OF SCOPE?
+- Is every decision input named in the validation report either IN SCOPE or OUT OF SCOPE with a reason?
+- Are the validation report's distribution steps possible with IN SCOPE items?
 
 ## File I/O
 

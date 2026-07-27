@@ -63,7 +63,7 @@ When evaluating or making changes, consider these traits critical to the system'
 
 Haytham is a personal idea-to-MVP pipeline, delivered as a Claude Code plugin. It orchestrates specialist agents to validate the idea, specify the MVP, design the architecture, generate implementation specs, and set up the project for building.
 
-Nine specialist agents across four phases, orchestrated via command and agent markdown files.
+Ten specialist agents across four phases, orchestrated via command and agent markdown files.
 
 ## Plugin Structure
 
@@ -71,7 +71,7 @@ Nine specialist agents across four phases, orchestrated via command and agent ma
 .claude-plugin/
   plugin.json                    # Manifest (name, version, description)
 
-agents/                          # 9 specialist agents (markdown with frontmatter)
+agents/                          # 10 specialist agents (markdown with frontmatter)
   idea-analyst.md                # Concept expansion, gating, anchor extraction
   market-researcher.md           # Market intelligence
   competitor-researcher.md       # Competitor profiles and positioning
@@ -79,6 +79,7 @@ agents/                          # 9 specialist agents (markdown with frontmatte
   report-synthesizer.md          # GO/NO-GO/PIVOT verdict (single-agent synthesis)
   mvp-scoper.md                  # Scope definition, boundaries, core flows
   capability-modeler.md          # Capability extraction + system trait classification
+  capability-checker.md          # Adversarial gap review of the capability model
   architect.md                   # Build/buy analysis + architecture decisions
   spec-generator.md              # OpenSpec generation with SHALL statements and Gherkin scenarios
 
@@ -185,7 +186,7 @@ Do not split a task that requires holistic reasoning across multiple agents conn
 
 **Evidence**: A single LLM call with upstream context scored 8 PASS / 4 PARTIAL / 0 FAIL on report quality criteria, versus 1 PASS / 3 PARTIAL / 8 FAIL from a 4-agent + 6-validator pipeline processing the same inputs.
 
-**When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. The current 9 agents are split along these lines.
+**When multi-agent IS justified**: When agents need different tools (e.g., web search vs. analysis), different model tiers, or operate on genuinely independent tasks. The current 10 agents are split along these lines. Generation and adversarial audit of the same artifact also count as independent tasks (capability-modeler vs capability-checker): they run in different mental modes, and a single pass reliably under-produces.
 
 ### PITFALL: LLM Text Overriding Deterministic Rules
 

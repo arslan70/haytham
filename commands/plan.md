@@ -107,11 +107,13 @@ Phase 2 (WHAT): .haytham/session/phase-2-what/
   - mvp-scope.md - MVP scope and boundaries
   - capabilities.json - Capability model
   - system-traits.json - System classification
+  - gate-summary.md - What you approved at Gate 2
 
 Phase 3 (HOW): .haytham/session/phase-3-how/
   - build-buy.json - Infrastructure decisions
   - architecture-decisions.json - Architecture choices
   - research-directives.json - Pre-implementation research questions
+  - gate-summary.md - What you approved at Gate 3
 
 Phase 4 (SPECS): .haytham/session/phase-4-specs/openspec/
   - config.yaml - Project metadata and system traits

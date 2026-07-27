@@ -36,6 +36,7 @@ Mark the active item `in_progress` when starting the phase and `completed` when 
 | 1 | report-synthesizer | `phase-1-why/research-brief.md`, `phase-1-why/concept-anchor.json`, `phase-1-why/competitor-research.md`, `phase-1-why/founder-corrections.json` (if exists), `references/benchmarks.md` |
 | 2 | mvp-scoper | `phase-1-why/validation-report.md`, `phase-1-why/idea-analysis.md`, `phase-1-why/concept-anchor.json` |
 | 2 | capability-modeler | `phase-2-what/mvp-scope.md`, `phase-1-why/idea-analysis.md`, `phase-1-why/concept-anchor.json` |
+| 2 | capability-checker | `phase-2-what/mvp-scope.md`, `phase-2-what/capabilities.json`, `phase-1-why/concept-anchor.json` |
 | 3 | architect | `phase-2-what/capabilities.json`, `phase-2-what/system-traits.json`, `phase-2-what/mvp-scope.md` |
 | 4 | spec-generator | `phase-2-what/capabilities.json`, `phase-2-what/mvp-scope.md`, `phase-2-what/system-traits.json`, `phase-3-how/architecture-decisions.json`, `phase-3-how/build-buy.json`, `phase-1-why/concept-anchor.json` |
 | 5 | build (command) | `phase-4-specs/openspec/`, `phase-3-how/research-directives.json` |
@@ -380,20 +381,21 @@ Before launching any agents, tell the user:
 
 > **Phase 2: MVP Specification**
 >
-> This will run 4 steps:
+> This will run 5 steps:
 > 1. MVP Scope — define what's in, what's out, and the core flows (~1 min)
 > 2. Scope Review — you shape the scope before capabilities are derived ← YOU STEER HERE
 > 3. Capability Model — extract capabilities and system traits from your approved scope (~1 min)
-> 4. Gate 2 — you approve the final capabilities ← YOU DECIDE HERE
+> 4. Capability Review — an adversarial pass hunts for gaps in the model (~1 min)
+> 5. Gate 2 — you approve the final capabilities ← YOU DECIDE HERE
 >
-> Estimated total: ~4 minutes.
+> Estimated total: ~5 minutes.
 
 ### Step 7: MVP Scope
 
 Verify `.haytham/session/phase-1-why/gate-decision.json` exists.
 
 Tell the user:
-> **Step 1/4: MVP Scope**
+> **Step 1/5: MVP Scope**
 > Translating the validated idea into a concrete MVP definition. What's in, what's out, and what the core user flow looks like.
 
 Launch an **mvp-scoper** agent with this task:
@@ -444,11 +446,11 @@ Update state: `last_completed_step: 8`.
 ### Step 9: Capability Model
 
 Tell the user:
-> **Step 3/4: Capability Model**
+> **Step 3/5: Capability Model**
 > Scope approved. Now extracting the specific capabilities your MVP needs from the scope you just approved.
 
 Read `.haytham/session/phase-2-what/mvp-scope.md` and count the number of IN SCOPE items in the MVP Boundaries table. Then launch a **capability-modeler** agent with this task:
-> Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. The MVP scope has [N] IN SCOPE items. Produce one functional capability per distinct user-observable behavior. Simple IN SCOPE items produce one capability. Complex items (multi-step pipelines, processes with multiple distinct behaviors) produce one per behavior, each referencing the same serves_scope_item. Write to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
+> Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. The MVP scope has [N] IN SCOPE items. Produce one functional capability per distinct user-observable behavior. Simple IN SCOPE items produce one capability. Complex items (multi-step pipelines, processes with multiple distinct behaviors) produce one per behavior, each referencing the same serves_scope_item. Write to `.haytham/session/phase-2-what/capabilities.json`, `.haytham/session/phase-2-what/system-traits.json`, and `.haytham/session/phase-2-what/gate-summary.md`.
 
 After the agent completes, read `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json` and present a structured digest:
 
@@ -463,17 +465,77 @@ After the agent completes, read `.haytham/session/phase-2-what/capabilities.json
 
 Update state: `last_completed_step: 9`.
 
-### Step 10: Gate 2
+### Step 10: Capability Review
 
-**If BATCH_MODE is true:** Auto-write gate decision with `user_decision: "batch-auto-approved"`. Tell the user:
+A generation pass reliably under-produces capabilities. This step runs an adversarial reviewer that hunts for gaps the modeler missed, before Gate 2.
+
+Tell the user:
+> **Step 4/5: Capability Review**
+> Running an adversarial pass over the capability model: hunting for missing capabilities and criteria the approved scope already implies.
+
+Track two counters across this step: CHECKER_ROUNDS (number of checker runs) and ADDITIONS_ACCEPTED (number of proposals accepted). Maintain a REJECTED list of proposals the founder declined.
+
+**Checker loop** (maximum 3 checker runs; in BATCH_MODE, maximum 2):
+
+1. Launch a **capability-checker** agent with this task:
+   > Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, capabilities from `.haytham/session/phase-2-what/capabilities.json`, and concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`. This is round [CHECKER_ROUNDS + 1]. Previously rejected proposals (do not re-propose these, even reworded): [LIST EACH REJECTED PROPOSAL'S NAME AND DESCRIPTION, or "none"]. Audit the capability model for gaps implied by the approved scope. Write findings to `.haytham/session/phase-2-what/capability-review.json`.
+2. Increment CHECKER_ROUNDS. Read `.haytham/session/phase-2-what/capability-review.json`.
+3. **If `proposed_additions` is empty:** tell the user:
+   > **Capability review clean.** The checker found no gaps[ after N rounds]. Proceeding to Gate 2.
+
+   Exit the loop and proceed to Step 11.
+4. **If there are proposals and BATCH_MODE is true:** accept all of them. Tell the user:
+   > **Capability review (batch mode):** accepting [N] checker proposal(s): [list proposed_name values].
+
+   Add [N] to ADDITIONS_ACCEPTED and go to 6.
+5. **If there are proposals** (normal mode), present each one inline (the user must see this without expanding anything):
+   > **The checker found [N] gap(s) in the capability model:**
+   >
+   > **1. [proposed_name]** ([gap_class], [type])
+   > - Proposes: [proposed_description]
+   > - Scope item it serves: "[serves_scope_item]"
+   > - Implied by: "[implied_by]"
+   > - Why: [rationale]
+   >
+   > (Repeat for each proposal.)
+   >
+   > Accept or reject each: reply with numbers to accept (e.g. "1, 3"), "all", or "none".
+
+   Add declined proposals to REJECTED. Add the count of accepted proposals to ADDITIONS_ACCEPTED. **If the founder rejected everything**, proceed to Step 11.
+6. Re-launch the **capability-modeler** agent with this task:
+   > Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`, and the current capabilities from `.haytham/session/phase-2-what/capabilities.json`. The founder approved these additions from an adversarial review (treat them as authoritative corrections): [PASTE EACH ACCEPTED PROPOSAL: name, description, type, serves_scope_item, and target_capability for acceptance criteria]. Integrate them into the capability model. Do not remove or alter existing capabilities beyond these additions. Write updated files to `.haytham/session/phase-2-what/capabilities.json`, `.haytham/session/phase-2-what/system-traits.json`, and `.haytham/session/phase-2-what/gate-summary.md` (the summary must reflect the additions, not the pre-review model).
+
+   Then, if CHECKER_ROUNDS is below the cap, return to 1 (additions can expose new gaps — the loop stops when a run proposes nothing new or the cap is hit). If the cap is reached, tell the user and proceed to Step 11.
+
+Update state: `last_completed_step: 10`.
+
+### Step 11: Gate 2
+
+**If BATCH_MODE is true:** hash the summary, then auto-write the gate decision.
+
+```bash
+shasum -a 256 .haytham/session/phase-2-what/gate-summary.md
+```
+
+Write `.haytham/session/phase-2-what/gate-decision.json` using the same template as the approved case below, with `user_decision: "batch-auto-approved"`, `summary_shown` set to the summary path, and `summary_sha256` set to that digest. Batch mode skips the human, not the record: the summary was still what the phase produced, so the decision still names it.
+
+Tell the user:
 > **Gate 2 auto-approved (batch mode).** Proceeding to technical design.
 
-Update state: `last_completed_step: 10`. Skip to Phase 3.
+Update state: `last_completed_step: 11`. Skip to Phase 3.
 
-**Otherwise**, read `.haytham/session/phase-2-what/capabilities.json` and output the following inline in your response (the user must see this without expanding anything):
-- Functional capabilities with traceability to scope items
-- Non-functional capabilities
-- System traits classification
+**Otherwise**, read `.haytham/session/phase-2-what/gate-summary.md` and output it inline in your response, verbatim (the user must see this without expanding anything). Do not rewrite it, summarize it further, or substitute your own digest. The agent wrote it with the full context of what it cut and what it assumed; a re-render loses that.
+
+Then add one line pointing at the detail:
+> Full details: `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
+
+Record the exact text the founder is seeing, before asking the gate question:
+
+```bash
+shasum -a 256 .haytham/session/phase-2-what/gate-summary.md
+```
+
+Keep that digest as SUMMARY_SHA for the gate decision below.
 
 Ask:
 > **Review the capabilities. Specifically:**
@@ -485,8 +547,8 @@ Ask:
 
 **If the user requests changes:**
 1. Re-launch the **capability-modeler** agent with this task:
-   > Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`, and the current capabilities from `.haytham/session/phase-2-what/capabilities.json`. The user reviewed the capabilities and requested these changes: [PASTE THE USER'S EXACT CORRECTIONS HERE]. Revise the capability model to incorporate these changes. Write updated files to `.haytham/session/phase-2-what/capabilities.json` and `.haytham/session/phase-2-what/system-traits.json`.
-2. Read the updated files and present the revised digest
+   > Read the MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, idea analysis from `.haytham/session/phase-1-why/idea-analysis.md`, concept anchor from `.haytham/session/phase-1-why/concept-anchor.json`, and the current capabilities from `.haytham/session/phase-2-what/capabilities.json`. The user reviewed the capabilities and requested these changes: [PASTE THE USER'S EXACT CORRECTIONS HERE]. Revise the capability model to incorporate these changes. Write updated files to `.haytham/session/phase-2-what/capabilities.json`, `.haytham/session/phase-2-what/system-traits.json`, and `.haytham/session/phase-2-what/gate-summary.md`.
+2. Re-render the updated `.haytham/session/phase-2-what/gate-summary.md` inline and recompute SUMMARY_SHA
 3. Ask the user to review again. **Repeat until the user approves.**
 
 **When the user approves**, write gate decision:
@@ -497,14 +559,20 @@ Ask:
   "user_decision": "approved|rejected",
   "scope_revisions": 0,
   "capability_revisions": 0,
+  "checker_rounds": 0,
+  "checker_additions_accepted": 0,
+  "summary_shown": ".haytham/session/phase-2-what/gate-summary.md",
+  "summary_sha256": "[SUMMARY_SHA]",
   "notes": "Any user feedback",
   "decided_at": "[ISO timestamp]"
 }
 ```
 
-Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections.
+Set `scope_revisions` and `capability_revisions` to the number of times each was re-generated based on user corrections. Set `checker_rounds` to CHECKER_ROUNDS and `checker_additions_accepted` to ADDITIONS_ACCEPTED from Step 10.
 
-Update state: `last_completed_step: 10`.
+Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval, so the record names the exact text that was approved. If you revised the model after rendering, recompute it: the validator re-hashes `gate-summary.md` and warns when the two disagree.
+
+Update state: `last_completed_step: 11`.
 
 ---
 
@@ -523,7 +591,7 @@ Before launching any agents, tell the user:
 >
 > Estimated total: ~3 minutes.
 
-### Step 11: Architecture
+### Step 12: Architecture
 
 Verify `.haytham/session/phase-2-what/gate-decision.json` exists.
 
@@ -532,7 +600,7 @@ Tell the user:
 > Deciding what to build, what to buy, and how the pieces fit together.
 
 Launch an **architect** agent with this task:
-> Read the capabilities, MVP scope, and system traits. Produce build/buy analysis, architecture decisions, and research directives. Write to `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json`.
+> Read the capabilities, MVP scope, and system traits. Produce build/buy analysis, architecture decisions, research directives, and the founder-facing gate summary. Write to `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, `.haytham/session/phase-3-how/research-directives.json`, and `.haytham/session/phase-3-how/gate-summary.md`.
 
 After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` and present a structured digest:
 
@@ -547,23 +615,35 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `
 >
 > Full details: `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` — review before approving.
 
-Update state: `last_completed_step: 11`.
+Update state: `last_completed_step: 12`.
 
-### Step 12: Review & Gate 3
+### Step 13: Review & Gate 3
 
-**If BATCH_MODE is true:** Auto-write gate decision with `user_decision: "batch-auto-approved"`. Tell the user:
+**If BATCH_MODE is true:** hash the summary, then auto-write the gate decision.
+
+```bash
+shasum -a 256 .haytham/session/phase-3-how/gate-summary.md
+```
+
+Write `.haytham/session/phase-3-how/gate-decision.json` using the same template as the approved case below, with `user_decision: "batch-auto-approved"`, `summary_shown` set to the summary path, and `summary_sha256` set to that digest. Batch mode skips the human, not the record.
+
+Tell the user:
 > **Gate 3 auto-approved (batch mode).** Proceeding to spec generation.
 
-Update state: `last_completed_step: 12`. Skip to Phase 4.
+Update state: `last_completed_step: 13`. Skip to Phase 4.
 
-**Otherwise**, read all three output files and output the following inline in your response (the user must see this without expanding anything):
-- **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
-- **Architecture Decisions**: ID, name, what it covers, capabilities served
-- **Research Directives:** [N] of [M] capabilities require pre-implementation research
-  - CAP-F-NNN (Capability Name): classification(s) — N questions
-  - (Repeat for each non-standard capability)
-- **Integration Effort**: Estimated days
-- **Monthly Cost**: Estimated range
+**Otherwise**, read `.haytham/session/phase-3-how/gate-summary.md` and output it inline in your response, verbatim (the user must see this without expanding anything). Do not rewrite it, summarize it further, or substitute your own digest. The agent wrote it knowing which alternatives it rejected and which unknowns remain; a re-render loses that.
+
+Then add one line pointing at the detail:
+> Full details: `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json`.
+
+Record the exact text the founder is seeing, before asking the gate question:
+
+```bash
+shasum -a 256 .haytham/session/phase-3-how/gate-summary.md
+```
+
+Keep that digest as SUMMARY_SHA for the gate decision below.
 
 Ask:
 > **Review the technical design. Specifically:**
@@ -579,12 +659,16 @@ Write gate decision:
 {
   "phase": 3,
   "user_decision": "approved|rejected",
+  "summary_shown": ".haytham/session/phase-3-how/gate-summary.md",
+  "summary_sha256": "[SUMMARY_SHA]",
   "notes": "Any user feedback",
   "decided_at": "[ISO timestamp]"
 }
 ```
 
-Update state: `last_completed_step: 12`.
+Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval, so the record names the exact text that was approved. If the design was revised after rendering, recompute it: the validator re-hashes `gate-summary.md` and warns when the two disagree.
+
+Update state: `last_completed_step: 13`.
 
 ---
 
@@ -603,7 +687,7 @@ Before launching any agents, tell the user:
 >
 > Estimated total: ~3 minutes.
 
-### Step 13: OpenSpec Generation
+### Step 14: OpenSpec Generation
 
 Verify `.haytham/session/phase-3-how/gate-decision.json` exists.
 
@@ -633,14 +717,14 @@ Then read the generated files and present a structured digest:
 >
 > Full details: `.haytham/session/phase-4-specs/openspec/` — review before approving.
 
-Update state: `last_completed_step: 13`.
+Update state: `last_completed_step: 14`.
 
-### Step 14: Final Review
+### Step 15: Final Review
 
 **If BATCH_MODE is true:** Skip the review. Tell the user:
 > **Final review skipped (batch mode).** Specification complete.
 
-Update state: `last_completed_step: 14`. Skip to Completion.
+Update state: `last_completed_step: 15`. Skip to Completion.
 
 **Otherwise**, read the OpenSpec files and output the following inline in your response (the user must see this without expanding anything):
 - Domain list with requirement counts per domain
@@ -655,7 +739,7 @@ Ask:
 >
 > Say "looks good" or request changes.
 
-Update state: `last_completed_step: 14`.
+Update state: `last_completed_step: 15`.
 
 ### Completion
 
@@ -671,4 +755,4 @@ Command               Output Directory
 
 Tell the user:
 
-> Your specification is complete. Ran 9 agents across 4 phases. All output files are in `.haytham/session/`. Run `/haytham:build` to set up your project for implementation with OpenSpec.
+> Your specification is complete. Ran 10 agents across 4 phases. All output files are in `.haytham/session/`. Run `/haytham:build` to set up your project for implementation with OpenSpec.
