@@ -65,7 +65,7 @@ If not found, tell the user to install it with `npm install -g @fission-ai/opens
    | phase-3-how/ | architecture-decisions.json | Architecture decision records |
    | phase-3-how/ | build-buy.json | Build vs buy analysis |
 
-   Do NOT copy: gate-decision.json (pipeline state), research-brief.md (superseded by validation report), validation-report.json (machine duplicate of .md), validation-report.pdf (export format).
+   Do NOT copy: gate-decision.json (pipeline state), gate-summary.md (founder-facing gate rendering; the JSON it summarizes is already copied), capability-review.json (pipeline state), research-brief.md (superseded by validation report), validation-report.json (machine duplicate of .md), validation-report.pdf (export format).
 
 7. Generate a `CLAUDE.md` at the project root. This file orients the coding agent in the implementation session. Read these files to generate it:
    - `.haytham/session/phase-4-specs/openspec/config.yaml` (project name, description)

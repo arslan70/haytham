@@ -1,0 +1,12 @@
+{
+  "phase": 2,
+  "user_decision": "approved",
+  "scope_revisions": 0,
+  "capability_revisions": 0,
+  "checker_rounds": 1,
+  "checker_additions_accepted": 0,
+  "summary_shown": ".haytham/session/phase-2-what/gate-summary.md",
+  "summary_sha256": "a3f1c0de9b7e4a2f8c1d5e6b0a9384756fa2b1c0d9e8f7a6b5c4d3e2f1a0b9c8",
+  "notes": "",
+  "decided_at": "2026-07-27T10:00:00Z"
+}

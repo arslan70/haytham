@@ -14,7 +14,7 @@ You perform two tasks:
 
 ## Instructions
 
-Read the upstream context and produce two output files.
+Read the upstream context and produce three output files: two JSON artifacts and a founder-facing gate summary.
 
 Read these files:
 - `.haytham/session/phase-2-what/mvp-scope.md`
@@ -211,6 +211,54 @@ Anchor -> Trait Mapping:
 
 If input provides no signal: interface: ["browser"], auth: multi_user, deployment: ["cloud_hosted"], data_layer: remote_db, realtime: false, communication: none, payments: none, scheduling: none.
 
+## Part 3: Gate Summary
+
+Write to `.haytham/session/phase-2-what/gate-summary.md`. **Write this last**, after both JSON files exist.
+
+This is what the founder reads at Gate 2 to decide whether to approve the capability model. The JSON stays the machine-readable source of truth. This file carries what the JSON cannot: the cuts you made, the calls that could have gone the other way, and what the scope did not settle.
+
+### Tone
+
+Read `founder_profile` from the concept anchor and adapt:
+
+- **technical** (`technical_level: technical`): precise terminology, skip basic explanations
+- **semi-technical**: explain trade-offs briefly
+- **non-technical** (default when `founder_profile` is missing): plain language, no jargon, say what the founder gets rather than how it works
+
+Write for a founder deciding, not for an engineer implementing. Every line should inform the approve-or-revise decision.
+
+### Structure
+
+```markdown
+# What we are building
+
+[2-3 sentences: what the system does and who it is for. From the summary block of capabilities.json, in plain language.]
+
+## What is in
+
+[One bullet per functional capability: the capability name, what the founder gets from it, and the IN SCOPE item it serves. Every functional capability appears here.]
+
+## What is out
+
+[IN SCOPE items with no capability and why, from traceability.scope_items_not_covered. Behaviors you considered and deliberately did not model as capabilities, with the reason. If nothing was cut, say so in one line.]
+
+## Judgment calls
+
+[Decisions that could reasonably have gone the other way: two behaviors kept as one capability, one scope item split into several, a non-functional requirement set at a specific threshold. One bullet each, with the reasoning. This is where a founder catches a wrong assumption before it becomes architecture.]
+
+## Open questions
+
+[What the approved scope did not settle and you had to assume. One bullet each. Write "None" if the scope was unambiguous.]
+```
+
+### Rules
+
+- Prose and bullets only. No JSON blocks, no capability IDs as headings, no tables of raw fields. The founder can open the JSON for that.
+- Under 600 words.
+- Never use em dashes.
+- Describe WHAT the system does, not HOW it is built. Technology choices belong to Phase 3.
+- No agent reads this file. It exists for the founder. Never treat it as an input contract for a downstream step.
+
 ## Part 1 Self-Check
 
 Before writing capabilities.json:
@@ -230,6 +278,15 @@ Before writing system-traits.json:
 - Every value in the `explanations` object is a string (not boolean, not number, not null)?
 - Each explanation is a sentence explaining WHY, not a copy of the trait value?
 
+## Part 3 Self-Check
+
+Before writing gate-summary.md:
+- Every functional capability from capabilities.json named in "What is in"?
+- Does "What is out" account for every entry in traceability.scope_items_not_covered?
+- Is every claim consistent with the JSON you just wrote? The two must not disagree.
+- Free of JSON blocks, capability IDs as headings, and em dashes?
+- Under 600 words?
+
 ## File I/O
 
 **Read from:**
@@ -240,3 +297,4 @@ Before writing system-traits.json:
 **Write to:**
 - `.haytham/session/phase-2-what/capabilities.json`
 - `.haytham/session/phase-2-what/system-traits.json`
+- `.haytham/session/phase-2-what/gate-summary.md`

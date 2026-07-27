@@ -537,6 +537,104 @@ class TestSchemaValidation:
         assert any("CAP-F-003" in w for w in warnings)
         assert any("CAP-NF-001" in w for w in warnings)
 
+    def test_valid_gate_summary_phase2(self, tmp_path):
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-2-what"
+        phase_dir.mkdir(parents=True)
+        (phase_dir / "capabilities.json").write_text(
+            (FIXTURES_DIR / "valid_capabilities.json").read_text()
+        )
+        dst = phase_dir / "gate-summary.md"
+        dst.write_text((FIXTURES_DIR / "valid_gate_summary_phase2.md").read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_gate_summary_phase2_missing_sections(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "gate-summary.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            (FIXTURES_DIR / "gate_summary_phase2_missing_sections.md").read_text()
+        )
+        warnings = validate_file(str(dst))
+        assert any("Missing section 'What is out'" in w for w in warnings)
+        assert any("Missing section 'Judgment calls'" in w for w in warnings)
+        assert any("Missing section 'Open questions'" in w for w in warnings)
+        assert any("Contains a JSON block" in w for w in warnings)
+
+    def test_gate_summary_phase2_uncovered_capability(self, tmp_path):
+        """Every functional capability being approved must be named in the summary."""
+        phase_dir = tmp_path / ".haytham" / "session" / "phase-2-what"
+        phase_dir.mkdir(parents=True)
+        (phase_dir / "capabilities.json").write_text(
+            (FIXTURES_DIR / "valid_capabilities.json").read_text()
+        )
+        dst = phase_dir / "gate-summary.md"
+        dst.write_text(
+            (FIXTURES_DIR / "gate_summary_phase2_uncovered_capability.md").read_text()
+        )
+        warnings = validate_file(str(dst))
+        assert any("Workout Logging" in w and "not mentioned" in w for w in warnings)
+        assert not any("User Registration" in w for w in warnings)
+
+    def test_gate_summary_phase2_coverage_skips_without_caps(self, tmp_path):
+        """Coverage check degrades gracefully when capabilities.json is absent."""
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "gate-summary.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            (FIXTURES_DIR / "gate_summary_phase2_uncovered_capability.md").read_text()
+        )
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_valid_gate_summary_phase3(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "gate-summary.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text((FIXTURES_DIR / "valid_gate_summary_phase3.md").read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_gate_summary_phase3_missing_sections(self, tmp_path):
+        """Phase 3 required sections differ from phase 2, same filename."""
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "gate-summary.md"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            (FIXTURES_DIR / "valid_gate_summary_phase2.md").read_text()
+        )
+        warnings = validate_file(str(dst))
+        assert any("Missing section 'The stack'" in w for w in warnings)
+        assert any("Missing section 'Decisions that matter'" in w for w in warnings)
+
+    def test_gate_summary_word_cap(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-3-how" / "gate-summary.md"
+        dst.parent.mkdir(parents=True)
+        base = (FIXTURES_DIR / "valid_gate_summary_phase3.md").read_text()
+        dst.write_text(base + "\n" + ("padding " * 600))
+        warnings = validate_file(str(dst))
+        assert any("cap: 600" in w for w in warnings)
+
+    def test_valid_gate_decision_phase2(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "gate-decision.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text((FIXTURES_DIR / "valid_gate_decision_phase2.json").read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
+    def test_gate_decision_phase2_missing_summary(self, tmp_path):
+        dst = tmp_path / ".haytham" / "session" / "phase-2-what" / "gate-decision.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text(
+            (FIXTURES_DIR / "gate_decision_phase2_no_summary.json").read_text()
+        )
+        warnings = validate_file(str(dst))
+        assert any("summary_shown" in w for w in warnings)
+
+    def test_gate_decision_phase1_needs_no_summary(self, tmp_path):
+        """Phase 1 already ships prose, so it carries no summary pointer."""
+        dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "gate-decision.json"
+        dst.parent.mkdir(parents=True)
+        dst.write_text((FIXTURES_DIR / "gate_decision_phase1.json").read_text())
+        warnings = validate_file(str(dst))
+        assert not warnings, f"Unexpected warnings: {warnings}"
+
     def test_valid_scope_risk(self, tmp_path):
         dst = tmp_path / ".haytham" / "session" / "phase-1-why" / "concept-anchor.json"
         dst.parent.mkdir(parents=True)

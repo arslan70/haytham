@@ -30,9 +30,11 @@ flowchart TD
 
     subgraph what["WHAT: What exactly?"]
         mvp[MVP Scoper] --> capability[Capability Modeler]
+        capability --> checker[Capability Checker]
+        checker -->|gaps found| capability
     end
 
-    capability --> gate2{Gate 2: Product Owner}
+    checker --> gate2{Gate 2: Product Owner}
     gate2 -->|Approved| build_buy
 
     subgraph how["HOW: How?"]
@@ -89,7 +91,11 @@ Define a focused, achievable first version. The **MVP Scoper** uses Shape Up app
 
 The **Capability Modeler** decomposes the scope into functional and non-functional capabilities using standard capability mapping, each traced to the user flows that justify it. It also classifies system traits (interface type, auth model, deployment targets, data layer) to inform downstream architecture. Without this classification, spec generation defaults to web-app patterns regardless of whether the product is a CLI tool, an API service, or a mobile app.
 
+The **Capability Checker** then audits the model adversarially. A generation pass reliably under-produces capabilities, so a second agent with a destructive mandate hunts for gaps the approved scope already implies: undefined load-bearing terms ("confirmed", "valid"), missing failure surfacing in unattended systems, success metrics no capability produces, flow steps no capability covers. It can only propose additions that quote an existing in-scope item, which keeps it from becoming a scope-creep vector. The founder accepts or rejects each proposal, accepted ones go back through the modeler, and the checker re-runs until a pass finds nothing new (capped at 3 rounds).
+
 ### Gate 2: Product Owner Review
+
+The modeler writes `gate-summary.md` alongside the JSON, and the gate renders that file verbatim. It carries what the JSON cannot hold: the behaviors that were cut, the calls that could have gone the other way, and the questions the approved scope left open. The decision record then stores the summary path and a SHA-256 of the text, so the approval names exactly what was read.
 
 - **Approved**: Scope is locked, proceed to technical design
 - **Revise**: Adjust scope boundaries or capabilities
@@ -101,6 +107,8 @@ The **Capability Modeler** decomposes the scope into functional and non-function
 The **Architect** evaluates each capability for build-vs-buy using a weighted scoring model (complexity, time-to-build, maintenance burden, cost-at-scale, vendor lock-in risk, and differentiation value). It recommends BUILD, BUY, or HYBRID per capability. It then records key technical decisions (component structure, technology stack, integration patterns, deployment approach) as DEC-* records with rationale and the capabilities each serves.
 
 ### Gate 3: Architect Review
+
+The architect writes `gate-summary.md` the same way: the stack in plain language, the three to five decisions with the highest cost of being wrong, what it costs to run, and the unknowns that still block implementation. The gate renders that file and records its digest in the decision.
 
 - **Approved**: Architecture locked, proceed to specification generation
 - **Revise**: Adjust technology or integration decisions
@@ -128,6 +136,7 @@ The OpenSpec in `.haytham/session/phase-4-specs/openspec/` is a complete, self-c
 | Report Synthesizer | WHY | Score dimensions, produce GO/NO-GO/PIVOT verdict | opus |
 | MVP Scoper | WHAT | Scope definition, boundaries, core flows | sonnet |
 | Capability Modeler | WHAT | Capability extraction and system trait classification | sonnet |
+| Capability Checker | WHAT | Adversarial gap review of the capability model | sonnet |
 | Architect | HOW | Build/buy analysis and architecture decisions | sonnet |
 | Spec Generator | SPECS | OpenSpec generation with SHALL statements and Gherkin scenarios | opus |
 
@@ -152,12 +161,15 @@ Each phase writes structured output to `.haytham/session/`. Phases read upstream
     mvp-scope.md                  # Scope, boundaries, core flows
     capabilities.json             # CAP-F-*, CAP-NF-*
     system-traits.json            # System trait classification
-    gate-decision.json
+    capability-review.json        # Adversarial gap findings
+    gate-summary.md               # Founder-readable summary rendered at Gate 2
+    gate-decision.json            # Decision, plus the summary path and digest
   phase-3-how/
     build-buy.json                # BUILD/BUY/HYBRID per capability
     architecture-decisions.json   # DEC-* decisions
     research-directives.json      # What to investigate before coding
-    gate-decision.json
+    gate-summary.md               # Founder-readable summary rendered at Gate 3
+    gate-decision.json            # Decision, plus the summary path and digest
   phase-4-specs/
     openspec/
       config.yaml                 # Project metadata, system traits

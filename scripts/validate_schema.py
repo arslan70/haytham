@@ -255,6 +255,88 @@ def validate_markdown(file_path: str) -> list[str]:
                     f"(budget: {budget}, 25% tolerance: {int(budget * 1.25)})"
                 )
 
+    # --- gate-summary.md (founder-facing gate artifact) ---
+    if basename == "gate-summary.md":
+        warnings.extend(_validate_gate_summary(file_path, content))
+
+    return warnings
+
+
+# Required sections per phase directory. Dispatch in validate_markdown() is by
+# basename, and both phases use the same filename, so the phase comes from the
+# parent directory.
+GATE_SUMMARY_SECTIONS = {
+    "phase-2-what": [
+        (r"^#+\s*What is in\b", "What is in"),
+        (r"^#+\s*What is out\b", "What is out"),
+        (r"^#+\s*Judgment calls\b", "Judgment calls"),
+        (r"^#+\s*Open questions\b", "Open questions"),
+    ],
+    "phase-3-how": [
+        (r"^#+\s*The stack\b", "The stack"),
+        (r"^#+\s*Decisions that matter\b", "Decisions that matter"),
+        (r"^#+\s*What this costs\b", "What this costs"),
+        (r"^#+\s*Unknowns to resolve\b", "Unknowns to resolve before building"),
+    ],
+}
+
+GATE_SUMMARY_WORD_CAP = 600
+
+
+def _validate_gate_summary(file_path: str, content: str) -> list[str]:
+    """Validate a phase gate summary. Returns warnings.
+
+    The summary is what the founder reads at the gate, so the checks are about
+    comprehension: the decision sections are present, it is prose rather than a
+    JSON dump, and it stays short enough to actually be read.
+    """
+    warnings = []
+    phase_dir = os.path.basename(os.path.dirname(file_path))
+
+    required_sections = GATE_SUMMARY_SECTIONS.get(phase_dir)
+    if required_sections is None:
+        # A gate summary outside a known phase directory: nothing to check against.
+        return warnings
+
+    for pattern, name in required_sections:
+        if not re.search(pattern, content, re.MULTILINE | re.IGNORECASE):
+            warnings.append(f"gate-summary.md ({phase_dir}): Missing section '{name}'")
+
+    if re.search(r"^```json", content, re.MULTILINE):
+        warnings.append(
+            f"gate-summary.md ({phase_dir}): Contains a JSON block. The summary is "
+            "for the founder; the JSON artifacts hold the machine-readable detail."
+        )
+
+    words = len(content.split())
+    if words > GATE_SUMMARY_WORD_CAP:
+        warnings.append(
+            f"gate-summary.md ({phase_dir}): {words} words "
+            f"(cap: {GATE_SUMMARY_WORD_CAP})"
+        )
+
+    # Phase 2 coverage: every functional capability the founder is approving must
+    # be named in the summary, otherwise the gate hides part of what it approves.
+    if phase_dir == "phase-2-what":
+        caps_path = os.path.join(os.path.dirname(file_path), "capabilities.json")
+        if os.path.exists(caps_path):
+            try:
+                with open(caps_path) as cf:
+                    caps = json.load(cf)
+            except (OSError, json.JSONDecodeError):
+                caps = None
+            if isinstance(caps, dict):
+                functional = caps.get("capabilities", {}).get("functional", [])
+                for cap in functional:
+                    if not isinstance(cap, dict):
+                        continue
+                    name = cap.get("name", "")
+                    if name and name.lower() not in content.lower():
+                        warnings.append(
+                            f"gate-summary.md ({phase_dir}): Capability '{name}' "
+                            "from capabilities.json is not mentioned"
+                        )
+
     return warnings
 
 
@@ -297,6 +379,20 @@ def validate_file(file_path: str) -> list[str]:
             warnings.append(f"Missing required field '{key}' in {basename}")
         elif data[key] is None or data[key] == "" or data[key] == []:
             warnings.append(f"Empty required field '{key}' in {basename}")
+
+    # Gates 2 and 3 render a persisted founder summary, so their decision record
+    # must name the text that was approved.
+    if basename == "gate-decision.json" and data.get("phase") in (2, 3):
+        if not data.get("summary_shown"):
+            warnings.append(
+                f"Missing 'summary_shown' in {basename} (phase {data.get('phase')}). "
+                "The gate decision should record the gate-summary.md the founder read."
+            )
+        elif not data.get("summary_sha256"):
+            warnings.append(
+                f"Missing 'summary_sha256' in {basename} (phase {data.get('phase')}). "
+                "Without the digest, a later edit to the summary is undetectable."
+            )
 
     # Special validation for concept-anchor.json
     if basename == "concept-anchor.json":

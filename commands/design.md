@@ -47,7 +47,7 @@ Tell the user:
 > Deciding what to build, what to buy, and how the pieces fit together.
 
 Launch an **architect** agent with this task:
-> Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, and system traits from `.haytham/session/phase-2-what/system-traits.json`. Produce build/buy analysis, architecture decisions, and research directives. Write to `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json`.
+> Read capabilities from `.haytham/session/phase-2-what/capabilities.json`, MVP scope from `.haytham/session/phase-2-what/mvp-scope.md`, and system traits from `.haytham/session/phase-2-what/system-traits.json`. Produce build/buy analysis, architecture decisions, research directives, and the founder-facing gate summary. Write to `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, `.haytham/session/phase-3-how/research-directives.json`, and `.haytham/session/phase-3-how/gate-summary.md`.
 
 After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json` and present a structured digest:
 
@@ -64,14 +64,18 @@ After the agent completes, read `.haytham/session/phase-3-how/build-buy.json`, `
 
 ## Step 2: Review
 
-Read all three output files and output the following inline in your response (the user must see this without expanding anything):
-- **Recommended Stack**: Service name, category, BUILD/BUY/HYBRID, rationale
-- **Architecture Decisions**: ID, name, what it covers, capabilities served
-- **Research Directives:** [N] of [M] capabilities require pre-implementation research
-  - CAP-F-NNN (Capability Name): classification(s) — N findings resolved, N questions remaining
-  - (Repeat for each non-standard capability)
-- **Integration Effort**: Estimated days
-- **Monthly Cost**: Estimated range
+Read `.haytham/session/phase-3-how/gate-summary.md` and output it inline in your response, verbatim (the user must see this without expanding anything). Do not rewrite it, summarize it further, or substitute your own digest. The agent wrote it knowing which alternatives it rejected and which unknowns remain; a re-render loses that.
+
+Then add one line pointing at the detail:
+> Full details: `.haytham/session/phase-3-how/build-buy.json`, `.haytham/session/phase-3-how/architecture-decisions.json`, and `.haytham/session/phase-3-how/research-directives.json`.
+
+Record the exact text the founder is seeing, before asking the gate question:
+
+```bash
+shasum -a 256 .haytham/session/phase-3-how/gate-summary.md
+```
+
+Keep that digest as SUMMARY_SHA for the gate decision below.
 
 ## Step 3: Gate 3
 
@@ -88,9 +92,13 @@ Write gate decision to `.haytham/session/phase-3-how/gate-decision.json`:
 {
   "phase": 3,
   "user_decision": "approved|rejected",
+  "summary_shown": ".haytham/session/phase-3-how/gate-summary.md",
+  "summary_sha256": "[SUMMARY_SHA]",
   "notes": "Any user feedback",
   "decided_at": "[ISO timestamp]"
 }
 ```
 
-Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Output saved to `.haytham/session/phase-3-how/` (`build-buy.json`, `architecture-decisions.json`, `research-directives.json`). Run `/haytham:plan` to proceed to Phase 4."
+Set `summary_sha256` to SUMMARY_SHA, the digest of the summary as it was rendered at the moment of approval. The approval record then names the exact text the founder read, and a later edit to the file is detectable.
+
+Tell the user: "Phase 3 complete. Ran 1 agent across 3 steps. Output saved to `.haytham/session/phase-3-how/` (`build-buy.json`, `architecture-decisions.json`, `research-directives.json`, `gate-summary.md`). Run `/haytham:plan` to proceed to Phase 4."

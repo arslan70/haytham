@@ -75,11 +75,13 @@ All output lives in `.haytham/session/`:
 ├── phase-2-what/
 │   ├── mvp-scope.md              # What's in, what's out, core flows
 │   ├── capabilities.json         # Functional + non-functional capabilities
-│   └── system-traits.json        # Auth, deployment, data layer, etc.
+│   ├── system-traits.json        # Auth, deployment, data layer, etc.
+│   └── gate-summary.md           # What you approve at Gate 2, in prose
 ├── phase-3-how/
 │   ├── build-buy.json            # BUILD/BUY/HYBRID per capability
 │   ├── architecture-decisions.json
-│   └── research-directives.json  # What to investigate before coding
+│   ├── research-directives.json  # What to investigate before coding
+│   └── gate-summary.md           # What you approve at Gate 3, in prose
 └── phase-4-specs/
     └── openspec/
         ├── config.yaml
@@ -91,7 +93,7 @@ All output lives in `.haytham/session/`:
 
 ## How it works
 
-Nine specialist agents across four phases. Market research agents run web searches. The report synthesizer weighs evidence and produces an honest verdict. If risks are high, it says so. If the idea doesn't hold up, it recommends NO-GO.
+Ten specialist agents across four phases. Market research agents run web searches. The report synthesizer weighs evidence and produces an honest verdict. If risks are high, it says so. If the idea doesn't hold up, it recommends NO-GO.
 
 Concept anchors (extracted in Phase 1) are passed unchanged to every downstream agent, preventing the "telephone game" where your specific idea gets genericized into something bland.
 
